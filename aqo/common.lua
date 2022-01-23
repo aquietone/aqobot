@@ -10,6 +10,7 @@ common.ASSIST_MODES = {assist=1,chase=1,puller=1}
 common.TANK_MODES = {tank=1,pullertank=1}
 common.PULLER_MODES = {pullertank=1,puller=1}
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
+common.FD_CLASSES = {mnk=1,bst=1,shd=1,nec=1}
 common.OPTS = {
     MODE='manual',
     CHASETARGET='',
@@ -176,10 +177,11 @@ common.set_camp = function(reset)
             ['Z']=mq.TLO.Me.Z(),
             ['ZoneID']=mq.TLO.Zone.ID()
         }
-        mq.cmdf('/mapf campradius %d', common.OPTS.CAMPRADIUS)
+        common.printf('Camp set to X: %s Y: %s Z: %s R: %s', common.CAMP.X, common.CAMP.Y, common.CAMP.Z, common.OPTS.CAMPRADIUS)
+        --mq.cmdf('/mapf campradius %d', common.OPTS.CAMPRADIUS)
     elseif not common.CAMP_MODES[common.OPTS.MODE] and common.CAMP then
         common.CAMP = nil
-        mq.cmd('/mapf campradius 0')
+        --mq.cmd('/mapf campradius 0')
     end
 end
 
@@ -209,7 +211,7 @@ common.mob_radar = function()
             if i > 13 then break end
             local mob = mq.TLO.NearestSpawn(xtar_spawn:format(i, common.OPTS.CAMPRADIUS))
             local mob_id = mob.ID()
-            if mob_id > 0 then
+            if mob_id and mob_id > 0 then
                 if not mob() or mob.Type() == 'Corpse' then
                     common.TARGETS[mob_id] = nil
                     num_corpses = num_corpses+1
@@ -249,7 +251,8 @@ common.pull_radar = function()
         for i=1,pull_radius_count do
             local mob = mq.TLO.NearestSpawn(pull_spawn:format(i, common.OPTS.PULLRADIUS))
             local mob_id = mob.ID()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' then
+            local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
@@ -262,97 +265,148 @@ common.pull_radar = function()
 end
 
 -- TODO: non-autohater slots?
-common.mobs_on_xtar = function()
-    return mq.TLO.Me.XTarget() > 0
+common.mobs_on_xtar = function(ignore_id)
+    if mq.TLO.Me.XTarget() > 1 or (ignore_id and mq.TLO.Me.XTarget(1).ID() > 0 and mq.TLO.Me.XTarget(1).ID() ~= ignore_id and mq.TLO.Me.XTarget(1).Type() ~= 'Corpse') then
+        return true
+    else
+        return false
+    end
+end
+
+local function pull_nav_to(pull_spawn)
+    local mob_x = pull_spawn.X()
+    local mob_y = pull_spawn.Y()
+    local mob_z = pull_spawn.Z()
+    if not mob_x or not mob_y or not mob_z then
+        common.PULL_MOB_ID = 0
+        return false
+    end
+    if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
+        common.debug('Moving to pull target (%s)', common.PULL_MOB_ID)
+        if not mq.TLO.Navigation.Active() then
+            mq.cmdf('/nav spawn id %d | log=off', common.PULL_MOB_ID)
+            mq.delay(100, function() return mq.TLO.Navigation.Active() end)
+        end
+        -- TODO: disrupt if mob aggro otw to pull
+        mq.delay('15s', function()
+            if not pull_spawn then
+                return false
+            end
+            local dist3d = pull_spawn.Distance3D()
+            -- return right away if we can't read distance, as pull spawn is probably no longer valid
+            if not dist3d then return true end
+            -- return true once target is in range and in LOS, or if something appears on xtarget
+            return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or mq.TLO.Me.XTarget() > 0
+        end)
+    end
+    return true
+end
+
+local function clear_pull_vars()
+    common.TANK_MOB_ID = 0
+    common.PULL_MOB_ID = 0
+    PULL_IN_PROGRESS = false
+end
+
+local function pull_engage(pull_spawn)
+    -- pull  mob
+    local dist3d = pull_spawn.Distance3D()
+    if not dist3d or not pull_spawn.LineOfSight() or dist3d > 200 then
+        common.printf('Pull target no longer valid (%s)', common.PULL_MOB_ID)
+        clear_pull_vars()
+        return
+    end
+    pull_spawn.DoTarget()
+    mq.delay(50, function() return mq.TLO.Target.ID() == pull_spawn.ID() end)
+    if not mq.TLO.Target() then
+        common.printf('Pull target no longer valid (%s)', common.PULL_MOB_ID)
+        clear_pull_vars()
+        return
+    end
+    local tot_id = mq.TLO.Me.TargetOfTarget.ID()
+    if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) then --or mq.TLO.Target.PctHPs() < 100 then
+        common.printf('Pull target already engaged, skipping (%s)', common.PULL_MOB_ID)
+        -- TODO: clear skip targets
+        PULL_TARGET_SKIP[common.PULL_MOB_ID] = 1
+        clear_pull_vars()
+        return
+    end
+    common.printf('Pulling %s (%s)', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
+    --common.printf('facing mob')
+    mq.cmd('/face fast')
+    --common.printf('agroing mob')
+    -- TODO: class pull abilities
+    if mq.TLO.Target.Distance3D() < 35 then
+        -- use class close range pull ability
+        mq.cmd('/squelch /stick front loose moveback 10')
+        -- /stick mod 0
+        mq.cmd('/attack on')
+    else
+        if mq.TLO.Me.Combat() then
+            mq.cmd('/attack off')
+            mq.delay(100)
+        end
+        mq.cmd('/autofire on')
+        --mq.delay(50, function() return mq.TLO.Me.AutoFire() end)
+        mq.delay(100)
+        if not mq.TLO.Me.AutoFire() then
+            mq.cmd('/autofire on')
+        end
+        -- use class long range pull ability
+        -- tag with range
+    end
+    mq.delay('5s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
+    --common.printf('mob agrod or timed out')
+    mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
+    if mq.TLO.Navigation.Active() then
+        mq.cmd('/squelch /nav stop')
+        mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
+    end
+end
+
+local function pull_return()
+    --common.printf('Bringing pull target back to camp (%s)', common.PULL_MOB_ID)
+    mq.cmdf('/nav locyxz %d %d %d log=off', common.CAMP.Y, common.CAMP.X, common.CAMP.Z)
+    mq.delay('50', function() return mq.TLO.Navigation.Active() end)
+    mq.delay('30s', function() return not mq.TLO.Navigation.Active() end)
+    -- wait for mob to show up
+    common.debug('Waiting for pull target to reach camp (%s)', common.PULL_MOB_ID)
+    -- TODO: swap to closer mobs in camp if any
+    if mq.TLO.Me.XTarget() == 0 then
+        clear_pull_vars()
+        return
+    end
+    mq.delay('15s', function()
+        local mob_x = mq.TLO.Target.X()
+        local mob_y = mq.TLO.Target.Y()
+        if not mob_x or not mob_y then return true end
+        return mq.TLO.Me.XTarget() > 1 or common.check_distance(common.CAMP.X, common.CAMP.Y, mob_x, mob_y) < common.OPTS.CAMPRADIUS and mq.TLO.Target.LineOfSight()
+    end)
 end
 
 common.pull_mob = function()
-    if not common.PULL_MOB_ID then return end
+    if common.PULL_MOB_ID == 0 then return end
     if common.am_i_dead() then return end
     local pull_spawn = mq.TLO.Spawn(common.PULL_MOB_ID)
     if not pull_spawn then
         common.PULL_MOB_ID = 0
         return
     end
-    local mob_x = pull_spawn.X()
-    local mob_y = pull_spawn.Y()
-    local mob_z = pull_spawn.Z()
-    if not mob_x or not mob_y or not mob_z then
-        common.PULL_MOB_ID = 0
-        return
-    end
+
     PULL_IN_PROGRESS = true
     -- move to pull target
-    if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
-        common.debug('Moving to pull target (%s)', common.PULL_MOB_ID)
-        if not mq.TLO.Navigation.Active() then
-            mq.cmdf('/nav spawn id %d | log=off', common.PULL_MOB_ID)
-        end
-        mq.delay(50)
-        -- TODO: disrupt if mob aggro otw to pull
-        --mq.delay('15s', function() return mq.TLO.Target.LineOfSight() and mq.TLO.Target.Distance3D() < 15 end)
-        mq.delay('15s', function() 
-            local dist3d = pull_spawn.Distance3D()
-            -- return right away if we can't read distance, as pull spawn is probably no longer valid
-            if not dist3d then return true end
-            -- return true once target is in range and in LOS, or if something appears on xtarget
-            return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or common.mobs_on_xtar()
-        end)
-        if mq.TLO.Navigation.Active() then
-            mq.cmd('/squelch /nav stop')
-        end
-    end
-    if not common.mobs_on_xtar() then
-        -- pull  mob
-        pull_spawn.DoTarget()
-        mq.delay(50)
-        if not mq.TLO.Target() then
-            common.printf('Pull target no longer valid (%s)', common.PULL_MOB_ID)
-            common.TANK_MOB_ID = 0
-            common.PULL_MOB_ID = 0
-            PULL_IN_PROGRESS = false
-            return
-        end
-        common.printf('Pulling %s (%s)', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
-        local tot_id = mq.TLO.Me.TargetOfTarget.ID()
-        if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) or mq.TLO.Target.PctHPs() < 100 then
-            common.printf('Pull target already engaged, skipping (%s)', common.PULL_MOB_ID)
-            -- TODO: clear skip targets
-            PULL_TARGET_SKIP[common.PULL_MOB_ID] = 1
-            common.TANK_MOB_ID = 0
-            common.PULL_MOB_ID = 0
-            PULL_IN_PROGRESS = false
-            return
-        end
-        mq.cmd('/face fast')
-        -- TODO: class pull abilities
-        if mq.TLO.Target.Distance3D() < 35 then
-            -- use class close range pull ability
-            mq.cmd('/stick front loose moveback 10')
-            mq.cmd('/attack on')
-        else
-            mq.cmd('/autofire on')
-            -- use class long range pull ability
-            -- tag with range
-        end
-        mq.delay('3s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
-        mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
+    if not pull_nav_to(pull_spawn) then return end
+    if mq.TLO.Me.XTarget() == 0 then
+        pull_engage(pull_spawn)
     else
         common.printf('Mobs on xtarget, canceling pull and returning to camp')
-        common.TANK_MOB_ID = 0
-        common.PULL_MOB_ID = 0
-        PULL_IN_PROGRESS = false
-        common.check_camp()
+        clear_pull_vars()
+        pull_return()
         return
     end
     -- return to camp
     if common.CAMP and not mq.TLO.Navigation.Active() then
-        common.debug('Bringing pull target back to camp (%s)', common.PULL_MOB_ID)
-        mq.cmdf('/nav locyxz %d %d %d log=off', common.CAMP.Y, common.CAMP.X, common.CAMP.Z)
-        -- wait for mob to show up
-        common.debug('Waiting for pull target to reach camp (%s)', common.PULL_MOB_ID)
-        -- TODO: swap to closer mobs in camp if any
-        mq.delay('15s', function() return common.check_distance(common.CAMP.X, common.CAMP.Y, mq.TLO.Target.X(), mq.TLO.Target.Y()) < common.OPTS.CAMPRADIUS end)
+        pull_return()
     end
     common.TANK_MOB_ID = common.PULL_MOB_ID -- pull mob reached camp, mark it as tank mob
     common.PULL_MOB_ID = 0 -- pull done, clear pull mob id
@@ -413,6 +467,25 @@ common.find_mob_to_tank = function()
     end
 end
 
+local function tank_mob_in_range(tank_spawn)
+    local mob_x = tank_spawn.X()
+    local mob_y = tank_spawn.Y()
+    if not mob_x or not mob_y then return false end
+    if common.CAMP then
+        if common.check_distance(common.CAMP.X, common.CAMP.Y, mob_x, mob_y) < common.OPTS.CAMPRADIUS then
+            return true
+        else
+            return false
+        end
+    else
+        if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < common.OPTS.CAMPRADIUS then
+            return true
+        else
+            return false
+        end
+    end
+end
+
 common.tank_mob = function()
     if common.TANK_MOB_ID == 0 then return end
     if common.am_i_dead() then return end
@@ -421,23 +494,46 @@ common.tank_mob = function()
         common.TANK_MOB_ID = 0
         return
     end
+    if not tank_mob_in_range(tank_spawn) then
+        --common.printf('tank mob not in range')
+        return
+    end
     if not mq.TLO.Target() then
         tank_spawn.DoTarget()
-        mq.delay(50)
+        mq.delay(50, function() return mq.TLO.Target.ID() == tank_spawn.ID() end)
     end
     if not mq.TLO.Target() then
         common.TANK_MOB_ID = 0
         return
     end
+    if mq.TLO.Navigation.Active() then
+        mq.cmd('/squelch /nav stop')
+    end
     mq.cmd('/face fast')
     if not mq.TLO.Me.Combat() then
         common.printf('Tanking %s (%s)', mq.TLO.Target.CleanName(), common.TANK_MOB_ID)
-        mq.cmd('/stick front loose moveback 10')
+        mq.cmd('/squelch /stick front loose moveback 10')
+        -- /stick snaproll front moveback
+        -- /stick mod -2
         mq.cmd('/attack on')
     end
 end
 
 --- Assist Functions
+
+common.get_assist_id = function()
+    local assist_id = 0
+    if common.OPTS.ASSIST == 'group' then
+        assist_id = mq.TLO.Group.MainAssist.ID()
+    elseif common.OPTS.ASSIST == 'raid1' then
+        assist_id = mq.TLO.Raid.MainAssist(1).ID()
+    elseif common.OPTS.ASSIST == 'raid2' then
+        assist_id = mq.TLO.Raid.MainAssist(2).ID()
+    elseif common.OPTS.ASSIST == 'raid3' then
+        assist_id = mq.TLO.Raid.MainAssist(3).ID()
+    end
+    return assist_id
+end
 
 common.get_assist_spawn = function()
     local assist_target = nil
@@ -475,33 +571,45 @@ end
 
 local send_pet_timer = 0
 local stick_timer = 0
+
+local function reset_combat_timers()
+    stick_timer = 0
+    send_pet_timer = 0
+end
+
 common.check_target = function(reset_timers)
     if common.am_i_dead() then return end
-    if common.OPTS.MODE ~= 'manual' or common.OPTS.SWITCHWITHMA then
-        if not mq.TLO.Group.MainAssist() then return end
+    if common.OPTS.MODE ~= 'manual' then
         local assist_target = common.get_assist_spawn()
         if not assist_target() then return end
-        if mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and assist_target.ID() == mq.TLO.Group.MainAssist.ID() then
-            mq.cmd('/target clear')
-            mq.cmd('/pet back')
+        if mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and assist_target.ID() == common.get_assist_id() then
+            -- if we are targeting a mob, but the MA is targeting themself, then stop what we're doing
+            mq.cmd('/multiline ; /target clear; /pet back; /autoattack off; /autofire off;')
+            common.ASSIST_TARGET_ID = 0
             return
         end
         if common.is_fighting() then
+            -- already fighting
             if mq.TLO.Target.ID() == assist_target.ID() then
+                -- already fighting the MAs target
                 common.ASSIST_TARGET_ID = assist_target.ID()
                 return
-            elseif not common.OPTS.SWITCHWITHMA then return end
+            elseif not common.OPTS.SWITCHWITHMA then
+                -- not fighting the MAs target, and switch with MA is disabled, so stay on current target
+                return
+            end
         end
         if common.ASSIST_TARGET_ID == assist_target.ID() and assist_target.Type() ~= 'Corpse' then
+            -- MAs target didn't change but we aren't currently fighting it for some reason, so reacquire target
             assist_target.DoTarget()
             return
         end
         if mq.TLO.Target.ID() ~= assist_target.ID() and common.should_assist(assist_target) then
+            -- this is a brand new assist target
             common.ASSIST_TARGET_ID = assist_target.ID()
             assist_target.DoTarget()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-            stick_timer = 0
-            send_pet_timer = 0
+            reset_combat_timers()
             if reset_timers then reset_timers() end
             common.printf('Assisting on >>> \ay%s\ax <<<', mq.TLO.Target.CleanName())
         end
@@ -539,7 +647,7 @@ common.attack = function()
         mq.cmd('/squelch /nav stop')
     end
     if not mq.TLO.Stick.Active() and common.timer_expired(stick_timer, 3) then
-        mq.cmd('/squelch /stick loose moveback 50% uw')
+        mq.cmd('/squelch /stick loose moveback 10 uw')
         stick_timer = common.current_time()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() then
@@ -581,6 +689,7 @@ end
 common.use_ability = function(name)
     if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
+        mq.delay(300, function() return not mq.TLO.Me.AbilityReady(name)() end)
     end
 end
 
@@ -591,9 +700,9 @@ common.use_item = function(item)
         if common.can_cast_weave() then
             common.printf('use_item: \ax\ar%s\ax', item)
             mq.cmdf('/useitem "%s"', item)
+            mq.delay(50)
+            mq.delay(250+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         end
-        mq.delay(300+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-        -- alternatively maybe while loop until we see the buff or song is applied
     end
 end
 
@@ -604,27 +713,39 @@ common.use_aa = function(aa)
         if mq.TLO.Target() and not mq.TLO.Target.MyBuff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() and mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
             common.printf('use_aa: \ax\ar%s\ax', aa['name'])
             mq.cmdf('/alt activate %d', aa['id'])
-            mq.delay(300+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+            mq.delay(50)
+            mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
             return true
         end
     elseif not mq.TLO.Me.Song(aa['name'])() and not mq.TLO.Me.Buff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() then
         common.printf('use_aa: \ax\ar%s\ax', aa['name'])
         mq.cmdf('/alt activate %d', aa['id'])
-        -- alternatively maybe while loop until we see the buff or song is applied, but not all apply a buff or song, like pet stuff
-        mq.delay(300+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        mq.delay(50)
+        mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true
     end
 end
 
 common.use_disc = function(disc)
+    --if disc['name'] == 'Knuckle Break' then
+    --    common.printf('%s %s %s %s', mq.TLO.Me.CombatAbility(disc['name'])(), mq.TLO.Me.CombatAbilityTimer(disc['name'])(), mq.TLO.Me.CombatAbilityReady(disc['name'])(), mq.TLO.Spell(disc['name']).EnduranceCost())
+    --    common.printf('%s %s', mq.TLO.Me.CombatAbilityTimer(disc['name'])(), type(mq.TLO.Me.CombatAbilityTimer(disc['name'])()))
+    --    common.printf('%s %s', mq.TLO.Spell(disc['name']).Duration(), type(mq.TLO.Spell(disc['name']).Duration()))
+    --end
     if not common.in_control() then return end
     if mq.TLO.Me.CombatAbility(disc['name'])() and mq.TLO.Me.CombatAbilityTimer(disc['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(disc['name'])() and mq.TLO.Spell(disc['name']).EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
-        if mq.TLO.Spell(disc['name']).Duration() == '0' or not mq.TLO.Me.ActiveDisc.ID() then
+        if tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6 or not mq.TLO.Me.ActiveDisc.ID() then
             common.printf('use_disc: \ax\ar%s\ax', disc['name'])
             if disc['name']:find('Composite') then
                 mq.cmdf('/disc %s', disc['id'])
+                --mq.delay(300)
+                --mq.delay(50)
+                mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             else
                 mq.cmdf('/disc %s', disc['name'])
+                --mq.delay(300)
+                --mq.delay(50)
+                mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             end
         end
     end
@@ -727,6 +848,23 @@ end
 common.rest = function()
     if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and (mq.TLO.Me.PctMana() < 60 or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', common.OPTS.CAMPRADIUS))() == 0 then
         mq.cmd('/sit')
+    end
+end
+
+-- keep cursor clear for spell swaps and such
+local autoinv_timer = 0
+common.check_cursor = function()
+    if mq.TLO.Cursor() then
+        if autoinv_timer == 0 then
+            autoinv_timer = common.current_time()
+            common.printf('Dropping cursor item into inventory in 15 seconds')
+        elseif os.difftime(common.current_time(), autoinv_timer) > 15 then
+            mq.cmd('/autoinventory')
+            autoinv_timer = 0
+        end
+    elseif autoinv_timer > 0 then
+        common.debug('Cursor is empty, resetting autoinv_timer')
+        autoinv_timer = 0
     end
 end
 

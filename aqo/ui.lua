@@ -151,7 +151,7 @@ ui.get_next_item_loc = function()
     local x = ImGui.GetCursorPosX()
     if x < 205 then ImGui.SetCursorPosX(205) elseif x < 410 then ImGui.SetCursorPosX(410) end
     local avail = ImGui.GetContentRegionAvail()
-    if x >= 410 or avail < 205 then
+    if x >= 410 or avail < 95 then
         ImGui.NewLine()
     end
 end

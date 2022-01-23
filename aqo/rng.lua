@@ -16,40 +16,44 @@ local OPTS = {
     USEPOISONARROW=true,
     USEFIREARROW=false,
     BUFFGROUP=false,
+    DSTANK=false,
+    NUKE=false,
 }
 common.OPTS.SPELLSET = 'standard'
+mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
 local spells = {
-    ['shots']=common.get_spellid_and_rank('Marked Shots'), -- 4x archery attacks + dmg buff to archery attacks for 18s, Claimed Shots
-    ['focused']=common.get_spellid_and_rank('Focused Blizzard of Arrows'), -- 4x archery attacks, Focused Whirlwind of Arrows
-    ['composite']=common.get_spellid_and_rank('Dissident Fusillade'), -- double bow shot and fire+ice nuke
-    ['heart']=common.get_spellid_and_rank('Heartsunder'), -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
-    ['opener']=common.get_spellid_and_rank('Silent Shot'), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    ['summer']=common.get_spellid_and_rank('Summer\'s Sleet'), -- fire + ice nuke, Summer's Torrent
-    ['boon']=common.get_spellid_and_rank('Pyroclastic Boon'), -- 
-    ['healtot']=common.get_spellid_and_rank('Desperate Meltwater'), -- heal ToT, Desperate Geyser
-    ['healtot2']=common.get_spellid_and_rank('Meltwater Spring'), -- heal ToT, Darkwater Spring
+    ['shots']=common.get_spellid_and_rank('Claimed Shots'), -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    ['focused']=common.get_spellid_and_rank('Focused Whirlwind of Arrows'), -- 4x archery attacks, Focused Blizzard of Arrows
+    ['composite']=common.get_spellid_and_rank('Composite Fusillade'), -- double bow shot and fire+ice nuke
+    ['heart']=common.get_spellid_and_rank('Heartruin'), -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    ['opener']=common.get_spellid_and_rank('Stealthy Shot'), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
+    ['summer']=common.get_spellid_and_rank('Summer\'s Torrent'), -- fire + ice nuke, Summer's Sleet
+    ['boon']=common.get_spellid_and_rank('Lunarflare boon'), -- 
+    ['healtot']=common.get_spellid_and_rank('Desperate Geyser'), -- heal ToT, Desperate Meltwater
+    ['healtot2']=common.get_spellid_and_rank('Darkwater Spring'), -- heal ToT, Meltwater Spring
     ['dot']=common.get_spellid_and_rank('Bloodbeetle Swarm'), -- main DoT
-    ['dotds']=common.get_spellid_and_rank('Swarm of Hyperboreads'), -- DoT + reverse DS, Swarm of Bloodflies
-    ['dmgbuff']=common.get_spellid_and_rank('Wildstalker\'s Enrichment'), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    ['dotds']=common.get_spellid_and_rank('Swarm of Bloodflies'), -- DoT + reverse DS, Swarm of Hyperboreads
+    ['dmgbuff']=common.get_spellid_and_rank('Arbor Stalker\'s Enrichment'), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     ['alliance']=common.get_spellid_and_rank('Arbor Stalker\'s Coalition'),
-    ['buffs']=common.get_spellid_and_rank('Shout of the Arbor Stalker'), -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Dusksage Stalker
+    ['buffs']=common.get_spellid_and_rank('Shout of the Dusksage Stalker'), -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    ['cloak']=common.get_spellid_and_rank('Cloak of Rimespurs'), -- Cloak of Bloodbarbs
-    ['predator']=common.get_spellid_and_rank('Frostroar of the Predator'), -- Bay of the Predator
-    ['strength']=common.get_spellid_and_rank('Strength of the Arbor Stalker'), -- Strength of the Dusksage Stalker
+    ['cloak']=common.get_spellid_and_rank('Cloak of Bloodbarbs'), -- Cloak of Rimespurs
+    ['predator']=common.get_spellid_and_rank('Bay of the Predator'), -- Frostroar of the Predator
+    ['strength']=common.get_spellid_and_rank('Strength of the Dusksage Stalker'), -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    ['protection']=common.get_spellid_and_rank('Protection of the Wakening Land'), -- Protection of the Valley
-    ['eyes']=common.get_spellid_and_rank('Eyes of the Visionary'), -- Eyes of the Senshali
-    ['hunt']=common.get_spellid_and_rank('Provoked by the Hunt'), -- Steeled by the Hunt
-    ['coat']=common.get_spellid_and_rank('Rimespur Coat'), -- Moonthorn Coat
+    ['protection']=common.get_spellid_and_rank('Protection of the Valley'), -- Protection of the Wakening Land
+    ['eyes']=common.get_spellid_and_rank('Eyes of the Senshali'), -- Eyes of the Visionary
+    ['hunt']=common.get_spellid_and_rank('Steeled by the Hunt'), -- Provoked by the Hunt
+    ['coat']=common.get_spellid_and_rank('Moonthorn Coat'), -- Rimespur Coat
     -- Unity Azia only
-    ['barrage']=common.get_spellid_and_rank('Devastating Velium'), -- Devastating Barrage
+    ['barrage']=common.get_spellid_and_rank('Devastating Barrage'), -- Devastating Velium
     -- Unity Beza only
-    ['blades']=common.get_spellid_and_rank('Howling Blades'), -- Vociferous Blades
+    ['blades']=common.get_spellid_and_rank('Vociferous Blades'), -- Howling Blades
+    ['ds']=common.get_spellid_and_rank('Shield of Shadethorns'), -- DS
 }
--- Pyroclastic Boon, Lunarflare boon
+-- Pyroclastic Boon, 
 for name,spell in pairs(spells) do
     if spell['name'] then
         common.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
@@ -59,11 +63,13 @@ for name,spell in pairs(spells) do
 end
 
 -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
+local arrow_spells = {}
+table.insert(arrow_spells, spells['shots'])
+table.insert(arrow_spells, spells['focused'])
+table.insert(arrow_spells, spells['composite'])
+table.insert(arrow_spells, spells['heart'])
 local dd_spells = {}
-table.insert(dd_spells, spells['shots'])
-table.insert(dd_spells, spells['focused'])
-table.insert(dd_spells, spells['composite'])
-table.insert(dd_spells, spells['heart'])
+table.insert(dd_spells, spells['boon'])
 table.insert(dd_spells, spells['summer'])
 
 -- entries in the dot_spells table are pairs of {spell id, spell name} in priority order
@@ -77,9 +83,11 @@ table.insert(combat_heal_spells, spells['healtot'])
 table.insert(combat_heal_spells, spells['healtot2'])
 
 -- entries in the items table are MQ item datatypes
-local items = {}
-table.insert(items, mq.TLO.InvSlot('Chest').Item.ID())
-table.insert(items, mq.TLO.FindItem('Rage of Rolfron').ID())
+local burn_items = {}
+table.insert(burn_items, mq.TLO.FindItem('Rage of Rolfron').ID())
+
+local mash_items = {}
+table.insert(mash_items, mq.TLO.InvSlot('Chest').Item.ID())
 
 -- entries in the AAs table are pairs of {aa name, aa id}
 local burnAAs = {}
@@ -95,7 +103,7 @@ table.insert(burnAAs, common.get_aaid_and_name('Silent Strikes')) -- silent cast
 table.insert(burnAAs, common.get_aaid_and_name('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
 
 local meleeBurnDiscs = {}
-table.insert(meleeBurnDiscs, common.get_aaid_and_name('Arbor Stalker\'s Discipline')) -- melee dmg buff, 19.5min CD, timer 2, Dusksage Stalker's Discipline
+table.insert(meleeBurnDiscs, common.get_aaid_and_name('Dusksage Stalker\'s Discipline')) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
 local rangedBurnDiscs = {}
 table.insert(rangedBurnDiscs, common.get_aaid_and_name('Pureshot Discipline')) -- bow dmg buff, 1hr7min CD, timer 2
 
@@ -103,9 +111,9 @@ local mashAAs = {}
 table.insert(mashAAs, common.get_aaid_and_name('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
 
 local mashDiscs = {}
-table.insert(mashDiscs, common.get_aaid_and_name('Jolting Axe Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
-table.insert(mashDiscs, common.get_aaid_and_name('Focused Gale of Blades')) -- 4x arrows, 12s CD, timer 6
-table.insert(mashDiscs, common.get_aaid_and_name('Reflexive Nettlespears')) -- 4x melee attacks + group HoT, 10min CD, timer 19
+table.insert(mashDiscs, common.get_discid_and_name('Jolting Axe Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+table.insert(mashDiscs, common.get_discid_and_name('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
+table.insert(mashDiscs, common.get_discid_and_name('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
 -- table.insert(mashDiscs, common.get_aaid_and_name('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
 
 local mashAbilities = {}
@@ -141,6 +149,8 @@ rng.load_settings = function()
     if settings.rng.USEPOISONARROW ~= nil then OPTS.USEPOISONARROW = settings.rng.USEPOISONARROW end
     if settings.rng.USEFIREARROW ~= nil then OPTS.USEFIREARROW = settings.rng.USEFIREARROW end
     if settings.rng.BUFFGROUP ~= nil then OPTS.USEFIREARROW = settings.rng.BUFFGROUP end
+    if settings.rng.DSTANK ~= nil then OPTS.DSTANK = settings.rng.DSTANK end
+    if settings.rng.NUKE ~= nil then OPTS.NUKE = settings.rng.NUKE end
 end
 
 rng.save_settings = function()
@@ -271,9 +281,16 @@ local function find_next_spell()
             end
         end
     end
-    for _,spell in ipairs(dd_spells) do
+    for _,spell in ipairs(arrow_spells) do
         if is_spell_ready(spell['id'], spell['name']) then
             return spell
+        end
+    end
+    if OPTS.NUKE then
+        for _,spell in ipairs(dd_spells) do
+            if is_spell_ready(spell['id'], spell['name']) then
+                return spell
+            end
         end
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
@@ -295,6 +312,10 @@ end
 
 local function mash()
     if common.is_fighting() or common.should_assist() then
+        for _,item_id in ipairs(mash_items) do
+            local item = mq.TLO.FindItem(item_id)
+            common.use_item(item)
+        end
         for _,aa in ipairs(mashAAs) do
             common.use_aa(aa)
         end
@@ -350,7 +371,7 @@ local function try_burn()
         |===========================================================================================
         ]]--
 
-        for _,item_id in ipairs(items) do
+        for _,item_id in ipairs(burn_items) do
             local item = mq.TLO.FindItem(item_id)
             common.use_item(item)
         end
@@ -420,8 +441,8 @@ local function check_buffs()
                             (not group_member.CachedBuff(spells['predator']['name'])() and mq.TLO.Spell(spells['predator']['name']).StacksSpawn(group_member.ID())) or
                             (not group_member.CachedBuff(spells['strength']['name'])() and mq.TLO.Spell(spells['strength']['name']).StacksSpawn(group_member.ID()) and not group_member.CachedBuff('Spiritual Vigor')()) then
                         group_member.DoTarget()
-                        mq.delay(50) -- think target needs time to swap before trying to check buffspopulated so its not a stale true?
-                        mq.delay('1s')
+                        mq.delay(100, function() return mq.TLO.Target.ID() == group_member.ID() end)
+                        mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                         if (not mq.TLO.Target.Buff(spells['cloak']['name'])() and mq.TLO.Spell(spells['cloak']['name']).StacksTarget()) or
                                 (not mq.TLO.Target.Buff(spells['predator']['name'])() and mq.TLO.Spell(spells['predator']['name']).StacksTarget()) or
                                 (not mq.TLO.Target.Buff(spells['strength']['name'])() and mq.TLO.Spell(spells['strength']['name']).StacksTarget() and not mq.TLO.Target.Buff('Spiritual Vigor')()) then
@@ -433,12 +454,29 @@ local function check_buffs()
                     end
                     if not group_member.CachedBuff(spells['dmgbuff']['name'])() and mq.TLO.Spell(spells['dmgbuff']['name']).StacksSpawn(group_member.ID()) then
                         group_member.DoTarget()
-                        mq.delay(50) -- think target needs time to swap before trying to check buffspopulated so its not a stale true?
-                        mq.delay('1s')
+                        mq.delay(100, function() return mq.TLO.Target.ID() == group_member.ID() end)
+                        mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                         if (not mq.TLO.Target.Buff(spells['dmgbuff']['name'])() and mq.TLO.Spell(spells['dmgbuff']['name']).StacksTarget()) then
                             common.cast(spells['dmgbuff']['name'])
                             -- wait for GCD incase we move on to cast another right away
                             mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name'])() end)
+                        end
+                    end
+                end
+            end
+        end
+        if OPTS.DSTANK then
+            if mq.TLO.Group.MainTank() then
+                local tank_spawn = mq.TLO.Group.MainTank.Spawn
+                if tank_spawn() then
+                    if not tank_spawn.CachedBuff(spells['ds']['name'])() and mq.TLO.Spell(spells['ds']['name']).StacksSpawn(tank_spawn.ID()) then
+                        tank_spawn.DoTarget()
+                        mq.delay(100, function() return mq.TLO.Target.ID() == tank_spawn.ID() end)
+                        mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+                        if not mq.TLO.Target.Buff(spells['ds']['name'])() and mq.TLO.Spell(spells['ds']['name']).StacksTarget() then
+                            common.cast(spells['ds']['name'])
+                            -- wait for GCD incase we move on to cast another right away
+                            mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['ds']['name'])() end)
                         end
                     end
                 end
@@ -588,6 +626,8 @@ rng.draw_right_panel = function()
     ui.get_next_item_loc()
     OPTS.USERANGE = ui.draw_check_box('Use Ranged', '##userange', OPTS.USERANGE, 'Ranged DPS if possible')
     ui.get_next_item_loc()
+    OPTS.NUKE = ui.draw_check_box('Use Nukes', '##nuke', OPTS.NUKE, 'Cast nukes on all mobs')
+    ui.get_next_item_loc()
     OPTS.USEDOT = ui.draw_check_box('Use DoT', '##usedot', OPTS.USEDOT, 'Cast expensive DoT on all mobs')
     ui.get_next_item_loc()
     OPTS.USEPOISONARROW = ui.draw_check_box('Use Poison Arrow', '##usepoison', OPTS.USEPOISONARROW, 'Use Poison Arrows AA')
@@ -597,6 +637,7 @@ rng.draw_right_panel = function()
     if OPTS.USEFIREARROW then OPTS.USEPOISONARROW = false end
     OPTS.BUFFGROUP = ui.draw_check_box('Buff Group', '##buffgroup', OPTS.BUFFGROUP, 'Buff group members')
     ui.get_next_item_loc()
+    OPTS.DSTANK = ui.draw_check_box('DS Tank', '##dstank', OPTS.DSTANK, 'DS Tank')
 end
 
 return rng
