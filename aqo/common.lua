@@ -241,6 +241,36 @@ common.TANK_MOB_ID = 0
 common.PULL_MOB_ID = 0
 local PULL_TARGET_SKIP = {}
 
+local pull_heading = 0 -- direction we are facing at time pull arc is set
+local pull_l = 0 -- left boundary degrees
+local pull_r = 0 -- right boundary degrees
+local function set_pull_angles(dir, width)
+    if not width or width == 0 then return end
+    if not dir then dir = 0 end
+    if dir-(width*.5) < 0 then
+        pull_l = 360-((width*.5)-dir)
+    else
+        pull_l = dir-(width*.5)
+    end
+    if dir + (width*.5) > 360 then
+        pull_r = (width*.5)+dir-360
+    else
+        pull_r = (width*.5)+dir
+    end
+end
+
+-- 0 invalid, 1 valid
+local function check_mob_angle(pull_spawn)
+    local direction_to_mob = pull_spawn.HeadingTo(common.OPTS.CAMP.Y, common.OPTS.CAMP.X).Degrees()
+    if not direction_to_mob then return 0 end
+    if pull_l >= pull_r then
+        if direction_to_mob < pull_l and direction_to_mob > pull_r then return 0 end
+    else
+        if direction_to_mob < pull_l and direction_to_mob > pull_r then return 0 end
+    end
+    return 1
+end
+
 -- TODO: zhigh zlow, radius from camp vs from me
 local pull_count = 'npc radius %d zradius 50'
 local pull_spawn = '%d, npc radius %d zradius 50'
@@ -727,11 +757,6 @@ common.use_aa = function(aa)
 end
 
 common.use_disc = function(disc)
-    --if disc['name'] == 'Knuckle Break' then
-    --    common.printf('%s %s %s %s', mq.TLO.Me.CombatAbility(disc['name'])(), mq.TLO.Me.CombatAbilityTimer(disc['name'])(), mq.TLO.Me.CombatAbilityReady(disc['name'])(), mq.TLO.Spell(disc['name']).EnduranceCost())
-    --    common.printf('%s %s', mq.TLO.Me.CombatAbilityTimer(disc['name'])(), type(mq.TLO.Me.CombatAbilityTimer(disc['name'])()))
-    --    common.printf('%s %s', mq.TLO.Spell(disc['name']).Duration(), type(mq.TLO.Spell(disc['name']).Duration()))
-    --end
     if not common.in_control() then return end
     if mq.TLO.Me.CombatAbility(disc['name'])() and mq.TLO.Me.CombatAbilityTimer(disc['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(disc['name'])() and mq.TLO.Spell(disc['name']).EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
         if tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6 or not mq.TLO.Me.ActiveDisc.ID() then
