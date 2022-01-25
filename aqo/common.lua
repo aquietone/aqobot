@@ -327,15 +327,20 @@ common.TANK_MOB_ID = 0
 common.PULL_MOB_ID = 0
 local PULL_TARGET_SKIP = {}
 
+-- mob at 135, SE
+-- pull arc left 90
+-- pull arc right 180
+
 -- false invalid, true valid
 local function check_mob_angle(pull_spawn)
     if common.OPTS.PULLARC == 360 or common.OPTS.PULLARC == 0 then return true end
     local direction_to_mob = pull_spawn.HeadingTo(common.CAMP.Y, common.CAMP.X).Degrees()
     if not direction_to_mob then return false end
+    common.debug('arcleft: %s, arcright: %s, dirtomob: %s', common.CAMP.PULL_ARC_LEFT, common.CAMP.PULL_ARC_RIGHT, direction_to_mob)
     if common.CAMP.PULL_ARC_LEFT >= common.CAMP.PULL_ARC_RIGHT then
         if direction_to_mob < common.CAMP.PULL_ARC_LEFT and direction_to_mob > common.CAMP.PULL_ARC_RIGHT then return false end
     else
-        if direction_to_mob < common.CAMP.PULL_ARC_LEFT and direction_to_mob > common.CAMP.PULL_ARC_RIGHT then return false end
+        if direction_to_mob < common.CAMP.PULL_ARC_LEFT or direction_to_mob > common.CAMP.PULL_ARC_RIGHT then return false end
     end
     return true
 end
