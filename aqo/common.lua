@@ -189,7 +189,7 @@ MQ degrees start from 0 on the top and go cw
 
 Converts MQ Heading degrees to normal heading degrees
 ]]--
-local function convert_heading(heading)
+common.convert_heading = function(heading)
     if heading > 270 then
         heading = 180 - heading + 270
     elseif heading > 180 then
@@ -210,13 +210,13 @@ local function draw_maploc(heading, color)
     elseif heading > 360 then
         heading = heading - 360
     end
-    local x_move = math.cos(math.rad(convert_heading(heading)))
+    local x_move = math.cos(math.rad(common.convert_heading(heading)))
     if x_move > 0 and heading > 0 and heading < 180 then
         x_move = x_move * -1
     elseif x_move < 0 and heading >= 180 then
         x_move = math.abs(x_move)
     end
-    local y_move = math.sin(math.rad(convert_heading(heading)))
+    local y_move = math.sin(math.rad(common.convert_heading(heading)))
     if y_move > 0 and heading > 90 and heading < 270 then
         y_move = y_move * -1
     elseif y_move < 0 and (heading <= 90 or heading >= 270) then
@@ -253,7 +253,8 @@ common.set_camp = function(reset)
             ['ZoneID']=mq.TLO.Zone.ID()
         }
         common.printf('Camp set to X: %s Y: %s Z: %s R: %s H: %s', common.CAMP.X, common.CAMP.Y, common.CAMP.Z, common.OPTS.CAMPRADIUS, common.CAMP.HEADING)
-        mq.cmdf('/squelch /mapf campradius %d', common.OPTS.CAMPRADIUS)
+        --mq.cmdf('/squelch /mapf campradius %d', common.OPTS.CAMPRADIUS)
+        mq.cmdf('/squelch /maploc size 10 width 1 color 255 0 0 radius %s rcolor 255 0 0 %s %s', common.OPTS.CAMPRADIUS, common.CAMP.Y+1, common.CAMP.X+1)
         if common.PULLER_MODES[common.OPTS.MODE] then
             if common.OPTS.PULLARC > 0 and common.OPTS.PULLARC < 360 then
                 set_pull_angles()
@@ -261,7 +262,8 @@ common.set_camp = function(reset)
                 draw_maploc(common.CAMP.PULL_ARC_RIGHT, '0 0 255')
                 draw_maploc(common.CAMP.HEADING, '255 0 0')
             end
-            mq.cmdf('/squelch /mapf pullradius %d', common.OPTS.PULLRADIUS)
+            mq.cmdf('/squelch /maploc size 10 width 1 color 0 0 255 radius %s rcolor 0 0 255 %s %s', common.OPTS.PULLRADIUS, common.CAMP.Y, common.CAMP.X)
+            --mq.cmdf('/squelch /mapf pullradius %d', common.OPTS.PULLRADIUS)
         end
     elseif not common.CAMP_MODES[common.OPTS.MODE] and common.CAMP then
         common.CAMP = nil
@@ -345,18 +347,43 @@ local function check_mob_angle(pull_spawn)
     return true
 end
 
+-- z check done separately so that high and low values can be different
+local function check_z_rad(pull_spawn)
+    local mob_z = pull_spawn.Z()
+    if not mob_z then return false end
+    if common.CAMP then
+        if mob_z > common.CAMP.Z+common.OPTS.PULLHIGH or mob_z < common.CAMP.Z-common.OPTS.PULLLOW then return false end
+    else
+        if mob_z > mq.TLO.Me.Z()+common.OPTS.PULLHIGH or mob_z < mq.TLO.Me.Z()-common.OPTS.PULLLOW then return false end
+    end
+    return true
+end
+
 -- TODO: zhigh zlow, radius from camp vs from me
-local pull_count = 'npc radius %d zradius 50'
-local pull_spawn = '%d, npc radius %d zradius 50'
+--loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
+local pull_count = 'npc radius %d'-- zradius 50'
+local pull_spawn = '%d, npc radius %d'-- zradius 50'
+local pull_count_camp = 'npc loc %d %d radius %d'-- zradius 50'
+local pull_spawn_camp = '%d, npc loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 common.pull_radar = function()
-    local pull_radius_count = mq.TLO.SpawnCount(pull_count:format(common.OPTS.PULLRADIUS))()
+    local pull_radius_count
+    if common.CAMP then
+        pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(common.CAMP.X, common.CAMP.Y, common.OPTS.PULLRADIUS))()
+    else
+        pull_radius_count = mq.TLO.SpawnCount(pull_count:format(common.OPTS.PULLRADIUS))()
+    end
     if pull_radius_count > 0 then
         for i=1,pull_radius_count do
-            local mob = mq.TLO.NearestSpawn(pull_spawn:format(i, common.OPTS.PULLRADIUS))
+            local mob
+            if common.CAMP then
+                mob = mq.TLO.NearestSpawn(pull_spawn_camp:format(i, common.CAMP.X, common.CAMP.Y, common.OPTS.PULLRADIUS))
+            else
+                mob = mq.TLO.NearestSpawn(pull_spawn:format(i, common.OPTS.PULLRADIUS))
+            end 
             local mob_id = mob.ID()
             local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS and check_mob_angle(mob) then
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS and check_mob_angle(mob) and check_z_rad(mob) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
@@ -437,14 +464,20 @@ local function pull_engage(pull_spawn)
     end
     common.printf('Pulling %s (%s)', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
     --common.printf('facing mob')
+    if mq.TLO.Navigation.Active() then
+        mq.cmd('/squelch /nav stop')
+        mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
+    end
     mq.cmd('/face fast')
     --common.printf('agroing mob')
     -- TODO: class pull abilities
+    local get_closer = false
     if mq.TLO.Target.Distance3D() < 35 then
         -- use class close range pull ability
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
         mq.cmd('/attack on')
+        mq.delay('1s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
     else
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
@@ -458,14 +491,47 @@ local function pull_engage(pull_spawn)
         end
         -- use class long range pull ability
         -- tag with range
+        get_closer = true
+        mq.delay('3s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
     end
-    mq.delay('5s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
     --common.printf('mob agrod or timed out')
     mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-        mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
+
+    if mq.TLO.Me.XTarget() == 0 and get_closer then
+        if not mq.TLO.Navigation.Active() then
+            mq.cmdf('/nav spawn id %d | log=off', common.PULL_MOB_ID)
+            mq.delay(100, function() return mq.TLO.Navigation.Active() end)
+        end
+        -- TODO: disrupt if mob aggro otw to pull
+        mq.delay('15s', function()
+            if not pull_spawn then
+                return false
+            end
+            local dist3d = pull_spawn.Distance3D()
+            -- return right away if we can't read distance, as pull spawn is probably no longer valid
+            if not dist3d then return true end
+            -- return true once target is in range and in LOS, or if something appears on xtarget
+            return pull_spawn.LineOfSight() and dist3d < 20 or mq.TLO.Me.XTarget() > 0
+        end)
+
+        if mq.TLO.Navigation.Active() then
+            mq.cmd('/squelch /nav stop')
+            mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
+        end
+
+        -- use class close range pull ability
+        mq.cmd('/squelch /stick front loose moveback 10')
+        -- /stick mod 0
+        mq.cmd('/attack on')
+
+        mq.delay('1s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
+        --common.printf('mob agrod or timed out')
+        mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
     end
+    --if mq.TLO.Navigation.Active() then
+    --    mq.cmd('/squelch /nav stop')
+    --    mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
+    --end
 end
 
 local function pull_return()
@@ -830,7 +896,7 @@ common.use_aa = function(aa)
     end
 end
 
-common.use_disc = function(disc)
+common.use_disc = function(disc, overwrite)
     if not common.in_control() then return end
     if mq.TLO.Me.CombatAbility(disc['name'])() and mq.TLO.Me.CombatAbilityTimer(disc['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(disc['name'])() and mq.TLO.Spell(disc['name']).EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
         if tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6 or not mq.TLO.Me.ActiveDisc.ID() then
@@ -846,6 +912,11 @@ common.use_disc = function(disc)
                 --mq.delay(50)
                 mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             end
+        elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
+            mq.cmd('/stopdisc')
+            mq.delay(50)
+            mq.cmdf('/disc %s', disc['name'])
+            mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
         end
     end
 end

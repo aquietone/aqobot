@@ -20,6 +20,18 @@ local function show_help()
     common.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', class))
 end
 
+local function get_or_set_opt(opt, new_value)
+    if new_value then
+        if type(common.OPTS[opt]) == 'number' then
+            common.OPTS[opt] = tonumber(new_value) or common.OPTS[opt]
+        else
+            common.OPTS[opt] = new_value
+        end
+    else
+        common.printf('%s: %s', opt, new_value)
+    end
+end
+
 local function cmd_bind(...)
     local args = {...}
     if not args[1] or args[1] == 'help' then
@@ -67,6 +79,25 @@ local function cmd_bind(...)
         end
     elseif args[1] == 'resetcamp' then
         common.set_camp(true)
+    elseif args[1] == 'radius' then
+        get_or_set_opt('PULLRADIUS', args[2])
+        common.set_camp(true)
+    elseif args[1] == 'pullarc' then
+        get_or_set_opt('PULLARC', args[2])
+        common.set_camp(true)
+    elseif args[1] == 'levelmin' then
+        get_or_set_opt('PULLMINLEVEL', args[2])
+    elseif args[1] == 'levelmax' then
+        get_or_set_opt('PULLMAXLEVEL', args[2])
+    elseif args[1] == 'zlow' then
+        get_or_set_opt('PULLLOW', args[2])
+    elseif args[1] == 'zhigh' then
+        get_or_set_opt('PULLHIGH', args[2])
+    elseif args[1] == 'zradius' then
+        get_or_set_opt('PULLLOW', args[2])
+        get_or_set_opt('PULLHIGH', args[2])
+    elseif args[1] == 'ignore' then
+        
     else
         -- some other argument, show or modify a setting
         local opt = args[1]:upper()
