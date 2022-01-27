@@ -82,7 +82,7 @@ table.insert(dot_spells, spells['dotds'])
 -- entries in the combat_heal_spells table are pairs of {spell id, spell name} in priority order
 local combat_heal_spells = {}
 table.insert(combat_heal_spells, spells['healtot'])
-table.insert(combat_heal_spells, spells['healtot2'])
+--table.insert(combat_heal_spells, spells['healtot2']) -- replacing in main spell lineup with self rune buff
 
 -- entries in the items table are MQ item datatypes
 local burn_items = {}
@@ -539,7 +539,8 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(5)() ~= spells['opener']['name'] then common.swap_spell(spells['opener']['name'], 5) end
             if mq.TLO.Me.Gem(6)() ~= spells['summer']['name'] then common.swap_spell(spells['summer']['name'], 6) end
             if mq.TLO.Me.Gem(7)() ~= spells['healtot']['name'] then common.swap_spell(spells['healtot']['name'], 7) end
-            if mq.TLO.Me.Gem(8)() ~= spells['healtot2']['name'] then common.swap_spell(spells['healtot2']['name'], 8) end -- TODO: replace this one
+            --if mq.TLO.Me.Gem(8)() ~= spells['healtot2']['name'] then common.swap_spell(spells['healtot2']['name'], 8) end -- TODO: replace this one
+            if mq.TLO.Me.Gem(8)() ~= spells['rune']['name'] then common.swap_spell(spells['rune']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['dot']['name'] then common.swap_spell(spells['dot']['name'], 9) end
             if mq.TLO.Me.Gem(10)() ~= spells['dotds']['name'] then common.swap_spell(spells['dotds']['name'], 10) end
             if mq.TLO.Me.Gem(12)() ~= spells['dmgbuff']['name'] then common.swap_spell(spells['dmgbuff']['name'], 12) end
