@@ -70,7 +70,7 @@ end
 
 ---Check whether the specified file exists or not.
 ---@param file_name string @The name of the file to check existence of.
----@return boolean @Returns true of the file exists, false otherwise.
+---@return boolean @Returns true if the file exists, false otherwise.
 common.file_exists = function(file_name)
     local f = io.open(file_name, "r")
     if f ~= nil then io.close(f) return true else return false end
@@ -94,9 +94,10 @@ common.timer_expired = function(t, expiration)
     end
 end
 
----@param t number
----@param less_than number
----@return boolean
+---Check whether the time remaining on the given timer is less than the provided value.
+---@param t number @The current value of the timer.
+---@param less_than number @The maximum number of seconds remaining to return true.
+---@return boolean @Returns true if the timer has less than the specified number of seconds remaining.
 common.time_remaining = function(t, less_than)
     return not common.timer_expired(t, less_than)
 end
@@ -122,42 +123,56 @@ common.get_spellid_and_rank = function(spell_name, option_name)
     local spell_rank = mq.TLO.Spell(spell_name).RankName()
     return {['id']=mq.TLO.Spell(spell_rank).ID(), ['name']=spell_rank, ['opt']=option_name}
 end
----Lookup the ID for a given spell.
----@param spell_name string @The name of the spell.
----@param option_name string @The name of the option which controls whether this spell should be used.
----@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
+---Lookup the ID for a given AA.
+---@param aa_name string @The name of the AA.
+---@param option_name string @The name of the option which controls whether this AA should be used.
+---@return table @Returns a table containing the AA name, AA ID and the provided option name.
 common.get_aaid_and_name = function(aa_name, option_name)
     return {['id']=mq.TLO.Me.AltAbility(aa_name).ID(), ['name']=aa_name, ['opt']=option_name}
 end
----Lookup the ID for a given spell.
----@param spell_name string @The name of the spell.
----@param option_name string @The name of the option which controls whether this spell should be used.
----@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
+---Lookup the ID for a given disc.
+---@param disc_name string @The name of the disc.
+---@param option_name string @The name of the option which controls whether this disc should be used.
+---@return table @Returns a table containing the disc name with rank, disc ID and the provided option name.
 common.get_discid_and_name = function(disc_name, option_name)
     local disc_rank = mq.TLO.Spell(disc_name).RankName()
     return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank, ['opt']=option_name}
 end
 
--- Check that we are not currently casting anything
+---Check that we nothing is currently being cast.
+---@return boolean @Returns true if not currently casting anything, false otherwise.
 common.can_cast_weave = function()
     return not mq.TLO.Me.Casting()
 end
 
--- Check whether a dot is applied to the target
+---Check whether the specified dot is applied to the target.
+---@param spell_id number @The ID of the spell to check.
+---@param spell_name string @The name of the spell to check.
+---@return boolean @Returns true if the spell is applied to the target, false otherwise.
 common.is_target_dotted_with = function(spell_id, spell_name)
     if not mq.TLO.Target.MyBuff(spell_name)() then return false end
     return spell_id == mq.TLO.Target.MyBuff(spell_name).ID()
 end
 
+---Determine whether currently fighting a target.
+---@return boolean @True if standing with an NPC targeted, and not in a resting state, false otherwise.
 common.is_fighting = function()
     --if mq.TLO.Target.CleanName() == 'Combat Dummy Beza' then return true end -- Dev hook for target dummy
     return mq.TLO.Target.ID() ~= nil and mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Me.Standing() and not mq.TLO.Me.Feigning() and mq.TLO.Target.Type() == "NPC" and mq.TLO.Target.Type() ~= "Corpse"
 end
 
+---Calculate the distance between two points (x1,y1), (x2,y2).
+---@param x1 number @The X value of the first coordinate.
+---@param y1 number @The Y value of the first coordinate.
+---@param x2 number @The X value of the second coordinate.
+---@param y2 number @The Y value of the second coordinate.
+---@return number @Returns the distance between the two points.
 common.check_distance = function(x1, y1, x2, y2)
     return math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
 end
 
+---Determine whether currently alive or dead.
+---@return boolean @Returns true if currently dead, false otherwise.
 common.am_i_dead = function()
     if common.I_AM_DEAD and (mq.TLO.Me.Buff('Resurrection Sickness').ID() or mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName())() == 0) then
         common.I_AM_DEAD = false
@@ -165,12 +180,15 @@ common.am_i_dead = function()
     return common.I_AM_DEAD
 end
 
+---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
+---@return boolean @Returns true if not under any loss of control effects, false otherwise.
 common.in_control = function()
     return not mq.TLO.Me.Stunned() and not mq.TLO.Me.Silenced() and not mq.TLO.Me.Feigning() and not mq.TLO.Me.Mezzed() and not mq.TLO.Me.Invulnerable() and not mq.TLO.Me.Hovering()
 end
 
 -- Movement Functions
 
+---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if common.OPTS.MODE ~= 'chase' then return end
     if common.am_i_dead() or mq.TLO.Stick.Active() then return end
@@ -187,6 +205,7 @@ common.check_chase = function()
     end
 end
 
+---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 common.check_camp = function()
     if not common.CAMP_MODES[common.OPTS.MODE] then return end
     if common.am_i_dead() then return end
@@ -219,9 +238,10 @@ MQ degrees start from 0 on the top and go cw
        |
        |
       180
-
-Converts MQ Heading degrees to normal heading degrees
 ]]--
+---Convert an MQ heading degrees value to a "regular" degrees value.
+---@param heading number @The MQ heading degrees value to convert.
+---@return number @The regular heading degrees value.
 common.convert_heading = function(heading)
     if heading > 270 then
         heading = 180 - heading + 270
@@ -235,6 +255,9 @@ common.convert_heading = function(heading)
     return heading
 end
 
+---Draw a maploc at the given heading on the pull radius circle.
+---@param heading number @The MQ heading degrees pointing to where to draw the maploc.
+---@param color string @The color input to the /maploc command.
 local function draw_maploc(heading, color)
     local my_x = mq.TLO.Me.X()
     local my_y = mq.TLO.Me.Y()
@@ -260,6 +283,7 @@ local function draw_maploc(heading, color)
     mq.cmdf('/squelch /maploc size 10 width 2 color %s radius 5 rcolor 0 0 0 %s %s', color, y_off, x_off)
 end
 
+---Set the left and right pull arc values based on the configured PULLARC option.
 local function set_pull_angles()
     if not common.OPTS.PULLARC or common.OPTS.PULLARC == 0 then return end
     if not common.CAMP.HEADING then common.CAMP.HEADING = 0 end
@@ -275,6 +299,8 @@ local function set_pull_angles()
     end
 end
 
+---Set, update or clear the CAMP values depending on whether currently in a camp mode or not.
+---@param reset boolean @If true, then reset the camp to pickup the latest options.
 common.set_camp = function(reset)
     if (common.CAMP_MODES[common.OPTS.MODE] and not common.CAMP) or reset then
         mq.cmd('/squelch /maploc remove')
@@ -306,6 +332,7 @@ common.set_camp = function(reset)
     end
 end
 
+---Navigate to the current target if if isn't in LOS and should be.
 common.check_los = function()
     if common.OPTS.MODE ~= 'manual' and (common.is_fighting() or common.should_assist()) then
         if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
@@ -323,6 +350,9 @@ common.MOB_COUNT = 0
 local xtar_corpse_count = 'xtarhater npccorpse radius %d zradius 50'
 local xtar_count = 'xtarhater radius %d zradius 50'
 local xtar_spawn = '%d, xtarhater radius %d zradius 50'
+---Determine the number of mobs within the camp radius.
+---Sets common.MOB_COUNT to the total number of mobs on xtarget within the camp radius.
+---Adds the mob ID of each mob found to the common.TARGETS table.
 common.mob_radar = function()
     local num_corpses = 0
     num_corpses = mq.TLO.SpawnCount(xtar_corpse_count:format(common.OPTS.CAMPRADIUS))()
@@ -346,6 +376,7 @@ common.mob_radar = function()
     end
 end
 
+---Checks for any mobs in common.TARGETS which are no longer valid and removes them from the table.
 common.clean_targets = function()
     for mobid,_ in pairs(common.TARGETS) do
         local spawn = mq.TLO.Spawn(string.format('id %s', mobid))
@@ -367,6 +398,9 @@ local PULL_TARGET_SKIP = {}
 -- pull arc right 180
 
 -- false invalid, true valid
+---Determine whether the pull spawn is within the configured pull arc, if there is one.
+---@param pull_spawn Spawn @The MQ Spawn to check.
+---@return boolean @Returns true if the spawn is within the pull arc, otherwise false.
 local function check_mob_angle(pull_spawn)
     if common.OPTS.PULLARC == 360 or common.OPTS.PULLARC == 0 then return true end
     local direction_to_mob = pull_spawn.HeadingTo(common.CAMP.Y, common.CAMP.X).Degrees()
@@ -381,6 +415,9 @@ local function check_mob_angle(pull_spawn)
 end
 
 -- z check done separately so that high and low values can be different
+---Determine whether the pull spawn is within the configured Z high and Z low values.
+---@param pull_spawn Spawn @The MQ Spawn to check.
+---@return boolean @Returns true if the spawn is within the Z high and Z low, otherwise false.
 local function check_z_rad(pull_spawn)
     local mob_z = pull_spawn.Z()
     if not mob_z then return false end
@@ -392,6 +429,9 @@ local function check_z_rad(pull_spawn)
     return true
 end
 
+---Determine whether the pull spawn is within the configured pull level range.
+---@param pull_spawn Spawn @The MQ Spawn to check.
+---@return boolean @Returns true if the spawn is within the configured level range, otherwise false.
 local function check_level(pull_spawn)
     if common.OPTS.PULLMINLEVEL == 0 and common.OPTS.PULLMAXLEVEL == 0 then return true end
     local mob_level = pull_spawn.Level()
@@ -400,13 +440,14 @@ local function check_level(pull_spawn)
     return false
 end
 
--- TODO: zhigh zlow, radius from camp vs from me
 --loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
 local pull_count = 'npc radius %d'-- zradius 50'
 local pull_spawn = '%d, npc radius %d'-- zradius 50'
 local pull_count_camp = 'npc loc %d %d radius %d'-- zradius 50'
 local pull_spawn_camp = '%d, npc loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
+---Search for pullable mobs within the configured pull radius.
+---Sets common.PULL_MOB_ID to the mob ID of the first matching spawn.
 common.pull_radar = function()
     local pull_radius_count
     if common.CAMP then
@@ -436,15 +477,9 @@ common.pull_radar = function()
     end
 end
 
--- TODO: non-autohater slots?
-common.mobs_on_xtar = function(ignore_id)
-    if mq.TLO.Me.XTarget() > 1 or (ignore_id and mq.TLO.Me.XTarget(1).ID() > 0 and mq.TLO.Me.XTarget(1).ID() ~= ignore_id and mq.TLO.Me.XTarget(1).Type() ~= 'Corpse') then
-        return true
-    else
-        return false
-    end
-end
-
+---Navigate to the pull spawn. Stop when it is within bow distance and line of sight, or when within melee distance.
+---@param pull_spawn Spawn @The MQ Spawn to navigate to.
+---@return boolean @Returns false if the pull spawn became invalid during navigation, otherwise true.
 local function pull_nav_to(pull_spawn)
     local mob_x = pull_spawn.X()
     local mob_y = pull_spawn.Y()
@@ -474,12 +509,15 @@ local function pull_nav_to(pull_spawn)
     return true
 end
 
+---Reset common mob ID variables to 0 to reset pull status.
 local function clear_pull_vars()
     common.TANK_MOB_ID = 0
     common.PULL_MOB_ID = 0
     PULL_IN_PROGRESS = false
 end
 
+---Aggro the specified target to be pulled. Attempts to use bow and moves closer to melee pull if necessary.
+---@param pull_spawn Spawn @The MQ Spawn to be pulled.
 local function pull_engage(pull_spawn)
     -- pull  mob
     local dist3d = pull_spawn.Distance3D()
@@ -575,6 +613,7 @@ local function pull_engage(pull_spawn)
     --end
 end
 
+---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
 local function pull_return()
     --common.printf('Bringing pull target back to camp (%s)', common.PULL_MOB_ID)
     mq.cmdf('/nav locyxz %d %d %d log=off', common.CAMP.Y, common.CAMP.X, common.CAMP.Z)
@@ -595,6 +634,8 @@ local function pull_return()
     end)
 end
 
+---Attempt to pull the mob whose ID is stored in common.PULL_MOB_ID.
+---Sets common.TANK_MOB_ID to the mob being pulled.
 common.pull_mob = function()
     if common.PULL_MOB_ID == 0 then return end
     if common.am_i_dead() then return end
@@ -626,6 +667,8 @@ end
 
 --- Tank Functions
 
+---Iterate through mobs in the common.TARGETS table and find a mob in camp to begin tanking.
+---Sets common.TANK_MOB_ID to the ID of the mob to tank.
 common.find_mob_to_tank = function()
     if common.MOB_COUNT == 0 then return end
     if common.am_i_dead() then return end
@@ -678,6 +721,8 @@ common.find_mob_to_tank = function()
     end
 end
 
+---Determine whether the target to be tanked is within the camp radius.
+---@return boolean @Returns true if the target is within the camp radius, otherwise false.
 local function tank_mob_in_range(tank_spawn)
     local mob_x = tank_spawn.X()
     local mob_y = tank_spawn.Y()
@@ -697,6 +742,7 @@ local function tank_mob_in_range(tank_spawn)
     end
 end
 
+---Tank the mob whose ID is stored in common.TANK_MOB_ID.
 common.tank_mob = function()
     if common.TANK_MOB_ID == 0 then return end
     if common.am_i_dead() then return end
@@ -732,6 +778,8 @@ end
 
 --- Assist Functions
 
+---Get the spawn ID of the configured main assist, NOT the assists target.
+---@return integer @Returns the spawn ID of the main assist, NOT the assists target.
 common.get_assist_id = function()
     local assist_id = 0
     if common.OPTS.ASSIST == 'group' then
@@ -746,6 +794,8 @@ common.get_assist_id = function()
     return assist_id
 end
 
+---Get the MQ Spawn of the configured main assists current target.
+---@return Spawn @Returns the MQ Spawn userdata of the assists target.
 common.get_assist_spawn = function()
     local assist_target = nil
     if common.OPTS.ASSIST == 'group' then
@@ -760,6 +810,9 @@ common.get_assist_spawn = function()
     return assist_target
 end
 
+---Determine whether to begin assisting on a mob.
+---@param assist_target Spawn @The MQ Spawn currently targeted by the main assist.
+---@return boolean @Returns true if the spawn matches the assist criteria, otherwise false.
 common.should_assist = function(assist_target)
     if not assist_target then assist_target = common.get_assist_spawn() end
     if not assist_target then return false end
@@ -783,11 +836,17 @@ end
 local send_pet_timer = 0
 local stick_timer = 0
 
+---Reset common combat timers to 0.
 local function reset_combat_timers()
     stick_timer = 0
     send_pet_timer = 0
 end
 
+---Acquire the correct target when running in an assist mode. Clears target if the main assist targets themself.
+---Targets the main assists target if assist conditions are met.
+---If currently engaged, remains on the current target unless the switch with MA option is enabled.
+---Sets common.ASSIST_TARGET_ID to 0 or the ID of the mob to assist on.
+---@param reset_timers function @An optional function to be called to reset combat timers specific to the class calling this function.
 common.check_target = function(reset_timers)
     if common.am_i_dead() then return end
     if common.OPTS.MODE ~= 'manual' then
@@ -827,6 +886,7 @@ common.check_target = function(reset_timers)
     end
 end
 
+---Navigate to the current target if the target is within the camp radius.
 common.get_combat_position = function()
     local target_id = mq.TLO.Target.ID()
     local target_distance = mq.TLO.Target.Distance3D()
@@ -848,6 +908,7 @@ common.get_combat_position = function()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
 end
 
+---Begin attacking the assist target if not already attacking.
 common.attack = function()
     if common.ASSIST_TARGET_ID == 0 or mq.TLO.Target.ID() ~= common.ASSIST_TARGET_ID or not common.should_assist() then
         if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
@@ -866,6 +927,7 @@ common.attack = function()
     end
 end
 
+---Send pet and swarm pets against the assist target if assist conditions are met.
 common.send_pet = function()
     if common.timer_expired(send_pet_timer, 5) and (common.is_fighting() or common.should_assist()) then
         if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() then
@@ -879,6 +941,10 @@ end
 
 -- Casting Functions
 
+---Cast the spell specified by spell_name.
+---@param spell_name string @The name of the spell to be cast.
+---@param requires_target boolean @Indicate whether the spell requires a target.
+---@param requires_los boolean @Indicate whether the spell requires line of sight to the target.
 common.cast = function(spell_name, requires_target, requires_los)
     if not common.in_control() or (requires_los and not mq.TLO.Target.LineOfSight()) or mq.TLO.Me.Moving() then return end
     common.printf('Casting \ar%s\ax', spell_name)
@@ -897,6 +963,8 @@ common.cast = function(spell_name, requires_target, requires_los)
     end
 end
 
+---Use the ability specified by name. These are basic abilities like taunt or kick.
+---@param name string @The name of the ability to use.
 common.use_ability = function(name)
     if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
@@ -904,6 +972,8 @@ common.use_ability = function(name)
     end
 end
 
+---Use the item specified by item.
+---@param item Item @The MQ Item userdata object.
 common.use_item = function(item)
     if not common.in_control() then return end
     if item.Timer() == '0' then
@@ -917,6 +987,9 @@ common.use_item = function(item)
     end
 end
 
+---Use the AA specified in the passed in table aa.
+---@param aa table @A table containing the AA name and ID.
+---@return boolean @Returns true if the ability was fired, otherwise false.
 common.use_aa = function(aa)
     if not common.in_control() then return end
     if mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < common.MIN_END then return end
@@ -935,8 +1008,13 @@ common.use_aa = function(aa)
         mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true
     end
+    return false
 end
 
+---Use the disc specified in the passed in table disc.
+---@param disc table @A table containing the disc name and ID.
+---@param overwrite boolean @The name of a disc which should be stopped in order to run this disc.
+---@param skip_duration_check boolean @Indivate whether to skip checking the disc duration and current active disc, primarily for Breather line of discs.
 common.use_disc = function(disc, overwrite, skip_duration_check)
     if not common.in_control() then return end
     if mq.TLO.Me.CombatAbility(disc['name'])() and mq.TLO.Me.CombatAbilityTimer(disc['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(disc['name'])() and mq.TLO.Spell(disc['name']).EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
@@ -964,6 +1042,9 @@ end
 
 -- Burn Helper Functions
 
+---Determine whether the conditions are met to engage burn routines.
+---@param always_condition function @An extra function which can be provided to determine if the always burn condition should fire.
+---@return boolean @Returns true if any burn condition is satisfied, otherwise false.
 common.is_burn_condition_met = function(always_condition)
     -- activating a burn condition is good for 60 seconds, don't do check again if 60 seconds hasn't passed yet and burn is active.
     if common.time_remaining(common.BURN_ACTIVE_TIMER, 30) and common.BURN_ACTIVE then
@@ -1007,10 +1088,17 @@ end
 
 -- Spell Helper Functions
 
+---Determine whether the specified spell is memorized in the gem.
+---@param spell_name string @The spell name to check is memorized.
+---@param gem number @The spell gem index the spell should be memorized in.
+---@return boolean @Returns true if the spell is memorized in the specified gem, otherwise false.
 common.swap_gem_ready = function(spell_name, gem)
     return mq.TLO.Me.Gem(gem)() and mq.TLO.Me.Gem(gem).Name() == spell_name
 end
 
+---Swap the specified spell into the specified gem slot.
+---@param spell_name string @The name of the spell to memorize.
+---@param gem number @The gem index to memorize the spell into.
 common.swap_spell = function(spell_name, gem)
     if not gem or common.am_i_dead() then return end
     mq.cmdf('/memspell %d "%s"', gem, spell_name)
@@ -1018,12 +1106,14 @@ common.swap_spell = function(spell_name, gem)
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
 
+---Check Geomantra buff and click charm item if missing and item is ready.
 common.check_combat_buffs = function()
     if not mq.TLO.Me.Buff('Geomantra')() then
         common.use_item(mq.TLO.InvSlot('Charm').Item)
     end
 end
 
+---Check and cast any missing familiar, illusion or mount buffs. Removes illusion and dismounts after casting.
 common.check_item_buffs = function()
     if familiar and familiar > 0 and not mq.TLO.Me.Buff('Familiar:')() then
         common.use_item(mq.TLO.FindItem(familiar))
@@ -1040,6 +1130,7 @@ common.check_item_buffs = function()
     end
 end
 
+---Attempt to click mod rods if mana is below 75%.
 common.check_mana = function()
     -- modrods
     local pct_mana = mq.TLO.Me.PctMana()
@@ -1057,6 +1148,7 @@ common.check_mana = function()
 end
 
 local sit_timer = 0
+---Sit down to med if the conditions for resting are met.
 common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if common.timer_expired(sit_timer, 10) then
@@ -1069,6 +1161,7 @@ end
 
 -- keep cursor clear for spell swaps and such
 local autoinv_timer = 0
+---Autoinventory an item if it has been on the cursor for 15 seconds.
 common.check_cursor = function()
     if mq.TLO.Cursor() then
         if autoinv_timer == 0 then
@@ -1084,7 +1177,9 @@ common.check_cursor = function()
     end
 end
 
--- Load common settings from settings file
+---Load common settings from settings file
+---@param settings_file string @The name of the settings file to load.
+---@return table @Returns a table containing the loaded settings file content.
 common.load_settings = function(settings_file)
     if not common.file_exists(settings_file) then return end
     local settings = assert(loadfile(settings_file))()
@@ -1111,10 +1206,13 @@ common.load_settings = function(settings_file)
     return settings
 end
 
+---Set common.I_AM_DEAD flag to true in the event of death.
 local function event_dead()
     common.printf('HP hit 0. what do!')
     common.I_AM_DEAD = true
 end
+
+---Initialize the player death event triggers.
 common.setup_events = function()
     mq.event('event_dead_released', '#*#Returning to Bind Location#*#', event_dead)
     mq.event('event_dead', 'You died.', event_dead)
