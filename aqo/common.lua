@@ -1177,35 +1177,6 @@ common.check_cursor = function()
     end
 end
 
----Load common settings from settings file
----@param settings_file string @The name of the settings file to load.
----@return table @Returns a table containing the loaded settings file content.
-common.load_settings = function(settings_file)
-    if not common.file_exists(settings_file) then return end
-    local settings = assert(loadfile(settings_file))()
-    if not settings or not settings.common then return settings end
-    if settings.common.MODE ~= nil then common.OPTS.MODE = settings.common.MODE end
-    if settings.common.CHASETARGET ~= nil then common.OPTS.CHASETARGET = settings.common.CHASETARGET end
-    if settings.common.CHASEDISTANCE ~= nil then common.OPTS.CHASEDISTANCE = settings.common.CHASEDISTANCE end
-    if settings.common.CAMPRADIUS ~= nil then common.OPTS.CAMPRADIUS = settings.common.CAMPRADIUS end
-    if settings.common.ASSIST ~= nil then common.OPTS.ASSIST = settings.common.ASSIST end
-    if settings.common.AUTOASSISTAT ~= nil then common.OPTS.AUTOASSISTAT = settings.common.AUTOASSISTAT end
-    if settings.common.SPELLSET ~= nil then common.OPTS.SPELLSET = settings.common.SPELLSET end
-    if settings.common.BURNALWAYS ~= nil then common.OPTS.BURNALWAYS = settings.common.BURNALWAYS end
-    if settings.common.BURNPCT ~= nil then common.OPTS.BURNPCT = settings.common.BURNPCT end
-    if settings.common.BURNALLNAMED ~= nil then common.OPTS.BURNALLNAMED = settings.common.BURNALLNAMED end
-    if settings.common.BURNCOUNT ~= nil then common.OPTS.BURNCOUNT = settings.common.BURNCOUNT end
-    if settings.common.USEALLIANCE ~= nil then common.OPTS.USEALLIANCE = settings.common.USEALLIANCE end
-    if settings.common.SWITCHWITHMA ~= nil then common.OPTS.SWITCHWITHMA = settings.common.SWITCHWITHMA end
-    if settings.common.PULLRADIUS ~= nil then common.OPTS.PULLRADIUS = settings.common.PULLRADIUS end
-    if settings.common.PULLHIGH ~= nil then common.OPTS.PULLHIGH = settings.common.PULLHIGH end
-    if settings.common.PULLLOW ~= nil then common.OPTS.PULLLOW = settings.common.PULLLOW end
-    if settings.common.PULLARC ~= nil then common.OPTS.PULLARC = settings.common.PULLARC end
-    if settings.common.PULLMINLEVEL ~= nil then common.OPTS.PULLMINLEVEL = settings.common.PULLMINLEVEL end
-    if settings.common.PULLMAXLEVEL ~= nil then common.OPTS.PULLMAXLEVEL = settings.common.PULLMAXLEVEL end
-    return settings
-end
-
 ---Set common.I_AM_DEAD flag to true in the event of death.
 local function event_dead()
     common.printf('HP hit 0. what do!')
