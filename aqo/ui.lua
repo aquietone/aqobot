@@ -4,6 +4,7 @@ local mq = require('mq')
 require 'ImGui'
 
 local common = require('aqo.common')
+local config = require('aqo.config')
 local state = require('aqo.state')
 
 -- GUI Control variables
@@ -209,7 +210,7 @@ ui.main = function()
                 ImGui.PopStyleVar()
                 ImGui.EndTabItem()
             end
-            if config.get_mode():is_pull() then
+            if config.get_mode():is_pull_mode() then
                 if ImGui.BeginTabItem('Pulling') then
                     ui.draw_pull_tab()
                     ImGui.EndTabItem()
