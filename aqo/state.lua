@@ -1,4 +1,4 @@
-local logger = require('aqo.logger')
+local logger = require('aqo.utils.logger')
 
 local state = {}
 
@@ -23,6 +23,16 @@ local min_end = 15
 local spellset_loaded = nil
 
 local i_am_dead = false
+
+local assist_mob_id = 0
+
+local targets = {}
+
+local mob_count = 0
+
+local tank_mob_id = 0
+
+local pull_mob_id = 0
 
 function state.get_all()
     return {
@@ -117,6 +127,46 @@ end
 
 function state.set_i_am_dead(new_i_am_dead)
     i_am_dead = new_i_am_dead
+end
+
+function state.get_pull_mob_id()
+    return pull_mob_id
+end
+
+function state.set_pull_mob_id(new_pull_mob_id)
+    pull_mob_id = new_pull_mob_id
+end
+
+function state.get_tank_mob_id()
+    return tank_mob_id
+end
+
+function state.set_tank_mob_id(new_tank_mob_id)
+    tank_mob_id = new_tank_mob_id
+end
+
+function state.get_assist_mob_id()
+    return assist_mob_id
+end
+
+function state.set_assist_mob_id(new_assist_mob_id)
+    assist_mob_id = new_assist_mob_id
+end
+
+function state.get_targets()
+    return targets
+end
+
+function state.set_targets(new_targets)
+    targets = targets
+end
+
+function state.get_mob_count()
+    return mob_count
+end
+
+function state.set_mob_count(new_mob_count)
+    mob_count = new_mob_count
 end
 
 --for k,v in pairs(state.get_all()) do

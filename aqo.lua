@@ -4,11 +4,14 @@ local mq = require('mq')
 require 'ImGui'
 
 local class = mq.TLO.Me.Class.ShortName():lower()
-local class_funcs = require('aqo.'..class)
+local class_funcs = require('aqo.classes.'..class)
+local assist = require('aqo.routines.assist')
+local camp = require('aqo.routines.camp')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
-local logger = require('aqo.logger')
+local logger = require('aqo.utils.logger')
 local mode = require('aqo.mode')
+local state = require('aqo.state')
 local ui = require('aqo.ui')
 
 local function check_game_state()
@@ -62,13 +65,13 @@ local function cmd_bind(...)
             logger.printf('Mode: %s', config:get_mode():get_name())
         end
     elseif args[1] == 'resetcamp' then
-        common.set_camp(true)
+        camp.set_camp(true)
     elseif args[1] == 'radius' then
         get_or_set_opt('PULLRADIUS', config.get_pull_radius(), args[2], config.set_pull_radius)
-        common.set_camp(true)
+        camp.set_camp(true)
     elseif args[1] == 'pullarc' then
         get_or_set_opt('PULLARC', config.get_pull_arc(), args[2], config.set_pull_arc)
-        common.set_camp(true)
+        camp.set_camp(true)
     elseif args[1] == 'levelmin' then
         get_or_set_opt('PULLMINLEVEL', config.get_pull_min_level(), args[2], config.set_pull_min_level)
     elseif args[1] == 'levelmax' then
@@ -107,7 +110,7 @@ while true do
     check_game_state()
     if state.get_debug() and common.timer_expired(debug_timer, 3) then
         logger.debug(state.get_debug(), 'main loop: PAUSED=%s, Me.Invis=%s', state.get_paused(), mq.TLO.Me.Invis())
-        logger.debug(state.get_debug(), '#TARGETS: %d, MOB_COUNT: %d', common.table_size(common.TARGETS), common.MOB_COUNT)
+        logger.debug(state.get_debug(), '#TARGETS: %d, MOB_COUNT: %d', common.table_size(state.get_targets()), state.get_mob_count())
         debug_timer = common.current_time()
     end
 
@@ -119,7 +122,7 @@ while true do
     -- Process death events
     mq.doevents()
     if not state.get_paused() then
-        common.clean_targets()
+        camp.clean_targets()
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             common.ASSIST_TARGET_ID = 0
             mq.cmd('/squelch /mqtarget clear')
@@ -136,8 +139,8 @@ while true do
             local pet_target_id = mq.TLO.Pet.Target.ID() or 0
             if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
             common.mob_radar()
-            if (mode:is_tank_mode() and common.MOB_COUNT > 0) or (mode:is_assist_mode() and common.should_assist()) then mq.cmd('/makemevis') end
-            common.check_camp()
+            if (mode:is_tank_mode() and state.get_mob_count() > 0) or (mode:is_assist_mode() and assist.should_assist()) then mq.cmd('/makemevis') end
+            camp.check_camp()
             common.check_chase()
             common.rest()
             mq.delay(50)

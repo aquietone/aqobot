@@ -1,9 +1,8 @@
-local logger = require('aqo.logger')
+local logger = require('aqo.utils.logger')
 
 local mode = {
     modes={},
-    mode_names={},
-    valid_modes={},
+    mode_names={}
 }
 
 function mode:new(name, is_camp, is_assist, is_tank, is_pull)
@@ -17,6 +16,7 @@ function mode:new(name, is_camp, is_assist, is_tank, is_pull)
     m.is_pull = is_pull
     table.insert(mode.modes, m)
     mode.modes[name] = m
+    table.insert(mode.mode_names, name)
     return m
 end
 
