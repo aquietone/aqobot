@@ -90,7 +90,7 @@ assist.check_target = function(reset_timers)
         if not assist_target() then return end
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and assist_target.ID() == assist.get_assist_id() then
             -- if we are targeting a mob, but the MA is targeting themself, then stop what we're doing
-            mq.cmd('/multiline ; /target clear; /pet back; /autoattack off; /autofire off;')
+            mq.cmd('/multiline ; /target clear; /pet back; /attack off; /autofire off;')
             state.set_assist_mob_id(0)
             return
         end
@@ -142,6 +142,15 @@ assist.get_combat_position = function()
         mq.delay(1)
     end
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
+end
+
+---Navigate to the current target if if isn't in LOS and should be.
+assist.check_los = function()
+    if config.get_mode():get_name() ~= 'manual' and (common.is_fighting() or assist.should_assist()) then
+        if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
+            mq.cmd('/nav target log=off')
+        end
+    end
 end
 
 ---Begin attacking the assist target if not already attacking.

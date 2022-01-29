@@ -627,7 +627,6 @@ local function check_buffs()
 end
 
 local function check_pet()
-    logger.debug(state.get_debug(), 'is_fighting=%s Pet.ID=%s spawncount=%s spellmana=%s memana=%s', common.is_fighting(), mq.TLO.Pet.ID(), mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))(), mq.TLO.Spell(spells['pet']['name']).Mana(), mq.TLO.Me.CurrentMana())
     if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
@@ -733,69 +732,69 @@ local function check_spell_set()
         swap_gem_dis = mq.TLO.Me.Gem(spells['decay']['name'])() or mq.TLO.Me.Gem(spells['grip']['name'])() or 11
     end
     if config.get_spell_set() == 'standard' then
-        if OPTS.USEMANATAP and common.OPTS.USEALLIANCE and OPTS.USEBUFFSHIELD then
+        if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
-        elseif OPTS.USEMANATAP and common.OPTS.USEALLIANCE and not OPTS.USEBUFFSHIELD then
+        elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 12) end
-        elseif OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and not OPTS.USEBUFFSHIELD then
+        elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 12) end
-        elseif OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and OPTS.USEBUFFSHIELD then
+        elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
-        elseif not OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and not OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['corruption']['name'] then common.swap_spell(spells['corruption']['name'], 12) end
-        elseif not OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
-        elseif not OPTS.USEMANATAP and common.OPTS.USEALLIANCE and OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
-        elseif not OPTS.USEMANATAP and common.OPTS.USEALLIANCE and not OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 12) end
         end
     elseif config.get_spell_set() == 'short' then
-        if OPTS.USEMANATAP and common.OPTS.USEALLIANCE and OPTS.USEINSPIRE then
+        if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
-        elseif OPTS.USEMANATAP and common.OPTS.USEALLIANCE and not OPTS.USEINSPIRE then
+        elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
-        elseif OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and not OPTS.USEINSPIRE then
+        elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
-        elseif OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and OPTS.USEINSPIRE then
+        elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
-        elseif not OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and not OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
-        elseif not OPTS.USEMANATAP and not common.OPTS.USEALLIANCE and OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
-        elseif not OPTS.USEMANATAP and common.OPTS.USEALLIANCE and OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
-        elseif not OPTS.USEMANATAP and common.OPTS.USEALLIANCE and not OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
             if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
             if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
             if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
@@ -869,7 +868,7 @@ nec.main_loop = function()
     -- check we have the correct target to attack
     assist.check_target()
     -- if we should be assisting but aren't in los, try to be?
-    common.check_los()
+    assist.check_los()
     -- begin actual combat stuff
     assist.send_pet()
     try_debuff_target()
@@ -891,10 +890,8 @@ end
 
 nec.draw_left_panel = function()
     local current_mode = config.get_mode():get_name()
+    local current_camp_radius = config.get_camp_radius()
     config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    if current_mode ~= config.get_mode():get_name() then
-        camp.set_camp(true)
-    end
     config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
     config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
     config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
@@ -904,6 +901,9 @@ nec.draw_left_panel = function()
     config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
     config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
     OPTS.STOPPCT = ui.draw_input_int('Stop Percent', '##stoppct', OPTS.STOPPCT, 'Percent HP to stop dotting')
+    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
+        camp.set_camp()
+    end
 end
 
 nec.draw_right_panel = function()

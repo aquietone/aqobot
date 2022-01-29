@@ -42,7 +42,7 @@ end
 
 function mode.from_string(a_mode)
     if tonumber(a_mode) then
-        return mode.modes[tonumber(a_mode)]
+        return mode.modes[tonumber(a_mode)+1]
     else
         return mode.modes[a_mode]
     end

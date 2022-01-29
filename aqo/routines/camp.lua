@@ -118,7 +118,39 @@ end
 ---Set, update or clear the CAMP values depending on whether currently in a camp mode or not.
 ---@param reset boolean @If true, then reset the camp to pickup the latest options.
 camp.set_camp = function(reset)
-    if (config.get_mode():is_camp_mode() and not state.get_camp()) or reset then
+    local my_camp = state.get_camp()
+    local mode = config.get_mode()
+    if mode:is_camp_mode() then
+        mq.cmd('/squelch /maploc remove')
+        if not my_camp or reset then
+            my_camp = {
+                ['X']=mq.TLO.Me.X(),
+                ['Y']=mq.TLO.Me.Y(),
+                ['Z']=mq.TLO.Me.Z(),
+                ['HEADING']=mq.TLO.Me.Heading.Degrees(),
+                ['ZoneID']=mq.TLO.Zone.ID(),
+            }
+        end
+        if mode:is_pull_mode() then
+            if config.get_pull_arc() > 0 and config.get_pull_arc() < 360 then
+                my_camp = set_pull_angles(my_camp)
+                draw_maploc(my_camp.PULL_ARC_LEFT, '0 0 255')
+                draw_maploc(my_camp.PULL_ARC_RIGHT, '0 0 255')
+                draw_maploc(my_camp.HEADING, '255 0 0')
+            end
+            mq.cmdf('/squelch /maploc size 10 width 1 color 0 0 255 radius %s rcolor 0 0 255 %s %s', config.get_pull_radius(), my_camp.Y, my_camp.X)
+        end
+        logger.printf('Camp set to X: %s Y: %s Z: %s R: %s H: %s', my_camp.X, my_camp.Y, my_camp.Z, config.get_camp_radius(), my_camp.HEADING)
+        mq.cmdf('/squelch /maploc size 10 width 1 color 255 0 0 radius %s rcolor 255 0 0 %s %s', config.get_camp_radius(), my_camp.Y+1, my_camp.X+1)
+        state.set_camp(my_camp)
+    elseif my_camp then
+        state.set_camp(nil)
+        mq.cmd('/squelch /mapf campradius 0')
+        mq.cmd('/squelch /mapf pullradius 0')
+        mq.cmd('/squelch /maploc remove')
+    end
+
+    --[[if (config.get_mode():is_camp_mode() and not state.get_camp()) or reset then
         mq.cmd('/squelch /maploc remove')
         local my_camp = {
             ['X']=mq.TLO.Me.X(),
@@ -144,7 +176,7 @@ camp.set_camp = function(reset)
         mq.cmd('/squelch /mapf campradius 0')
         mq.cmd('/squelch /mapf pullradius 0')
         mq.cmd('/squelch /maploc remove')
-    end
+    end]]--
 end
 
 return camp
