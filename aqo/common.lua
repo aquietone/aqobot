@@ -1,13 +1,31 @@
 --- @type mq
 local mq = require 'mq'
-local config = require('aqo.configuration')
 local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
+local config = require('aqo.configuration')
 local state = require('aqo.state')
 
 local common = {}
 
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
 common.FD_CLASSES = {mnk=1,bst=1,shd=1,nec=1}
+common.BOOL = {
+    ['TRUE']={
+        ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
+    },
+    ['FALSE']={
+        ['0']=1, ['false']=1,['off']=1,['FALSE']=1,['OFF']=1,
+    },
+}
+common.DMZ = {
+    [344] = 1,
+    [345] = 1,
+    [202] = 1,
+    [203] = 1,
+    [279] = 1,
+    [151] = 1,
+    [33506] = 1,
+}
 
 local familiar = mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
 -- Familiar: Personal Hemic Source
@@ -24,32 +42,6 @@ local mount = mq.TLO.Mount.Stat.Item.ID() or mq.TLO.FindItem('Golden Owlbear Sad
 common.file_exists = function(file_name)
     local f = io.open(file_name, "r")
     if f ~= nil then io.close(f) return true else return false end
-end
-
----Return the current time in seconds. TODO: is the os.date("!*t") really necessary? "!*t" returns UTC instead of local time.
----@return number @Returns a number representing the current time.
-common.current_time = function()
-    return os.time(os.date("!*t"))
-end
-
----Check whether the specified timer has passed the given expiration.
----@param t number @The current value of the timer.
----@param expiration number @The number of seconds which must have passed for the timer to be expired.
----@return boolean
-common.timer_expired = function(t, expiration)
-    if os.difftime(common.current_time(), t) > expiration then
-        return true
-    else
-        return false
-    end
-end
-
----Check whether the time remaining on the given timer is less than the provided value.
----@param t number @The current value of the timer.
----@param less_than number @The maximum number of seconds remaining to return true.
----@return boolean @Returns true if the timer has less than the specified number of seconds remaining.
-common.time_remaining = function(t, less_than)
-    return not common.timer_expired(t, less_than)
 end
 
 ---Count the number of keys in the given table
@@ -297,14 +289,14 @@ end
 ---@return boolean @Returns true if any burn condition is satisfied, otherwise false.
 common.is_burn_condition_met = function(always_condition)
     -- activating a burn condition is good for 60 seconds, don't do check again if 60 seconds hasn't passed yet and burn is active.
-    if common.time_remaining(state.get_burn_active_timer(), 30) and state.get_burn_active() then
+    if not state.get_burn_active_timer():timer_expired() and state.get_burn_active() then
         return true
     else
         state.set_burn_active(false)
     end
     if state.get_burn_now() then
         logger.printf('\arActivating Burns (on demand)\ax')
-        state.set_burn_active_timer(common.current_time())
+        state.get_burn_active_timer():reset()
         state.set_burn_active(true)
         state.set_burn_now(false)
         return true
@@ -316,22 +308,22 @@ common.is_burn_condition_met = function(always_condition)
             return true
         elseif config.get_burn_all_named() and mq.TLO.Target.Named() then
             logger.printf('\arActivating Burns (named)\ax')
-            state.set_burn_active_timer(common.current_time())
+            state.get_burn_active_timer():reset()
             state.set_burn_active(true)
             return true
         elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() >= config.get_burn_count() then
             logger.printf('\arActivating Burns (mob count > %d)\ax', config.get_burn_count())
-            state.set_burn_active_timer(common.current_time())
+            state.get_burn_active_timer():reset()
             state.set_burn_active(true)
             return true
         elseif config.get_burn_percent() ~= 0 and mq.TLO.Target.PctHPs() < config.get_burn_percent() then
             logger.printf('\arActivating Burns (percent HP)\ax')
-            state.set_burn_active_timer(common.current_time())
+            state.get_burn_active_timer():reset()
             state.set_burn_active(true)
             return true
         end
     end
-    state.set_burn_active_timer(0)
+    state.get_burn_active_timer():reset(0)
     state.set_burn_active(false)
     return false
 end
@@ -397,33 +389,33 @@ common.check_mana = function()
     -- unified phoenix feather
 end
 
-local sit_timer = 0
+local sit_timer = timer:new(10)
 ---Sit down to med if the conditions for resting are met.
 common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
-    if common.timer_expired(sit_timer, 10) then
+    if sit_timer:timer_expired() then
         if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
             mq.cmd('/sit')
-            sit_timer = common.current_time()
+            sit_timer:reset()
         end
     end
 end
 
 -- keep cursor clear for spell swaps and such
-local autoinv_timer = 0
+local autoinv_timer = timer:new(15)
 ---Autoinventory an item if it has been on the cursor for 15 seconds.
 common.check_cursor = function()
     if mq.TLO.Cursor() then
-        if autoinv_timer == 0 then
-            autoinv_timer = common.current_time()
+        if autoinv_timer.start_time == 0 then
+            autoinv_timer:reset()
             logger.printf('Dropping cursor item into inventory in 15 seconds')
-        elseif os.difftime(common.current_time(), autoinv_timer) > 15 then
+        elseif autoinv_timer:timer_expired() then
             mq.cmd('/autoinventory')
-            autoinv_timer = 0
+            autoinv_timer:reset(0)
         end
-    elseif autoinv_timer > 0 then
+    elseif autoinv_timer.start_time ~= 0 then
         logger.debug(state.get_debug(), 'Cursor is empty, resetting autoinv_timer')
-        autoinv_timer = 0
+        autoinv_timer:reset(0)
     end
 end
 

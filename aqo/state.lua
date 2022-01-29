@@ -1,4 +1,5 @@
 local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
 
 local state = {}
 
@@ -12,7 +13,7 @@ local burn_now = false
 
 local burn_active = false
 
-local burn_active_timer = 0
+local burn_active_timer = timer:new(30)
 
 local camp = nil
 

@@ -182,6 +182,7 @@ ui.main = function()
         end
         if state.get_paused() then
             if ImGui.Button('RESUME') then
+                camp.set_camp()
                 state.set_paused(false)
             end
         else

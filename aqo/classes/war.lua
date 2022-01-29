@@ -87,8 +87,6 @@ local burnAgroAAs = {}
 table.insert(burnAgroAAs, common.get_aaid_and_name('Ageless Enmity'))
 
 local regen = common.get_discid_and_name('Breather')
-print(regen['id'])
-print(regen['name'])
 
 local leap = common.get_aaid_and_name('Battle Leap')
 local aura = common.get_discid_and_name('Champion\'s Aura')
@@ -302,38 +300,25 @@ end
 
 war.process_cmd = function(opt, new_value)
     if new_value then
-        if opt == 'ASSIST' then
-            if common.ASSISTS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
-                config.set_assist(new_value)
-            end
-        --[[
-        elseif type(OPTS[opt]) == 'boolean' or type(common.OPTS[opt]) == 'boolean' then
-            if new_value == '0' or new_value == 'off' then
+        if type(OPTS[opt]) == 'boolean' then
+            if common.BOOL.FALSE[new_value] then
                 logger.printf('Setting %s to: false', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = false end
                 if OPTS[opt] ~= nil then OPTS[opt] = false end
-            elseif new_value == '1' or new_value == 'on' then
+            elseif common.BOOL.TRUE[new_value] then
                 logger.printf('Setting %s to: true', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = true end
                 if OPTS[opt] ~= nil then OPTS[opt] = true end
             end
-        elseif type(OPTS[opt]) == 'number' or type(common.OPTS[opt]) == 'number' then
+        elseif type(OPTS[opt]) == 'number' then
             if tonumber(new_value) then
                 logger.printf('Setting %s to: %s', opt, tonumber(new_value))
-                OPTS[opt] = tonumber(new_value)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = tonumber(new_value) end
                 if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
             end
-        ]]--
         else
             logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt, OPTS[opt])
-        --elseif common.OPTS[opt] ~= nil then
-        --    logger.printf('%s: %s', opt, common.OPTS[opt])
+            logger.printf('%s: %s', opt:lower(), OPTS[opt])
         else
             logger.printf('Unrecognized option: %s', opt)
         end

@@ -2,11 +2,12 @@
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
+local logger = require('aqo.utils.logger')
+local persistence = require('aqo.utils.persistence')
+local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
-local logger = require('aqo.utils.logger')
 local mode = require('aqo.mode')
-local persistence = require('aqo.utils.persistence')
 local state = require('aqo.state')
 local ui = require('aqo.ui')
 
@@ -218,7 +219,6 @@ local function check_mob_angle()
     return true
 end
 
---local stick_timer = 0
 local function attack_range()
     if state.get_assist_mob_id() == 0 or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or not assist.should_assist() then
         if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
@@ -232,10 +232,6 @@ local function attack_range()
     if mq.TLO.Navigation.Active() then
         mq.cmd('/squelch /nav stop')
     end
-    --[[if not mq.TLO.Stick.Active() and common.timer_expired(stick_timer, 3) then
-        mq.cmd('/squelch /stick moveback 35 uw')
-        stick_timer = common.current_time()
-    end]]--
     if mq.TLO.Target() then
         if not check_mob_angle() then
             mq.cmd('/face fast')
@@ -439,14 +435,14 @@ local function try_burn()
     end
 end
 
-local check_aggro_timer = 0
+--local check_aggro_timer = timer:new(10)
 local function check_aggro()
     --[[
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.timer_expired(check_aggro_timer, 10) then
+        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 70 then
                 common.use_aa(fade)
-                check_aggro_timer = common.current_time()
+                check_aggro_timer:reset()
                 mq.delay('1s')
                 mq.cmd('/makemevis')
             end
@@ -455,7 +451,7 @@ local function check_aggro()
     ]]--
 end
 
-local group_buff_timer = 0
+local group_buff_timer = timer:new(60)
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
@@ -494,7 +490,7 @@ local function check_buffs()
             mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['rune']['name'])() end)
         end
     end
-    if OPTS.BUFFGROUP and common.timer_expired(group_buff_timer, 60) then
+    if OPTS.BUFFGROUP and group_buff_timer:timer_expired() then
         if mq.TLO.Group.Members() then
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
@@ -548,7 +544,7 @@ local function check_buffs()
                 end
             end
         end
-        group_buff_timer = common.current_time()
+        group_buff_timer:reset()
     end
     if OPTS.USEPOISONARROW then
         if not mq.TLO.Me.Buff('Poison Arrows')() then
@@ -563,10 +559,10 @@ local function check_buffs()
     common.check_item_buffs()
 end
 
-local check_spell_timer = 0
+local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or common.timer_expired(check_spell_timer, 30) then
+    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['shots']['name'] then common.swap_spell(spells['shots']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['focused']['name'] then common.swap_spell(spells['focused']['name'], 2) end
@@ -583,7 +579,7 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(13)() ~= spells['buffs']['name'] then common.swap_spell(spells['buffs']['name'], 13) end
             state.set_spellset_loaded(config.get_spell_set())
         end
-        check_spell_timer = common.current_time()
+        check_spell_timer:reset()
     end
 end
 
@@ -593,36 +589,25 @@ end
 
 rng.process_cmd = function(opt, new_value)
     if new_value then
-        if opt == 'ASSIST' then
-            if common.ASSISTS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
-                config.set_assist(new_value)
-            end
-        --[[elseif type(OPTS[opt]) == 'boolean' or type(common.OPTS[opt]) == 'boolean' then
-            if new_value == '0' or new_value == 'off' then
+        if type(OPTS[opt]) == 'boolean' then
+            if common.BOOL.FALSE[new_value] then
                 logger.printf('Setting %s to: false', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = false end
                 if OPTS[opt] ~= nil then OPTS[opt] = false end
-            elseif new_value == '1' or new_value == 'on' then
+            elseif common.BOOL.TRUE[new_value] then
                 logger.printf('Setting %s to: true', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = true end
                 if OPTS[opt] ~= nil then OPTS[opt] = true end
             end
-        elseif type(OPTS[opt]) == 'number' or type(common.OPTS[opt]) == 'number' then
+        elseif type(OPTS[opt]) == 'number' then
             if tonumber(new_value) then
                 logger.printf('Setting %s to: %s', opt, tonumber(new_value))
-                OPTS[opt] = tonumber(new_value)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = tonumber(new_value) end
                 if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
-            end]]--
+            end
         else
             logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt, OPTS[opt])
-        --elseif common.OPTS[opt] ~= nil then
-        --    logger.printf('%s: %s', opt, common.OPTS[opt])
+            logger.printf('%s: %s', opt:lower(), OPTS[opt])
         else
             logger.printf('Unrecognized option: %s', opt)
         end

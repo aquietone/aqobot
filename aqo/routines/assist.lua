@@ -1,10 +1,10 @@
 --- @type mq
 local mq = require 'mq'
-local common = require('aqo.common')
 local config = require('aqo.configuration')
 local logger = require('aqo.utils.logger')
-local state = require('aqo.state')
 local timer = require('aqo.utils.timer')
+local common = require('aqo.common')
+local state = require('aqo.state')
 
 local assist = {}
 
@@ -69,13 +69,13 @@ assist.should_assist = function(assist_target)
     end
 end
 
-local send_pet_timer = 0
-local stick_timer = 0
+local send_pet_timer = timer:new(5)
+local stick_timer = timer:new(3)
 
 ---Reset common combat timers to 0.
 local function reset_combat_timers()
-    stick_timer = 0
-    send_pet_timer = 0
+    stick_timer:reset(0)
+    send_pet_timer:reset(0)
 end
 
 ---Acquire the correct target when running in an assist mode. Clears target if the main assist targets themself.
@@ -130,13 +130,13 @@ assist.get_combat_position = function()
         return
     end
     mq.cmdf('/nav id %d log=off', target_id)
-    local begin_time = common.current_time()
+    local begin_time = timer.current_time()
     while true do
         if mq.TLO.Target.LineOfSight() then
             mq.cmd('/squelch /nav stop')
             break
         end
-        if os.difftime(begin_time, common.current_time()) > 5 then
+        if os.difftime(begin_time, timer.current_time()) > 5 then
             break
         end
         mq.delay(1)
@@ -163,10 +163,10 @@ assist.attack = function()
     if mq.TLO.Navigation.Active() then
         mq.cmd('/squelch /nav stop')
     end
-    if not mq.TLO.Stick.Active() and common.timer_expired(stick_timer, 3) then
+    if not mq.TLO.Stick.Active() and stick_timer:timer_expired() then
         --mq.cmd('/squelch /stick loose moveback 10 uw')
         mq.cmd('/squelch /stick snaproll rear moveback 10 uw')
-        stick_timer = common.current_time()
+        stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() then
         mq.cmd('/attack on')
@@ -175,13 +175,13 @@ end
 
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 assist.send_pet = function()
-    if common.timer_expired(send_pet_timer, 5) and (common.is_fighting() or assist.should_assist()) then
+    if send_pet_timer:timer_expired() and (common.is_fighting() or assist.should_assist()) then
         if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() then
             mq.cmd('/multiline ; /pet attack ; /pet swarm')
         else
             mq.cmd('/pet swarm')
         end
-        send_pet_timer = common.current_time()
+        send_pet_timer:reset()
     end
 end
 

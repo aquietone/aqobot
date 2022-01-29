@@ -7,13 +7,15 @@ local class = mq.TLO.Me.Class.ShortName():lower()
 local class_funcs = require('aqo.classes.'..class)
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
+local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
-local logger = require('aqo.utils.logger')
 local mode = require('aqo.mode')
 local state = require('aqo.state')
 local ui = require('aqo.ui')
 
+---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
         logger.printf('Not in game, stopping aqo.')
@@ -21,15 +23,27 @@ local function check_game_state()
     end
 end
 
+---Display help information for the script.
 local function show_help()
     logger.printf('AQO Bot 1.0')
     logger.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', class))
 end
 
+---Get or set the specified configuration option. Currently applies to pull settings only.
+---@param name string @The name of the setting.
+---@param current_value any @The current value of the specified setting.
+---@param new_value string @The new value for the setting.
+---@param setter function @The function used to set the desired settings value.
 local function get_or_set_opt(name, current_value, new_value, setter)
     if new_value then
         if type(current_value) == 'number' then
             setter(tonumber(new_value) or current_value)
+        elseif type(current_value) == 'boolean' then
+            if common.BOOL.TRUE[new_value] then
+                setter(true)
+            elseif common.BOOL.FALSE[new_value] then
+                setter(false)
+            end
         else
             setter(new_value)
         end
@@ -38,58 +52,88 @@ local function get_or_set_opt(name, current_value, new_value, setter)
     end
 end
 
+---Process binding commands.
+---@param ... vararg @The input given to the bind command.
 local function cmd_bind(...)
     local args = {...}
-    if not args[1] or args[1] == 'help' then
+    if not args[1] then
         show_help()
-    elseif args[1]:lower() == 'burnnow' then
+        return
+    end
+
+    local opt = args[1]:lower()
+    local new_value = args[2]
+    if opt == 'help' then
+        show_help()
+    elseif opt == 'burnnow' then
         state.set_burn_now(true)
-    elseif args[1] == 'pause' then
-        if not args[2] then
+    elseif opt == 'pause' then
+        if not new_value then
             state.set_paused(not state.get_paused())
         else
-            if args[2] == 'on' or args[2] == '1' then
+            if common.BOOL.TRUE[new_value] then
                 state.set_paused(true)
-            elseif args[2] == 'off' or args[2] == '0' then
+            elseif common.BOOL.FALSE[new_value] then
                 state.set_paused(false)
             end
         end
-    elseif args[1] == 'show' then
+    elseif opt == 'show' then
         ui.toggle_gui(true)
-    elseif args[1] == 'hide' then
+    elseif opt == 'hide' then
         ui.toggle_gui(false)
-    elseif args[1] == 'mode' then
-        if args[2] then
-            config.set_mode(mode.from_string(args[2]) or config.get_mode())
+    elseif opt == 'mode' then
+        if new_value then
+            config.set_mode(mode.from_string(new_value) or config.get_mode())
         else
             logger.printf('Mode: %s', config:get_mode():get_name())
         end
-    elseif args[1] == 'resetcamp' then
+    elseif opt == 'resetcamp' then
         camp.set_camp(true)
-    elseif args[1] == 'radius' then
-        get_or_set_opt('PULLRADIUS', config.get_pull_radius(), args[2], config.set_pull_radius)
+    elseif opt == 'campradius' then
+        get_or_set_opt(opt, config.get_camp_radius(), new_value, config.set_camp_radius)
         camp.set_camp()
-    elseif args[1] == 'pullarc' then
-        get_or_set_opt('PULLARC', config.get_pull_arc(), args[2], config.set_pull_arc)
+    elseif opt == 'radius' then
+        get_or_set_opt(opt, config.get_pull_radius(), new_value, config.set_pull_radius)
         camp.set_camp()
-    elseif args[1] == 'levelmin' then
-        get_or_set_opt('PULLMINLEVEL', config.get_pull_min_level(), args[2], config.set_pull_min_level)
-    elseif args[1] == 'levelmax' then
-        get_or_set_opt('PULLMAXLEVEL', config.get_pull_max_level(), args[2], config.set_pull_max_level)
-    elseif args[1] == 'zlow' then
-        get_or_set_opt('PULLLOW', config.get_pull_z_low(), args[2], config.set_pull_z_low)
-    elseif args[1] == 'zhigh' then
-        get_or_set_opt('PULLHIGH', config.set_pull_z_high(), args[2], config.set_pull_z_high)
-    elseif args[1] == 'zradius' then
-        get_or_set_opt('PULLLOW', config.get_pull_z_low(), args[2], config.set_pull_z_low)
-        get_or_set_opt('PULLHIGH', config.set_pull_z_high(), args[2], config.set_pull_z_high)
-    elseif args[1] == 'ignore' then
-        
+    elseif opt == 'pullarc' then
+        get_or_set_opt(opt, config.get_pull_arc(), new_value, config.set_pull_arc)
+        camp.set_camp()
+    elseif opt == 'levelmin' then
+        get_or_set_opt(opt, config.get_pull_min_level(), new_value, config.set_pull_min_level)
+    elseif opt == 'levelmax' then
+        get_or_set_opt(opt, config.get_pull_max_level(), new_value, config.set_pull_max_level)
+    elseif opt == 'zlow' then
+        get_or_set_opt(opt, config.get_pull_z_low(), new_value, config.set_pull_z_low)
+    elseif opt == 'zhigh' then
+        get_or_set_opt(opt, config.get_pull_z_high(), new_value, config.set_pull_z_high)
+    elseif opt == 'zradius' then
+        get_or_set_opt(opt, config.get_pull_z_low(), new_value, config.set_pull_z_low)
+        get_or_set_opt(opt, config.get_pull_z_high(), new_value, config.set_pull_z_high)
+    elseif opt == 'usealliance' then
+        get_or_set_opt(opt, config.get_use_alliance(), new_value, config.set_use_alliance)
+    elseif opt == 'burnallnamed' then
+        get_or_set_opt(opt, config.get_burn_all_named(), new_value, config.set_burn_all_named)
+    elseif opt == 'burnalways' then
+        get_or_set_opt(opt, config.get_burn_always(), new_value, config.set_burn_always)
+    elseif opt == 'burncount' then
+        get_or_set_opt(opt, config.get_burn_count(), new_value, config.set_burn_count)
+    elseif opt == 'burnpercent' then
+        get_or_set_opt(opt, config.get_burn_percent(), new_value, config.set_burn_percent)
+    elseif opt == 'chasetarget' then
+        get_or_set_opt(opt, config.get_chase_target(), new_value, config.set_chase_target)
+    elseif opt == 'chasedistance' then
+        get_or_set_opt(opt, config.get_chase_distance(), new_value, config.set_chase_distance)
+    elseif opt == 'autoassistat' then
+        get_or_set_opt(opt, config.get_auto_assist_at(), new_value, config.set_auto_assist_at)
+    elseif opt == 'assist' then
+        if new_value and common.ASSISTS[new_value] then
+            config.set_assist(new_value)
+        end
+        logger.printf('assist: %s', config.get_assist())
+    elseif opt == 'ignore' then
+        -- TODO: support mob ignore lists
     else
-        -- some other argument, show or modify a setting
-        local opt = args[1]:upper()
-        local new_value = args[2]
-        class_funcs.process_cmd(opt, new_value)
+        class_funcs.process_cmd(opt:upper(), new_value)
     end
 end
 mq.bind(('/%s'):format(class), cmd_bind)
@@ -104,14 +148,14 @@ mq.imgui.init('AQO Bot 1.0', ui.main)
 mq.cmd('/squelch /stick set verbflags 0')
 mq.cmd('/squelch /plugin melee unload noauto')
 
-local debug_timer = 0
+local debug_timer = timer:new(3)
 -- Main Loop
 while true do
     check_game_state()
-    if state.get_debug() and common.timer_expired(debug_timer, 3) then
+    if state.get_debug() and debug_timer:timer_expired() then
         logger.debug(state.get_debug(), 'main loop: PAUSED=%s, Me.Invis=%s', state.get_paused(), mq.TLO.Me.Invis())
         logger.debug(state.get_debug(), '#TARGETS: %d, MOB_COUNT: %d', common.table_size(state.get_targets()), state.get_mob_count())
-        debug_timer = common.current_time()
+        debug_timer:reset()
     end
 
     if not mq.TLO.Target() and (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then

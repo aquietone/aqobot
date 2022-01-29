@@ -4,6 +4,7 @@ local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
 local logger = require('aqo.utils.logger')
 local persistence = require('aqo.utils.persistence')
+local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
 local mode = require('aqo.mode')
@@ -174,12 +175,12 @@ brd.save_settings = function()
     persistence.store(SETTINGS_FILE, {common=config.get_all(), brd=OPTS})
 end
 
-local boastful_timer = 0
-local synergy_timer = 0
-local crescendo_timer = 0
+local boastful_timer = timer:new(30)
+local synergy_timer = timer:new(18)
+local crescendo_timer = timer:new(50)
 brd.reset_class_timers = function()
-    boastful_timer = 0
-    synergy_timer = 0
+    boastful_timer:reset(0)
+    synergy_timer:reset(0)
 end
 
 local function cast(spell_name, requires_target, requires_los)
@@ -195,7 +196,7 @@ local function cast(spell_name, requires_target, requires_los)
     --mq.delay(200+mq.TLO.Spell(spell_name).MyCastTime(), function() return not mq.TLO.Me.Casting() end)
     mq.delay(3200, function() return not mq.TLO.Me.Casting() end)
     mq.cmd('/stopcast')
-    if spell_name == spells['crescendo']['name'] then crescendo_timer = common.current_time() end
+    if spell_name == spells['crescendo']['name'] then crescendo_timer:reset() end
 end
 
 local function cast_mez(spell_name)
@@ -235,7 +236,7 @@ local function check_mez()
                     mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                     if mq.TLO.Target() and mq.TLO.Target.Buff(spells['mezae']['name'])() then
                         logger.debug(state.get_debug(), 'AEMEZ setting meztimer mob_id %d', id)
-                        state.get_targets()[id].meztimer = common.current_time()
+                        state.get_targets()[id].meztimer:reset()
                     end
                 end
             end
@@ -243,8 +244,8 @@ local function check_mez()
     end
     if not OPTS.MEZST or state.get_mob_count() <= 1 or not mq.TLO.Me.Gem(spells['mezst']['name'])() then return end
     for id,mobdata in pairs(state.get_targets()) do
-        if id ~= state.get_assist_mob_id() and (mobdata['meztimer'] == 0 or common.timer_expired(mobdata['meztimer'], 30)) then
-            logger.debug(state.get_debug(), '[%s] meztimer: %s timer_expired: %s', id, mobdata['meztimer'], common.timer_expired(mobdata['meztimer'], 30))
+        if id ~= state.get_assist_mob_id() and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timer_expired()) then
+            logger.debug(state.get_debug(), '[%s] meztimer: %s timer_expired: %s', id, mobdata['meztimer'].start_time, mobdata['meztimer']:timer_expired())
             local mob = mq.TLO.Spawn('id '..id)
             if mob() and not MEZ_IMMUNES[mob.CleanName()] then
                 if id ~= state.get_assist_mob_id() and mob.Level() <= 123 and mob.Type() == 'NPC' then
@@ -264,7 +265,7 @@ local function check_mez()
                             logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
                             cast_mez(spells['mezst']['name'])
                             logger.debug(state.get_debug(), 'STMEZ setting meztimer mob_id %d', id)
-                            state.get_targets()[id].meztimer = common.current_time()
+                            state.get_targets()[id].meztimer:reset()
                             mq.doevents('event_mezimmune')
                             mq.doevents('event_mezresist')
                             MEZ_TARGET_ID = 0
@@ -296,13 +297,13 @@ local function try_alliance()
 end
 
 local function cast_synergy()
-    if common.timer_expired(synergy_timer, 18) then
+    if synergy_timer:timer_expired() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(spells['insult']['name'])() and mq.TLO.Me.GemTimer(spells['insult']['name'])() == 0 then
             if mq.TLO.Spell(spells['insult']['name']).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
             end
             cast(spells['insult']['name'], true, true)
-            synergy_timer = common.current_time()
+            synergy_timer:reset()
             return true
         end
     end
@@ -346,7 +347,7 @@ local function is_song_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spellName == spells['crescendo']['name'] and (mq.TLO.Me.Buff(spells['crescendo']['name'])() or not common.timer_expired(crescendo_timer, 50)) then
+    if spellName == spells['crescendo']['name'] and (mq.TLO.Me.Buff(spells['crescendo']['name'])() or not crescendo_timer:timer_expired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
@@ -412,9 +413,9 @@ local function mash()
             use_epic()
         end
         for _,aa in ipairs(mashAAs) do
-            if aa ~= 'Boastful Bellow' or common.timer_expired(boastful_timer, 30) then
+            if aa ~= 'Boastful Bellow' or boastful_timer:timer_expired() then
                 if common.use_aa(aa) and aa == 'Boastful Bellow' then
-                    boastful_timer = common.current_time()
+                    boastful_timer:reset()
                 end
             end
         end
@@ -479,12 +480,12 @@ local function check_mana()
     end
 end
 
-local check_aggro_timer = 0
+local check_aggro_timer = timer:new(5)
 local function check_aggro()
-    if config.get_mode():get_name() ~= 'manual' and OPTS.USEFADE and state.get_mob_count() > 0 and common.timer_expired(check_aggro_timer, 5) then
+    if config.get_mode():get_name() ~= 'manual' and OPTS.USEFADE and state.get_mob_count() > 0 and check_aggro_timer:timer_expired() then
         if (mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or mq.TLO.Me.PctHPs() < 50 then
             common.use_aa(fade)
-            check_aggro_timer = common.current_time()
+            check_aggro_timer:reset()
             mq.delay('1s')
             mq.cmd('/makemevis')
         end
@@ -526,10 +527,10 @@ local function pause_for_rally()
     end
 end
 
-local check_spell_timer = 0
+local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or common.timer_expired(check_spell_timer, 30) then
+    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'melee' then
             if mq.TLO.Me.Gem(1)() ~= spells['aria']['name'] then common.swap_spell(spells['aria']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['arcane']['name'] then common.swap_spell(spells['arcane']['name'], 2) end
@@ -576,7 +577,7 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
             state.set_spellset_loaded(config.get_spell_set())
         end
-        check_spell_timer = common.current_time()
+        check_spell_timer:reset()
     end
 end
 
@@ -592,7 +593,7 @@ end
 local function event_mezresist(line, mob)
     if MEZ_TARGET_NAME and mob == MEZ_TARGET_NAME then
         logger.printf('MEZ RESIST >>> %s <<<', MEZ_TARGET_NAME)
-        state.get_targets()[MEZ_TARGET_ID].meztimer = 0
+        state.get_targets()[MEZ_TARGET_ID].meztimer:reset(0)
     end
 end
 brd.setup_events = function()
@@ -613,50 +614,37 @@ brd.process_cmd = function(opt, new_value)
                 logger.printf('Setting %s to: %s', opt, new_value)
                 config.set_spell_set(new_value)
             end
-        elseif opt == 'ASSIST' then
-            if common.ASSISTS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
-                config.set_assist(new_value)
-            end
-        --[[
-        elseif type(OPTS[opt]) == 'boolean' or type(common.OPTS[opt]) == 'boolean' then
-            if new_value == '0' or new_value == 'off' then
+        elseif type(OPTS[opt]) == 'boolean' then
+            if common.BOOL.FALSE[new_value] then
                 logger.printf('Setting %s to: false', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = false end
                 if OPTS[opt] ~= nil then OPTS[opt] = false end
-            elseif new_value == '1' or new_value == 'on' then
+            elseif common.BOOL.TRUE[new_value] then
                 logger.printf('Setting %s to: true', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = true end
                 if OPTS[opt] ~= nil then OPTS[opt] = true end
             end
-        elseif type(OPTS[opt]) == 'number' or type(common.OPTS[opt]) == 'number' then
+        elseif type(OPTS[opt]) == 'number' then
             if tonumber(new_value) then
                 logger.printf('Setting %s to: %s', opt, tonumber(new_value))
-                OPTS[opt] = tonumber(new_value)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = tonumber(new_value) end
                 if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
             end
-        ]]--
         else
             logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt, OPTS[opt])
-        --elseif common.OPTS[opt] ~= nil then
-        --    logger.printf('%s: %s', opt, common.OPTS[opt])
+            logger.printf('%s: %s', opt:lower(), OPTS[opt])
         else
             logger.printf('Unrecognized option: %s', opt)
         end
     end
 end
 
-local selos_timer = 0
+local selos_timer = timer:new(30)
 brd.main_loop = function()
     -- keep cursor clear for spell swaps and such
-    if common.timer_expired(selos_timer, 30) then
+    if selos_timer:timer_expired() then
         common.use_aa(selos)
-        selos_timer = common.current_time()
+        selos_timer:reset()
     end
     -- ensure correct spells are loaded based on selected spell set
     check_spell_set()
