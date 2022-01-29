@@ -271,7 +271,7 @@ local function check_buffs()
     if not mq.TLO.Me.Song(command['name'])() then
         common.use_aa(command)
     end
-    if mq.TLO.FindItemCount('Ethereal Arrow')() < 30 then
+    if mq.TLO.FindItemCount('Ethereal Arrow')() < 30 and not mq.TLO.Me.Moving() then
         local item = mq.TLO.FindItem(summon_items[1])
         common.use_item(item)
         mq.delay(50)
@@ -281,7 +281,7 @@ local function check_buffs()
     if common.is_fighting() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if not mq.TLO.Me.Song(aura['name'])() then
+    if not mq.TLO.Me.Song(aura['name'])() and not mq.TLO.Me.Moving() then
         common.use_disc(aura)
         mq.delay('3s')
     end

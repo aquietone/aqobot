@@ -141,7 +141,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.get_mode():get_name() ~= 'chase' then return end
-    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() then return end
+    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or mq.TLO.Me.Casting() then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.get_chase_target())
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
@@ -196,6 +196,7 @@ end
 ---@param requires_los boolean @Indicate whether the spell requires line of sight to the target.
 common.cast = function(spell_name, requires_target, requires_los)
     if not common.in_control() or (requires_los and not mq.TLO.Target.LineOfSight()) or mq.TLO.Me.Moving() then return end
+    if not mq.TLO.Me.SpellReady(spell_name)() then return end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)

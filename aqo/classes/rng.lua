@@ -200,6 +200,24 @@ local function get_ranged_combat_position(radius)
     return false
 end
 
+-- false invalid, true valid
+---Determine whether the pull spawn is within the configured pull arc, if there is one.
+---@param pull_spawn Spawn @The MQ Spawn to check.
+---@return boolean @Returns true if the spawn is within the pull arc, otherwise false.
+local function check_mob_angle()
+    local left = mq.TLO.Me.Heading.Degrees() - 45
+    local right = mq.TLO.Me.Heading.Degrees() + 45
+    local direction_to_mob = mq.TLO.Target.HeadingTo().Degrees()
+    if not direction_to_mob then return false end
+    -- switching from non-puller mode to puller mode, the camp may not be updated yet
+    if left >= right then
+        if direction_to_mob < left and direction_to_mob > right then return false end
+    else
+        if direction_to_mob < left or direction_to_mob > right then return false end
+    end
+    return true
+end
+
 --local stick_timer = 0
 local function attack_range()
     if state.get_assist_mob_id() == 0 or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or not assist.should_assist() then
@@ -218,9 +236,13 @@ local function attack_range()
         mq.cmd('/squelch /stick moveback 35 uw')
         stick_timer = common.current_time()
     end]]--
-    if not mq.TLO.Me.AutoFire() and mq.TLO.Target() then
-        mq.cmd('/face fast')
-        mq.cmd('/autofire on')
+    if mq.TLO.Target() then
+        if not check_mob_angle() then
+            mq.cmd('/face fast')
+        end
+        if not mq.TLO.Me.AutoFire() then
+            mq.cmd('/autofire on')
+        end
     end
     return true
 end
@@ -437,7 +459,7 @@ local group_buff_timer = 0
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
-    if common.is_fighting() then return end
+    if common.is_fighting() or mq.TLO.Me.AutoFire() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     -- ranger unity aa
@@ -451,49 +473,56 @@ local function check_buffs()
         end
     end
     -- ranger group buffs
-    if not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() then
+    if not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() and mq.TLO.Me.SpellReady(spells['buffs']['name'])() then
         common.cast(spells['dmgbuff']['name'])
         -- wait for GCD incase we move on to cast another right away
-        mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name']) end)
+        mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name'])() end)
     end
-    if not mq.TLO.Me.Buff(spells['rune']['name'])() then
+    if not mq.TLO.Me.Buff(spells['rune']['name'])() and mq.TLO.Me.Book(spells['rune']['name'])() then
         local restore_gem = nil
         if not mq.TLO.Me.Gem(spells['rune']['name'])() then
             restore_gem = mq.TLO.Me.Gem(13)()
             common.swap_spell(spells['rune']['name'], 13)
         end
         mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['rune']['name'])() end)
-        common.cast(spells['rune']['name'])
+        if mq.TLO.Me.SpellReady(spells['rune']['name'])() then
+            common.cast(spells['rune']['name'])
+        end
         if restore_gem then
             common.swap_spell(restore_gem, 13)
+        else
+            mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['rune']['name'])() end)
         end
-        mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['rune']['name']) end)
     end
     if OPTS.BUFFGROUP and common.timer_expired(group_buff_timer, 60) then
         if mq.TLO.Group.Members() then
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
-                if group_member() then
+                if group_member() and group_member.Class.ShortName() ~= 'RNG' then
                     if (not group_member.CachedBuff(spells['cloak']['name'])() and mq.TLO.Spell(spells['cloak']['name']).StacksSpawn(group_member.ID())) or
                             (not group_member.CachedBuff(spells['predator']['name'])() and mq.TLO.Spell(spells['predator']['name']).StacksSpawn(group_member.ID())) or
                             (not group_member.CachedBuff(spells['strength']['name'])() and mq.TLO.Spell(spells['strength']['name']).StacksSpawn(group_member.ID()) and not group_member.CachedBuff('Spiritual Vigor')()) then
                         group_member.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == group_member.ID() end)
-                        mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+                        mq.delay('1s') -- time to target and for buffs to be populated
+                        --mq.delay(100, function() return mq.TLO.Target.ID() == group_member.ID() end)
+                        --mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                         if (not mq.TLO.Target.Buff(spells['cloak']['name'])() and mq.TLO.Spell(spells['cloak']['name']).StacksTarget()) or
                                 (not mq.TLO.Target.Buff(spells['predator']['name'])() and mq.TLO.Spell(spells['predator']['name']).StacksTarget()) or
                                 (not mq.TLO.Target.Buff(spells['strength']['name'])() and mq.TLO.Spell(spells['strength']['name']).StacksTarget() and not mq.TLO.Target.Buff('Spiritual Vigor')()) then
-                                    -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            common.cast(spells['buffs']['name'])
-                            -- wait for GCD incase we move on to cast another right away
-                            mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name'])() end)
+                                -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
+                            if mq.TLO.Me.SpellReady(spells['dmgbuff']['name'])() then
+                                common.cast(spells['buffs']['name'])
+                                -- wait for GCD incase we move on to cast another right away
+                                mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name'])() end)
+                            end
                         end
                     end
                     if not group_member.CachedBuff(spells['dmgbuff']['name'])() and mq.TLO.Spell(spells['dmgbuff']['name']).StacksSpawn(group_member.ID()) then
                         group_member.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == group_member.ID() end)
-                        mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
-                        if (not mq.TLO.Target.Buff(spells['dmgbuff']['name'])() and mq.TLO.Spell(spells['dmgbuff']['name']).StacksTarget()) then
+                        mq.delay('1s') -- time to target and for buffs to be populated
+                        --mq.delay(100, function() return mq.TLO.Target.ID() == group_member.ID() end)
+                        --mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+                        if (not mq.TLO.Target.Buff(spells['dmgbuff']['name'])() and mq.TLO.Spell(spells['dmgbuff']['name']).StacksTarget()) and mq.TLO.Me.SpellReady(spells['dmgbuff']['name'])() then
                             common.cast(spells['dmgbuff']['name'])
                             -- wait for GCD incase we move on to cast another right away
                             mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name'])() end)
@@ -510,7 +539,7 @@ local function check_buffs()
                         tank_spawn.DoTarget()
                         mq.delay(100, function() return mq.TLO.Target.ID() == tank_spawn.ID() end)
                         mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
-                        if not mq.TLO.Target.Buff(spells['ds']['name'])() and mq.TLO.Spell(spells['ds']['name']).StacksTarget() then
+                        if not mq.TLO.Target.Buff(spells['ds']['name'])() and mq.TLO.Spell(spells['ds']['name']).StacksTarget() and mq.TLO.Me.SpellReady(spells['ds']['name'])() then
                             common.cast(spells['ds']['name'])
                             -- wait for GCD incase we move on to cast another right away
                             mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['ds']['name'])() end)
