@@ -187,8 +187,14 @@ end
 ---@param requires_target boolean @Indicate whether the spell requires a target.
 ---@param requires_los boolean @Indicate whether the spell requires line of sight to the target.
 common.cast = function(spell_name, requires_target, requires_los)
-    if not common.in_control() or (requires_los and not mq.TLO.Target.LineOfSight()) or mq.TLO.Me.Moving() then return end
+    if not common.in_control() or mq.TLO.Me.Moving() then return end
     if not mq.TLO.Me.SpellReady(spell_name)() then return end
+    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() then return end
+    if requires_target then
+        if requires_los and not mq.TLO.Target.LineOfSight() then return end
+        local dist3d = mq.TLO.Target.Distance3D()
+        if not dist3d or dist3d > mq.TLO.Spell(spell_name).MyRange() then return end
+    end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -219,7 +225,11 @@ end
 common.use_item = function(item)
     if not common.in_control() then return end
     if item.Timer() == '0' then
-        if item.Clicky.Spell.TargetType() == 'Single' and not mq.TLO.Target() then return end
+        if item.Clicky.Spell.TargetType() == 'Single' then
+            if not mq.TLO.Target() then return end
+            local dist3d = mq.TLO.Target.Distance3D()
+            if not dist3d or dist3d > item.Clicky.Spell.Range() then return end
+        end
         if common.can_cast_weave() then
             logger.printf('Use Item: \ax\ar%s\ax', item)
             mq.cmdf('/useitem "%s"', item)
@@ -235,8 +245,12 @@ end
 common.use_aa = function(aa)
     if not common.in_control() then return end
     if mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < state.get_min_end() then return end
+    if mq.TLO.Me.AltAbility(aa['name']).Spell.Mana() > mq.TLO.Me.CurrentMana() then return end
+    if mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() < mq.TLO.Me.CurrentEndurance() then return end
     if mq.TLO.Me.AltAbility(aa['name']).Spell.TargetType() == 'Single' then
-        if mq.TLO.Target() and not mq.TLO.Target.MyBuff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() and mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
+        if not mq.TLO.Target() then return end
+        local dist3d = mq.TLO.Target.Distance3D()
+        if dist3d and dist3d < mq.TLO.Me.AltAbility(aa['name']).Spell.Range() and not mq.TLO.Target.MyBuff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() then
             logger.printf('Use AA: \ax\ar%s\ax', aa['name'])
             mq.cmdf('/alt activate %d', aa['id'])
             mq.delay(50)
@@ -253,31 +267,68 @@ common.use_aa = function(aa)
     return false
 end
 
+local function is_disc_noself(name)
+    if mq.TLO.Spell(name).IsSkill() and (tonumber(mq.TLO.Spell(name).Duration()) and tonumber(mq.TLO.Spell(name).Duration()) < 6) and not mq.TLO.Spell(name).StacksWithDiscs() then
+        return true
+    else
+        return false
+    end
+end
+
+local function is_disc(name)
+    if mq.TLO.Spell(name).IsSkill() and (tonumber(mq.TLO.Spell(name).Duration()) and tonumber(mq.TLO.Spell(name).Duration()) < 6) and mq.TLO.Spell(name).TargetType() == 'Self' and not mq.TLO.Spell(name).StacksWithDiscs() then
+        return true
+    else
+        return false
+    end
+end
+
+local function disc_ready(name)
+    if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
+        return true
+    end
+end
+
+local function conditions_valid(name)
+    if mq.TLO.Spell(name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() then
+        return false
+    end
+    if mq.TLO.Spell(name).Mana() > mq.TLO.Me.CurrentMana() then
+        return false
+    end
+    if mq.TLO.Spell(name).TargetType() == 'Single' then
+        if not mq.TLO.Target() then return false end
+        local dist3d = mq.TLO.Target.Distance3D()
+        if not dist3d or dist3d > mq.TLO.Spell(name).Range() then return false end
+    end
+    return true
+end
+
 ---Use the disc specified in the passed in table disc.
 ---@param disc table @A table containing the disc name and ID.
 ---@param overwrite boolean @The name of a disc which should be stopped in order to run this disc.
 ---@param skip_duration_check boolean @Indivate whether to skip checking the disc duration and current active disc, primarily for Breather line of discs.
 common.use_disc = function(disc, overwrite, skip_duration_check)
     if not common.in_control() then return end
-    if mq.TLO.Me.CombatAbility(disc['name'])() and mq.TLO.Me.CombatAbilityTimer(disc['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(disc['name'])() and mq.TLO.Spell(disc['name']).EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
-        if skip_duration_check or not mq.TLO.Me.ActiveDisc.ID() or (tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6) then
+
+    if disc_ready(disc['name']) and conditions_valid(disc['name']) then
+        --if skip_duration_check or not mq.TLO.Me.ActiveDisc.ID() or (tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6) then
+        if not is_disc(disc['name']) or not mq.TLO.Me.ActiveDisc.ID() then
             logger.printf('Use Disc: \ax\ar%s\ax', disc['name'])
             if disc['name']:find('Composite') then
                 mq.cmdf('/disc %s', disc['id'])
-                mq.delay(50)
-                mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             else
                 mq.cmdf('/disc %s', disc['name'])
-                mq.delay(50)
-                mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             end
+            mq.delay(50)
+            mq.delay(250+mq.TLO.Spell(disc['name']).CastTime(), function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
             logger.printf('Use Disc: \ax\ar%s\ax', disc['name'])
             mq.cmdf('/disc %s', disc['name'])
             mq.delay(50)
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+            mq.delay(250+mq.TLO.Spell(disc['name']).CastTime(), function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
         end
     end
 end
