@@ -177,21 +177,22 @@ end
 
 local function mash()
     if common.is_fighting() or assist.should_assist() then
+        if not mq.TLO.Me.Song(leap['name'])() then
+            common.use_aa(leap)
+        end
+        for _,aa in ipairs(mashAAs) do
+            if not aa['opt'] or OPTS[aa['opt']] then
+                common.use_aa(aa)
+            end
+        end
+        for _,disc in ipairs(mashDiscs) do
+            if not disc['opt'] or OPTS[disc['opt']] then
+                common.use_disc(disc)
+            end
+        end
         local dist = mq.TLO.Target.Distance3D()
-        if dist and dist < 15 then
-            if not mq.TLO.Me.Song(leap['name'])() then
-                common.use_aa(leap)
-            end
-            for _,aa in ipairs(mashAAs) do
-                if not aa['opt'] or OPTS[aa['opt']] then
-                    common.use_aa(aa)
-                end
-            end
-            for _,disc in ipairs(mashDiscs) do
-                if not disc['opt'] or OPTS[disc['opt']] then
-                    common.use_disc(disc)
-                end
-            end
+        local maxdist = mq.TLO.Target.MaxRangeTo()
+        if dist and maxdist and dist < maxdist then
             for _,ability in ipairs(mashAbilities) do
                 common.use_ability(ability)
             end
@@ -306,7 +307,7 @@ war.main_loop = function()
         state.set_tank_mob_id(0)
     end
     war.check_end()
-    if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if config.get_mode():is_tank_mode() then
         -- get mobs in camp
         camp.mob_radar()
         -- pick mob to tank if not tanking
