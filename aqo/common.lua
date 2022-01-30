@@ -385,7 +385,7 @@ end
 ---@param spell_name string @The name of the spell to memorize.
 ---@param gem number @The gem index to memorize the spell into.
 common.swap_spell = function(spell_name, gem)
-    if not gem or common.am_i_dead() then return end
+    if not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     mq.cmdf('/memspell %d "%s"', gem, spell_name)
     mq.delay('3s', common.swap_gem_ready(spell_name, gem))
     mq.TLO.Window('SpellBookWnd').DoClose()
@@ -421,6 +421,11 @@ common.check_mana = function()
     local pct_mana = mq.TLO.Me.PctMana()
     local pct_end = mq.TLO.Me.PctEndurance()
     if pct_mana < 75 then
+        local cursor = mq.TLO.Cursor.Name()
+        if cursor and (cursor == 'Summoned: Dazzling Modulation Shard' or cursor == 'Sickle of Umbral Modulation' or cursor == 'Wand of Restless Modulation') then
+            mq.cmd('/autoinventory')
+            mq.delay(50)
+        end
         -- Find ModRods in check_mana since they poof when out of charges, can't just find once at startup.
         local item_aa_modrod = mq.TLO.FindItem('Summoned: Dazzling Modulation Shard')
         common.use_item(item_aa_modrod)
