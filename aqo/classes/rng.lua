@@ -189,7 +189,7 @@ local function get_ranged_combat_position(radius)
         local x_off = mob_x + radius * x_move
         local y_off = mob_y + radius * y_move
         local z_off = mob_z
-        if mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', y_off, x_off, z_off))() then
+        if mq.TLO.Navigation.PathLength(string.format('loc yxz %d %d %d', y_off, x_off, z_off))() < 50 then
             if mq.TLO.LineOfSight(string.format('%d,%d,%d:%d,%d,%d', y_off, x_off, z_off, mob_y, mob_x, mob_z))() then
                 if mq.TLO.EverQuest.ValidLoc(string.format('%d %d %d', x_off, y_off, z_off))() then
                     logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)

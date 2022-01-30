@@ -168,35 +168,11 @@ war.check_ae = function()
     end
 end
 
---[[
-bool IsActiveDisc(EQ_Spell* pSpell) {
-    if (!InGame())
-        return false;
-
-    if ((pSpell->DurationType == 11 || pSpell->DurationType == 15) &&
-        pSpell->SpellType == ST_Beneficial &&
-        pSpell->TargetType == TT_Self &&
-        (pSpell->Skill == 33 || pSpell->Skill == 15) &&
-        pSpell->spaindex == 51 &&
-        pSpell->SpellAnim != 0 &&
-        pSpell->Subcategory != 155)
-        return true;
-
-    return false;
-}
-Sub IsDisc(string name) 
-/if (${Spell[${name}].IsSkill} && ${Spell[${name}].Duration} && !${Spell[${name}].StacksWithDiscs}) /return TRUE
-/return FALSE
-
-Sub IsDisc(string name) 
-    /if (${Spell[${name}].IsSkill} && ${Spell[${name}].Duration} && ${Spell[${name}].TargetType.Equal[SELF]}  && !${Spell[${name}].StacksWithDiscs}) /return TRUE
-/return FALSE
-]]--
 war.check_end = function()
     if common.am_i_dead() then return end
     if mq.TLO.Me.PctEndurance() > 20 then return end
     if mq.TLO.Me.CombatState() == "COMBAT" then return end
-    common.use_disc(regen, nil, true) -- skip duration check
+    common.use_disc(regen)
 end
 
 local function mash()
