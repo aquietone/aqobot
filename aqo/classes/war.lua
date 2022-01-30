@@ -220,7 +220,7 @@ local function mash()
                 common.use_ability(ability)
             end
         end
-        if mq.TLO.Me.AltAbilityReady(spire['name']) and mq.TLO.Me.CombatAbilityReady(aegis['name']) then
+        if mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
             common.use_aa(spire)
             common.use_disc(aegis)
         end

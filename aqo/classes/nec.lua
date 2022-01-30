@@ -591,12 +591,12 @@ end
 local function check_buffs()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
     if OPTS.USEBUFFSHIELD then
-        if not mq.TLO.Me.Buff(spells['shield']['name'])() and mq.TLO.Me.SpellReady(spells['shield']['name'])() and mq.TLO.Spell(spells['shield']['name']).Mana() < mq.TLO.Me.CurrentMana() then
+        if not mq.TLO.Me.Buff(spells['shield']['name'])() then
             common.cast(spells['shield']['name'])
         end
     end
     if OPTS.USEINSPIRE then
-        if not mq.TLO.Pet.Buff(spells['inspire']['name'])() and mq.TLO.Me.SpellReady(spells['inspire']['name'])() and mq.TLO.Spell(spells['inspire']['name']).Mana() < mq.TLO.Me.CurrentMana() then
+        if not mq.TLO.Pet.Buff(spells['inspire']['name'])() then
             common.cast(spells['inspire']['name'])
         end
     end

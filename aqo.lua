@@ -74,6 +74,7 @@ local function cmd_bind(...)
             if common.BOOL.TRUE[new_value] then
                 state.set_paused(true)
             elseif common.BOOL.FALSE[new_value] then
+                camp.set_camp()
                 state.set_paused(false)
             end
         end

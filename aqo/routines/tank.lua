@@ -113,7 +113,7 @@ tank.tank_mob = function()
     mq.cmd('/face fast')
     if not mq.TLO.Me.Combat() then
         logger.printf('Tanking %s (%s)', mq.TLO.Target.CleanName(), state.get_tank_mob_id())
-        mq.cmd('/squelch /stick front loose moveback 10')
+        mq.cmd('/squelch /stick front loose')-- moveback 10')
         -- /stick snaproll front moveback
         -- /stick mod -2
         mq.cmd('/attack on')
