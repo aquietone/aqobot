@@ -46,7 +46,6 @@ table.insert(mashDiscs, common.get_discid_and_name('Composite Shield'))
 table.insert(mashDiscs, common.get_discid_and_name('Finish the Fight'))
 table.insert(mashDiscs, common.get_discid_and_name('Phantom Aggressor', 'USEPHANTOM'))
 table.insert(mashDiscs, common.get_discid_and_name('Confluent Precision', 'USEPRECISION'))
-table.insert(mashDiscs, common.get_discid_and_name('Phantom Aggressor', 'USEPHANTOM'))
 for _,disc in ipairs(mashDiscs) do
     logger.printf('Found disc %s (%s)', disc.name, disc.id)
 end
@@ -73,7 +72,7 @@ local spire = common.get_aaid_and_name('Spire of the Warlord')
 -- mash AE aggro
 local mashAEDiscs2 = {}
 table.insert(mashAEDiscs2, common.get_discid_and_name('Roar of Challenge'))
-table.insert(mashAEDiscs2, common.get_discid_and_name('Concordant Expanse', 'USEEXPANSE'))
+table.insert(mashAEDiscs2, common.get_discid_and_name('Confluent Expanse', 'USEEXPANSE'))
 
 local mashAEDiscs4 = {}
 table.insert(mashAEDiscs4, common.get_discid_and_name('Wade into Battle'))
