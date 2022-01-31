@@ -671,7 +671,8 @@ rng.main_loop = function()
     end
     -- begin actual combat stuff
     assist.send_pet()
-    if mq.TLO.Me.CombatState() ~= 'ACTIVE' and mq.TLO.Me.CombatState() ~= 'RESTING' then
+    --if mq.TLO.Me.CombatState() ~= 'ACTIVE' and mq.TLO.Me.CombatState() ~= 'RESTING' then
+    if mq.TLO.Me.CombatState() == 'COMBAT' then
         cycle_spells()
     end
     mash()

@@ -384,7 +384,7 @@ local function cycle_songs()
     if not mq.TLO.Me.Invis() then
         local spell = find_next_song() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
-            if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
+            if mq.TLO.Spell(spell['name']).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
                 cast(spell['name'], true, true) -- then cast the dot
             else
                 cast(spell['name']) -- then cast the dot

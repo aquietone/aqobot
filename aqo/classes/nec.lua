@@ -153,6 +153,8 @@ table.insert(pre_burn_AAs, common.get_aaid_and_name('Mercurial Torment')) -- buf
 table.insert(pre_burn_AAs, common.get_aaid_and_name('Heretic\'s Twincast')) -- buff
 table.insert(pre_burn_AAs, common.get_aaid_and_name('Spire of Necromancy')) -- buff
 
+local tcclick = mq.TLO.FindItem('Bifold Focus of the Evil Eye').ID()
+
 -- lifeburn/dying grasp combo
 local lifeburn = common.get_aaid_and_name('Life Burn')
 local dyinggrasp = common.get_aaid_and_name('Dying Grasp')
@@ -322,6 +324,10 @@ local function cycle_dots()
     if common.is_fighting() or assist.should_assist() then
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
+            if spell['name'] == spells['pyreshort']['name'] then
+                local tc_item = mq.TLO.FindItem(tcclick)
+                common.use_item(tc_item)
+            end
             common.cast(spell['name'], true, true) -- then cast the dot
             return true
         end
@@ -831,7 +837,9 @@ nec.process_cmd = function(opt, new_value)
             logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
-        if OPTS[opt] ~= nil then
+        if opt == 'PREP' then
+            pre_pop_burns()
+        elseif OPTS[opt] ~= nil then
             logger.printf('%s: %s', opt:lower(), OPTS[opt])
         else
             logger.printf('Unrecognized option: %s', opt)

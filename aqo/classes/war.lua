@@ -110,6 +110,7 @@ local flash = common.get_discid_and_name('Flash of Anger')
 local items = {}
 table.insert(items, mq.TLO.InvSlot('Chest').Item.ID())
 table.insert(items, mq.TLO.FindItem('Rage of Rolfron').ID())
+table.insert(items, mq.TLO.FindItem('Blood Drinker\'s Coating').ID())
 
 local buff_items = {}
 table.insert(buff_items, mq.TLO.FindItem('Chestplate of the Dark Flame').ID())
