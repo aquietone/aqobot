@@ -3,7 +3,9 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
-local common = require('aqo.common')
+local camp = require('aqo.routines.camp')
+local config = require('aqo.configuration')
+local state = require('aqo.state')
 
 -- GUI Control variables
 local open_gui = true
@@ -122,6 +124,16 @@ ui.draw_input_int = function(labelText, idText, resultVar, helpText)
     return resultVar
 end
 
+ui.draw_input_int_sameline = function(labelText, idText, xoffset, resultVar, helpText)
+    ImGui.Text(labelText)
+    ImGui.SameLine()
+    help_marker(helpText)
+    ImGui.SameLine()
+    ImGui.SetCursorPosX(xoffset)
+    resultVar = ImGui.InputInt(idText, resultVar)
+    return resultVar
+end
+
 ui.draw_input_text = function(labelText, idText, resultVar, helpText)
     ImGui.Text(labelText)
     ImGui.SameLine()
@@ -157,12 +169,19 @@ ui.get_next_item_loc = function()
 end
 
 ui.draw_pull_tab = function()
-    common.OPTS.PULLRADIUS = ui.draw_input_int('Pull Radius', '##pullrad', common.OPTS.PULLRADIUS, 'Radius to pull mobs within')
-    common.OPTS.PULLHIGH = ui.draw_input_int('Pull ZHigh', '##pullhigh', common.OPTS.PULLHIGH, 'Z High pull range')
-    common.OPTS.PULLLOW = ui.draw_input_int('Pull ZLow', '##pulllow', common.OPTS.PULLLOW, 'Z Low pull range')
-    common.OPTS.PULLARC = ui.draw_input_int('Pull Arc', '##pullarc', common.OPTS.PULLARC, 'Only pull from this slice of the radius, centered around your current heading')
-    common.OPTS.PULLMINLEVEL = ui.draw_input_int('Pull Min Level', '##pullminlvl', common.OPTS.PULLMINLEVEL, 'Minimum level mobs to pull')
-    common.OPTS.PULLMAXLEVEL = ui.draw_input_int('Pull Max Level', '##pullmaxlvl', common.OPTS.PULLMAXLEVEL, 'Maximum level mobs to pull')
+    local current_radius = config.get_pull_radius()
+    local current_pullarc = config.get_pull_arc()
+    ImGui.PushItemWidth(150)
+    config.set_pull_radius(ui.draw_input_int_sameline('Pull Radius', '##pullrad', 200, config.get_pull_radius(), 'Radius to pull mobs within'))
+    config.set_pull_z_low(ui.draw_input_int_sameline('Pull ZLow', '##pulllow', 200, config.get_pull_z_low(), 'Z Low pull range'))
+    config.set_pull_z_high(ui.draw_input_int_sameline('Pull ZHigh', '##pullhigh', 200, config.get_pull_z_high(), 'Z High pull range'))
+    config.set_pull_min_level(ui.draw_input_int_sameline('Pull Min Level', '##pullminlvl', 200, config.get_pull_min_level(), 'Minimum level mobs to pull'))
+    config.set_pull_max_level(ui.draw_input_int_sameline('Pull Max Level', '##pullmaxlvl', 200, config.get_pull_max_level(), 'Maximum level mobs to pull'))
+    config.set_pull_arc(ui.draw_input_int_sameline('Pull Arc', '##pullarc', 200, config.get_pull_arc(), 'Only pull from this slice of the radius, centered around your current heading'))
+    ImGui.PopItemWidth()
+    if current_radius ~= config.get_pull_radius() or current_pullarc ~= config.get_pull_arc() then
+        camp.set_camp()
+    end
 end
 
 -- ImGui main function for rendering the UI window
@@ -173,13 +192,14 @@ ui.main = function()
         if ImGui.GetWindowHeight() == 500 and ImGui.GetWindowWidth() == 500 then
             ImGui.SetWindowSize(400, 200)
         end
-        if common.PAUSED then
+        if state.get_paused() then
             if ImGui.Button('RESUME') then
-                common.PAUSED = false
+                camp.set_camp()
+                state.set_paused(false)
             end
         else
             if ImGui.Button('PAUSE') then
-                common.PAUSED = true
+                state.set_paused(true)
             end
         end
         ImGui.SameLine()
@@ -187,13 +207,13 @@ ui.main = function()
             class_funcs.save_settings()
         end
         ImGui.SameLine()
-        if common.DEBUG then
+        if state.get_debug() then
             if ImGui.Button('Debug OFF') then
-                common.DEBUG = false
+                state.set_debug(false)
             end
         else
             if ImGui.Button('Debug ON') then
-                common.DEBUG = true
+                state.set_debug(true)
             end
         end
         if ImGui.BeginTabBar('##tabbar') then
@@ -208,7 +228,7 @@ ui.main = function()
                 ImGui.PopStyleVar()
                 ImGui.EndTabItem()
             end
-            if common.OPTS.MODE == 'puller' or common.OPTS.MODE == 'pullertank' then
+            if config.get_mode():is_pull_mode() then
                 if ImGui.BeginTabItem('Pulling') then
                     ui.draw_pull_tab()
                     ImGui.EndTabItem()
@@ -219,7 +239,7 @@ ui.main = function()
                 ImGui.SameLine()
                 local x,_ = ImGui.GetCursorPos()
                 ImGui.SetCursorPosX(90)
-                if common.PAUSED then
+                if state.get_paused() then
                     ImGui.TextColored(1, 0, 0, 1, 'PAUSED')
                 else
                     ImGui.TextColored(0, 1, 0, 1, 'RUNNING')
@@ -228,14 +248,15 @@ ui.main = function()
                 ImGui.SameLine()
                 x,_ = ImGui.GetCursorPos()
                 ImGui.SetCursorPosX(90)
-                ImGui.TextColored(1, 1, 1, 1, common.OPTS.MODE)
+                ImGui.TextColored(1, 1, 1, 1, config.get_mode():get_name())
 
                 ImGui.TextColored(1, 1, 0, 1, 'Camp:')
                 ImGui.SameLine()
                 x,_ = ImGui.GetCursorPos()
                 ImGui.SetCursorPosX(90)
-                if common.CAMP then
-                    ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f  Rad: %d', common.CAMP.X, common.CAMP.Y, common.CAMP.Z, common.OPTS.CAMPRADIUS))
+                local camp = state.get_camp()
+                if camp then
+                    ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f  Rad: %d', camp.X, camp.Y, camp.Z, config.get_camp_radius()))
                 else
                     ImGui.TextColored(1, 0, 0, 1, '--')
                 end
@@ -250,13 +271,13 @@ ui.main = function()
                 ImGui.SameLine()
                 x,_ = ImGui.GetCursorPos()
                 ImGui.SetCursorPosX(90)
-                ImGui.TextColored(1, 0, 0, 1, string.format('%s', common.I_AM_DEAD))
+                ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_i_am_dead()))
 
                 ImGui.TextColored(1, 1, 0, 1, 'Burning:')
                 ImGui.SameLine()
                 x,_ = ImGui.GetCursorPos()
                 ImGui.SetCursorPosX(90)
-                ImGui.TextColored(1, 0, 0, 1, string.format('%s', common.BURN_ACTIVE))
+                ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_burn_active()))
                 ImGui.EndTabItem()
             end
         end
