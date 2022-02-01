@@ -112,6 +112,9 @@ end
 ---@return boolean @Returns true if currently dead, false otherwise.
 common.am_i_dead = function()
     if state.get_i_am_dead() and (mq.TLO.Me.Buff('Resurrection Sickness').ID() or mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName())() == 0) then
+        state.set_assist_mob_id(0)
+        state.set_tank_mob_id(0)
+        state.set_pull_mob_id(0)
         state.set_i_am_dead(false)
     end
     return state.get_i_am_dead()
@@ -519,6 +522,7 @@ end
 local function event_dead()
     logger.printf('HP hit 0. what do!')
     state.set_i_am_dead(true)
+    mq.cmd('/multiline ; /nav stop; /stick off;')
 end
 
 ---Initialize the player death event triggers.

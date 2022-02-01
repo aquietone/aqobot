@@ -110,7 +110,7 @@ tank.tank_mob = function()
     if mq.TLO.Navigation.Active() then
         mq.cmd('/squelch /nav stop')
     end
-    mq.cmd('/face fast')
+    mq.cmd('/multiline ; /stand ; /face fast')
     if not mq.TLO.Me.Combat() then
         logger.printf('Tanking %s (%s)', mq.TLO.Target.CleanName(), state.get_tank_mob_id())
         if not config.get_mode():get_name() == 'manual' then
