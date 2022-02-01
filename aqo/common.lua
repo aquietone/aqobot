@@ -482,7 +482,7 @@ local sit_timer = timer:new(10)
 common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sit_timer:timer_expired() then
-        if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
+        if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
             mq.cmd('/sit')
             sit_timer:reset()
         end

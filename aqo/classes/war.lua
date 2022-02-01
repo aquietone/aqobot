@@ -28,62 +28,107 @@ local OPTS = {
 mq.cmd('/squelch /stick mod -2')
 
 -- dps burn brightfield's onslaught, offensive discipline, war sheol's heroic blade, exploitive strike, warlord's resurgence, gut punch, knee strike, throat jab, shield splinter, knuckle break, kick, brace for impact
--- always on abilities
-local mashAbilities = {}
-table.insert(mashAbilities, 'Taunt')
-table.insert(mashAbilities, 'Kick')
 
--- always on mash discs
-local mashDiscs = {}
-table.insert(mashDiscs, common.get_discid_and_name('Shield Splinter'))
-table.insert(mashDiscs, common.get_discid_and_name('Primal Defense'))
-table.insert(mashDiscs, common.get_discid_and_name('Namdrows\' Roar'))
-table.insert(mashDiscs, common.get_discid_and_name('Bristle'))
-table.insert(mashDiscs, common.get_discid_and_name('Throat Jab'))
-table.insert(mashDiscs, common.get_discid_and_name('Knuckle Break'))
-table.insert(mashDiscs, common.get_discid_and_name('Twilight Shout'))
-table.insert(mashDiscs, common.get_discid_and_name('Composite Shield'))
-table.insert(mashDiscs, common.get_discid_and_name('Finish the Fight'))
-table.insert(mashDiscs, common.get_discid_and_name('Phantom Aggressor', 'USEPHANTOM'))
-table.insert(mashDiscs, common.get_discid_and_name('Confluent Precision', 'USEPRECISION'))
-for _,disc in ipairs(mashDiscs) do
-    logger.printf('Found disc %s (%s)', disc.name, disc.id)
-end
+-- TANK
+local mashAggroAbilities = {}
+table.insert(mashAggroAbilities, 'Taunt')
 
--- what to do with this one..
-local attraction = common.get_discid_and_name('Forceful Attraction')
+local mashAggroDiscs = {}
+--table.insert(mashAggroDiscs, common.get_discid_and_name('Shield Splinter'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Primal Defense'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Namdrows\' Roar'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Bristle'))
+--table.insert(mashAggroDiscs, common.get_discid_and_name('Throat Jab'))
+--table.insert(mashAggroDiscs, common.get_discid_and_name('Knuckle Break'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Twilight Shout'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Composite Shield'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Finish the Fight'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Phantom Aggressor', 'USEPHANTOM'))
+table.insert(mashAggroDiscs, common.get_discid_and_name('Confluent Precision', 'USEPRECISION'))
 
--- always on mash AAs
-local mashAAs = {}
-table.insert(mashAAs, common.get_aaid_and_name('Gut Punch'))
-table.insert(mashAAs, common.get_aaid_and_name('Knee Strike'))
-table.insert(mashAAs, common.get_aaid_and_name('Blast of Anger'))
-table.insert(mashAAs, common.get_aaid_and_name('Blade Guardian'))
-table.insert(mashAAs, common.get_aaid_and_name('Brace for Impact'))
-table.insert(mashAAs, common.get_aaid_and_name('Call of Challenge', 'USESNARE'))
-table.insert(mashAAs, common.get_aaid_and_name('Grappling Strike', 'USEGRAPPLE'))
-table.insert(mashAAs, common.get_aaid_and_name('Projection of Fury', 'USEPROJECTION'))
-table.insert(mashAAs, common.get_aaid_and_name('Warlord\'s Grasp', 'USEGRASP'))
-
--- mash use together
-local aegis = common.get_discid_and_name('Warrior\'s Aegis')
-local spire = common.get_aaid_and_name('Spire of the Warlord')
+local mashAggroAAs = {}
+--table.insert(mashAggroAAs, common.get_aaid_and_name('Gut Punch'))
+--table.insert(mashAggroAAs, common.get_aaid_and_name('Knee Strike'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Blast of Anger'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Blade Guardian'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Brace for Impact'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Call of Challenge', 'USESNARE'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Grappling Strike', 'USEGRAPPLE'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Projection of Fury', 'USEPROJECTION'))
+table.insert(mashAggroAAs, common.get_aaid_and_name('Warlord\'s Grasp', 'USEGRASP'))
 
 -- mash AE aggro
 local mashAEDiscs2 = {}
 table.insert(mashAEDiscs2, common.get_discid_and_name('Roar of Challenge'))
 table.insert(mashAEDiscs2, common.get_discid_and_name('Confluent Expanse', 'USEEXPANSE'))
-
 local mashAEDiscs4 = {}
 table.insert(mashAEDiscs4, common.get_discid_and_name('Wade into Battle'))
-
 local mashAEAAs = {}
 table.insert(mashAEAAs, common.get_aaid_and_name('Area Taunt'))
 
-local burnAgroDiscs = {}
-table.insert(burnAgroDiscs, common.get_discid_and_name('Unrelenting Attention'))
-local burnAgroAAs = {}
-table.insert(burnAgroAAs, common.get_aaid_and_name('Ageless Enmity'))
+local burnAggroDiscs = {}
+table.insert(burnAggroDiscs, common.get_discid_and_name('Unrelenting Attention'))
+local burnAggroAAs = {}
+table.insert(burnAggroAAs, common.get_aaid_and_name('Ageless Enmity')) -- big taunt
+table.insert(burnAggroAAs, common.get_aaid_and_name('Warlord\'s Fury')) -- more big aggro
+table.insert(burnAggroAAs, common.get_aaid_and_name('Mark of the Mage Hunter')) -- 25% spell dmg absorb
+table.insert(burnAggroAAs, common.get_aaid_and_name('Resplendent Glory')) -- increase incoming heals
+table.insert(burnAggroAAs, common.get_aaid_and_name('Warlord\'s Bravery')) -- reduce incoming melee dmg
+table.insert(burnAggroAAs, common.get_aaid_and_name('Warlord\'s Tenacity')) -- big heal and temp HP
+
+local mash_defensive = common.get_discid_and_name('Primal Defense')
+local defensive = common.get_discid_and_name('Resolute Stand')
+local runes = common.get_discid_and_name('Armor of Akhevan Runes')
+local stundefense = common.get_discid_and_name('Levincrash Defense Discipline')
+
+-- what to do with this one..
+local attraction = common.get_discid_and_name('Forceful Attraction')
+
+-- mash use together
+local aegis = common.get_discid_and_name('Warrior\'s Aegis')
+local spire = common.get_aaid_and_name('Spire of the Warlord')
+
+local fortitude = common.get_discid_and_name('Fortitude Discipline', 'USEFORTITUDE')
+local flash = common.get_discid_and_name('Flash of Anger')
+local resurgence = common.get_aaid_and_name('Warlord\'s Resurgence') -- 10min cd, 60k heal
+
+for _,disc in ipairs(mashAggroDiscs) do
+    logger.printf('Found disc %s (%s)', disc.name, disc.id)
+end
+for _,disc in ipairs(burnAggroDiscs) do
+    logger.printf('Found disc %s (%s)', disc.name, disc.id)
+end
+
+-- DPS
+
+local mashDPSAbilities = {}
+table.insert(mashDPSAbilities, 'Kick')
+
+local mashDPSDiscs = {}
+table.insert(mashDPSDiscs, common.get_discid_and_name('Shield Splinter'))
+table.insert(mashDPSDiscs, common.get_discid_and_name('Throat Jab'))
+table.insert(mashDPSDiscs, common.get_discid_and_name('Knuckle Break'))
+
+local mashDPSAAs = {}
+table.insert(mashDPSAAs, common.get_aaid_and_name('Gut Punch'))
+table.insert(mashDPSAAs, common.get_aaid_and_name('Knee Strike'))
+
+local burnDPSDiscs = {}
+table.insert(burnDPSDiscs, common.get_discid_and_name('Brightfield\'s Onslaught Discipline')) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
+table.insert(burnDPSDiscs, common.get_discid_and_name('Offensive Discipline')) -- 4min cd, timer 2, increased offensive capabilities
+local burnDPSAAs = {}
+table.insert(burnDPSAAs, common.get_aaid_and_name('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
+
+local exploitive = common.get_discid_and_name('Exploitive Strike') -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
+
+for _,disc in ipairs(mashDPSDiscs) do
+    logger.printf('Found disc %s (%s)', disc.name, disc.id)
+end
+for _,disc in ipairs(burnDPSDiscs) do
+    logger.printf('Found disc %s (%s)', disc.name, disc.id)
+end
+
+-- Buffs and Other
 
 local regen = common.get_discid_and_name('Breather')
 
@@ -92,18 +137,6 @@ local aura = common.get_discid_and_name('Champion\'s Aura')
 local champion = common.get_discid_and_name('Full Moon\'s Champion')
 local voice = common.get_discid_and_name('Commanding Voice')
 local command = common.get_aaid_and_name('Imperator\'s Command')
-
-local mash_defensive = common.get_discid_and_name('Primal Defense')
-local defensive = common.get_discid_and_name('Resolute Stand')
-local runes = common.get_discid_and_name('Armor of Akhevan Runes')
---local burnDiscs = {}
---table.insert(burnDiscs, common.get_aaid_and_name('Resolute Stand')) -- 
---table.insert(burnDiscs, common.get_aaid_and_name('Armor of Akhevan Runes')) -- 
-local burnAAs = {}
-table.insert(burnAAs, common.get_aaid_and_name('Mark of the Mage Hunter'))
-
-local fortitude = common.get_discid_and_name('Fortitude Discipline', 'USEFORTITUDE')
-local flash = common.get_discid_and_name('Flash of Anger')
 
 -- entries in the items table are MQ item datatypes
 local items = {}
@@ -142,22 +175,30 @@ war.reset_class_timers = function()
     -- no-op
 end
 
-local agro_nopet_count = 'xtarhater radius %d zradius 50 nopet'
-war.check_ae = function()
+local aggro_nopet_count = 'xtarhater radius %d zradius 50 nopet'
+local function check_ae()
     if common.am_i_dead() then return end
-    local mobs_on_agro = mq.TLO.SpawnCount(agro_nopet_count:format(config.get_camp_radius()))()
-    if mobs_on_agro >= 2 then
+    local mobs_on_aggro = mq.TLO.SpawnCount(aggro_nopet_count:format(config.get_camp_radius()))()
+    if mobs_on_aggro >= 2 then
+        -- Use Spire and Aegis when 2 or more mobs on aggro
+        if mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
+            common.use_aa(spire)
+            common.use_disc(aegis)
+        end
+        -- Discs to use when 2 or more mobs on aggro
         for _,disc in ipairs(mashAEDiscs2) do
             if not disc['opt'] or OPTS[disc['opt']] then
                 common.use_disc(disc)
             end
         end
-        if mobs_on_agro >= 3 then
+        if mobs_on_aggro >= 3 then
+            -- AA's to use when 3 or more mobs on aggro
             for _,aa in ipairs(mashAEAAs) do
                 common.use_aa(aa)
             end
 
-            if mobs_on_agro >= 4 then
+            if mobs_on_aggro >= 4 then
+                -- Discs to use when 4 or more mobs on aggro
                 for _,disc in ipairs(mashAEDiscs4) do
                     if not disc['opt'] or OPTS[disc['opt']] then
                         common.use_disc(disc)
@@ -168,7 +209,7 @@ war.check_ae = function()
     end
 end
 
-war.check_end = function()
+local function check_end()
     if common.am_i_dead() then return end
     if mq.TLO.Me.PctEndurance() > 20 then return end
     if mq.TLO.Me.CombatState() == "COMBAT" then return end
@@ -179,27 +220,46 @@ local function mash()
     if common.is_fighting() or assist.should_assist() then
         if not mq.TLO.Me.Song(leap['name'])() then
             common.use_aa(leap)
+            mq.delay(30)
         end
-        for _,aa in ipairs(mashAAs) do
+        local target = mq.TLO.Target
+        local dist = target.Distance3D()
+        local maxdist = target.MaxRangeTo()
+        local targethp = target.PctHPs()
+        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+            for _,aa in ipairs(mashAggroAAs) do
+                if not aa['opt'] or OPTS[aa['opt']] then
+                    common.use_aa(aa)
+                end
+            end
+            for _,disc in ipairs(mashAggroDiscs) do
+                if not disc['opt'] or OPTS[disc['opt']] then
+                    common.use_disc(disc)
+                end
+            end
+            if dist and maxdist and dist < maxdist then
+                for _,ability in ipairs(mashAggroAbilities) do
+                    common.use_ability(ability)
+                end
+            end
+        end
+        for _,aa in ipairs(mashDPSAAs) do
             if not aa['opt'] or OPTS[aa['opt']] then
                 common.use_aa(aa)
             end
         end
-        for _,disc in ipairs(mashDiscs) do
+        for _,disc in ipairs(mashDPSDiscs) do
             if not disc['opt'] or OPTS[disc['opt']] then
                 common.use_disc(disc)
             end
         end
-        local dist = mq.TLO.Target.Distance3D()
-        local maxdist = mq.TLO.Target.MaxRangeTo()
         if dist and maxdist and dist < maxdist then
-            for _,ability in ipairs(mashAbilities) do
+            for _,ability in ipairs(mashDPSAbilities) do
                 common.use_ability(ability)
             end
         end
-        if mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
-            common.use_aa(spire)
-            common.use_disc(aegis)
+        if targethp <= 20 then
+            common.use_disc(exploitive)
         end
     end
 end
@@ -208,28 +268,47 @@ local function try_burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if common.is_burn_condition_met() then
-        common.use_disc(defensive, mash_defensive['name'])
-        common.use_disc(runes, mash_defensive['name'])
+        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+            common.use_disc(defensive, mash_defensive['name'])
+            common.use_disc(runes, mash_defensive['name'])
+            common.use_disc(stundefense, mash_defensive['name'])
 
-        --[[
-        |===========================================================================================
-        |Spell Burn
-        |===========================================================================================
-        ]]--
+            -- Use Spire and Aegis when burning as tank
+            if mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
+                common.use_aa(spire)
+                common.use_disc(aegis)
+            end
 
-        for _,aa in ipairs(burnAAs) do
+            for _,aa in ipairs(burnAggroAAs) do
+                common.use_aa(aa)
+            end
+        else
+            for _,disc in ipairs(burnDPSDiscs) do
+                common.use_disc(disc)
+            end
+        end
+        -- use DPS burn AAs in either mode
+        for _,aa in ipairs(burnDPSAAs) do
             common.use_aa(aa)
         end
 
-        --[[
-        |===========================================================================================
-        |Item Burn
-        |===========================================================================================
-        ]]--
-
+        --Item Burn
         for _,item_id in ipairs(items) do
             local item = mq.TLO.FindItem(item_id)
             common.use_item(item)
+        end
+    end
+end
+
+local function oh_shit()
+    if mq.TLO.Me.PctHPs() < 35 and common.is_fighting() then
+        common.use_aa(resurgence)
+        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+            if mq.TLO.Me.AltAbilityReady(flash['name'])() then
+                common.use_disc(flash)
+            else
+                common.use_disc(fortitude, mash_defensive['name'])
+            end
         end
     end
 end
@@ -306,7 +385,7 @@ war.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
         state.set_tank_mob_id(0)
     end
-    war.check_end()
+    check_end()
     if config.get_mode():is_tank_mode() then
         -- get mobs in camp
         camp.mob_radar()
@@ -319,8 +398,9 @@ war.main_loop = function()
     -- check whether we need to go chasing after the chase target
     common.check_chase()
     -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
+    oh_shit()
     if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-        war.check_ae()
+        check_ae()
     end
     -- if in an assist mode
     if config.get_mode():is_assist_mode() then
@@ -331,19 +411,19 @@ war.main_loop = function()
     if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and mq.TLO.Me.XTarget() == 0 then
         mq.cmd('/multiline ; /squelch /nav stop; /attack off; /autofire off;')
         mq.delay(50)
-        war.check_end()
+        check_end()
         pull.pull_radar()
         pull.pull_mob()
         -- TODO: not necessarily a tank just because pulling
-        tank.find_mob_to_tank()
-        tank.tank_mob()
+        --tank.find_mob_to_tank()
+        --tank.tank_mob()
     end
     -- begin actual combat stuff
     assist.send_pet()
     mash()
     -- pop a bunch of burn stuff if burn conditions are met
     try_burn()
-    war.check_end()
+    check_end()
     check_buffs()
     common.rest()
     mq.delay(1)
