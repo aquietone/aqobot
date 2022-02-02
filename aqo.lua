@@ -173,7 +173,9 @@ while true do
             common.ASSIST_TARGET_ID = 0
             mq.cmd('/squelch /mqtarget clear')
         end
-        if not mq.TLO.Me.Invis() then
+        if mq.TLO.Me.Hovering() then
+            mq.delay(50)
+        elseif not mq.TLO.Me.Invis() then
             -- do active combat assist things when not paused and not invis
             if mq.TLO.Me.Feigning() and common.FD_CLASSES[class] then
                 mq.cmd('/stand')

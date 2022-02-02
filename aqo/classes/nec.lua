@@ -324,7 +324,7 @@ local function cycle_dots()
     if common.is_fighting() or assist.should_assist() then
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
-            if spell['name'] == spells['pyreshort']['name'] then
+            if spell['name'] == spells['pyreshort']['name'] and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
                 local tc_item = mq.TLO.FindItem(tcclick)
                 common.use_item(tc_item)
             end

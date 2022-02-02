@@ -11,6 +11,7 @@
 - *aqo/classes/{class_short_name}.lua*: class specific implementations.
 - *aqo/routines/assist.lua*: implements functionality related to engaging mobs in assist modes.
 - *aqo/routines/camp.lua*: implements functionality related to setting camp details and staying within the camp.
+- *aqo/routines/mez.lua*: implements functionality related to mezzing mobs in camp.
 - *aqo/routines/pull.lua*: implements functionality related to pulling mobs in pull modes.
 - *aqo/routines/tank.lua*: implements functionality related to tanking mobs in tank modes.
 - *aqo/utils/logger.lua*: provides logging functions like printf and debug.

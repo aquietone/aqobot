@@ -222,7 +222,7 @@ local function mash()
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
         local targethp = target.PctHPs()
-        if not mq.TLO.Me.Song(leap['name'])() and dist and dist < 30 then
+        if OPTS.USEBATTLELEAP and not mq.TLO.Me.Song(leap['name'])() and dist and dist < 30 then
             common.use_aa(leap)
             mq.delay(30)
         end

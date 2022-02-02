@@ -522,6 +522,7 @@ end
 local function event_dead()
     logger.printf('HP hit 0. what do!')
     state.set_i_am_dead(true)
+    state.reset_combat_state()
     mq.cmd('/multiline ; /nav stop; /stick off;')
 end
 
