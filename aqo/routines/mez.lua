@@ -1,7 +1,9 @@
 --- @type mq
 local mq = require 'mq'
+local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
 local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
 local state = require('aqo.state')
 
 local mez = {}
@@ -9,7 +11,7 @@ local mez = {}
 local AE_MEZ_COUNT = 3
 
 ---Scan mobs in camp and reset mez timers to current time
-mez.init_mez_timers = function()
+mez.init_mez_timers = function(mez_spell)
     camp.mob_radar()
     for id,_ in pairs(state.get_targets()) do
         local mob = mq.TLO.Spawn('id '..id)
@@ -17,7 +19,7 @@ mez.init_mez_timers = function()
             mob.DoTarget()
             mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
             mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
-            if mq.TLO.Target() and mq.TLO.Target.Buff(spells['mezae']['name'])() then
+            if mq.TLO.Target() and mq.TLO.Target.Buff(mez_spell)() then
                 logger.debug(state.get_debug(), 'AEMEZ setting meztimer mob_id %d', id)
                 state.get_targets()[id].meztimer:reset()
             end
@@ -44,8 +46,10 @@ end
 mez.do_single = function(mez_spell, cast_func)
     if state.get_mob_count() <= 1 or not mq.TLO.Me.Gem(mez_spell)() then return end
     for id,mobdata in pairs(state.get_targets()) do
+        if state.get_debug() then
+            logger.debug(state.get_debug(), '[%s] meztimer: %s, current_time: %s, timer_expired: %s', id, mobdata['meztimer'].start_time, timer.current_time(), mobdata['meztimer']:timer_expired())
+        end
         if id ~= state.get_assist_mob_id() and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timer_expired()) then
-            logger.debug(state.get_debug(), '[%s] meztimer: %s timer_expired: %s', id, mobdata['meztimer'].start_time, mobdata['meztimer']:timer_expired())
             local mob = mq.TLO.Spawn('id '..id)
             if mob() and not state.get_mez_immunes()[mob.CleanName()] then
                 if id ~= state.get_assist_mob_id() and mob.Level() <= 123 and mob.Type() == 'NPC' then
