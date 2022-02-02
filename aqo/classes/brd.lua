@@ -24,7 +24,6 @@ local OPTS = {
     BYOS=false,
 }
 config.set_spell_set('melee')
-local AE_MEZ_COUNT = 3
 mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
@@ -219,67 +218,14 @@ local function cast_mez(spell_name)
     mq.cmd('/stopcast')
 end
 
-local MEZ_IMMUNES = {}
-local MEZ_TARGET_NAME = nil
-local MEZ_TARGET_ID = 0
 local function check_mez()
-    if state.get_mob_count() >= AE_MEZ_COUNT and OPTS.MEZAE then
-        if mq.TLO.Me.Gem(spells['mezae']['name'])() and mq.TLO.Me.GemTimer(spells['mezae']['name'])() == 0 then
-            logger.printf('AE Mezzing (MOB_COUNT=%d)', state.get_mob_count())
-            cast(spells['mezae']['name'])
-            camp.mob_radar()
-            for id,_ in pairs(state.get_targets()) do
-                local mob = mq.TLO.Spawn('id '..id)
-                if mob() and not MEZ_IMMUNES[mob.CleanName()] then
-                    mob.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
-                    mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
-                    if mq.TLO.Target() and mq.TLO.Target.Buff(spells['mezae']['name'])() then
-                        logger.debug(state.get_debug(), 'AEMEZ setting meztimer mob_id %d', id)
-                        state.get_targets()[id].meztimer:reset()
-                    end
-                end
-            end
-        end
+    if OPTS.MEZAE then
+        mez.do_ae(spells['mezae']['name'], cast)
     end
-    if not OPTS.MEZST or state.get_mob_count() <= 1 or not mq.TLO.Me.Gem(spells['mezst']['name'])() then return end
-    for id,mobdata in pairs(state.get_targets()) do
-        if id ~= state.get_assist_mob_id() and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timer_expired()) then
-            logger.debug(state.get_debug(), '[%s] meztimer: %s timer_expired: %s', id, mobdata['meztimer'].start_time, mobdata['meztimer']:timer_expired())
-            local mob = mq.TLO.Spawn('id '..id)
-            if mob() and not MEZ_IMMUNES[mob.CleanName()] then
-                if id ~= state.get_assist_mob_id() and mob.Level() <= 123 and mob.Type() == 'NPC' then
-                    mq.cmd('/attack off')
-                    mq.delay(100, function() return not mq.TLO.Me.Combat() end)
-                    mob.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
-                    mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
-                    local pct_hp = mq.TLO.Target.PctHPs()
-                    if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
-                        state.get_targets()[id] = nil
-                    elseif pct_hp and pct_hp > 85 then
-                        local assist_spawn = assist.get_assist_spawn()
-                        if assist_spawn.ID() ~= id then
-                            MEZ_TARGET_NAME = mob.CleanName()
-                            MEZ_TARGET_ID = id
-                            logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
-                            cast_mez(spells['mezst']['name'])
-                            logger.debug(state.get_debug(), 'STMEZ setting meztimer mob_id %d', id)
-                            state.get_targets()[id].meztimer:reset()
-                            mq.doevents('event_mezimmune')
-                            mq.doevents('event_mezresist')
-                            MEZ_TARGET_ID = 0
-                            MEZ_TARGET_NAME = nil
-                        end
-                    end
-                elseif mob.Type() == 'Corpse' then
-                    state.get_targets()[id] = nil
-                end
-            end
-        end
+    if OPTS.MEZST then
+        mez.do_st(spells['mezst']['name'], cast_mez)
     end
     assist.check_target(brd.reset_class_timers)
-    assist.attack()
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
@@ -581,25 +527,8 @@ local function check_spell_set()
     end
 end
 
-local function event_mezbreak(line, mob, breaker)
-    logger.printf('\ay%s\ax mez broken by \ag%s\ax', mob, breaker)
-end
-local function event_mezimmune(line)
-    if MEZ_TARGET_NAME then
-        logger.printf('Added to MEZ_IMMUNE: \ay%s', MEZ_TARGET_NAME)
-        MEZ_IMMUNES[MEZ_TARGET_NAME] = 1
-    end
-end
-local function event_mezresist(line, mob)
-    if MEZ_TARGET_NAME and mob == MEZ_TARGET_NAME then
-        logger.printf('MEZ RESIST >>> %s <<<', MEZ_TARGET_NAME)
-        state.get_targets()[MEZ_TARGET_ID].meztimer:reset(0)
-    end
-end
 brd.setup_events = function()
-    mq.event('event_mezbreak', '#1# has been awakened by #2#.', event_mezbreak)
-    mq.event('event_mezimmune', 'Your target cannot be mesmerized#*#', event_mezimmune)
-    mq.event('event_mezimmune', '#1# resisted your#*#slumber of the diabo#*#', event_mezresist)
+    mez.setup_events()
 end
 
 brd.process_cmd = function(opt, new_value)
