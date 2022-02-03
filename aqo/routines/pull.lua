@@ -191,11 +191,14 @@ local function pull_engage(pull_spawn)
             mq.cmd('/attack off')
             mq.delay(100)
         end
-        mq.cmd('/autofire on')
-        --mq.delay(50, function() return mq.TLO.Me.AutoFire() end)
-        mq.delay(100)
-        if not mq.TLO.Me.AutoFire() then
+        if pull_func then
+            pull_func()
+        else
             mq.cmd('/autofire on')
+            mq.delay(100)
+            if not mq.TLO.Me.AutoFire() then
+                mq.cmd('/autofire on')
+            end
         end
         -- use class long range pull ability
         -- tag with range

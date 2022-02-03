@@ -63,6 +63,7 @@ end
 ---@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
 common.get_spellid_and_rank = function(spell_name, option_name)
     local spell_rank = mq.TLO.Spell(spell_name).RankName()
+    if not mq.TLO.Me.Book(spell_rank)() then return nil end
     return {['id']=mq.TLO.Spell(spell_rank).ID(), ['name']=spell_rank, ['opt']=option_name}
 end
 ---Lookup the ID for a given AA.
@@ -70,6 +71,7 @@ end
 ---@param option_name string @The name of the option which controls whether this AA should be used.
 ---@return table @Returns a table containing the AA name, AA ID and the provided option name.
 common.get_aaid_and_name = function(aa_name, option_name)
+    if not mq.TLO.Me.AltAbility(aa_name)() then return nil end
     return {['id']=mq.TLO.Me.AltAbility(aa_name).ID(), ['name']=aa_name, ['opt']=option_name}
 end
 ---Lookup the ID for a given disc.
@@ -78,6 +80,7 @@ end
 ---@return table @Returns a table containing the disc name with rank, disc ID and the provided option name.
 common.get_discid_and_name = function(disc_name, option_name)
     local disc_rank = mq.TLO.Spell(disc_name).RankName()
+    if not disc_rank then return nil end
     return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank, ['opt']=option_name}
 end
 

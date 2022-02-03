@@ -55,6 +55,7 @@ mode:new('vorpal',false,true,false,false)
 mode:new('tank',true,false,true,false)
 mode:new('pullertank',true,false,true,true)
 mode:new('puller',true,true,false,true)
+mode:new('huntertank',false,false,true,true)
 
 --for i,mode in ipairs(mode.modes) do
 --    logger.printf('modes[%s]: name=%s', i, mode.name)

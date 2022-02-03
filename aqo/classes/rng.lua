@@ -551,6 +551,7 @@ local function check_buffs()
     end
 
     if OPTS.USEREGEN and not mq.TLO.Me.Buff(spells['regen']['name'])() then
+        mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         local restore_gem = nil
         if not mq.TLO.Me.Gem(spells['regen']['name'])() then
             restore_gem = mq.TLO.Me.Gem(13)()
