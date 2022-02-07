@@ -232,7 +232,7 @@ common.use_item = function(item)
             local dist3d = mq.TLO.Target.Distance3D()
             if not dist3d or dist3d > item.Clicky.Spell.Range() then return end
         end
-        if item.Clicky.Spell.TargetType() == 'Self' and not mq.TLO.Spell(item.Clicky.Spell.Name()).Stacks() then return end
+        if item.Clicky.Spell.TargetType() == 'Self' and not item.Clicky.Spell.SpellGroup() == 17000 and not item.Clicky.Spell.Stacks() then return end
         if not mq.TLO.Me.Casting() then
             logger.printf('Use Item: \ax\ar%s\ax', item)
             mq.cmdf('/useitem "%s"', item)

@@ -33,9 +33,9 @@ local spells = {
     ['composite']=common.get_spellid_and_rank('Composite Psalm') or common.get_spellid_and_rank('Dissident Psalm') or common.get_spellid_and_rank('Dichotomic Psalm') or {name=nil,id=nil}, -- DD+melee dmg bonus + small heal
     ['aria']=common.get_spellid_and_rank('Aria of Pli Xin Liako') or common.get_spellid_and_rank('Aria of Margidor') or {name=nil,id=nil}, -- spell dmg, overhaste, flurry, triple atk
     ['warmarch']=common.get_spellid_and_rank('War March of Centien Xi Va Xakra') or common.get_spellid_and_rank('War March of Radiwol') or {name=nil,id=nil}, -- haste, atk, ds
-    ['arcane']=common.get_spellid_and_rank('Arcane Harmony')or common.get_spellid_and_rank('Arcane Ballad') or {name=nil,id=nil}, -- spell dmg proc
+    ['arcane']=common.get_spellid_and_rank('Arcane Harmony') or common.get_spellid_and_rank('Arcane Symphony') or common.get_spellid_and_rank('Arcane Ballad') or {name=nil,id=nil}, -- spell dmg proc
     ['suffering']=common.get_spellid_and_rank('Shojralen\'s Song of Suffering') or common.get_spellid_and_rank('Omorden\'s Song of Suffering') or {name=nil,id=nil}, -- melee dmg proc
-    ['spiteful']=common.get_spellid_and_rank('Von Deek\'s Spiteful Lyric') or common.get_spellid_and_rank('Kaficus\' Spiteful Lyric') or {name=nil,id=nil}, -- AC
+    ['spiteful']=common.get_spellid_and_rank('Von Deek\'s Spiteful Lyric') or common.get_spellid_and_rank('Omorden\'s Spiteful Lyric') or common.get_spellid_and_rank('Kaficus\' Spiteful Lyric') or {name=nil,id=nil}, -- AC
     ['pulse']=common.get_spellid_and_rank('Pulse of Nikolas') or common.get_spellid_and_rank('Pulse of Vhal`Sera') or {name=nil,id=nil}, -- heal focus + regen
     ['sonata']=common.get_spellid_and_rank('Xetheg\'s Spry Sonata') or common.get_spellid_and_rank('Kellek\'s Spry Sonata') or {name=nil,id=nil}, -- spell shield, AC, dmg mitigation
     ['dirge']=common.get_spellid_and_rank('Dirge of the Restless') or {name=nil,id=nil},-- or common.get_spellid_and_rank('Dirge of the Restless'), -- spell+melee dmg mitigation
@@ -490,7 +490,7 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(9)() ~= spells['mezae']['name'] then common.swap_spell(spells['mezae']['name'], 9) end
             if mq.TLO.Me.Gem(10)() ~= spells['crescendo']['name'] then common.swap_spell(spells['crescendo']['name'], 10) end
             if mq.TLO.Me.Gem(11)() ~= spells['pulse']['name'] then common.swap_spell(spells['pulse']['name'], 11) end
-            if mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' then common.swap_spell(spells['composite']['name'], 12) end
+            if not mq.TLO.Me.Gem(12)() or (mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' and mq.TLO.Me.Gem(12)() ~= 'Dissident Psalm' and mq.TLO.Me.Gem(12)() ~= 'Dichotomic Psalm') then common.swap_spell(spells['composite']['name'], 12) end
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'caster' then
@@ -505,7 +505,7 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(9)() ~= spells['mezae']['name'] then common.swap_spell(spells['mezae']['name'], 9) end
             if mq.TLO.Me.Gem(10)() ~= spells['crescendo']['name'] then common.swap_spell(spells['crescendo']['name'], 10) end
             if mq.TLO.Me.Gem(11)() ~= spells['pulse']['name'] then common.swap_spell(spells['pulse']['name'], 11) end
-            if mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' then common.swap_spell(spells['composite']['name'], 12) end
+            if not mq.TLO.Me.Gem(12)() or (mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' and mq.TLO.Me.Gem(12)() ~= 'Dissident Psalm' and mq.TLO.Me.Gem(12)() ~= 'Dichotomic Psalm') then common.swap_spell(spells['composite']['name'], 12) end
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'meleedot' then
@@ -520,7 +520,7 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(9)() ~= spells['mezae']['name'] then common.swap_spell(spells['mezae']['name'], 9) end
             if mq.TLO.Me.Gem(10)() ~= spells['crescendo']['name'] then common.swap_spell(spells['crescendo']['name'], 10) end
             if mq.TLO.Me.Gem(11)() ~= spells['pulse']['name'] then common.swap_spell(spells['pulse']['name'], 11) end
-            if mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' then common.swap_spell(spells['composite']['name'], 12) end
+            if not mq.TLO.Me.Gem(12)() or (mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' and mq.TLO.Me.Gem(12)() ~= 'Dissident Psalm' and mq.TLO.Me.Gem(12)() ~= 'Dichotomic Psalm') then common.swap_spell(spells['composite']['name'], 12) end
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
             state.set_spellset_loaded(config.get_spell_set())
         end
@@ -607,42 +607,22 @@ brd.main_loop = function()
     mq.delay(1)
 end
 
-brd.draw_left_panel = function()
-    local current_mode = config.get_mode():get_name()
-    local current_camp_radius = config.get_camp_radius()
-    config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
+brd.draw_skills_tab = function()
     config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
-    config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
-    config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
-    config.set_camp_radius(ui.draw_input_int('Camp Radius', '##campradius', config.get_camp_radius(), 'Camp radius to assist within'))
-    config.set_chase_target(ui.draw_input_text('Chase Target', '##chasetarget', config.get_chase_target(), 'Chase Target'))
-    config.set_chase_distance(ui.draw_input_int('Chase Distance', '##chasedist', config.get_chase_distance(), 'Distance to follow chase target'))
     OPTS.USEEPIC = ui.draw_combo_box('Epic', OPTS.USEEPIC, EPIC_OPTS, true)
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
-        camp.set_camp()
-    end
+    config.set_use_alliance(ui.draw_check_box('Alliance', '##alliance', config.get_use_alliance(), 'Use alliance spell'))
+    OPTS.RALLYGROUP = ui.draw_check_box('Rallying Group', '##rallygroup', OPTS.RALLYGROUP, 'Use Rallying Group AA')
+    OPTS.MEZST = ui.draw_check_box('Mez ST', '##mezst', OPTS.MEZST, 'Mez single target')
+    OPTS.MEZAE = ui.draw_check_box('Mez AE', '##mezae', OPTS.MEZAE, 'Mez AOE')
+    OPTS.USEFADE = ui.draw_check_box('Use Fade', '##usefade', OPTS.USEFADE, 'Fade when agro')
+    OPTS.BYOS = ui.draw_check_box('BYOS', '##byos', OPTS.BYOS, 'Bring your own spells')
 end
 
-brd.draw_right_panel = function()
+brd.draw_burn_tab = function()
+    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
+    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
     config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    ui.get_next_item_loc()
     config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    ui.get_next_item_loc()
-    config.set_use_alliance(ui.draw_check_box('Alliance', '##alliance', config.get_use_alliance(), 'Use alliance spell'))
-    ui.get_next_item_loc()
-    config.set_switch_with_ma(ui.draw_check_box('Switch With MA', '##switchwithma', config.get_switch_with_ma(), 'Switch targets with MA'))
-    ui.get_next_item_loc()
-    OPTS.RALLYGROUP = ui.draw_check_box('Rallying Group', '##rallygroup', OPTS.RALLYGROUP, 'Use Rallying Group AA')
-    ui.get_next_item_loc()
-    OPTS.MEZST = ui.draw_check_box('Mez ST', '##mezst', OPTS.MEZST, 'Mez single target')
-    ui.get_next_item_loc()
-    OPTS.MEZAE = ui.draw_check_box('Mez AE', '##mezae', OPTS.MEZAE, 'Mez AOE')
-    ui.get_next_item_loc()
-    OPTS.USEFADE = ui.draw_check_box('Use Fade', '##usefade', OPTS.USEFADE, 'Fade when agro')
-    ui.get_next_item_loc()
-    OPTS.BYOS = ui.draw_check_box('BYOS', '##byos', OPTS.BYOS, 'Bring your own spells')
 end
 
 return brd
