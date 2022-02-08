@@ -146,7 +146,8 @@ end
 
 ---Aggro the specified target to be pulled. Attempts to use bow and moves closer to melee pull if necessary.
 ---@param pull_spawn Spawn @The MQ Spawn to be pulled.
-local function pull_engage(pull_spawn)
+---@param pull_func function @The function to use to ranged pull.
+local function pull_engage(pull_spawn, pull_func)
     -- pull  mob
     local pull_mob_id = state.get_pull_mob_id()
     local dist3d = pull_spawn.Distance3D()
@@ -270,7 +271,8 @@ end
 
 ---Attempt to pull the mob whose ID is stored in common.PULL_MOB_ID.
 ---Sets common.TANK_MOB_ID to the mob being pulled.
-pull.pull_mob = function()
+---@param pull_func function @The function to use to ranged pull.
+pull.pull_mob = function(pull_func)
     local pull_mob_id = state.get_pull_mob_id()
     if pull_mob_id == 0 then return end
     if common.am_i_dead() then return end
@@ -284,7 +286,7 @@ pull.pull_mob = function()
     -- move to pull target
     if not pull_nav_to(pull_spawn) then return end
     if mq.TLO.Me.XTarget() == 0 then
-        pull_engage(pull_spawn)
+        pull_engage(pull_spawn, pull_func)
     else
         logger.printf('Mobs on xtarget, canceling pull and returning to camp')
         clear_pull_vars()

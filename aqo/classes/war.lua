@@ -304,9 +304,9 @@ local function oh_shit()
     if mq.TLO.Me.PctHPs() < 35 and common.is_fighting() then
         common.use_aa(resurgence)
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-            if mq.TLO.Me.AltAbilityReady(flash['name'])() then
+            if mq.TLO.Me.CombatAbilityReady(flash['name'])() then
                 common.use_disc(flash)
-            else
+            elseif OPTS.USEFORTITUDE then
                 common.use_disc(fortitude, mash_defensive['name'])
             end
         end
