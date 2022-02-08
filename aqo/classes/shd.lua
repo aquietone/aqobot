@@ -134,7 +134,8 @@ local mashAggroDiscs = {}
 table.insert(mashAggroDiscs, common.get_discid_and_name('Repudiate')) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
 local mashAggroAAs = {}
 table.insert(mashAggroAAs, common.get_aaid_and_name('Projection of Doom', 'USEPROJECTION')) -- aggro swarm pet
-table.insert(mashAggroAAs, common.get_aaid_and_name('Hate\'s Attraction', 'USEHATESATTRACTION')) -- aggro swarm pet
+--table.insert(mashAggroAAs, common.get_aaid_and_name('Hate\'s Attraction', 'USEHATESATTRACTION'))
+local attraction = common.get_aaid_and_name('Hate\'s Attraction', 'USEHATESATTRACTION') -- aggro swarm pet
 
 -- mash AE aggro
 local mashAESpells = {}
@@ -191,7 +192,7 @@ table.insert(items, mq.TLO.InvSlot('Chest').Item.ID())
 table.insert(items, mq.TLO.FindItem('Rage of Rolfron').ID())
 table.insert(items, mq.TLO.FindItem('Blood Drinker\'s Coating').ID())
 
-local epic = mq.TLO.FindItem('Innoruuk\'s Dark Blessing').ID()
+local epic = mq.TLO.FindItem('=Innoruuk\'s Dark Blessing').ID()
 
 local buff_items = {}
 table.insert(buff_items, mq.TLO.FindItem('Chestplate of the Dark Flame').ID())
@@ -262,7 +263,7 @@ local function is_spell_ready(spell)
         return false
     end
     if mq.TLO.Spell(spellName).TargetType() == 'Single' then
-        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
+        if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
     end
 
     if not mq.TLO.Me.SpellReady(spellName)() then
@@ -276,21 +277,21 @@ local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
     -- aggro
     if config.get_mode():is_tank_mode() and config.get_spell_set() == 'standard' and myhp > 70 then
-        if MOB_COUNT > 2 and is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
+        if state.get_mob_count() > 2 and is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
         if is_spell_ready(spells['terror']) then return spells['terror'] end
     end
     -- taps
-    if myhp < 65 then
+    if myhp < 75 then
         if is_spell_ready(spells['composite']) then return spells['composite'] end
         if is_spell_ready(spells['largetap']) then return spells['largetap'] end
     end
-    if myhp < 85 then
+    if myhp < 95 then
         if is_spell_ready(spells['tap1']) then return spells['tap1'] end
         if is_spell_ready(spells['tap2']) then return spells['tap2'] end
     end
-    if is_dot_ready(spells['dottap']) then return spells['dostap'] end
+    if is_dot_ready(spells['dottap']) then return spells['dottap'] end
     if is_spell_ready(spells['bitetap']) then return spells['bitetap'] end
-    if is_spell_ready(spells['acdebuff']) then return spells['acdebuff'] end
+    if is_dot_ready(spells['acdebuff']) then return spells['acdebuff'] end
     -- dps
     if is_spell_ready(spells['spear']) then return spells['spear'] end
     if config.get_mode():is_assist_mode() and config.get_spell_set() == 'dps' then
@@ -347,8 +348,12 @@ local function mash()
         local target = mq.TLO.Target
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
+        local mobhp = target.PctHPs()
 
         -- hate's attraction
+        if OPTS.USEHATESATTRACTION and mobhp and mobhp > 95 then
+            common.use_aa(attraction)
+        end
 
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             for _,disc in ipairs(mashAggroDiscs) do

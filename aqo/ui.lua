@@ -16,6 +16,9 @@ local should_draw_gui = true
 local class_funcs
 local ui = {}
 
+local mid_x = 159
+local item_width = 153
+
 ui.set_class_funcs = function(funcs)
     class_funcs = funcs
 end
@@ -36,9 +39,13 @@ local function help_marker(desc)
 end
 
 ui.draw_combo_box = function(label, resultvar, options, bykey)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y+5)
     ImGui.Text(label)
     ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
+    ImGui.SetCursorPosX(mid_x)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y-3)
     if ImGui.BeginCombo('##'..label, resultvar) then
         for i,j in pairs(options) do
             if bykey then
@@ -57,6 +64,8 @@ ui.draw_combo_box = function(label, resultvar, options, bykey)
 end
 
 ui.draw_check_box = function(labelText, idText, resultVar, helpText)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y+5)
     if resultVar then
         ImGui.TextColored(0, 1, 0, 1, labelText)
     else
@@ -65,27 +74,37 @@ ui.draw_check_box = function(labelText, idText, resultVar, helpText)
     ImGui.SameLine()
     help_marker(helpText)
     ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y-3)
+    ImGui.SetCursorPosX(mid_x)
     resultVar,_ = ImGui.Checkbox(idText, resultVar)
     return resultVar
 end
 
 ui.draw_input_int = function(labelText, idText, resultVar, helpText)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y+5)
     ImGui.Text(labelText)
     ImGui.SameLine()
     help_marker(helpText)
     ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y-3)
+    ImGui.SetCursorPosX(mid_x)
     resultVar = ImGui.InputInt(idText, resultVar)
     return resultVar
 end
 
 ui.draw_input_text = function(labelText, idText, resultVar, helpText)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y+5)
     ImGui.Text(labelText)
     ImGui.SameLine()
     help_marker(helpText)
     ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
+    local _,y = ImGui.GetCursorPos()
+    ImGui.SetCursorPosY(y-3)
+    ImGui.SetCursorPosX(mid_x)
     resultVar = ImGui.InputText(idText, resultVar)
     return resultVar
 end
@@ -131,14 +150,14 @@ local function draw_pull_tab()
 end
 
 local function draw_debug_tab()
-    ImGui.TextColored(1, 1, 0, 1, 'Status:')
-    ImGui.SameLine()
-    local x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(90)
-    if state.get_paused() then
-        ImGui.TextColored(1, 0, 0, 1, 'PAUSED')
+    if state.get_debug() then
+        if ImGui.Button('Disable Debug', 303, 22) then
+            state.set_debug(false)
+        end
     else
-        ImGui.TextColored(0, 1, 0, 1, 'RUNNING')
+        if ImGui.Button('Enable Debug', 303, 22) then
+            state.set_debug(true)
+        end
     end
     ImGui.TextColored(1, 1, 0, 1, 'Mode:')
     ImGui.SameLine()
@@ -148,11 +167,14 @@ local function draw_debug_tab()
 
     ImGui.TextColored(1, 1, 0, 1, 'Camp:')
     ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
     ImGui.SetCursorPosX(90)
     local camp = state.get_camp()
     if camp then
-        ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f  Rad: %d', camp.X, camp.Y, camp.Z, config.get_camp_radius()))
+        ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z))
+        ImGui.TextColored(1, 1, 0, 1, 'Radius:')
+        ImGui.SameLine()
+        ImGui.SetCursorPosX(90)    
+        ImGui.TextColored(1, 1, 0, 1, string.format('%d', config.get_camp_radius()))
     else
         ImGui.TextColored(1, 0, 0, 1, '--')
     end
@@ -179,37 +201,40 @@ end
 local function draw_body()
     if ImGui.BeginTabBar('##tabbar') then
         if ImGui.BeginTabItem('Assist') then
-            ImGui.PushItemWidth(159)
+            ImGui.PushItemWidth(item_width)
             draw_assist_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Camp') then
-            ImGui.PushItemWidth(159)
+            ImGui.PushItemWidth(item_width)
             draw_camp_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Skills') then
-            ImGui.PushItemWidth(159)
-            class_funcs.draw_skills_tab()
-            ImGui.PopItemWidth()
+            if ImGui.BeginChild('Skills', ImGui.GetContentRegionAvail(), 150) then
+                ImGui.PushItemWidth(item_width-25)
+                class_funcs.draw_skills_tab()
+                ImGui.PopItemWidth()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Burn') then
-            ImGui.PushItemWidth(159)
+            ImGui.PushItemWidth(item_width)
             class_funcs.draw_burn_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Pull') then
-            ImGui.PushItemWidth(159)
+            ImGui.PushItemWidth(item_width)
             draw_pull_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Debug') then
-            ImGui.PushItemWidth(159)
+            ImGui.PushItemWidth(item_width)
             draw_debug_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
@@ -218,51 +243,37 @@ local function draw_body()
     end
 end
 
-local function draw_control_buttons()
+local function draw_header()
     if state.get_paused() then
-        if ImGui.Button('RESUME') then
+        if ImGui.Button('RESUME', 147, 22) then
             camp.set_camp()
             state.set_paused(false)
         end
     else
-        if ImGui.Button('PAUSE') then
+        if ImGui.Button('PAUSE', 147, 22) then
             state.set_paused(true)
         end
     end
     ImGui.SameLine()
-    if ImGui.Button('Save Settings') then
+    if ImGui.Button('Save Settings', 147, 22) then
         class_funcs.save_settings()
     end
-    ImGui.SameLine()
-    if state.get_debug() then
-        if ImGui.Button('Debug OFF') then
-            state.set_debug(false)
-        end
-    else
-        if ImGui.Button('Debug ON') then
-            state.set_debug(true)
-        end
-    end
-
-    local current_mode = config.get_mode():get_name()
-    ImGui.PushItemWidth(160)
-    config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    ImGui.PopItemWidth()
-    if current_mode ~= config.get_mode():get_name() then
-        camp.set_camp()
-    end
-end
-
-local function draw_header()
     ImGui.Text('Bot Status: ')
     ImGui.SameLine()
+    ImGui.SetCursorPosX(159)
     if state.get_paused() then
         ImGui.TextColored(1, 0, 0, 1, 'PAUSED')
     else
         ImGui.TextColored(0, 1, 0, 1, 'RUNNING')
     end
 
-    draw_control_buttons()
+    local current_mode = config.get_mode():get_name()
+    ImGui.PushItemWidth(item_width)
+    config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
+    ImGui.PopItemWidth()
+    if current_mode ~= config.get_mode():get_name() then
+        camp.set_camp()
+    end
 end
 
 local function push_styles()
@@ -294,7 +305,8 @@ end
 ui.main = function()
     if not open_gui then return end
     push_styles()
-    open_gui, should_draw_gui = ImGui.Begin('AQO Bot 1.0', open_gui, ImGuiWindowFlags.AlwaysAutoResize)
+    local classname = mq.TLO.Me.Class.ShortName()
+    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI', classname), open_gui, ImGuiWindowFlags.AlwaysAutoResize)
     if should_draw_gui then
         draw_header()
         draw_body()
