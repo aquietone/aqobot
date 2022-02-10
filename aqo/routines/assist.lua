@@ -178,7 +178,7 @@ end
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 assist.send_pet = function()
     local targethp = mq.TLO.Target.PctHPs()
-    if send_pet_timer:timer_expired() and targethp <= config.get_auto_assist_at() then
+    if send_pet_timer:timer_expired() and targethp and targethp <= config.get_auto_assist_at() then
         local cur_mode = config.get_mode()
         if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
         --if send_pet_timer:timer_expired() and (common.is_fighting() or assist.should_assist()) then

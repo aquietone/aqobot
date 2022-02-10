@@ -138,7 +138,7 @@ local function pull_nav_to(pull_spawn)
             -- return right away if we can't read distance, as pull spawn is probably no longer valid
             if not dist3d then return true end
             -- return true once target is in range and in LOS, or if something appears on xtarget
-            return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or mq.TLO.Me.XTarget() > 0
+            return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or common.hostile_xtargets()
         end)
     end
     return true
@@ -216,7 +216,7 @@ local function pull_engage(pull_spawn, pull_func)
     --logger.printf('mob agrod or timed out')
     mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
 
-    if mq.TLO.Me.XTarget() == 0 and get_closer then
+    if not common.hostile_xtargets() and get_closer then
         if not mq.TLO.Navigation.Active() then
             mq.cmdf('/nav spawn id %d | log=off', pull_mob_id)
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
@@ -230,7 +230,7 @@ local function pull_engage(pull_spawn, pull_func)
             -- return right away if we can't read distance, as pull spawn is probably no longer valid
             if not dist3d then return true end
             -- return true once target is in range and in LOS, or if something appears on xtarget
-            return pull_spawn.LineOfSight() and dist3d < 20 or mq.TLO.Me.XTarget() > 0
+            return pull_spawn.LineOfSight() and dist3d < 20 or common.hostile_xtargets()
         end)
 
         if mq.TLO.Navigation.Active() then
@@ -292,7 +292,7 @@ pull.pull_mob = function(pull_func)
     PULL_IN_PROGRESS = true
     -- move to pull target
     if not pull_nav_to(pull_spawn) then return end
-    if mq.TLO.Me.XTarget() == 0 then
+    if not common.hostile_xtargets() then
         pull_engage(pull_spawn, pull_func)
     else
         logger.printf('Mobs on xtarget, canceling pull and returning to camp')

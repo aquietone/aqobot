@@ -518,7 +518,7 @@ local function check_buffs()
     if not mq.TLO.Me.Song(chameleon['name'])() then
         common.use_aa(chameleon)
     end
-    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.AutoFire() then return end
+    if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEPOISONARROW then
@@ -601,7 +601,7 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['shots']['name'] then common.swap_spell(spells['shots']['name'], 1) end

@@ -334,7 +334,7 @@ local function check_buffs()
         mq.cmd('/autoinv')
     end
 
-    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then return end
+    if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if not mq.TLO.Me.Song(aura['name'])() and not mq.TLO.Me.Moving() then
@@ -410,7 +410,7 @@ war.main_loop = function()
         assist.attack()
     end
     -- if in a pull mode and no mobs
-    if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and mq.TLO.Me.XTarget() == 0 then
+    if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and not common.hostile_xtargets() then
         mq.cmd('/multiline ; /squelch /nav stop; /attack off; /autofire off;')
         mq.delay(50)
         check_end()
