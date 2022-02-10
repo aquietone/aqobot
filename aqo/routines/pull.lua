@@ -90,6 +90,7 @@ pull.pull_radar = function()
         pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
     end
     if pull_radius_count > 0 then
+        local zone_sn = mq.TLO.Zone.ShortName()
         for i=1,pull_radius_count do
             local mob
             if camp then
@@ -99,7 +100,7 @@ pull.pull_radar = function()
             end 
             local mob_id = mob.ID()
             local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < pull_radius and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) and config.ignores_contains(mob.CleanName()) then
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < pull_radius and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) and config.ignores_contains(zone_sn, mob.CleanName()) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
