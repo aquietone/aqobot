@@ -56,6 +56,10 @@ common.table_size = function(t)
     return count
 end
 
+common.is_named = function(zone_short_name, mob_name)
+    return named[zone_short_name:lower()] and named[zone_short_name:lower()][mob_name]
+end
+
 -- MQ Helper Functions
 
 ---Lookup the ID for a given spell.
