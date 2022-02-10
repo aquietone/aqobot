@@ -306,15 +306,18 @@ end
 
 local function cycle_spells()
     if common.am_i_dead() then return end
-    if not mq.TLO.Me.Invis() and common.is_fighting() then
-        local spell = find_next_spell()
-        if spell then
-            if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                common.cast(spell['name'], true, true)
-            else
-                common.cast(spell['name'])
+    if not mq.TLO.Me.Invis() then
+        local cur_mode = config.get_mode()
+        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+            local spell = find_next_spell()
+            if spell then
+                if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
+                    common.cast(spell['name'], true, true)
+                else
+                    common.cast(spell['name'])
+                end
+                return true
             end
-            return true
         end
     end
 end
@@ -363,7 +366,9 @@ local function check_ae()
 end
 
 local function mash()
-    if common.is_fighting() or assist.should_assist() then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    --if common.is_fighting() or assist.should_assist() then
         local target = mq.TLO.Target
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
@@ -448,7 +453,7 @@ local function try_burn()
 end
 
 local function oh_shit()
-    if mq.TLO.Me.PctHPs() < 35 and common.is_fighting() then
+    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if mq.TLO.Me.AltAbilityReady(flash['name'])() then
                 common.use_aa(flash)
@@ -480,8 +485,8 @@ local function check_buffs()
         if common.cast(spells['skin']['name']) then return end
     end
 
-    if common.is_fighting() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then return end
+    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEDISRUPTION and not mq.TLO.Me.Buff(spells['disruption']['name'])() then
         if common.swap_and_cast(spells['disruption']['name'], 13) then return end
@@ -510,7 +515,7 @@ local function check_buffs()
 end
 
 local function check_pet()
-    if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(spells['pet']['name'], 13)
@@ -518,7 +523,7 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['tap1']['name'] then common.swap_spell(spells['tap1']['name'], 1) end

@@ -411,7 +411,8 @@ common.is_burn_condition_met = function(always_condition)
         state.set_burn_active(true)
         state.set_burn_now(false)
         return true
-    elseif common.is_fighting() then
+    --elseif common.is_fighting() then
+    elseif mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then
         local zone_sn = mq.TLO.Zone.ShortName():lower()
         if config.get_burn_always() then
             if always_condition and not always_condition() then
@@ -525,7 +526,7 @@ local sit_timer = timer:new(10)
 common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sit_timer:timer_expired() then
-        if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
+        if not mq.TLO.Me.CombatState() == 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
             mq.cmd('/sit')
             sit_timer:reset()
         end

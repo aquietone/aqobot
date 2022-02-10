@@ -94,7 +94,8 @@ assist.check_target = function(reset_timers)
             state.set_assist_mob_id(0)
             return
         end
-        if common.is_fighting() then
+        --if common.is_fighting() then
+        if mq.TLO.Me.CombatState() == 'COMBAT' then
             -- already fighting
             if mq.TLO.Target.ID() == assist_target.ID() then
                 -- already fighting the MAs target
@@ -147,7 +148,8 @@ end
 ---Navigate to the current target if if isn't in LOS and should be.
 assist.check_los = function()
     local cur_mode = config.get_mode()
-    if config.get_mode():get_name() ~= 'manual' and (common.is_fighting() or assist.should_assist()) then
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) then
+    --if config.get_mode():get_name() ~= 'manual' and (common.is_fighting() or assist.should_assist()) then
         if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
             mq.cmd('/nav target log=off')
         end
@@ -175,14 +177,18 @@ end
 
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 assist.send_pet = function()
-    if send_pet_timer:timer_expired() and (common.is_fighting() or assist.should_assist()) then
-        local targethp = mq.TLO.Target.PctHPs()
-        if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and targethp <= config.get_auto_assist_at() then
-            mq.cmd('/multiline ; /pet attack ; /pet swarm')
-        else
-            mq.cmd('/pet swarm')
+    local targethp = mq.TLO.Target.PctHPs()
+    if send_pet_timer:timer_expired() and targethp <= config.get_auto_assist_at() then
+        local cur_mode = config.get_mode()
+        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+        --if send_pet_timer:timer_expired() and (common.is_fighting() or assist.should_assist()) then
+            if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() then
+                mq.cmd('/multiline ; /pet attack ; /pet swarm')
+            else
+                mq.cmd('/pet swarm')
+            end
+            send_pet_timer:reset()
         end
-        send_pet_timer:reset()
     end
 end
 

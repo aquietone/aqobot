@@ -24,6 +24,10 @@ function mode:get_name()
     return self.name
 end
 
+function mode:is_manual_mode()
+    return self.name == 'manual'
+end
+
 function mode:is_camp_mode()
     return self.is_camp
 end
