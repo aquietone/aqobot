@@ -517,11 +517,11 @@ local function check_buffs()
 
     if OPTS.USEPOISONARROW then
         if not mq.TLO.Me.Buff('Poison Arrows')() then
-            common.use_aa(poison)
+            if common.use_aa(poison) then return end
         end
     elseif OPTS.USEFIREARROW then
         if not mq.TLO.Me.Buff('Fire Arrows')() then
-            common.use_aa(fire)
+            if common.use_aa(fire) then return end
         end
     end
 
@@ -530,39 +530,26 @@ local function check_buffs()
     -- ranger unity aa
     if OPTS.USEUNITYAZIA then
         if missing_unity_buffs(unity_azia['name']) then
-            common.use_aa(unity_azia)
-            return
+            if common.use_aa(unity_azia) then return end
         end
     elseif OPTS.USEUNITYBEZA then
         if missing_unity_buffs(unity_beza['name']) then
-            common.use_aa(unity_beza)
-            return
+            if common.use_aa(unity_beza) then return end
         end
     end
 
     if not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() then
-        common.cast(spells['dmgbuff']['name'])
-        return
+        if common.cast(spells['dmgbuff']['name']) then return end
     end
 
     if not mq.TLO.Me.Buff(spells['rune']['name'])() then
-        common.cast(spells['rune']['name'])
-        return
+        if common.cast(spells['rune']['name']) then return end
     end
 
     if OPTS.USEREGEN and not mq.TLO.Me.Buff(spells['regen']['name'])() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
-        local restore_gem = nil
-        if not mq.TLO.Me.Gem(spells['regen']['name'])() then
-            restore_gem = mq.TLO.Me.Gem(13)()
-            common.swap_spell(spells['regen']['name'], 13)
-        end
-        mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['regen']['name'])() end)
-        common.cast(spells['regen']['name'])
-        if restore_gem then
-            common.swap_spell(restore_gem, 13)
-        end
-        return
+        mq.delay(500)
+        if common.swap_and_cast(spells['regen']['name'], 13) then return end
     end
 
     if OPTS.DSTANK then
@@ -573,17 +560,7 @@ local function check_buffs()
                     tank_spawn.DoTarget()
                     mq.delay('1s') -- time to target and for buffs to be populated
                     if target_missing_buff(spells['ds']['name']) then
-                        local restore_gem = nil
-                        if not mq.TLO.Me.Gem(spells['ds']['name'])() then
-                            restore_gem = mq.TLO.Me.Gem(13)()
-                            common.swap_spell(spells['ds']['name'], 13)
-                        end
-                        mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['ds']['name'])() end)
-                        common.cast(spells['ds']['name'])
-                        if restore_gem then
-                            common.swap_spell(restore_gem, 13)
-                        end
-                        return
+                        if common.swap_and_cast(spells['ds']['name'], 13) then return end
                     end
                 end
             end
@@ -599,16 +576,14 @@ local function check_buffs()
                         mq.delay('1s') -- time to target and for buffs to be populated
                         if target_missing_buff(spells['buffs']['name']) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            common.cast(spells['buffs']['name'])
-                            return
+                            if common.cast(spells['buffs']['name']) then return end
                         end
                     end
                     if spawn_missing_cachedbuff(group_member, spells['dmgbuff']['name']) then
                         group_member.DoTarget()
                         mq.delay('1s') -- time to target and for buffs to be populated
                         if target_missing_buff(spells['dmgbuff']['name']) then
-                            common.cast(spells['dmgbuff']['name'])
-                            return
+                            if common.cast(spells['dmgbuff']['name']) then return end
                         end
                     end
                 end

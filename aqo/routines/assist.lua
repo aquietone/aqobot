@@ -146,6 +146,7 @@ end
 
 ---Navigate to the current target if if isn't in LOS and should be.
 assist.check_los = function()
+    local cur_mode = config.get_mode()
     if config.get_mode():get_name() ~= 'manual' and (common.is_fighting() or assist.should_assist()) then
         if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
             mq.cmd('/nav target log=off')
@@ -175,7 +176,8 @@ end
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 assist.send_pet = function()
     if send_pet_timer:timer_expired() and (common.is_fighting() or assist.should_assist()) then
-        if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() then
+        local targethp = mq.TLO.Target.PctHPs()
+        if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and targethp <= config.get_auto_assist_at() then
             mq.cmd('/multiline ; /pet attack ; /pet swarm')
         else
             mq.cmd('/pet swarm')

@@ -618,16 +618,7 @@ local function check_buffs()
     if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
         for _,buff in ipairs(buffs['pet']) do
             if not mq.TLO.Pet.Buff(buff['name'])() and mq.TLO.Spell(buff['name']).StacksPet() and mq.TLO.Spell(buff['name']).Mana() < mq.TLO.Me.CurrentMana() then
-                local restore_gem = nil
-                if not mq.TLO.Me.Gem(buff['name'])() then
-                    restore_gem = mq.TLO.Me.Gem(13)()
-                    common.swap_spell(buff['name'], 13)
-                end
-                mq.delay('3s', function() return mq.TLO.Me.SpellReady(buff['name'])() end)
-                common.cast(buff['name'])
-                if restore_gem then
-                    common.swap_spell(restore_gem, 13)
-                end
+                common.swap_and_cast(buff['name'], 13)
             end
         end
     end
@@ -637,16 +628,7 @@ local function check_pet()
     if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
-    local restore_gem = nil
-    if not mq.TLO.Me.Gem(spells['pet']['name'])() then
-        restore_gem = mq.TLO.Me.Gem(13)()
-        common.swap_spell(spells['pet']['name'], 13)
-    end
-    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['pet']['name'])() end)
-    common.cast(spells['pet']['name'])
-    if restore_gem then
-        common.swap_spell(restore_gem, 13)
-    end
+    common.swap_and_cast(spells['pet']['name'], 13)
 end
 
 local function should_swap_dots()

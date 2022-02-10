@@ -3,6 +3,7 @@ local mq = require 'mq'
 local common = require('aqo.common')
 local config = require('aqo.configuration')
 local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
 local state = require('aqo.state')
 
 local tank = {}
@@ -86,6 +87,7 @@ local function tank_mob_in_range(tank_spawn)
     end
 end
 
+local stick_timer = timer:new(3)
 ---Tank the mob whose ID is stored in common.TANK_MOB_ID.
 tank.tank_mob = function()
     if state.get_tank_mob_id() == 0 then return end
@@ -113,12 +115,14 @@ tank.tank_mob = function()
     mq.cmd('/multiline ; /stand ; /face fast')
     if not mq.TLO.Me.Combat() then
         logger.printf('Tanking %s (%s)', mq.TLO.Target.CleanName(), state.get_tank_mob_id())
-        if not config.get_mode():get_name() == 'manual' then
-            mq.cmd('/squelch /stick front loose')-- moveback 10')
-        end
         -- /stick snaproll front moveback
         -- /stick mod -2
         mq.cmd('/attack on')
+        stick_timer:reset(0)
+    end
+    if stick_timer:timer_expired() and not mq.TLO.Stick.Active() and not config.get_mode():get_name() == 'manual' then
+        mq.cmd('/squelch /stick front loose')-- moveback 10')
+        stick_timer:reset()
     end
 end
 

@@ -133,7 +133,21 @@ local function cmd_bind(...)
         end
         logger.printf('assist: %s', config.get_assist())
     elseif opt == 'ignore' then
-        -- TODO: support mob ignore lists
+        local zone = mq.TLO.Zone.ShortName()
+        if new_value then
+            config.add_ignore(zone, new_value)
+        else
+            local target_name = mq.TLO.Target.CleanName()
+            config.add_ignore(zone, target_name)
+        end
+    elseif opt == 'unignore' then
+        local zone = mq.TLO.Zone.ShortName()
+        if new_value then
+            config.remove_ignore(zone, new_value)
+        else
+            local target_name = mq.TLO.Target.CleanName()
+            config.remove_ignore(zone, target_name)
+        end
     else
         class_funcs.process_cmd(opt:upper(), new_value)
     end
@@ -143,6 +157,7 @@ mq.bind(('/%s'):format(class), cmd_bind)
 class_funcs.load_settings()
 common.setup_events()
 class_funcs.setup_events()
+config.load_ignores()
 
 ui.set_class_funcs(class_funcs)
 mq.imgui.init('AQO Bot 1.0', ui.main)
