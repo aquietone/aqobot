@@ -111,7 +111,7 @@ end
 common.hostile_xtargets = function()
     if mq.TLO.Me.XTarget() == 0 then return false end
     for i=1,13 do
-        if mq.TLO.Me.XTarget(i).Type() == 'Auto Hater' then
+        if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
             return true
         end
     end

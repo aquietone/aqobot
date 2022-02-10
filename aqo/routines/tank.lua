@@ -120,8 +120,8 @@ tank.tank_mob = function()
         mq.cmd('/attack on')
         stick_timer:reset(0)
     end
-    if stick_timer:timer_expired() and not mq.TLO.Stick.Active() and not config.get_mode():get_name() == 'manual' then
-        mq.cmd('/squelch /stick front loose')-- moveback 10')
+    if stick_timer:timer_expired() and not mq.TLO.Stick.Active() and config.get_mode():get_name() ~= 'manual' then
+        mq.cmd('/squelch /stick front loose moveback 10')
         stick_timer:reset()
     end
 end
