@@ -138,7 +138,7 @@ local function cmd_bind(...)
             config.add_ignore(zone, new_value)
         else
             local target_name = mq.TLO.Target.CleanName()
-            config.add_ignore(zone, target_name)
+            if target_name then config.add_ignore(zone, target_name) end
         end
     elseif opt == 'unignore' then
         local zone = mq.TLO.Zone.ShortName()
@@ -146,7 +146,7 @@ local function cmd_bind(...)
             config.remove_ignore(zone, new_value)
         else
             local target_name = mq.TLO.Target.CleanName()
-            config.remove_ignore(zone, target_name)
+            if target_name then config.remove_ignore(zone, target_name) end
         end
     else
         class_funcs.process_cmd(opt:upper(), new_value)
