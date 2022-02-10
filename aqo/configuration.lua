@@ -286,19 +286,20 @@ function config.get_ignores(zone_short_name)
 end
 
 function config.add_ignore(zone_short_name, mob_name)
-    if ignores[zone_short_name:lower()][mob_name] then return false end
+    if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then return end
+    if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
-    return true
+    config.save_ignores()
 end
 
 function config.remove_ignore(zone_short_name, mob_name)
-    if not ignores[zone_short_name:lower()][mob_name] then return false end
+    if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then return end
     ignores[zone_short_name:lower()][mob_name] = nil
-    return true
+    config.save_ignores()
 end
 
 function config.ignores_contains(zone_short_name, mob_name)
-    return ignores[zone_short_name:lower()][mob_name]
+    return ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name]
 end
 
 --for k,v in pairs(config.get_all()) do
