@@ -159,26 +159,26 @@ local function pull_engage(pull_spawn, pull_func)
     local pull_mob_id = state.get_pull_mob_id()
     local dist3d = pull_spawn.Distance3D()
     if not dist3d or not pull_spawn.LineOfSight() or dist3d > 200 then
-        logger.printf('Pull target no longer valid (%s)', pull_mob_id)
+        logger.printf('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id)
         clear_pull_vars()
         return
     end
     pull_spawn.DoTarget()
     mq.delay(50, function() return mq.TLO.Target.ID() == pull_spawn.ID() end)
     if not mq.TLO.Target() then
-        logger.printf('Pull target no longer valid (%s)', pull_mob_id)
+        logger.printf('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id)
         clear_pull_vars()
         return
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
     if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) then --or mq.TLO.Target.PctHPs() < 100 then
-        logger.printf('Pull target already engaged, skipping (%s)', pull_mob_id)
+        logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax)', pull_mob_id)
         -- TODO: clear skip targets
         PULL_TARGET_SKIP[pull_mob_id] = 1
         clear_pull_vars()
         return
     end
-    logger.printf('Pulling %s (%s)', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
+    logger.printf('Pulling \ay%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), mq.TLO.Target.ID())
     --logger.printf('facing mob')
     if mq.TLO.Navigation.Active() then
         mq.cmd('/squelch /nav stop')
@@ -297,7 +297,7 @@ pull.pull_mob = function(pull_func)
     if not common.hostile_xtargets() then
         pull_engage(pull_spawn, pull_func)
     else
-        logger.printf('Mobs on xtarget, canceling pull and returning to camp')
+        logger.printf('\ayMobs on xtarget, canceling pull and returning to camp\ax')
         clear_pull_vars()
     end
     -- return to camp
