@@ -53,9 +53,10 @@ end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 camp.check_camp = function()
-    if not config.get_mode():is_camp_mode() then return end
-    if common.am_i_dead() or mq.TLO.Me.Casting() then return end
-    if common.is_fighting() or not state.get_camp() then return end
+    if not config.get_mode():is_camp_mode() or not state.get_camp() then return end
+    if common.am_i_dead() or mq.TLO.Me.Casting() or not common.clear_to_buff() then return end
+    --if common.is_fighting() or not state.get_camp() then return end
+    --if mq.TLO.Me.XTarget() > 0 then return end
     if mq.TLO.Zone.ID() ~= state.get_camp().ZoneID then
         logger.printf('Clearing camp due to zoning.')
         state.set_camp(nil)
@@ -63,7 +64,7 @@ camp.check_camp = function()
     end
     local my_camp = state.get_camp()
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), my_camp.X, my_camp.Y) > 15 then
-        if not mq.TLO.Nav.Active() then
+        if not mq.TLO.Nav.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', my_camp.Y, my_camp.X, my_camp.Z))() then
             mq.cmdf('/nav locyxz %d %d %d log=off', my_camp.Y, my_camp.X, my_camp.Z)
         end
     end

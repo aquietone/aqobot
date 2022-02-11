@@ -1,5 +1,6 @@
 --- @type mq
 local mq = require 'mq'
+local named = require('aqo.data.named')
 local logger = require('aqo.utils.logger')
 local timer = require('aqo.utils.timer')
 local config = require('aqo.configuration')
@@ -55,6 +56,10 @@ common.table_size = function(t)
     return count
 end
 
+common.is_named = function(zone_short_name, mob_name)
+    return named[zone_short_name:lower()] and named[zone_short_name:lower()][mob_name]
+end
+
 -- MQ Helper Functions
 
 ---Lookup the ID for a given spell.
@@ -98,7 +103,38 @@ end
 common.is_fighting = function()
     --if mq.TLO.Target.CleanName() == 'Combat Dummy Beza' then return true end -- Dev hook for target dummy
     -- mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Target.Type() ~= "Corpse" and not mq.TLO.Me.Feigning()
-    return mq.TLO.Target.ID() and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.Standing() and mq.TLO.Target.Type() == "NPC"
+    return mq.TLO.Me.CombatState() == 'COMBAT'--mq.TLO.Target.ID() and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target.Type() == "NPC"-- and mq.TLO.Me.Standing()
+end
+
+---Determine if there are any hostile targets on XTarget.
+---@return boolean @Returns true if at least 1 hostile auto hater spawn on XTarget, otherwise false.
+common.hostile_xtargets = function()
+    if mq.TLO.Me.XTarget() == 0 then return false end
+    for i=1,13 do
+        if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
+            return true
+        end
+    end
+    return false
+end
+
+common.clear_to_buff = function()
+    return mq.TLO.Me.CombatState() ~= 'COMBAT' and not common.hostile_xtargets()
+end
+
+common.is_fighting_modebased = function()
+    local mode = config.get_mode()
+    if mode:is_tank_mode() then
+
+    elseif mode:is_assist_mode() then
+
+    elseif mode:get_name() == 'manual' then
+        if mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+
+        else
+
+        end
+    end
 end
 
 ---Calculate the distance between two points (x1,y1), (x2,y2).
@@ -129,6 +165,11 @@ common.in_control = function()
     return not mq.TLO.Me.Stunned() and not mq.TLO.Me.Silenced() and not mq.TLO.Me.Feigning() and not mq.TLO.Me.Mezzed() and not mq.TLO.Me.Invulnerable() and not mq.TLO.Me.Hovering()
 end
 
+common.blocking_window_open = function()
+    -- check blocking windows -- BigBankWnd, MerchantWnd, GiveWnd, TradeWnd
+    return mq.TLO.Window('BigBankWnd').Open() or mq.TLO.Window('MerchantWnd').Open() or mq.TLO.Window('GiveWnd').Open() or mq.TLO.Window('TradeWnd').Open()
+end
+
 -- Movement Functions
 
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
@@ -142,7 +183,7 @@ common.check_chase = function()
     local chase_y = chase_spawn.Y()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.get_chase_distance() then
-        if not mq.TLO.Nav.Active() then
+        if not mq.TLO.Nav.Active() and mq.TLO.Nav.PathExists(string.format('spawn pc =%s', config.get_chase_target()))() then
             mq.cmdf('/nav spawn pc =%s | log=off', config.get_chase_target())
         end
     end
@@ -188,14 +229,14 @@ end
 ---@param requires_target boolean @Indicate whether the spell requires a target.
 ---@param requires_los boolean @Indicate whether the spell requires line of sight to the target.
 common.cast = function(spell_name, requires_target, requires_los)
-    if not common.in_control() or mq.TLO.Me.Moving() then return end
-    if not mq.TLO.Me.SpellReady(spell_name)() then return end
-    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() then return end
+    if not common.in_control() or mq.TLO.Me.Moving() then return false end
+    if not mq.TLO.Me.SpellReady(spell_name)() then return false end
+    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() then return false end
     if requires_target then
-        if requires_los and not mq.TLO.Target.LineOfSight() then return end
+        if requires_los and not mq.TLO.Target.LineOfSight() then return false end
         local dist3d = mq.TLO.Target.Distance3D()
-        if not dist3d or dist3d > mq.TLO.Spell(spell_name).MyRange() then return end
-        if mq.TLO.Spell(name).TargetType() == 'Single' and mq.TLO.Me.XTarget() == 0 then return end
+        if not dist3d or dist3d > mq.TLO.Spell(spell_name).MyRange() then return false end
+        --if requires_aggro and mq.TLO.Spell(name).TargetType() == 'Single' and mq.TLO.Me.XTarget() == 0 then return false end
     end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
@@ -211,12 +252,13 @@ common.cast = function(spell_name, requires_target, requires_los)
         end
         mq.delay(10)
     end
+    return true
 end
 
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 ---@param name string @The name of the ability to use.
 common.use_ability = function(name)
-    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() and mq.TLO.Me.XTarget() > 0 then
+    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
     end
@@ -225,27 +267,29 @@ end
 ---Use the item specified by item.
 ---@param item Item @The MQ Item userdata object.
 common.use_item = function(item)
-    if not common.in_control() or mq.TLO.Me.Casting() then return end
+    if not item() or not common.in_control() or mq.TLO.Me.Casting() or mq.TLO.Me.Moving() then return false end
     if item.Timer() == '0' then
         if item.Clicky.Spell.TargetType() == 'Single' then
-            if not mq.TLO.Target() then return end
+            if not mq.TLO.Target() then return false end
             local dist3d = mq.TLO.Target.Distance3D()
-            if not dist3d or dist3d > item.Clicky.Spell.Range() then return end
+            if not dist3d or dist3d > item.Clicky.Spell.Range() then return false end
         end
-        if item.Clicky.Spell.TargetType() == 'Self' and (item.Clicky.Spell.SpellGroup() ~= 17000 and not item.Clicky.Spell.Stacks()) then return end
+        if item.Clicky.Spell.TargetType() == 'Self' and (item.Clicky.Spell.SpellGroup() ~= 17000 and not item.Clicky.Spell.Stacks()) then return false end
         if not mq.TLO.Me.Casting() then
             logger.printf('Use Item: \ax\ar%s\ax', item)
             mq.cmdf('/useitem "%s"', item)
             mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+            return true
         end
     end
+    return false
 end
 
 ---Determine whether conditions are met to use the AA specified by name.
 ---@param name string @The AA to use.
 ---@return boolean @Returns true if the AA can be used, otherwise false.
 local function can_use_aa(name)
-    if not common.in_control() or mq.TLO.Me.Casting() then return false end
+    if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and mq.TLO.Me.Casting()) then return false end
     local spell = mq.TLO.Me.AltAbility(name).Spell
     if spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < state.get_min_end() then return false end
     if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return false end
@@ -254,7 +298,7 @@ local function can_use_aa(name)
         local dist3d = mq.TLO.Target.Distance3D()
         if not dist3d or dist3d > spell.Range() then return false end
         if mq.TLO.Target.MyBuff(name)() then return false end
-        if mq.TLO.Me.XTarget() == 0 then return false end
+        --if mq.TLO.Me.XTarget() == 0 then return false end
     elseif spell.TargetType() == 'Self' then
         if mq.TLO.Me.Song(name)() or mq.TLO.Me.Buff(name)() then return false end
         if not mq.TLO.Spell(spell.Name()).Stacks() then return false end
@@ -330,7 +374,7 @@ local function can_use_disc(name)
         if not mq.TLO.Target() then return false end
         local dist3d = mq.TLO.Target.Distance3D()
         if not dist3d or dist3d > mq.TLO.Spell(name).Range() then return false end
-        if mq.TLO.Me.XTarget() == 0 then return false end
+        --if mq.TLO.Me.XTarget() == 0 then return false end
     end
     return true
 end
@@ -360,6 +404,7 @@ common.use_disc = function(disc, overwrite)
             end
             mq.delay(250+mq.TLO.Spell(disc['name']).CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+            return true
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
@@ -367,8 +412,10 @@ common.use_disc = function(disc, overwrite)
             mq.cmdf('/disc %s', disc['name'])
             mq.delay(250+mq.TLO.Spell(disc['name']).CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+            return true
         end
     end
+    return false
 end
 
 -- Burn Helper Functions
@@ -389,13 +436,15 @@ common.is_burn_condition_met = function(always_condition)
         state.set_burn_active(true)
         state.set_burn_now(false)
         return true
-    elseif common.is_fighting() then
+    --elseif common.is_fighting() then
+    elseif mq.TLO.Me.CombatState() == 'COMBAT' or common.hostile_xtargets() then
+        local zone_sn = mq.TLO.Zone.ShortName():lower()
         if config.get_burn_always() then
             if always_condition and not always_condition() then
                 return false
             end
             return true
-        elseif config.get_burn_all_named() and mq.TLO.Target.Named() then
+        elseif config.get_burn_all_named() and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
             logger.printf('\arActivating Burns (named)\ax')
             state.get_burn_active_timer():reset()
             state.set_burn_active(true)
@@ -435,6 +484,20 @@ common.swap_spell = function(spell_name, gem)
     mq.cmdf('/memspell %d "%s"', gem, spell_name)
     mq.delay('3s', common.swap_gem_ready(spell_name, gem))
     mq.TLO.Window('SpellBookWnd').DoClose()
+end
+
+common.swap_and_cast = function(spell_name, gem)
+    local restore_gem = nil
+    if not mq.TLO.Me.Gem(spell_name)() then
+        restore_gem = mq.TLO.Me.Gem(gem)()
+        common.swap_spell(spell_name, gem)
+    end
+    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spell_name)() end)
+    local did_cast = common.cast(spell_name)
+    if restore_gem then
+        common.swap_spell(restore_gem, gem)
+    end
+    return did_cast
 end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
@@ -488,7 +551,7 @@ local sit_timer = timer:new(10)
 common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sit_timer:timer_expired() then
-        if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
+        if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
             mq.cmd('/sit')
             sit_timer:reset()
         end

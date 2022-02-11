@@ -321,7 +321,9 @@ local function find_next_dot_to_cast()
 end
 
 local function cycle_dots()
-    if common.is_fighting() or assist.should_assist() then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    --if common.is_fighting() or assist.should_assist() then
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             if spell['name'] == spells['pyreshort']['name'] and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
@@ -336,7 +338,9 @@ local function cycle_dots()
 end
 
 local function try_debuff_target()
-    if (common.is_fighting() or assist.should_assist()) and OPTS.DEBUFF then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') and OPTS.DEBUFF then
+    --if (common.is_fighting() or assist.should_assist()) and OPTS.DEBUFF then
         local targetID = mq.TLO.Target.ID()
         if targetID and targetID > 0 and (not targets[targetID] or not targets[targetID][2]) then
             local isScentAAReady = mq.TLO.Me.AltAbilityReady('Scent of Thule')()
@@ -490,7 +494,8 @@ local function check_mana()
         -- death bloom at some %
         common.use_aa(deathbloom)
     end
-    if common.is_fighting() then
+    --if common.is_fighting() then
+    if mq.TLO.Me.CombatState() == 'COMBAT' then
         if pct_mana < 40 then
             -- blood magic at some %
             common.use_aa(bloodmagic)
@@ -519,7 +524,8 @@ end
 
 local check_aggro_timer = timer:new(10)
 local function check_aggro()
-    if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
+    --if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
+    if OPTS.USEFD and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
                 if mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
@@ -607,8 +613,9 @@ local function check_buffs()
         end
     end
     common.check_combat_buffs()
-    if common.is_fighting() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    --if common.is_fighting() then return end
+    if not common.clear_to_buff() then return end
+    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if not mq.TLO.Me.Buff(spells['lich']['name'])() or not mq.TLO.Me.Buff(spells['flesh']['name'])() then
         common.use_aa(unity)
     end
@@ -618,35 +625,18 @@ local function check_buffs()
     if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
         for _,buff in ipairs(buffs['pet']) do
             if not mq.TLO.Pet.Buff(buff['name'])() and mq.TLO.Spell(buff['name']).StacksPet() and mq.TLO.Spell(buff['name']).Mana() < mq.TLO.Me.CurrentMana() then
-                local restore_gem = nil
-                if not mq.TLO.Me.Gem(buff['name'])() then
-                    restore_gem = mq.TLO.Me.Gem(13)()
-                    common.swap_spell(buff['name'], 13)
-                end
-                mq.delay('3s', function() return mq.TLO.Me.SpellReady(buff['name'])() end)
-                common.cast(buff['name'])
-                if restore_gem then
-                    common.swap_spell(restore_gem, 13)
-                end
+                common.swap_and_cast(buff['name'], 13)
             end
         end
     end
 end
 
 local function check_pet()
-    if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
+    --if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
+    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
-    local restore_gem = nil
-    if not mq.TLO.Me.Gem(spells['pet']['name'])() then
-        restore_gem = mq.TLO.Me.Gem(13)()
-        common.swap_spell(spells['pet']['name'], 13)
-    end
-    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['pet']['name'])() end)
-    common.cast(spells['pet']['name'])
-    if restore_gem then
-        common.swap_spell(restore_gem, 13)
-    end
+    common.swap_and_cast(spells['pet']['name'], 13)
 end
 
 local function should_swap_dots()
@@ -707,7 +697,8 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
+    --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= 'Composite Paroxysm' then common.swap_spell(spells['composite']['name'], 1) end

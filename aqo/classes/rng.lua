@@ -253,7 +253,8 @@ local function attack_range()
 end
 
 local function use_opener()
-    if not common.is_fighting() and state.get_assist_mob_id() > 0 and assist.should_assist() and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
+    if mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if assist.should_assist() and state.get_assist_mob_id() > 0 and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
         common.cast(spells['opener']['name'], true, true)
     end
 end
@@ -320,7 +321,7 @@ local function find_next_spell()
         end
     end
     for _,spell in ipairs(dot_spells) do
-        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT then
+        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if is_dot_ready(spell['id'], spell['name']) then
                 return spell
             end
@@ -343,20 +344,25 @@ end
 
 local function cycle_spells()
     if not mq.TLO.Me.Invis() then
-        local spell = find_next_spell()
-        if spell then
-            if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                common.cast(spell['name'], true, true)
-            else
-                common.cast(spell['name'])
+        local cur_mode = config.get_mode()
+        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+            local spell = find_next_spell()
+            if spell then
+                if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
+                    common.cast(spell['name'], true, true)
+                else
+                    common.cast(spell['name'])
+                end
+                return true
             end
-            return true
         end
     end
 end
 
 local function mash()
-    if common.is_fighting() or assist.should_assist() then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    --if common.is_fighting() or assist.should_assist() then
         if OPTS.USEDISPEL then
             local target_hp = mq.TLO.Target.PctHPs()
             if target_hp and target_hp > 90 then
@@ -512,16 +518,16 @@ local function check_buffs()
     if not mq.TLO.Me.Song(chameleon['name'])() then
         common.use_aa(chameleon)
     end
-    if common.is_fighting() or mq.TLO.Me.AutoFire() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
+    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEPOISONARROW then
         if not mq.TLO.Me.Buff('Poison Arrows')() then
-            common.use_aa(poison)
+            if common.use_aa(poison) then return end
         end
     elseif OPTS.USEFIREARROW then
         if not mq.TLO.Me.Buff('Fire Arrows')() then
-            common.use_aa(fire)
+            if common.use_aa(fire) then return end
         end
     end
 
@@ -530,39 +536,26 @@ local function check_buffs()
     -- ranger unity aa
     if OPTS.USEUNITYAZIA then
         if missing_unity_buffs(unity_azia['name']) then
-            common.use_aa(unity_azia)
-            return
+            if common.use_aa(unity_azia) then return end
         end
     elseif OPTS.USEUNITYBEZA then
         if missing_unity_buffs(unity_beza['name']) then
-            common.use_aa(unity_beza)
-            return
+            if common.use_aa(unity_beza) then return end
         end
     end
 
     if not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() then
-        common.cast(spells['dmgbuff']['name'])
-        return
+        if common.cast(spells['dmgbuff']['name']) then return end
     end
 
     if not mq.TLO.Me.Buff(spells['rune']['name'])() then
-        common.cast(spells['rune']['name'])
-        return
+        if common.cast(spells['rune']['name']) then return end
     end
 
     if OPTS.USEREGEN and not mq.TLO.Me.Buff(spells['regen']['name'])() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
-        local restore_gem = nil
-        if not mq.TLO.Me.Gem(spells['regen']['name'])() then
-            restore_gem = mq.TLO.Me.Gem(13)()
-            common.swap_spell(spells['regen']['name'], 13)
-        end
-        mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['regen']['name'])() end)
-        common.cast(spells['regen']['name'])
-        if restore_gem then
-            common.swap_spell(restore_gem, 13)
-        end
-        return
+        mq.delay(500)
+        if common.swap_and_cast(spells['regen']['name'], 13) then return end
     end
 
     if OPTS.DSTANK then
@@ -573,17 +566,7 @@ local function check_buffs()
                     tank_spawn.DoTarget()
                     mq.delay('1s') -- time to target and for buffs to be populated
                     if target_missing_buff(spells['ds']['name']) then
-                        local restore_gem = nil
-                        if not mq.TLO.Me.Gem(spells['ds']['name'])() then
-                            restore_gem = mq.TLO.Me.Gem(13)()
-                            common.swap_spell(spells['ds']['name'], 13)
-                        end
-                        mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['ds']['name'])() end)
-                        common.cast(spells['ds']['name'])
-                        if restore_gem then
-                            common.swap_spell(restore_gem, 13)
-                        end
-                        return
+                        if common.swap_and_cast(spells['ds']['name'], 13) then return end
                     end
                 end
             end
@@ -599,16 +582,14 @@ local function check_buffs()
                         mq.delay('1s') -- time to target and for buffs to be populated
                         if target_missing_buff(spells['buffs']['name']) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            common.cast(spells['buffs']['name'])
-                            return
+                            if common.cast(spells['buffs']['name']) then return end
                         end
                     end
                     if spawn_missing_cachedbuff(group_member, spells['dmgbuff']['name']) then
                         group_member.DoTarget()
                         mq.delay('1s') -- time to target and for buffs to be populated
                         if target_missing_buff(spells['dmgbuff']['name']) then
-                            common.cast(spells['dmgbuff']['name'])
-                            return
+                            if common.cast(spells['dmgbuff']['name']) then return end
                         end
                     end
                 end
@@ -620,7 +601,7 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['shots']['name'] then common.swap_spell(spells['shots']['name'], 1) end

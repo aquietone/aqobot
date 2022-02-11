@@ -66,11 +66,17 @@ local function check_level(pull_spawn)
     return false
 end
 
+local function check_ignore(pull_spawn)
+    local ignores = config.get_ignore_list(mq.TLO.Zone.ShortName())
+    if ignores and ignores[pull_spawn.CleanName()] then return false end
+    return true
+end
+
 --loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
-local pull_count = 'npc radius %d'-- zradius 50'
-local pull_spawn = '%d, npc radius %d'-- zradius 50'
-local pull_count_camp = 'npc loc %d %d radius %d'-- zradius 50'
-local pull_spawn_camp = '%d, npc loc %d %d radius %d'-- zradius 50'
+local pull_count = 'npc nopet radius %d'-- zradius 50'
+local pull_spawn = '%d, npc nopet radius %d'-- zradius 50'
+local pull_count_camp = 'npc nopet loc %d %d radius %d'-- zradius 50'
+local pull_spawn_camp = '%d, npc nopet loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.PULL_MOB_ID to the mob ID of the first matching spawn.
@@ -84,6 +90,7 @@ pull.pull_radar = function()
         pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
     end
     if pull_radius_count > 0 then
+        local zone_sn = mq.TLO.Zone.ShortName()
         for i=1,pull_radius_count do
             local mob
             if camp then
@@ -93,7 +100,7 @@ pull.pull_radar = function()
             end 
             local mob_id = mob.ID()
             local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < pull_radius and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) then
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < pull_radius and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) and not config.ignores_contains(zone_sn, mob.CleanName()) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
@@ -118,20 +125,20 @@ local function pull_nav_to(pull_spawn)
     end
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
         logger.debug(state.get_debug(), 'Moving to pull target (%s)', state.get_pull_mob_id())
-        if not mq.TLO.Navigation.Active() then
-            mq.cmdf('/nav spawn id %d | log=off', state.get_pull_mob_id())
+        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.get_pull_mob_id()))() then
+            mq.cmdf('/nav spawn id %d | dist=15 log=off', state.get_pull_mob_id())
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
         end
         -- TODO: disrupt if mob aggro otw to pull
         mq.delay('15s', function()
-            if not pull_spawn then
-                return false
+            if not pull_spawn or not mq.TLO.Navigation.Active() then
+                return true
             end
             local dist3d = pull_spawn.Distance3D()
             -- return right away if we can't read distance, as pull spawn is probably no longer valid
             if not dist3d then return true end
             -- return true once target is in range and in LOS, or if something appears on xtarget
-            return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or mq.TLO.Me.XTarget() > 0
+            return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or common.hostile_xtargets()
         end)
     end
     return true
@@ -209,21 +216,21 @@ local function pull_engage(pull_spawn, pull_func)
     --logger.printf('mob agrod or timed out')
     mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
 
-    if mq.TLO.Me.XTarget() == 0 and get_closer then
-        if not mq.TLO.Navigation.Active() then
-            mq.cmdf('/nav spawn id %d | log=off', pull_mob_id)
+    if not common.hostile_xtargets() and get_closer then
+        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.get_pull_mob_id()))() then
+            mq.cmdf('/nav id %d | dist=15 log=off', pull_mob_id)
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
         end
         -- TODO: disrupt if mob aggro otw to pull
         mq.delay('15s', function()
-            if not pull_spawn then
-                return false
+            if not pull_spawn or not mq.TLO.Navigation.Active() then
+                return true
             end
             local dist3d = pull_spawn.Distance3D()
             -- return right away if we can't read distance, as pull spawn is probably no longer valid
             if not dist3d then return true end
             -- return true once target is in range and in LOS, or if something appears on xtarget
-            return pull_spawn.LineOfSight() and dist3d < 20 or mq.TLO.Me.XTarget() > 0
+            return pull_spawn.LineOfSight() and dist3d < 20 or common.hostile_xtargets()
         end)
 
         if mq.TLO.Navigation.Active() then
@@ -231,6 +238,8 @@ local function pull_engage(pull_spawn, pull_func)
             mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
         end
 
+        local dist3d = mq.TLO.Target.Distance3D()
+        if not dist3d or dist3d > 25 or not mq.TLO.Target.LineOfSight() then return end
         -- use class close range pull ability
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
@@ -285,14 +294,14 @@ pull.pull_mob = function(pull_func)
     PULL_IN_PROGRESS = true
     -- move to pull target
     if not pull_nav_to(pull_spawn) then return end
-    if mq.TLO.Me.XTarget() == 0 then
+    if not common.hostile_xtargets() then
         pull_engage(pull_spawn, pull_func)
     else
         logger.printf('Mobs on xtarget, canceling pull and returning to camp')
         clear_pull_vars()
     end
     -- return to camp
-    if config.get_mode():is_camp_mode() and state.get_camp() and not mq.TLO.Navigation.Active() then
+    if config.get_mode():is_camp_mode() and state.get_camp() then
         pull_return()
     end
     --common.TANK_MOB_ID = common.PULL_MOB_ID -- pull mob reached camp, mark it as tank mob
