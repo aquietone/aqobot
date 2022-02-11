@@ -289,7 +289,7 @@ end
 ---@param name string @The AA to use.
 ---@return boolean @Returns true if the AA can be used, otherwise false.
 local function can_use_aa(name)
-    if not common.in_control() or mq.TLO.Me.Casting() then return false end
+    if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and mq.TLO.Me.Casting()) then return false end
     local spell = mq.TLO.Me.AltAbility(name).Spell
     if spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < state.get_min_end() then return false end
     if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return false end
