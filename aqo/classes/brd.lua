@@ -260,7 +260,7 @@ end
 local function is_dot_ready(spellId, spellName)
     local songDuration = 0
     --local remainingCastTime = 0
-    if not mq.TLO.Me.Gem(spellName)() or not mq.TLO.Me.GemTimer(spellName)() == 0  then
+    if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() ~= 0  then
         return false
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
