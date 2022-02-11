@@ -243,7 +243,7 @@ local function attack_range()
     end
     if mq.TLO.Target() then
         if not check_mob_angle() then
-            mq.cmd('/face fast')
+            mq.cmd('/squelch /face fast')
         end
         if not mq.TLO.Me.AutoFire() then
             mq.cmd('/autofire on')
