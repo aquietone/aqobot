@@ -190,7 +190,7 @@ while true do
         end
         if mq.TLO.Me.Hovering() then
             mq.delay(50)
-        elseif not mq.TLO.Me.Invis() then
+        elseif not mq.TLO.Me.Invis() and not common.blocking_window_open() then
             -- do active combat assist things when not paused and not invis
             if mq.TLO.Me.Feigning() and common.FD_CLASSES[class] then
                 mq.cmd('/stand')
