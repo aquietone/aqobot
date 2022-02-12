@@ -639,6 +639,10 @@ shd.main_loop = function()
         mq.cmd('/multiline ; /attack off; /autofire off;')
         mq.delay(50)
         pull.pull_radar()
+        if state.get_pull_mob_id() == 0 then
+            -- slow things down a bit?
+            mq.delay('1s')
+        end
         pull.pull_mob(shd.pull_func)
     end
     -- begin actual combat stuff
