@@ -144,6 +144,11 @@ local function draw_pull_tab()
     config.set_pull_min_level(ui.draw_input_int('Pull Min Level', '##pullminlvl', config.get_pull_min_level(), 'Minimum level mobs to pull'))
     config.set_pull_max_level(ui.draw_input_int('Pull Max Level', '##pullmaxlvl', config.get_pull_max_level(), 'Maximum level mobs to pull'))
     config.set_pull_arc(ui.draw_input_int('Pull Arc', '##pullarc', config.get_pull_arc(), 'Only pull from this slice of the radius, centered around your current heading'))
+    config.set_group_watch_who(ui.draw_combo_box('Group Watch', config.get_group_watch_who(), common.GROUP_WATCH_OPTS, true))
+    config.set_med_mana_start(ui.draw_input_int('Med Mana Start', '##medmanastart', config.get_med_mana_start(), 'Pct Mana to begin medding'))
+    config.set_med_mana_stop(ui.draw_input_int('Med Mana Stop', '##medmanastop', config.get_med_mana_stop(), 'Pct Mana to stop medding'))
+    config.set_med_end_start(ui.draw_input_int('Med End Start', '##medendstart', config.get_med_end_start(), 'Pct End to begin medding'))
+    config.set_med_end_stop(ui.draw_input_int('Med End Stop', '##medendstop', config.get_med_end_stop(), 'Pct End to stop medding'))
     if current_radius ~= config.get_pull_radius() or current_pullarc ~= config.get_pull_arc() then
         camp.set_camp()
     end
@@ -162,18 +167,18 @@ local function draw_debug_tab()
     ImGui.TextColored(1, 1, 0, 1, 'Mode:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(90)
+    ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 1, 1, 1, config.get_mode():get_name())
 
     ImGui.TextColored(1, 1, 0, 1, 'Camp:')
     ImGui.SameLine()
-    ImGui.SetCursorPosX(90)
+    ImGui.SetCursorPosX(100)
     local camp = state.get_camp()
     if camp then
         ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z))
         ImGui.TextColored(1, 1, 0, 1, 'Radius:')
         ImGui.SameLine()
-        ImGui.SetCursorPosX(90)    
+        ImGui.SetCursorPosX(100)    
         ImGui.TextColored(1, 1, 0, 1, string.format('%d', config.get_camp_radius()))
     else
         ImGui.TextColored(1, 0, 0, 1, '--')
@@ -182,20 +187,38 @@ local function draw_debug_tab()
     ImGui.TextColored(1, 1, 0, 1, 'Target:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(90)
+    ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 0, 0, 1, string.format('%s', mq.TLO.Target()))
 
     ImGui.TextColored(1, 1, 0, 1, 'AM_I_DEAD:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(90)
+    ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_i_am_dead()))
 
     ImGui.TextColored(1, 1, 0, 1, 'Burning:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(90)
+    ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_burn_active()))
+
+    ImGui.TextColored(1, 1, 0, 1, 'tank_mob_id:')
+    ImGui.SameLine()
+    x,_ = ImGui.GetCursorPos()
+    ImGui.SetCursorPosX(100)
+    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_tank_mob_id()))
+
+    ImGui.TextColored(1, 1, 0, 1, 'pull_mob_id:')
+    ImGui.SameLine()
+    x,_ = ImGui.GetCursorPos()
+    ImGui.SetCursorPosX(100)
+    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_pull_mob_id()))
+
+    ImGui.TextColored(1, 1, 0, 1, 'mob_count:')
+    ImGui.SameLine()
+    x,_ = ImGui.GetCursorPos()
+    ImGui.SetCursorPosX(100)
+    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_mob_count()))
 end
 
 local function draw_body()
@@ -228,9 +251,12 @@ local function draw_body()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Pull') then
-            ImGui.PushItemWidth(item_width)
-            draw_pull_tab()
-            ImGui.PopItemWidth()
+            if ImGui.BeginChild('Pull', ImGui.GetContentRegionAvail(), 150) then
+                ImGui.PushItemWidth(item_width)
+                draw_pull_tab()
+                ImGui.PopItemWidth()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Debug') then

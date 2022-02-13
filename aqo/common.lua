@@ -9,6 +9,7 @@ local state = require('aqo.state')
 local common = {}
 
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
+common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
 common.FD_CLASSES = {nec=true}--{mnk=true,bst=true,shd=true,nec=true}
 common.BOOL = {
     ['TRUE']={

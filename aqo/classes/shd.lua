@@ -292,14 +292,14 @@ local function find_next_spell()
         if is_spell_ready(spells['terror']) then return spells['terror'] end
     end
     -- taps
-    if myhp < 75 then
+    if myhp < 65 then
         if is_spell_ready(spells['composite']) then return spells['composite'] end
         if is_spell_ready(spells['largetap']) then return spells['largetap'] end
     end
-    if myhp < 95 then
+    if myhp < 90 then
         if is_spell_ready(spells['tap1']) then return spells['tap1'] end
-        if is_spell_ready(spells['tap2']) then return spells['tap2'] end
     end
+    if not mq.TLO.Me.Buff('Gift of Namdrows')() and is_spell_ready(spells['tap2']) then return spells['tap2'] end
     if is_dot_ready(spells['dottap']) then return spells['dottap'] end
     if is_spell_ready(spells['bitetap']) then return spells['bitetap'] end
     if is_dot_ready(spells['acdebuff']) then return spells['acdebuff'] end
