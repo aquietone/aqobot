@@ -3,6 +3,7 @@ local mq = require 'mq'
 local common = require('aqo.common')
 local config = require('aqo.configuration')
 local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
 local state = require('aqo.state')
 
 local pull = {}
@@ -66,9 +67,28 @@ local function check_level(pull_spawn)
     return false
 end
 
-local function check_ignore(pull_spawn)
-    local ignores = config.get_ignore_list(mq.TLO.Zone.ShortName())
-    if ignores and ignores[pull_spawn.CleanName()] then return false end
+local medding = false
+local healers = {CLR=true,DRU=true,SHM=true}
+pull.check_pull_conditions = function()
+    if common.am_i_dead() then return false end
+    if mq.TLO.Me.PctEndurance() < 10 then
+        medding = true
+        return false
+    end
+    if mq.TLO.Me.PctEndurance() < 30 and medding then
+        return false
+    end
+    for i=1,mq.TLO.Group.Members() do
+        local member = mq.TLO.Group.Member(i)
+        if member then
+            local pctmana = member.PctMana()
+            if member.Dead() then
+                return false
+            elseif healers[member.Class.ShortName()] and pctmana and pctmana < 20 then
+                return false
+            end
+        end
+    end
     return true
 end
 
@@ -80,7 +100,10 @@ local pull_spawn_camp = '%d, npc nopet loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.PULL_MOB_ID to the mob ID of the first matching spawn.
+local pull_radar_timer = timer:new(3)
 pull.pull_radar = function()
+    if not pull_radar_timer:timer_expired() then return end
+    pull_radar_timer:reset()
     local pull_radius_count
     local pull_radius = config.get_pull_radius()
     local camp = state.get_camp()

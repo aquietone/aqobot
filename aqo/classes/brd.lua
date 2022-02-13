@@ -197,9 +197,9 @@ local function cast(spell_name, requires_target, requires_los)
     --mq.delay(200+mq.TLO.Spell(spell_name).MyCastTime(), function() return not mq.TLO.Me.Casting() end)
     mq.delay(3200, function()
         -- this caused client to lock up...
-        --common.check_chase()
-        --assist.check_target(brd.reset_class_timers)
-        --assist.attack()
+        common.check_chase()
+        assist.check_target(brd.reset_class_timers)
+        assist.attack(true) -- don't attack unless already have los to the target to avoid delay in delay
         return not mq.TLO.Me.Casting()
     end)
     mq.cmd('/stopcast')
@@ -622,7 +622,6 @@ brd.main_loop = function()
     check_mana()
     check_buffs()
     common.rest()
-    mq.delay(1)
 end
 
 brd.draw_skills_tab = function()

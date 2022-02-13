@@ -679,7 +679,6 @@ rng.main_loop = function()
     common.check_mana()
     check_buffs()
     common.rest()
-    mq.delay(1)
 end
 
 rng.draw_skills_tab = function()

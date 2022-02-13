@@ -197,6 +197,7 @@ while true do
             end
             common.check_cursor()
             class_funcs.main_loop()
+            mq.delay(50)
         else
             -- stay in camp or stay chasing chase target if not paused but invis
             local pet_target_id = mq.TLO.Pet.Target.ID() or 0

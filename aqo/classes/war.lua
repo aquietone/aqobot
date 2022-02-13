@@ -425,7 +425,6 @@ war.main_loop = function()
     check_end()
     check_buffs()
     common.rest()
-    mq.delay(1)
 end
 
 war.draw_skills_tab = function()
