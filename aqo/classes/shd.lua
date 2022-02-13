@@ -289,6 +289,7 @@ local function find_next_spell()
             end
             if xtar_aggro_count ~= 0 and is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
         end
+        if is_dot_ready(spells['challenge']) then return spells['challenge'] end
         if is_spell_ready(spells['terror']) then return spells['terror'] end
     end
     -- taps
@@ -475,7 +476,7 @@ local function missing_unity_buffs(name)
     local spell = mq.TLO.Spell(name)
     for i=1,spell.NumEffects() do
         local trigger_spell = spell.Trigger(i)
-        if not mq.TLO.Me.Buff(trigger_spell.Name())() then return true end
+        if not mq.TLO.Me.Buff(trigger_spell.Name())() and mq.TLO.Spell(trigger_spell.Name()).Stacks() then return true end
     end
     return false
 end

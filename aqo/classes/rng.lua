@@ -174,11 +174,14 @@ rng.save_settings = function()
     persistence.store(SETTINGS_FILE, {common=config.get_all(), rng=OPTS})
 end
 
+local ranged_timer = timer:new(5)
 rng.reset_class_timers = function()
-    -- no-op
+    ranged_timer:reset(0)
 end
 
 local function get_ranged_combat_position(radius)
+    if not ranged_timer:timer_expired() then return false end
+    ranged_timer:reset()
     local assist_mob_id = state.get_assist_mob_id()
     local mob_x = mq.TLO.Spawn('id '..assist_mob_id).X()
     local mob_y = mq.TLO.Spawn('id '..assist_mob_id).Y()
@@ -196,7 +199,7 @@ local function get_ranged_combat_position(radius)
         if mq.TLO.Navigation.PathLength(string.format('loc yxz %d %d %d', y_off, x_off, z_off))() < 150 then
             if mq.TLO.LineOfSight(string.format('%d,%d,%d:%d,%d,%d', y_off, x_off, z_off, mob_y, mob_x, mob_z))() then
                 if mq.TLO.EverQuest.ValidLoc(string.format('%d %d %d', x_off, y_off, z_off))() then
-                    if mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 30', y_off, x_off, z_off))() == 0 then
+                    if mq.TLO.SpawnCount(string.format('npc nopet loc %d %d %d radius 50', y_off, x_off, z_off))() <= state.get_mob_count() then
                         logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
                         mq.cmdf('/squelch /nav locyxz %d %d %d', y_off, x_off, z_off)
                         mq.delay('1s', function() return mq.TLO.Navigation.Active() end)
@@ -514,7 +517,9 @@ local function check_buffs()
     if not mq.TLO.Me.Buff(brownies['name'])() then
         common.use_aa(brownies)
     end
-    if not mq.TLO.Me.Song(chameleon['name'])() then
+    if not mq.TLO.Me.Song(chameleon['name'])() and mq.TLO.Me.AltAbilityReady(chameleon['name'])() then
+        mq.cmd('/mqtar myself')
+        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
         common.use_aa(chameleon)
     end
     if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
@@ -659,6 +664,7 @@ rng.main_loop = function()
     camp.check_camp()
     -- check whether we need to go chasing after the chase target
     common.check_chase()
+    camp.mob_radar()
     assist.check_target(rng.reset_class_timers)
     use_opener()
     -- if we should be assisting but aren't in los, try to be?
