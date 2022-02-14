@@ -1,3 +1,10 @@
+# 2022/02/13
+- Pull path length checking
+- Tweak ranger positioning checking for nearby mobs
+
+# 2022/02/12
+- Group watch settings
+
 # 2022/02/10
 - Bunch of fixes around pulling and other things
 - Pull ignore lists
