@@ -1,3 +1,6 @@
+# 2022/02/16
+- Refactor some spell cast validation for spells, aa, items, discs
+
 # 2022/02/13
 - Pull path length checking
 - Tweak ranger positioning checking for nearby mobs

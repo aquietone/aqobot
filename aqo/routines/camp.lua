@@ -71,11 +71,11 @@ camp.check_camp = function()
 end
 
 ---Draw a maploc at the given heading on the pull radius circle.
+---@param camp_x number @
+---@param camp_y number @
 ---@param heading number @The MQ heading degrees pointing to where to draw the maploc.
 ---@param color string @The color input to the /maploc command.
-local function draw_maploc(heading, color)
-    local my_x = mq.TLO.Me.X()
-    local my_y = mq.TLO.Me.Y()
+local function draw_maploc(camp_x, camp_y, heading, color)
     if heading < 0 then
         heading = 360 - heading
     elseif heading > 360 then
@@ -93,8 +93,8 @@ local function draw_maploc(heading, color)
     elseif y_move < 0 and (heading <= 90 or heading >= 270) then
         y_move = math.abs(y_move)
     end
-    local x_off = my_x + config.get_pull_radius() * x_move
-    local y_off = my_y + config.get_pull_radius() * y_move
+    local x_off = camp_x + config.get_pull_radius() * x_move
+    local y_off = camp_y + config.get_pull_radius() * y_move
     mq.cmdf('/squelch /maploc size 10 width 2 color %s radius 5 rcolor 0 0 0 %s %s', color, y_off, x_off)
 end
 
@@ -136,9 +136,9 @@ camp.set_camp = function(reset)
         if mode:is_pull_mode() then
             if config.get_pull_arc() > 0 and config.get_pull_arc() < 360 then
                 my_camp = set_pull_angles(my_camp)
-                draw_maploc(my_camp.PULL_ARC_LEFT, '0 0 255')
-                draw_maploc(my_camp.PULL_ARC_RIGHT, '0 0 255')
-                draw_maploc(my_camp.HEADING, '255 0 0')
+                draw_maploc(my_camp.X, my_camp.Y, my_camp.PULL_ARC_LEFT, '0 0 255')
+                draw_maploc(my_camp.X, my_camp.Y, my_camp.PULL_ARC_RIGHT, '0 0 255')
+                draw_maploc(my_camp.X, my_camp.Y, my_camp.HEADING, '255 0 0')
             end
             mq.cmdf('/squelch /maploc size 10 width 1 color 0 0 255 radius %s rcolor 0 0 255 %s %s', config.get_pull_radius(), my_camp.Y, my_camp.X)
         end
