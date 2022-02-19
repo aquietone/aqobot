@@ -30,37 +30,37 @@ config.set_spell_set('standard')
 
 -- All spells ID + Rank name
 local spells = {
-    ['wounds']=common.get_spellid_and_rank('Infected Wounds'),
-    ['fireshadow']=common.get_spellid_and_rank('Scalding Shadow'),
-    ['combodis']=common.get_spellid_and_rank('Danvid\'s Grip of Decay'),
-    ['pyreshort']=common.get_spellid_and_rank('Pyre of Va Xakra'),
-    ['pyrelong']=common.get_spellid_and_rank('Pyre of the Neglected'),
-    ['venom']=common.get_spellid_and_rank('Hemorrhagic Venom'),
-    ['magic']=common.get_spellid_and_rank('Extinction'),
-    ['haze']=common.get_spellid_and_rank('Zelnithak\'s Pallid Haze'),
-    ['grasp']=common.get_spellid_and_rank('The Protector\'s Grasp'),
-    ['leech']=common.get_spellid_and_rank('Twilight Leech'),
-    ['ignite']=common.get_spellid_and_rank('Ignite Cognition'),
-    ['scourge']=common.get_spellid_and_rank('Scourge of Destiny'),
-    ['corruption']=common.get_spellid_and_rank('Decomposition'),
-    ['alliance']=common.get_spellid_and_rank('Malevolent Coalition'),
-    ['synergy']=common.get_spellid_and_rank('Proclamation for Blood'),
-    ['composite']=common.get_spellid_and_rank('Composite Paroxysm'),
-    ['decay']=common.get_spellid_and_rank('Fleshrot\'s Decay'),
-    ['grip']=common.get_spellid_and_rank('Grip of Quietus'),
-    ['proliferation']=common.get_spellid_and_rank('Infected Proliferation'),
-    ['scentterris']=common.get_spellid_and_rank('Scent of Terris'),
-    ['scentmortality']=common.get_spellid_and_rank('Scent of The Grave'),
-    ['swarm']=common.get_spellid_and_rank('Call Skeleton Mass'),
-    ['venin']=common.get_spellid_and_rank('Embalming Venin'),
-    ['lich']=common.get_spellid_and_rank('Lunaside'),
-    ['flesh']=common.get_spellid_and_rank('Flesh to Venom'),
-    ['pet']=common.get_spellid_and_rank('Unrelenting Assassin'),
-    ['pethaste']=common.get_spellid_and_rank('Sigil of Undeath'),
-    ['shield']=common.get_spellid_and_rank('Shield of Inevitability'),
-    ['manatap']=common.get_spellid_and_rank('Mind Atrophy'),
-    ['petillusion']=common.get_spellid_and_rank('Form of Mottled Bone'),
-    ['inspire']=common.get_spellid_and_rank('Inspire Ally'),
+    ['wounds']=common.get_spell('Infected Wounds'),
+    ['fireshadow']=common.get_spell('Scalding Shadow'),
+    ['combodis']=common.get_spell('Danvid\'s Grip of Decay'),
+    ['pyreshort']=common.get_spell('Pyre of Va Xakra'),
+    ['pyrelong']=common.get_spell('Pyre of the Neglected'),
+    ['venom']=common.get_spell('Hemorrhagic Venom'),
+    ['magic']=common.get_spell('Extinction'),
+    ['haze']=common.get_spell('Zelnithak\'s Pallid Haze'),
+    ['grasp']=common.get_spell('The Protector\'s Grasp'),
+    ['leech']=common.get_spell('Twilight Leech'),
+    ['ignite']=common.get_spell('Ignite Cognition'),
+    ['scourge']=common.get_spell('Scourge of Destiny'),
+    ['corruption']=common.get_spell('Decomposition'),
+    ['alliance']=common.get_spell('Malevolent Coalition'),
+    ['synergy']=common.get_spell('Proclamation for Blood'),
+    ['composite']=common.get_spell('Composite Paroxysm'),
+    ['decay']=common.get_spell('Fleshrot\'s Decay'),
+    ['grip']=common.get_spell('Grip of Quietus'),
+    ['proliferation']=common.get_spell('Infected Proliferation'),
+    ['scentterris']=common.get_spell('Scent of Terris'),
+    ['scentmortality']=common.get_spell('Scent of The Grave'),
+    ['swarm']=common.get_spell('Call Skeleton Mass'),
+    ['venin']=common.get_spell('Embalming Venin'),
+    ['lich']=common.get_spell('Lunaside'),
+    ['flesh']=common.get_spell('Flesh to Venom'),
+    ['pet']=common.get_spell('Unrelenting Assassin'),
+    ['pethaste']=common.get_spell('Sigil of Undeath'),
+    ['shield']=common.get_spell('Shield of Inevitability'),
+    ['manatap']=common.get_spell('Mind Atrophy'),
+    ['petillusion']=common.get_spell('Form of Mottled Bone'),
+    ['inspire']=common.get_spell('Inspire Ally'),
 }
 for name,spell in pairs(spells) do
     if spell['name'] then
@@ -128,19 +128,19 @@ table.insert(pre_burn_items, mq.TLO.InvSlot('Chest').Item.ID()) -- buff, Consumi
 
 -- entries in the AAs table are pairs of {aa name, aa id}
 local AAs = {}
-table.insert(AAs, common.get_aaid_and_name('Silent Casting')) -- song, 12 minute CD
-table.insert(AAs, common.get_aaid_and_name('Focus of Arcanum')) -- buff, 10 minute CD
-table.insert(AAs, common.get_aaid_and_name('Mercurial Torment')) -- buff, 24 minute CD
-table.insert(AAs, common.get_aaid_and_name('Heretic\'s Twincast')) -- buff, 15 minute CD
-table.insert(AAs, common.get_aaid_and_name('Spire of Necromancy')) -- buff, 7:30 minute CD
-table.insert(AAs, common.get_aaid_and_name('Hand of Death')) -- song, 8:30 minute CD
-table.insert(AAs, common.get_aaid_and_name('Funeral Pyre')) -- song, 20 minute CD
-table.insert(AAs, common.get_aaid_and_name('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
-table.insert(AAs, common.get_aaid_and_name('Companion\'s Fury')) -- 10 minute CD
-table.insert(AAs, common.get_aaid_and_name('Companion\'s Fortification')) -- 15 minute CD
-table.insert(AAs, common.get_aaid_and_name('Rise of Bones')) -- 10 minute CD
-table.insert(AAs, common.get_aaid_and_name('Wake the Dead')) -- 3 minute CD
-table.insert(AAs, common.get_aaid_and_name('Swarm of Decay')) -- 9 minute CD
+table.insert(AAs, common.get_aa('Silent Casting')) -- song, 12 minute CD
+table.insert(AAs, common.get_aa('Focus of Arcanum')) -- buff, 10 minute CD
+table.insert(AAs, common.get_aa('Mercurial Torment')) -- buff, 24 minute CD
+table.insert(AAs, common.get_aa('Heretic\'s Twincast')) -- buff, 15 minute CD
+table.insert(AAs, common.get_aa('Spire of Necromancy')) -- buff, 7:30 minute CD
+table.insert(AAs, common.get_aa('Hand of Death')) -- song, 8:30 minute CD
+table.insert(AAs, common.get_aa('Funeral Pyre')) -- song, 20 minute CD
+table.insert(AAs, common.get_aa('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
+table.insert(AAs, common.get_aa('Companion\'s Fury')) -- 10 minute CD
+table.insert(AAs, common.get_aa('Companion\'s Fortification')) -- 15 minute CD
+table.insert(AAs, common.get_aa('Rise of Bones')) -- 10 minute CD
+table.insert(AAs, common.get_aa('Wake the Dead')) -- 3 minute CD
+table.insert(AAs, common.get_aa('Swarm of Decay')) -- 9 minute CD
 
 --table.insert(AAs, get_aaid_and_name('Life Burn')) -- 20 minute CD
 --table.insert(AAs, get_aaid_and_name('Dying Grasp')) -- 20 minute CD
@@ -149,30 +149,30 @@ table.insert(AAs, common.get_aaid_and_name('Swarm of Decay')) -- 9 minute CD
 --table.insert(AAs, get_aaid_and_name('Intensity of the Resolute'))
 
 local pre_burn_AAs = {}
-table.insert(pre_burn_AAs, common.get_aaid_and_name('Focus of Arcanum')) -- buff
-table.insert(pre_burn_AAs, common.get_aaid_and_name('Mercurial Torment')) -- buff
-table.insert(pre_burn_AAs, common.get_aaid_and_name('Heretic\'s Twincast')) -- buff
-table.insert(pre_burn_AAs, common.get_aaid_and_name('Spire of Necromancy')) -- buff
+table.insert(pre_burn_AAs, common.get_aa('Focus of Arcanum')) -- buff
+table.insert(pre_burn_AAs, common.get_aa('Mercurial Torment')) -- buff
+table.insert(pre_burn_AAs, common.get_aa('Heretic\'s Twincast')) -- buff
+table.insert(pre_burn_AAs, common.get_aa('Spire of Necromancy')) -- buff
 
 local tcclick = mq.TLO.FindItem('Bifold Focus of the Evil Eye').ID()
 
 -- lifeburn/dying grasp combo
-local lifeburn = common.get_aaid_and_name('Life Burn')
-local dyinggrasp = common.get_aaid_and_name('Dying Grasp')
+local lifeburn = common.get_aa('Life Burn')
+local dyinggrasp = common.get_aa('Dying Grasp')
 -- Buffs
-local unity = common.get_aaid_and_name('Mortifier\'s Unity')
+local unity = common.get_aa('Mortifier\'s Unity')
 -- Mana Recovery AAs
-local deathbloom = common.get_aaid_and_name('Death Bloom')
-local bloodmagic = common.get_aaid_and_name('Blood Magic')
+local deathbloom = common.get_aa('Death Bloom')
+local bloodmagic = common.get_aa('Blood Magic')
 -- Mana Recovery items
 --local item_feather = mq.TLO.FindItem('Unified Phoenix Feather')
 --local item_horn = mq.TLO.FindItem('Miniature Horn of Unity') -- 10 minute CD
 -- Agro
-local deathpeace = common.get_aaid_and_name('Death Peace')
-local deathseffigy = common.get_aaid_and_name('Death\'s Effigy')
+local deathpeace = common.get_aa('Death Peace')
+local deathseffigy = common.get_aa('Death\'s Effigy')
 
-local convergence = common.get_aaid_and_name('Convergence')
-local dispel = common.get_aaid_and_name('Eradicate Magic')
+local convergence = common.get_aa('Convergence')
+local dispel = common.get_aa('Eradicate Magic')
 
 local buffs={
     ['self']={},
@@ -631,7 +631,7 @@ local function check_buffs()
     if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
         for _,buff in ipairs(buffs['pet']) do
             if not mq.TLO.Pet.Buff(buff['name'])() and mq.TLO.Spell(buff['name']).StacksPet() and mq.TLO.Spell(buff['name']).Mana() < mq.TLO.Me.CurrentMana() then
-                common.swap_and_cast(buff['name'], 13)
+                common.swap_and_cast(buff, 13)
             end
         end
     end
@@ -642,7 +642,7 @@ local function check_pet()
     if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(spells['pet']['name'], 13)
+    common.swap_and_cast(spells['pet'], 13)
 end
 
 local function should_swap_dots()
@@ -655,30 +655,30 @@ local function should_swap_dots()
     if mq.TLO.Me.Gem(spells['wounds']['name'])() then
         if woundsDuration and woundsDuration > 20000 then
             if not pyrelongDuration or pyrelongDuration < 20000 then
-                common.swap_spell(spells['pyrelong']['name'], swap_gem or 10)
+                common.swap_spell(spells['pyrelong'], swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                common.swap_spell(spells['fireshadow']['name'], swap_gem or 10)
+                common.swap_spell(spells['fireshadow'], swap_gem or 10)
             end
         end
     elseif mq.TLO.Me.Gem(spells['pyrelong']['name'])() then
         if pyrelongDuration and pyrelongDuration > 20000 then
             if not woundsDuration or woundsDuration < 20000 then
-                common.swap_spell(spells['wounds']['name'], swap_gem or 10)
+                common.swap_spell(spells['wounds'], swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                common.swap_spell(spells['fireshadow']['name'], swap_gem or 10)
+                common.swap_spell(spells['fireshadow'], swap_gem or 10)
             end
         end
     elseif mq.TLO.Me.Gem(spells['fireshadow']['name'])() then
         if fireshadowDuration and fireshadowDuration > 20000 then
             if not woundsDuration or woundsDuration < 20000 then
-                common.swap_spell(spells['wounds']['name'], swap_gem or 10)
+                common.swap_spell(spells['wounds'], swap_gem or 10)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
-                common.swap_spell(spells['pyrelong']['name'], swap_gem or 10)
+                common.swap_spell(spells['pyrelong'], swap_gem or 10)
             end
         end
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize wounds again
-        common.swap_spell(spells['wounds']['name'], swap_gem or 10)
+        common.swap_spell(spells['wounds'], swap_gem or 10)
     end
 
     local decayDuration = mq.TLO.Target.MyBuffDuration(spells['decay']['name'])()
@@ -686,49 +686,50 @@ local function should_swap_dots()
     if mq.TLO.Me.Gem(spells['decay']['name'])() then
         if decayDuration and decayDuration > 20000 then
             if not gripDuration or gripDuration < 20000 then
-                common.swap_spell(spells['grip']['name'], swap_gem_dis or 11)
+                common.swap_spell(spells['grip'], swap_gem_dis or 11)
             end
         end
     elseif mq.TLO.Me.Gem(spells['grip']['name'])() then
         if gripDuration and gripDuration > 20000 then
             if not decayDuration or decayDuration < 20000 then
-                common.swap_spell(spells['decay']['name'], swap_gem_dis or 11)
+                common.swap_spell(spells['decay'], swap_gem_dis or 11)
             end
         end
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize decay again
-        common.swap_spell(spells['decay']['name'], swap_gem_dis or 11)
+        common.swap_spell(spells['decay'], swap_gem_dis or 11)
     end
 end
 
+local composite_names = {['Composite Paroxysm']=true,['Dissident Paroxysm']=true,['Dichotomic Paroxysm']=true}
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
-            if mq.TLO.Me.Gem(1)() ~= 'Composite Paroxysm' then common.swap_spell(spells['composite']['name'], 1) end
-            if mq.TLO.Me.Gem(2)() ~= spells['pyreshort']['name'] then common.swap_spell(spells['pyreshort']['name'], 2) end
-            if mq.TLO.Me.Gem(3)() ~= spells['venom']['name'] then common.swap_spell(spells['venom']['name'], 3) end
-            if mq.TLO.Me.Gem(4)() ~= spells['magic']['name'] then common.swap_spell(spells['magic']['name'], 4) end
-            if mq.TLO.Me.Gem(5)() ~= spells['haze']['name'] then common.swap_spell(spells['haze']['name'], 5) end
-            if mq.TLO.Me.Gem(6)() ~= spells['grasp']['name'] then common.swap_spell(spells['grasp']['name'], 6) end
-            if mq.TLO.Me.Gem(7)() ~= spells['leech']['name'] then common.swap_spell(spells['leech']['name'], 7) end
-            if mq.TLO.Me.Gem(10)() ~= spells['wounds']['name'] then common.swap_spell(spells['wounds']['name'], 10) end
-            if mq.TLO.Me.Gem(11)() ~= spells['decay']['name'] then common.swap_spell(spells['decay']['name'], 11) end
-            if mq.TLO.Me.Gem(13)() ~= spells['synergy']['name'] then common.swap_spell(spells['synergy']['name'], 13) end
+            common.swap_spell(spells['composite'], 1, composite_names)
+            common.swap_spell(spells['pyreshort'], 2)
+            common.swap_spell(spells['venom'], 3)
+            common.swap_spell(spells['magic'], 4)
+            common.swap_spell(spells['haze'], 5)
+            common.swap_spell(spells['grasp'], 6)
+            common.swap_spell(spells['leech'], 7)
+            common.swap_spell(spells['wounds'], 10)
+            common.swap_spell(spells['decay'], 11)
+            common.swap_spell(spells['synergy'], 13)
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'short' then
-            if mq.TLO.Me.Gem(1)() ~= 'Composite Paroxysm' then common.swap_spell(spells['composite']['name'], 1) end
-            if mq.TLO.Me.Gem(2)() ~= spells['pyreshort']['name'] then common.swap_spell(spells['pyreshort']['name'], 2) end
-            if mq.TLO.Me.Gem(3)() ~= spells['venom']['name'] then common.swap_spell(spells['venom']['name'], 3) end
-            if mq.TLO.Me.Gem(4)() ~= spells['magic']['name'] then common.swap_spell(spells['magic']['name'], 4) end
-            if mq.TLO.Me.Gem(5)() ~= spells['haze']['name'] then common.swap_spell(spells['haze']['name'], 5) end
-            if mq.TLO.Me.Gem(6)() ~= spells['grasp']['name'] then common.swap_spell(spells['grasp']['name'], 6) end
-            if mq.TLO.Me.Gem(7)() ~= spells['leech']['name'] then common.swap_spell(spells['leech']['name'], 7) end
-            if mq.TLO.Me.Gem(10)() ~= spells['swarm']['name'] then common.swap_spell(spells['swarm']['name'], 10) end
-            if mq.TLO.Me.Gem(11)() ~= spells['decay']['name'] then common.swap_spell(spells['decay']['name'], 11) end
-            if mq.TLO.Me.Gem(13)() ~= spells['synergy']['name'] then common.swap_spell(spells['synergy']['name'], 13) end
+            common.swap_spell(spells['composite'], 1, composite_names)
+            common.swap_spell(spells['pyreshort'], 2)
+            common.swap_spell(spells['venom'], 3)
+            common.swap_spell(spells['magic'], 4)
+            common.swap_spell(spells['haze'], 5)
+            common.swap_spell(spells['grasp'], 6)
+            common.swap_spell(spells['leech'], 7)
+            common.swap_spell(spells['swarm'], 10)
+            common.swap_spell(spells['decay'], 11)
+            common.swap_spell(spells['synergy'], 13)
             state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer:reset()
@@ -737,71 +738,71 @@ local function check_spell_set()
     end
     if config.get_spell_set() == 'standard' then
         if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['shield'], 12)
         elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['ignite'], 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['scourge'], 9)
+            common.swap_spell(spells['ignite'], 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['ignite'], 9)
+            common.swap_spell(spells['shield'], 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['corruption']['name'] then common.swap_spell(spells['corruption']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['scourge'], 9)
+            common.swap_spell(spells['corruption'], 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['scourge'], 9)
+            common.swap_spell(spells['shield'], 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['shield']['name'] then common.swap_spell(spells['shield']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['shield'], 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['scourge'], 12)
         end
     elseif config.get_spell_set() == 'short' then
         if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['inspire'], 12)
         elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['venin'], 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['ignite'], 9)
+            common.swap_spell(spells['venin'], 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['manatap']['name'] then common.swap_spell(spells['manatap']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
+            common.swap_spell(spells['manatap'], 8)
+            common.swap_spell(spells['ignite'], 9)
+            common.swap_spell(spells['inspire'], 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['scourge'], 9)
+            common.swap_spell(spells['venin'], 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['scourge']['name'] then common.swap_spell(spells['scourge']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['scourge'], 9)
+            common.swap_spell(spells['inspire'], 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['inspire']['name'] then common.swap_spell(spells['inspire']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['inspire'], 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
-            if mq.TLO.Me.Gem(8)() ~= spells['ignite']['name'] then common.swap_spell(spells['ignite']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['alliance']['name'] then common.swap_spell(spells['alliance']['name'], 9) end
-            if mq.TLO.Me.Gem(12)() ~= spells['venin']['name'] then common.swap_spell(spells['venin']['name'], 12) end
+            common.swap_spell(spells['ignite'], 8)
+            common.swap_spell(spells['alliance'], 9)
+            common.swap_spell(spells['venin'], 12)
         end
     end
 end
