@@ -227,8 +227,57 @@ end
 
 -- Casting Functions
 
+common.is_dot_ready = function(spell)
+    if not spell or not spell['name'] then return false end
+    local spell_id = spell['id']
+    local spell_name = spell['name']
+
+    if not mq.TLO.Me.SpellReady(spellName)() then return false end
+    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
+        return false
+    end
+    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
+        return false
+    end
+    if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
+
+    local buff_duration = 0
+    local remaining_cast_time = 0
+    buff_duration = mq.TLO.Target.MyBuffDuration(spell_name)()
+    if not common.is_target_dotted_with(spell_id, spell_name) then
+        -- target does not have the dot, we are ready
+        return true
+    else
+        if not buff_duration then
+            return true
+        end
+        remaining_cast_time = mq.TLO.Spell(spell_name).MyCastTime()
+        return buff_duration < remaining_cast_time + 3000
+    end
+
+    return false
+end
+
+common.is_spell_ready = function(spell)
+    if not spell or not spell['name'] then return false end
+    local spell_name = spell['name']
+
+    if not mq.TLO.Me.SpellReady(spell_name)() then return false end
+    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell_name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
+        return false
+    end
+    if mq.TLO.Spell(spell_name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell_name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
+        return false
+    end
+    if mq.TLO.Spell(spell_name).TargetType() == 'Single' then
+        if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
+    end
+
+    return true
+end
+
 --- Stacking check stuff
-local function should_use_spell(spell)
+common.should_use_spell = function(spell)
     local result = false
     local dist = mq.TLO.Target.Distance3D()
     if spell.Beneficial() then
@@ -273,7 +322,7 @@ local function should_use_spell(spell)
 end
 
 --- Spell requirements, i.e. enough mana, enough reagents, have a target, target in range, not casting, in control
-local function can_use_spell(spell, type)
+common.can_use_spell = function(spell, type)
     local result = true
     if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
     if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
