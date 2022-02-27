@@ -214,6 +214,12 @@ local function draw_debug_tab()
     ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_pull_mob_id()))
 
+    ImGui.TextColored(1, 1, 0, 1, 'pull_in_progress:')
+    ImGui.SameLine()
+    x,_ = ImGui.GetCursorPos()
+    ImGui.SetCursorPosX(100)
+    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.get_pull_in_progress()))
+
     ImGui.TextColored(1, 1, 0, 1, 'mob_count:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()

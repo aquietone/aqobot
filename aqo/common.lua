@@ -11,6 +11,7 @@ local common = {}
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
 common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
 common.FD_CLASSES = {nec=true}--{mnk=true,bst=true,shd=true,nec=true}
+common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
 common.BOOL = {
     ['TRUE']={
         ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
@@ -232,11 +233,11 @@ common.is_dot_ready = function(spell)
     local spell_id = spell['id']
     local spell_name = spell['name']
 
-    if not mq.TLO.Me.SpellReady(spellName)() then return false end
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
+    if not mq.TLO.Me.SpellReady(spell_name)() then return false end
+    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell_name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
         return false
     end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
+    if mq.TLO.Spell(spell_name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell_name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
         return false
     end
     if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
@@ -310,7 +311,7 @@ common.should_use_spell = function(spell)
             end
         else
             if spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' then
-                result = (dist and dist <= spell.MyRange()) == true
+                result = (dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight()) == true
             else
                 -- instant detrimental spell that requires no target, sure
                 result = true
@@ -323,6 +324,7 @@ end
 
 --- Spell requirements, i.e. enough mana, enough reagents, have a target, target in range, not casting, in control
 common.can_use_spell = function(spell, type)
+    if not spell() then return false end
     local result = true
     if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
     if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
@@ -348,7 +350,7 @@ end
 ---@param requires_target boolean @Indicate whether the spell requires a target.
 common.cast = function(spell_name, requires_target)
     local spell = mq.TLO.Spell(spell_name)
-    if not can_use_spell(spell, 'spell') or not should_use_spell(spell) then return false end
+    if not spell_name or not common.can_use_spell(spell, 'spell') or not common.should_use_spell(spell) then return false end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -378,7 +380,7 @@ end
 local function item_ready(item)
     if item() and item.Clicky.Spell() and item.Timer() == '0' then
         local spell = item.Clicky.Spell
-        return can_use_spell(spell, 'item') and should_use_spell(spell)
+        return common.can_use_spell(spell, 'item') and common.should_use_spell(spell)
     else
         return false
     end
@@ -403,7 +405,7 @@ end
 local function aa_ready(name)
     if mq.TLO.Me.AltAbilityReady(name)() then
         local spell = mq.TLO.Me.AltAbility(name).Spell
-        return can_use_spell(spell, 'aa') and should_use_spell(spell)
+        return common.can_use_spell(spell, 'aa') and common.should_use_spell(spell)
     else
         return false
     end
@@ -413,7 +415,7 @@ end
 ---@param aa table @A table containing the AA name and ID.
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 common.use_aa = function(aa)
-    if aa_ready(aa['name']) then
+    if aa and aa_ready(aa['name']) then
         logger.printf('Use AA: \ax\ar%s\ax', aa['name'])
         mq.cmdf('/alt activate %d', aa['id'])
         mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -440,7 +442,7 @@ end
 local function disc_ready(name)
     if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
         local spell = mq.TLO.Spell(name)
-        return can_use_spell(spell, 'disc') and should_use_spell(spell)
+        return common.can_use_spell(spell, 'disc') and common.should_use_spell(spell)
     else
         return false
     end
@@ -450,7 +452,7 @@ end
 ---@param disc table @A table containing the disc name and ID.
 ---@param overwrite boolean @The name of a disc which should be stopped in order to run this disc.
 common.use_disc = function(disc, overwrite)
-    if disc_ready(disc['name']) then
+    if disc and disc_ready(disc['name']) then
         if not is_disc(disc['name']) or not mq.TLO.Me.ActiveDisc.ID() then
             logger.printf('Use Disc: \ax\ar%s\ax', disc['name'])
             if disc['name']:find('Composite') then
@@ -541,7 +543,7 @@ common.swap_spell = function(spell, gem, other_names)
     if mq.TLO.Me.Gem(gem)() == spell['name'] then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell['name'])
-    mq.delay('3s', common.swap_gem_ready(spell['name'], gem))
+    mq.delay(3000, common.swap_gem_ready(spell['name'], gem))
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
 
@@ -552,7 +554,7 @@ common.swap_and_cast = function(spell, gem)
         restore_gem = {name=mq.TLO.Me.Gem(gem)()}
         common.swap_spell(spell, gem)
     end
-    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spell['name'])() end)
+    mq.delay(3000, function() return mq.TLO.Me.SpellReady(spell['name'])() end)
     local did_cast = common.cast(spell['name'])
     if restore_gem then
         common.swap_spell(restore_gem, gem)

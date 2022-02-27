@@ -213,7 +213,7 @@ local function check_end()
     if common.am_i_dead() then return end
     if mq.TLO.Me.PctEndurance() > 20 then return end
     if mq.TLO.Me.CombatState() == "COMBAT" then return end
-    common.use_disc(regen)
+    if regen then common.use_disc(regen) end
 end
 
 local function mash()
@@ -224,7 +224,7 @@ local function mash()
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
         local targethp = target.PctHPs()
-        if OPTS.USEBATTLELEAP and not mq.TLO.Me.Song(leap['name'])() and dist and dist < 30 then
+        if OPTS.USEBATTLELEAP and leap and not mq.TLO.Me.Song(leap['name'])() and dist and dist < 30 then
             common.use_aa(leap)
             mq.delay(30)
         end
@@ -276,7 +276,7 @@ local function try_burn()
             common.use_disc(stundefense, mash_defensive['name'])
 
             -- Use Spire and Aegis when burning as tank
-            if mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
+            if spire and aegis and mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
                 common.use_aa(spire)
                 common.use_disc(aegis)
             end
@@ -306,7 +306,7 @@ local function oh_shit()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         common.use_aa(resurgence)
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-            if mq.TLO.Me.CombatAbilityReady(flash['name'])() then
+            if flash and mq.TLO.Me.CombatAbilityReady(flash['name'])() then
                 common.use_disc(flash)
             elseif OPTS.USEFORTITUDE then
                 common.use_disc(fortitude, mash_defensive['name'])
@@ -318,13 +318,13 @@ end
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
-    if not mq.TLO.Me.Song(champion['name'])() then
+    if champion and not mq.TLO.Me.Song(champion['name'])() then
         common.use_disc(champion)
     end
-    if not mq.TLO.Me.Song(voice['name'])() then
+    if voice and not mq.TLO.Me.Song(voice['name'])() then
         common.use_disc(voice)
     end
-    if not mq.TLO.Me.Song(command['name'])() then
+    if command and not mq.TLO.Me.Song(command['name'])() then
         common.use_aa(command)
     end
     if mq.TLO.FindItemCount('Ethereal Arrow')() < 30 and not mq.TLO.Me.Moving() then
@@ -337,9 +337,9 @@ local function check_buffs()
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if not mq.TLO.Me.Song(aura['name'])() and not mq.TLO.Me.Moving() then
+    if aura and not mq.TLO.Me.Song(aura['name'])() and not mq.TLO.Me.Moving() then
         common.use_disc(aura)
-        mq.delay('3s')
+        mq.delay(3000)
     end
 
     common.check_item_buffs()
@@ -387,44 +387,41 @@ war.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
         state.set_tank_mob_id(0)
     end
-    check_end()
-    if config.get_mode():is_tank_mode() then
-        -- get mobs in camp
-        camp.mob_radar()
-        -- pick mob to tank if not tanking
-        tank.find_mob_to_tank()
-        tank.tank_mob()
-    end
-    -- check whether we need to return to camp
-    camp.check_camp()
-    -- check whether we need to go chasing after the chase target
-    common.check_chase()
-    -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
-    oh_shit()
-    if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-        check_ae()
-    end
-    -- if in an assist mode
-    if config.get_mode():is_assist_mode() then
-        assist.check_target(war.reset_class_timers)
-        assist.attack()
-    end
-    -- if in a pull mode and no mobs
-    if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and not common.hostile_xtargets() then
-        mq.cmd('/multiline ; /squelch /nav stop; /attack off; /autofire off;')
-        mq.delay(50)
+    if not state.get_pull_in_progress() then
         check_end()
-        pull.pull_radar()
-        pull.pull_mob()
+        if config.get_mode():is_tank_mode() then
+            -- get mobs in camp
+            camp.mob_radar()
+            -- pick mob to tank if not tanking
+            tank.find_mob_to_tank()
+            tank.tank_mob()
+        end
+        -- check whether we need to return to camp
+        camp.check_camp()
+        -- check whether we need to go chasing after the chase target
+        common.check_chase()
+        -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
+        oh_shit()
+        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+            check_ae()
+        end
+        -- if in an assist mode
+        if config.get_mode():is_assist_mode() then
+            assist.check_target(war.reset_class_timers)
+            assist.attack()
+        end
+        -- begin actual combat stuff
+        assist.send_pet()
+        mash()
+        -- pop a bunch of burn stuff if burn conditions are met
+        try_burn()
+        check_end()
+        check_buffs()
+        common.rest()
     end
-    -- begin actual combat stuff
-    assist.send_pet()
-    mash()
-    -- pop a bunch of burn stuff if burn conditions are met
-    try_burn()
-    check_end()
-    check_buffs()
-    common.rest()
+    if config.get_mode():is_pull_mode() then
+        pull.pull_mob(shd.pull_func)
+    end
 end
 
 war.draw_skills_tab = function()
