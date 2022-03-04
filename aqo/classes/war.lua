@@ -26,6 +26,7 @@ local OPTS = {
     USESNARE=false,
 }
 mq.cmd('/squelch /stick mod -2')
+mq.cmd('/squelch /stick set delaystrafe on')
 
 -- dps burn brightfield's onslaught, offensive discipline, war sheol's heroic blade, exploitive strike, warlord's resurgence, gut punch, knee strike, throat jab, shield splinter, knuckle break, kick, brace for impact
 

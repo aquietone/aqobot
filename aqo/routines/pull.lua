@@ -243,7 +243,8 @@ local function pull_engage(pull_spawn, pull_func)
         return false
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
-    if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) then --or mq.TLO.Target.PctHPs() < 100 then
+    local targethp = mq.TLO.Target.PctHPs()
+    if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
         logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax)', pull_mob_id)
         -- TODO: clear skip targets
         PULL_TARGET_SKIP[pull_mob_id] = 1
@@ -289,8 +290,10 @@ end
 local function pull_return()
     --logger.printf('Bringing pull target back to camp (%s)', common.PULL_MOB_ID)
     local camp = state.get_camp()
-    mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
-    mq.delay(50, function() return mq.TLO.Navigation.Active() end)
+    if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', camp.Y, camp.X, camp.Z))() then
+        mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
+        mq.delay(50, function() return mq.TLO.Navigation.Active() end)
+    end
 end
 
 ---Attempt to pull the mob whose ID is stored in common.PULL_MOB_ID.

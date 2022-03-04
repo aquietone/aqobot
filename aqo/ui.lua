@@ -284,6 +284,7 @@ local function draw_header()
     else
         if ImGui.Button('PAUSE', 147, 22) then
             state.set_paused(true)
+            state.reset_combat_state()
         end
     end
     ImGui.SameLine()

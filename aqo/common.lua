@@ -554,7 +554,7 @@ common.swap_and_cast = function(spell, gem)
         restore_gem = {name=mq.TLO.Me.Gem(gem)()}
         common.swap_spell(spell, gem)
     end
-    mq.delay(3000, function() return mq.TLO.Me.SpellReady(spell['name'])() end)
+    mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell['name'])() end)
     local did_cast = common.cast(spell['name'])
     if restore_gem then
         common.swap_spell(restore_gem, gem)

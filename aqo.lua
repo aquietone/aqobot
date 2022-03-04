@@ -70,9 +70,13 @@ local function cmd_bind(...)
     elseif opt == 'pause' then
         if not new_value then
             state.set_paused(not state.get_paused())
+            if state.get_paused() then
+                state.reset_combat_state()
+            end
         else
             if common.BOOL.TRUE[new_value] then
                 state.set_paused(true)
+                state.reset_combat_state()
             elseif common.BOOL.FALSE[new_value] then
                 camp.set_camp()
                 state.set_paused(false)
@@ -190,6 +194,11 @@ while true do
     if not mq.TLO.Target() and (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then
         common.ASSIST_TARGET_ID = 0
         mq.cmd('/multiline ; /attack off; /autofire off;')
+    end
+
+    local my_camp = state.get_camp()
+    if my_camp and my_camp.ZoneID ~= mq.TLO.Zone.ID() then
+        state.reset_combat_state()
     end
 
     -- Process death events
