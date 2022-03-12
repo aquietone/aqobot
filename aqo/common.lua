@@ -278,14 +278,16 @@ common.is_spell_ready = function(spell)
 end
 
 --- Stacking check stuff
-common.should_use_spell = function(spell)
+common.should_use_spell = function(spell, skipselfstack)
     local result = false
     local dist = mq.TLO.Target.Distance3D()
     if spell.Beneficial() then
         -- duration is number of ticks, so it tostring'd
         if spell.Duration() ~= '0' then
             if spell.TargetType() == 'Self' then
-                result = (spell.Stacks() and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()) == true
+                -- skipselfstack == true when its a disc, so that a defensive disc can still replace a always up sort of disc
+                -- like war resolute stand should be able to replace primal defense
+                result = ((skipselfstack or spell.Stacks()) and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()) == true
             elseif spell.TargetType() == 'Single' then
                 result = (dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())()) == true
             else
@@ -442,7 +444,7 @@ end
 local function disc_ready(name)
     if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
         local spell = mq.TLO.Spell(name)
-        return common.can_use_spell(spell, 'disc') and common.should_use_spell(spell)
+        return common.can_use_spell(spell, 'disc') and common.should_use_spell(spell, true)
     else
         return false
     end

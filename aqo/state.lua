@@ -223,6 +223,7 @@ function state.reset_combat_state()
     burn_active_timer:reset(0)
     tank_mob_id=0
     pull_mob_id=0
+    pull_in_progress = nil
     targets={}
     mob_count=0
     mez_target_name=nil

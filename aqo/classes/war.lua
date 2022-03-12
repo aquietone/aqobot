@@ -220,7 +220,6 @@ end
 local function mash()
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-    --if common.is_fighting() or assist.should_assist() then
         local target = mq.TLO.Target
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
@@ -338,7 +337,7 @@ local function check_buffs()
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if aura and not mq.TLO.Me.Song(aura['name'])() and not mq.TLO.Me.Moving() then
+    if aura and not mq.TLO.Me.Aura(aura['name'])() and not mq.TLO.Me.Moving() then
         common.use_disc(aura)
         mq.delay(3000)
     end
@@ -421,7 +420,7 @@ war.main_loop = function()
         common.rest()
     end
     if config.get_mode():is_pull_mode() then
-        pull.pull_mob(shd.pull_func)
+        pull.pull_mob()
     end
 end
 
