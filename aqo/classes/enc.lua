@@ -253,7 +253,12 @@ end
 local function check_mez()
     if OPTS.MEZ then
         mez.do_ae(spells['mezae']['name'], common.cast)
-        mez.do_single(spells['mezst']['name'], common.cast)
+        if not mq.TLO.Me.SpellInCooldown() then
+            if not mq.TLO.Target.Tashed() and OPTS.TASHTHENMEZ and tash then
+                common.use_aa(tash)
+            end
+            mez.do_single(spells['mezst']['name'], common.cast)
+        end
     end
 end
 
@@ -268,69 +273,38 @@ local function cast_synergy()
     return false
 end
 
-local function is_dot_ready(spell)
-    if not spell then return false end
-    local spellId = spell['id']
-    local spellName = spell['name']
-    local buffDuration = 0
-    local remainingCastTime = 0
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() then
-        return false
-    end
-    buffDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buffDuration then
-            return true
-        end
-        remainingCastTime = mq.TLO.Spell(spellName).MyCastTime()
-        return buffDuration < remainingCastTime + 3000
-    end
-
-    return false
-end
-
-local function is_spell_ready(spell)
-    if not spell then return false end
-    local spellName = spell['name']
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).TargetType() == 'Single' then
-        if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
-    end
-
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    return true
-end
-
 -- composite
 -- synergy
 -- nuke5
 -- dot2
 local function find_next_spell_to_cast()
-    if is_spell_ready(spells['composite']) then return spells['composite'] end
+    if not mq.TLO.Target.Tashed() and OPTS.USETASH and common.is_spell_ready(spells['tash']) then return spells['tash'] end
+    if common.is_spell_ready(spells['composite']) then return spells['composite'] end
     if cast_synergy() then return nil end
-    if is_spell_ready(spells['nuke5']) then return spells['nuke5'] end
-    if is_dot_ready(spells['dot2']) then return spells['dot2'] end
+    if common.is_spell_ready(spells['nuke5']) then return spells['nuke5'] end
+    if common.is_dot_ready(spells['dot2']) then return spells['dot2'] end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
+
+local SLOW_IMMUNES = {}
 
 local function cycle_spells()
     if common.am_i_dead() then return false end
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if OPTS.USEERADICATE and dispel and mq.TLO.Target.Beneficial() then
+        if mq.TLO.Target.Beneficial() and OPTS.USEERADICATE and dispel then
             common.use_aa(dispel)
+        end
+        if not mq.TLO.Target.Tashed() and OPTS.USETASHAOE and tash then
+            common.use_aa(tash)
+        end
+        if not mq.TLO.Target.Slowed() and not SLOW_IMMUNES[mq.TLO.Target.CleanName()] then
+            if OPTS.USESLOWAOE and aeslow then
+                common.use_aa(aeslow)
+            elseif OPTS.USESLOW and slow then
+                common.use_aa(slow)
+            end
+            mq.doevents('event_slowimmune')
         end
         local spell = find_next_spell_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
@@ -377,7 +351,7 @@ local function check_mana()
         -- death bloom at some %
         common.use_aa(gathermana)
     end
-    if pct_mana < 30 then
+    if pct_mana < 75 then
         local manacrystal = mq.TLO.FindItem(azure['name'])
         common.use_item(manacrystal)
     end
@@ -501,8 +475,25 @@ local function check_spell_set()
     end
 end
 
+local function event_slowimmune(line)
+    local target_name = mq.TLO.Target.CleanName()
+    if target_name and not SLOW_IMMUNES[target_name] then
+        SLOW_IMMUNES[target_name] = 1
+    end
+end
+
+--[[
+#Event CAST_IMMUNE                 "Your target has no mana to affect#*#"
+#Event CAST_IMMUNE                 "Your target is immune to changes in its attack speed#*#"
+#Event CAST_IMMUNE                 "Your target is immune to changes in its run speed#*#"
+#Event CAST_IMMUNE                 "Your target is immune to snare spells#*#"
+#Event CAST_IMMUNE                 "Your target is immune to the stun portion of this effect#*#"
+#Event CAST_IMMUNE                 "Your target cannot be mesmerized#*#"
+#Event CAST_IMMUNE                 "Your target looks unaffected#*#"
+]]--
 enc.setup_events = function()
     mez.setup_events()
+    mq.event('event_slowimmune', 'Your target is immune to changes in its attack speed#*#', event_slowimmune)
 end
 
 enc.process_cmd = function(opt, new_value)
@@ -573,26 +564,26 @@ enc.draw_skills_tab = function()
     OPTS.AURA1 = ui.draw_combo_box('Aura 1', OPTS.AURA1, AURAS, true)
     OPTS.AURA2 = ui.draw_combo_box('Aura 2', OPTS.AURA2, AURAS, true)
     OPTS.USEMEZ = ui.draw_check_box('Use Mez', '##userez', OPTS.USEMEZ, 'Use Convergence AA to rez group members')
-    OPTS.TASHTHENMEZ = ui.draw_check_box('Tash Then Mez', '##buffpet', OPTS.TASHTHENMEZ, 'Use pet buff')
-    OPTS.INTERRUPTFORMEZ = ui.draw_check_box('Interrupt for Mez', '##summonpet', OPTS.INTERRUPTFORMEZ, 'Summon pet')
-    OPTS.USECHAOTIC = ui.draw_check_box('Use Chaotic', '##inspire', OPTS.USECHAOTIC, 'Use Inspire Ally pet buff')
-    OPTS.USEDOT = ui.draw_check_box('Use DoT', '##manadrain', OPTS.USEDOT, 'Use group mana drain dot. Replaces Ignite DoT.')
-    OPTS.USENUKE = ui.draw_check_box('Use Nuke', '##userez', OPTS.USENUKE, 'Use Convergence AA to rez group members')
+    OPTS.TASHTHENMEZ = ui.draw_check_box('Tash Then Mez', '##tashmez', OPTS.TASHTHENMEZ, 'Use pet buff')
+    OPTS.INTERRUPTFORMEZ = ui.draw_check_box('Interrupt for Mez', '##interrupt', OPTS.INTERRUPTFORMEZ, 'Summon pet')
+    OPTS.USECHAOTIC = ui.draw_check_box('Use Chaotic', '##chaoticmez', OPTS.USECHAOTIC, 'Use Inspire Ally pet buff')
+    OPTS.USEDOT = ui.draw_check_box('Use DoT', '##usedot', OPTS.USEDOT, 'Use group mana drain dot. Replaces Ignite DoT.')
+    OPTS.USENUKE = ui.draw_check_box('Use Nuke', '##usenuke', OPTS.USENUKE, 'Use Convergence AA to rez group members')
     OPTS.USEERADICATE = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEERADICATE, 'Dispel mobs with Eradicate Magic AA')
-    OPTS.USETASH = ui.draw_check_box('Use Tash', '##userez', OPTS.USETASH, 'Use Convergence AA to rez group members')
-    OPTS.USETASHAOE = ui.draw_check_box('Use Tash AOE', '##userez', OPTS.USETASHAOE, 'Use Convergence AA to rez group members')
-    OPTS.USESLOW = ui.draw_check_box('Use Slow', '##userez', OPTS.USESLOW, 'Use Convergence AA to rez group members')
-    OPTS.USESLOWAOE = ui.draw_check_box('Use Slow AOE', '##userez', OPTS.USESLOWAOE, 'Use Convergence AA to rez group members')
-    OPTS.USESPELLGUARD = ui.draw_check_box('Use Spell Guard', '##userez', OPTS.USESPELLGUARD, 'Use Convergence AA to rez group members')
-    OPTS.USEMINDOVERMATTER = ui.draw_check_box('Use Mind Over Matter', '##userez', OPTS.USEMINDOVERMATTER, 'Use Convergence AA to rez group members')
-    OPTS.USEPHANTASMAL = ui.draw_check_box('Use Phantasmal', '##userez', OPTS.USEPHANTASMAL, 'Use Convergence AA to rez group members')
-    OPTS.USESHIELDOFFATE = ui.draw_check_box('Use Shield of Fate', '##userez', OPTS.USESHIELDOFFATE, 'Use Convergence AA to rez group members')
-    OPTS.USEREPLICATION = ui.draw_check_box('Buff Mana Proc', '##userez', OPTS.USEREPLICATION, 'Use Convergence AA to rez group members')
-    OPTS.USENIGHTSTERROR = ui.draw_check_box('Buff Nights Terror', '##debuff', OPTS.USENIGHTSTERROR, 'Debuff targets')
-    OPTS.USEHASTE = ui.draw_check_box('Buff Haste', '##dofeign', OPTS.USEHASTE, 'Use FD AA\'s to reduce aggro')
-    OPTS.SUMMONPET = ui.draw_check_box('Summon Pet', '##userez', OPTS.SUMMONPET, 'Use Convergence AA to rez group members')
-    OPTS.BUFFPET = ui.draw_check_box('Buff Pet', '##userez', OPTS.BUFFPET, 'Use Convergence AA to rez group members')
-    OPTS.USECHARM = ui.draw_check_box('Use Charm', '##buffshield', OPTS.USECHARM, 'Keep shield buff up. Replaces corruption DoT.')
+    OPTS.USETASH = ui.draw_check_box('Use Tash', '##usetash', OPTS.USETASH, 'Use Convergence AA to rez group members')
+    OPTS.USETASHAOE = ui.draw_check_box('Use Tash AOE', '##usetashaoe', OPTS.USETASHAOE, 'Use Convergence AA to rez group members')
+    OPTS.USESLOW = ui.draw_check_box('Use Slow', '##useslow', OPTS.USESLOW, 'Use Convergence AA to rez group members')
+    OPTS.USESLOWAOE = ui.draw_check_box('Use Slow AOE', '##useslowaoe', OPTS.USESLOWAOE, 'Use Convergence AA to rez group members')
+    OPTS.USESPELLGUARD = ui.draw_check_box('Use Spell Guard', '##usespellguard', OPTS.USESPELLGUARD, 'Use Convergence AA to rez group members')
+    OPTS.USEMINDOVERMATTER = ui.draw_check_box('Use Mind Over Matter', '##usemom', OPTS.USEMINDOVERMATTER, 'Use Convergence AA to rez group members')
+    OPTS.USEPHANTASMAL = ui.draw_check_box('Use Phantasmal', '##usephant', OPTS.USEPHANTASMAL, 'Use Convergence AA to rez group members')
+    OPTS.USESHIELDOFFATE = ui.draw_check_box('Use Shield of Fate', '##useshield', OPTS.USESHIELDOFFATE, 'Use Convergence AA to rez group members')
+    OPTS.USEREPLICATION = ui.draw_check_box('Buff Mana Proc', '##userepl', OPTS.USEREPLICATION, 'Use Convergence AA to rez group members')
+    OPTS.USENIGHTSTERROR = ui.draw_check_box('Buff Nights Terror', '##useterror', OPTS.USENIGHTSTERROR, 'Debuff targets')
+    OPTS.USEHASTE = ui.draw_check_box('Buff Haste', '##usehaste', OPTS.USEHASTE, 'Use FD AA\'s to reduce aggro')
+    OPTS.SUMMONPET = ui.draw_check_box('Summon Pet', '##summonpet', OPTS.SUMMONPET, 'Use Convergence AA to rez group members')
+    OPTS.BUFFPET = ui.draw_check_box('Buff Pet', '##buffpet', OPTS.BUFFPET, 'Use Convergence AA to rez group members')
+    OPTS.USECHARM = ui.draw_check_box('Use Charm', '##usecharm', OPTS.USECHARM, 'Keep shield buff up. Replaces corruption DoT.')
 end
 
 enc.draw_burn_tab = function()

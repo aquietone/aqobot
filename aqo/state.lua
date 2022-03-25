@@ -35,6 +35,8 @@ local tank_mob_id = 0
 
 local pull_mob_id = 0
 
+local pull_in_progress = nil
+
 local mez_immunes = {}
 
 local mez_target_name = nil
@@ -55,6 +57,7 @@ function state.get_all()
         i_am_dead=i_am_dead,
         tank_mob_id=tank_mob_id,
         pull_mob_id=pull_mob_id,
+        pull_in_progress=pull_in_progress,
         targets=targets,
         mob_count=mob_count,
         mez_ummunes=mez_immunes,
@@ -143,6 +146,14 @@ function state.set_i_am_dead(new_i_am_dead)
     i_am_dead = new_i_am_dead
 end
 
+function state.get_pull_in_progress()
+    return pull_in_progress
+end
+
+function state.set_pull_in_progress(new_pull_in_progress)
+    pull_in_progress = new_pull_in_progress
+end
+
 function state.get_pull_mob_id()
     return pull_mob_id
 end
@@ -212,6 +223,7 @@ function state.reset_combat_state()
     burn_active_timer:reset(0)
     tank_mob_id=0
     pull_mob_id=0
+    pull_in_progress = nil
     targets={}
     mob_count=0
     mez_target_name=nil

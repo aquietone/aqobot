@@ -30,37 +30,37 @@ config.set_spell_set('standard')
 
 -- All spells ID + Rank name
 local spells = {
-    ['wounds']=common.get_spell('Infected Wounds'),
-    ['fireshadow']=common.get_spell('Scalding Shadow'),
-    ['combodis']=common.get_spell('Danvid\'s Grip of Decay'),
-    ['pyreshort']=common.get_spell('Pyre of Va Xakra'),
-    ['pyrelong']=common.get_spell('Pyre of the Neglected'),
-    ['venom']=common.get_spell('Hemorrhagic Venom'),
-    ['magic']=common.get_spell('Extinction'),
-    ['haze']=common.get_spell('Zelnithak\'s Pallid Haze'),
-    ['grasp']=common.get_spell('The Protector\'s Grasp'),
-    ['leech']=common.get_spell('Twilight Leech'),
-    ['ignite']=common.get_spell('Ignite Cognition'),
-    ['scourge']=common.get_spell('Scourge of Destiny'),
-    ['corruption']=common.get_spell('Decomposition'),
-    ['alliance']=common.get_spell('Malevolent Coalition'),
-    ['synergy']=common.get_spell('Proclamation for Blood'),
-    ['composite']=common.get_spell('Composite Paroxysm'),
-    ['decay']=common.get_spell('Fleshrot\'s Decay'),
-    ['grip']=common.get_spell('Grip of Quietus'),
-    ['proliferation']=common.get_spell('Infected Proliferation'),
-    ['scentterris']=common.get_spell('Scent of Terris'),
-    ['scentmortality']=common.get_spell('Scent of The Grave'),
-    ['swarm']=common.get_spell('Call Skeleton Mass'),
-    ['venin']=common.get_spell('Embalming Venin'),
-    ['lich']=common.get_spell('Lunaside'),
-    ['flesh']=common.get_spell('Flesh to Venom'),
-    ['pet']=common.get_spell('Unrelenting Assassin'),
-    ['pethaste']=common.get_spell('Sigil of Undeath'),
-    ['shield']=common.get_spell('Shield of Inevitability'),
-    ['manatap']=common.get_spell('Mind Atrophy'),
-    ['petillusion']=common.get_spell('Form of Mottled Bone'),
-    ['inspire']=common.get_spell('Inspire Ally'),
+    ['wounds']=common.get_spell('Infected Wounds') or common.get_spell('Septic Wounds') or {name=nil,id=nil},
+    ['fireshadow']=common.get_spell('Scalding Shadow') or common.get_spell('Broiling Shadow') or {name=nil,id=nil},
+    ['combodis']=common.get_spell('Danvid\'s Grip of Decay') or {name=nil,id=nil},
+    ['pyreshort']=common.get_spell('Pyre of Va Xakra') or common.get_spell('Pyre of Klraggek') or {name=nil,id=nil},
+    ['pyrelong']=common.get_spell('Pyre of the Neglected') or common.get_spell('Pyre of the Wretched') or {name=nil,id=nil},
+    ['venom']=common.get_spell('Hemorrhagic Venom') or common.get_spell('Crystal Crawler Venom') or {name=nil,id=nil},
+    ['magic']=common.get_spell('Extinction') or common.get_spell('Oblivion') or {name=nil,id=nil},
+    ['haze']=common.get_spell('Zelnithak\'s Pallid Haze') or common.get_spell('Drachnia\'s Pallid Haze') or {name=nil,id=nil},
+    ['grasp']=common.get_spell('The Protector\'s Grasp') or common.get_spell('Tserrina\'s Grasp') or {name=nil,id=nil},
+    ['leech']=common.get_spell('Twilight Leech') or common.get_spell('Frozen Leech') or {name=nil,id=nil},
+    ['ignite']=common.get_spell('Ignite Cognition') or common.get_spell('Ignite Intellect') or {name=nil,id=nil},
+    ['scourge']=common.get_spell('Scourge of Destiny') or {name=nil,id=nil},
+    ['corruption']=common.get_spell('Decomposition') or common.get_spell('Miasma') or {name=nil,id=nil},
+    ['alliance']=common.get_spell('Malevolent Coalition') or common.get_spell('Malevolent Covenant') or {name=nil,id=nil},
+    ['synergy']=common.get_spell('Proclamation for Blood') or common.get_spell('Assert for Blood') or {name=nil,id=nil},
+    ['composite']=common.get_spell('Composite Paroxysm') or common.get_spell('Dissident Paroxysm') or {name=nil,id=nil},
+    ['decay']=common.get_spell('Fleshrot\'s Decay') or common.get_spell('Danvid\'s Decay') or {name=nil,id=nil},
+    ['grip']=common.get_spell('Grip of Quietus') or common.get_spell('Grip of Zorglim') or {name=nil,id=nil},
+    ['proliferation']=common.get_spell('Infected Proliferation') or common.get_spell('Septic Proliferation') or {name=nil,id=nil},
+    ['scentterris']=common.get_spell('Scent of Terris') or {name=nil,id=nil},
+    ['scentmortality']=common.get_spell('Scent of The Grave') or common.get_spell('Scent of Mortality') or {name=nil,id=nil},
+    ['swarm']=common.get_spell('Call Skeleton Mass') or common.get_spell('Call Skeleton Horde') or {name=nil,id=nil},
+    ['venin']=common.get_spell('Embalming Venin') or common.get_spell('Searing Venin') or {name=nil,id=nil},
+    ['lich']=common.get_spell('Lunaside') or common.get_spell('Gloomside') or {name=nil,id=nil},
+    ['flesh']=common.get_spell('Flesh to Venom') or {name=nil,id=nil},
+    ['pet']=common.get_spell('Unrelenting Assassin') or common.get_spell('Restless Assassin') or {name=nil,id=nil},
+    ['pethaste']=common.get_spell('Sigil of Undeath') or common.get_spell('Sigil of Decay') or {name=nil,id=nil},
+    ['shield']=common.get_spell('Shield of Inevitability') or common.get_spell('Shield of Destiny') or {name=nil,id=nil},
+    ['manatap']=common.get_spell('Mind Atrophy') or common.get_spell('Mind Erosion') or {name=nil,id=nil},
+    ['petillusion']=common.get_spell('Form of Mottled Bone') or {name=nil,id=nil},
+    ['inspire']=common.get_spell('Inspire Ally') or common.get_spell('Incite Ally') or {name=nil,id=nil},
 }
 for name,spell in pairs(spells) do
     if spell['name'] then
@@ -258,38 +258,11 @@ local function cast_synergy()
     return false
 end
 
-local function is_dot_ready(spellId, spellName)
-    local buffDuration = 0
-    local remainingCastTime = 0
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() then
-        return false
-    end
-    buffDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buffDuration then
-            return true
-        end
-        -- Do not return wounds as ready while it still has any duration left
-        if spellId == spells['wounds']['id'] then return false end
-        remainingCastTime = mq.TLO.Spell(spellName).MyCastTime()
-        return buffDuration < remainingCastTime + 3000
-    end
-
-    return false
-end
-
 local function find_next_dot_to_cast()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
     -- Just cast composite as part of the normal dot rotation, no special handling
-    --if is_dot_ready(spells['composite']['id'], spells['composite']['name']) then
+    --if common.is_dot_ready(spells['composite']['id'], spells['composite']['name']) then
     --    return spells['composite']['id'], spells['composite']['name']
     --end
     if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
@@ -301,16 +274,17 @@ local function find_next_dot_to_cast()
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > OPTS.STOPPCT then
         for _,dot in ipairs(dots[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-            local spell_id = dot['id']
-            local spell_name = dot['name']
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
             -- if spell_id == spells['combodis']['id'] then
             --     if (not is_target_dotted_with(spells['decay']['id'], spells['decay']['name']) or not is_target_dotted_with(spells['grip']['id'], spells['grip']['name'])) and mq.TLO.Me.SpellReady(spells['combodis']['name'])() then
             --         return dot
             --     end
             -- else
-            if is_dot_ready(spell_id, spell_name) then
-                return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
+            if common.is_dot_ready(dot) then
+                -- extra check for wounds dot to not refresh it before it fades
+                if dot['id'] ~= spells['wounds']['id'] or not common.is_target_dotted_with(dot['id'], dot['name']) then
+                    return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
+                end
             end
         end
     end

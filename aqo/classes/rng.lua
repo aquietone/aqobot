@@ -7,7 +7,6 @@ local persistence = require('aqo.utils.persistence')
 local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
-local mode = require('aqo.mode')
 local state = require('aqo.state')
 local ui = require('aqo.ui')
 
@@ -27,42 +26,43 @@ local OPTS = {
     NUKE=false,
     USEDISPEL=true,
     USEREGEN=false,
+    USECOMPOSITE=true,
 }
 config.set_spell_set('standard')
 mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
 local spells = {
-    ['shots']=common.get_spell('Claimed Shots'), -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    ['focused']=common.get_spell('Focused Whirlwind of Arrows'), -- 4x archery attacks, Focused Blizzard of Arrows
-    ['composite']=common.get_spell('Composite Fusillade'), -- double bow shot and fire+ice nuke
-    ['heart']=common.get_spell('Heartruin'), -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
-    ['opener']=common.get_spell('Stealthy Shot'), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    ['summer']=common.get_spell('Summer\'s Torrent'), -- fire + ice nuke, Summer's Sleet
-    ['boon']=common.get_spell('Lunarflare boon'), -- 
-    ['healtot']=common.get_spell('Desperate Geyser'), -- heal ToT, Desperate Meltwater, fast cast, long cd
-    ['healtot2']=common.get_spell('Darkflow Spring'), -- heal ToT, Meltwater Spring, slow cast
-    ['dot']=common.get_spell('Bloodbeetle Swarm'), -- main DoT
-    ['dotds']=common.get_spell('Swarm of Bloodflies'), -- DoT + reverse DS, Swarm of Hyperboreads
-    ['dmgbuff']=common.get_spell('Arbor Stalker\'s Enrichment'), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
-    ['alliance']=common.get_spell('Arbor Stalker\'s Coalition'),
-    ['buffs']=common.get_spell('Shout of the Dusksage Stalker'), -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
+    ['shots']=common.get_spell('Claimed Shots') or {name=nil,id=nil}, -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    ['focused']=common.get_spell('Focused Whirlwind of Arrows') or {name=nil,id=nil}, -- 4x archery attacks, Focused Blizzard of Arrows
+    ['composite']=common.get_spell('Composite Fusillade') or {name=nil,id=nil}, -- double bow shot and fire+ice nuke
+    ['heart']=common.get_spell('Heartruin') or {name=nil,id=nil}, -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    ['opener']=common.get_spell('Stealthy Shot') or {name=nil,id=nil}, -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
+    ['summer']=common.get_spell('Summer\'s Torrent') or {name=nil,id=nil}, -- fire + ice nuke, Summer's Sleet
+    ['boon']=common.get_spell('Lunarflare boon') or {name=nil,id=nil}, -- 
+    ['healtot']=common.get_spell('Desperate Geyser') or {name=nil,id=nil}, -- heal ToT, Desperate Meltwater, fast cast, long cd
+    ['healtot2']=common.get_spell('Darkflow Spring') or {name=nil,id=nil}, -- heal ToT, Meltwater Spring, slow cast
+    ['dot']=common.get_spell('Bloodbeetle Swarm') or {name=nil,id=nil}, -- main DoT
+    ['dotds']=common.get_spell('Swarm of Bloodflies') or {name=nil,id=nil}, -- DoT + reverse DS, Swarm of Hyperboreads
+    ['dmgbuff']=common.get_spell('Arbor Stalker\'s Enrichment') or {name=nil,id=nil}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    ['alliance']=common.get_spell('Arbor Stalker\'s Coalition') or {name=nil,id=nil},
+    ['buffs']=common.get_spell('Shout of the Dusksage Stalker') or {name=nil,id=nil}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    ['cloak']=common.get_spell('Cloak of Bloodbarbs'), -- Cloak of Rimespurs
-    ['predator']=common.get_spell('Bay of the Predator'), -- Frostroar of the Predator
-    ['strength']=common.get_spell('Strength of the Dusksage Stalker'), -- Strength of the Arbor Stalker
+    ['cloak']=common.get_spell('Cloak of Bloodbarbs') or {name=nil,id=nil}, -- Cloak of Rimespurs
+    ['predator']=common.get_spell('Bay of the Predator') or {name=nil,id=nil}, -- Frostroar of the Predator
+    ['strength']=common.get_spell('Strength of the Dusksage Stalker') or {name=nil,id=nil}, -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    ['protection']=common.get_spell('Protection of the Valley'), -- Protection of the Wakening Land
-    ['eyes']=common.get_spell('Eyes of the Senshali'), -- Eyes of the Visionary
-    ['hunt']=common.get_spell('Steeled by the Hunt'), -- Provoked by the Hunt
-    ['coat']=common.get_spell('Moonthorn Coat'), -- Rimespur Coat
+    ['protection']=common.get_spell('Protection of the Valley') or {name=nil,id=nil}, -- Protection of the Wakening Land
+    ['eyes']=common.get_spell('Eyes of the Senshali') or {name=nil,id=nil}, -- Eyes of the Visionary
+    ['hunt']=common.get_spell('Steeled by the Hunt') or {name=nil,id=nil}, -- Provoked by the Hunt
+    ['coat']=common.get_spell('Moonthorn Coat') or {name=nil,id=nil}, -- Rimespur Coat
     -- Unity Azia only
-    ['barrage']=common.get_spell('Devastating Barrage'), -- Devastating Velium
+    ['barrage']=common.get_spell('Devastating Barrage') or {name=nil,id=nil}, -- Devastating Velium
     -- Unity Beza only
-    ['blades']=common.get_spell('Vociferous Blades'), -- Howling Blades
-    ['ds']=common.get_spell('Shield of Shadethorns'), -- DS
-    ['rune']=common.get_spell('Luclin\'s Darkfire Cloak'), -- self rune + debuff proc
-    ['regen']=common.get_spell('Dusksage Stalker\'s Vigor'), -- regen
+    ['blades']=common.get_spell('Vociferous Blades') or {name=nil,id=nil}, -- Howling Blades
+    ['ds']=common.get_spell('Shield of Shadethorns') or {name=nil,id=nil}, -- DS
+    ['rune']=common.get_spell('Luclin\'s Darkfire Cloak') or {name=nil,id=nil}, -- self rune + debuff proc
+    ['regen']=common.get_spell('Dusksage Stalker\'s Vigor') or {name=nil,id=nil}, -- regen
 }
 -- Pyroclastic Boon, 
 for name,spell in pairs(spells) do
@@ -96,6 +96,7 @@ table.insert(combat_heal_spells, spells['healtot'])
 -- entries in the items table are MQ item datatypes
 local burn_items = {}
 table.insert(burn_items, mq.TLO.FindItem('Rage of Rolfron').ID())
+table.insert(burn_items, mq.TLO.FindItem('Miniature Horn of Unity').ID())
 
 local mash_items = {}
 table.insert(mash_items, mq.TLO.InvSlot('Chest').Item.ID())
@@ -168,6 +169,7 @@ rng.load_settings = function()
     if settings.rng.NUKE ~= nil then OPTS.NUKE = settings.rng.NUKE end
     if settings.rng.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.rng.USEDISPEL end
     if settings.rng.USEREGEN ~= nil then OPTS.USEREGEN = settings.rng.USEREGEN end
+    if settings.rng.USECOMPOSITE ~= nil then OPTS.USEREGEN = settings.rng.USECOMPOSITE end
 end
 
 rng.save_settings = function()
@@ -204,8 +206,8 @@ local function get_ranged_combat_position(radius)
                     if allmobs - xtars == 0 then
                         logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
                         mq.cmdf('/squelch /nav locyxz %d %d %d log=off', y_off, x_off, z_off)
-                        mq.delay('1s', function() return mq.TLO.Navigation.Active() end)
-                        mq.delay('5s', function() return not mq.TLO.Navigation.Active() end)
+                        mq.delay(1000, function() return mq.TLO.Navigation.Active() end)
+                        mq.delay(5000, function() return not mq.TLO.Navigation.Active() end)
                         return true
                     end
                 end
@@ -261,55 +263,9 @@ end
 
 local function use_opener()
     if mq.TLO.Me.CombatState() == 'COMBAT' then return end
-    if assist.should_assist() and state.get_assist_mob_id() > 0 and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
+    if assist.should_assist() and state.get_assist_mob_id() > 0 and spells['opener']['name'] and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
         common.cast(spells['opener']['name'], true)
     end
-end
-
-local function is_dot_ready(spellId, spellName)
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
-        return false
-    end
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
-
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    local buffDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buffDuration then
-            return true
-        end
-        local remainingCastTime = mq.TLO.Spell(spellName).MyCastTime()
-        return buffDuration < remainingCastTime + 3000
-    end
-
-    return false
-end
-
-local function is_spell_ready(spellId, spellName)
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).TargetType() == 'Single' then
-        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
-    end
-
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    return true
 end
 
 --[[
@@ -322,26 +278,28 @@ local function find_next_spell()
     local tothp = mq.TLO.Me.TargetOfTarget.PctHPs()
     if tothp and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.TargetOfTarget() and tothp < 65 then
         for _,spell in ipairs(combat_heal_spells) do
-            if is_spell_ready(spell['id'], spell['name']) then
+            if common.is_spell_ready(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(dot_spells) do
-        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
-            if is_dot_ready(spell['id'], spell['name']) then
+        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.get_burn_always() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
+            if common.is_dot_ready(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(arrow_spells) do
-        if is_spell_ready(spell['id'], spell['name']) then
-            return spell
+        if not spells['composite']['name'] or spell['name'] ~= spells['composite']['name'] or OPTS.USECOMPOSITE then
+            if common.is_spell_ready(spell) then
+                return spell
+            end
         end
     end
     if OPTS.NUKE then
         for _,spell in ipairs(dd_spells) do
-            if is_spell_ready(spell['id'], spell['name']) then
+            if common.is_spell_ready(spell) then
                 return spell
             end
         end
@@ -370,7 +328,7 @@ local function mash()
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
     --if common.is_fighting() or assist.should_assist() then
-        if OPTS.USEDISPEL and mq.TLO.Target.Beneficial() then
+        if OPTS.USEDISPEL and dispel and mq.TLO.Target.Beneficial() then
             common.use_aa(dispel)
         end
         for _,item_id in ipairs(mash_items) do
@@ -461,6 +419,10 @@ end
 local function check_aggro()
     if mq.TLO.Me.PctHPs() < 50 then
         common.use_aa(evasion)
+        if config.get_mode():return_to_camp() then
+            local my_camp = state.get_camp()
+            mq.cmdf('/nav locyxz %d %d %d log=off', my_camp.Y, my_camp.X, my_camp.Z)
+        end
     end
     --[[
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
@@ -468,7 +430,7 @@ local function check_aggro()
             if mq.TLO.Me.PctAggro() >= 70 then
                 common.use_aa(fade)
                 check_aggro_timer:reset()
-                mq.delay('1s')
+                mq.delay(1000)
                 mq.cmd('/makemevis')
             end
         end
@@ -516,10 +478,10 @@ local group_buff_timer = timer:new(60)
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
-    if not mq.TLO.Me.Buff(brownies['name'])() then
+    if brownies and not mq.TLO.Me.Buff(brownies['name'])() then
         common.use_aa(brownies)
     end
-    if not mq.TLO.Me.Song(chameleon['name'])() and mq.TLO.Me.AltAbilityReady(chameleon['name'])() then
+    if chameleon and not mq.TLO.Me.Song(chameleon['name'])() and mq.TLO.Me.AltAbilityReady(chameleon['name'])() then
         mq.cmd('/mqtar myself')
         mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
         common.use_aa(chameleon)
@@ -528,11 +490,11 @@ local function check_buffs()
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEPOISONARROW then
-        if not mq.TLO.Me.Buff('Poison Arrows')() then
+        if poison and not mq.TLO.Me.Buff('Poison Arrows')() then
             if common.use_aa(poison) then return end
         end
     elseif OPTS.USEFIREARROW then
-        if not mq.TLO.Me.Buff('Fire Arrows')() then
+        if fire and not mq.TLO.Me.Buff('Fire Arrows')() then
             if common.use_aa(fire) then return end
         end
     end
@@ -540,25 +502,25 @@ local function check_buffs()
     common.check_item_buffs()
 
     -- ranger unity aa
-    if OPTS.USEUNITYAZIA then
+    if unity_azia and OPTS.USEUNITYAZIA then
         if missing_unity_buffs(unity_azia['name']) then
             if common.use_aa(unity_azia) then return end
         end
-    elseif OPTS.USEUNITYBEZA then
+    elseif unity_beza and OPTS.USEUNITYBEZA then
         if missing_unity_buffs(unity_beza['name']) then
             if common.use_aa(unity_beza) then return end
         end
     end
 
-    if not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() then
+    if spells['dmgbuff']['name'] and not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() then
         if common.cast(spells['dmgbuff']['name']) then return end
     end
 
-    if not mq.TLO.Me.Buff(spells['rune']['name'])() then
+    if spells['rune']['name'] and not mq.TLO.Me.Buff(spells['rune']['name'])() then
         if common.cast(spells['rune']['name']) then return end
     end
 
-    if OPTS.USEREGEN and not mq.TLO.Me.Buff(spells['regen']['name'])() then
+    if OPTS.USEREGEN and spells['regen']['name'] and not mq.TLO.Me.Buff(spells['regen']['name'])() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         mq.delay(500)
         if common.swap_and_cast(spells['regen'], 13) then return end
@@ -570,7 +532,7 @@ local function check_buffs()
             if tank_spawn() then
                 if spawn_missing_cachedbuff(tank_spawn, spells['ds']['name']) then
                     tank_spawn.DoTarget()
-                    mq.delay('1s') -- time to target and for buffs to be populated
+                    mq.delay(1000) -- time to target and for buffs to be populated
                     if target_missing_buff(spells['ds']['name']) then
                         if common.swap_and_cast(spells['ds'], 13) then return end
                     end
@@ -583,17 +545,17 @@ local function check_buffs()
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
-                    if spawn_missing_cachedbuff(group_member, spells['buffs']['name']) and not group_member.CachedBuff('Spiritual Vigor')() then
+                    if spells['buffs']['name'] and spawn_missing_cachedbuff(group_member, spells['buffs']['name']) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
-                        mq.delay('1s') -- time to target and for buffs to be populated
+                        mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(spells['buffs']['name']) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
                             if common.cast(spells['buffs']['name']) then return end
                         end
                     end
-                    if spawn_missing_cachedbuff(group_member, spells['dmgbuff']['name']) then
+                    if spells['dmgbuff']['name'] and spawn_missing_cachedbuff(group_member, spells['dmgbuff']['name']) then
                         group_member.DoTarget()
-                        mq.delay('1s') -- time to target and for buffs to be populated
+                        mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(spells['dmgbuff']['name']) then
                             if common.cast(spells['dmgbuff']['name']) then return end
                         end
@@ -671,8 +633,11 @@ rng.main_loop = function()
     assist.check_target(rng.reset_class_timers)
     use_opener()
     -- if we should be assisting but aren't in los, try to be?
-    if not OPTS.USERANGE or not attack_range() then
-        if OPTS.USEMELEE then assist.attack() end
+    -- try to deal with ranger noobishness running out to ranged and dying
+    if mq.TLO.Me.PctHPs() > 40 then
+        if not OPTS.USERANGE or not attack_range() then
+            if OPTS.USEMELEE then assist.attack() end
+        end
     end
     -- begin actual combat stuff
     assist.send_pet()
@@ -699,6 +664,7 @@ rng.draw_skills_tab = function()
     OPTS.USERANGE = ui.draw_check_box('Use Ranged', '##userange', OPTS.USERANGE, 'Ranged DPS if possible')
     OPTS.NUKE = ui.draw_check_box('Use Nukes', '##nuke', OPTS.NUKE, 'Cast nukes on all mobs')
     OPTS.USEDOT = ui.draw_check_box('Use DoT', '##usedot', OPTS.USEDOT, 'Cast expensive DoT on all mobs')
+    OPTS.USECOMPOSITE = ui.draw_check_box('Use Composite', '##comp', OPTS.USECOMPOSITE, 'Cast composite as its available')
     OPTS.USEPOISONARROW = ui.draw_check_box('Use Poison Arrow', '##usepoison', OPTS.USEPOISONARROW, 'Use Poison Arrows AA')
     if OPTS.USEPOISONARROW then OPTS.USEFIREARROW = false end
     OPTS.USEFIREARROW = ui.draw_check_box('Use Fire Arrow', '##usefire', OPTS.USEFIREARROW, 'Use Fire Arrows AA')
