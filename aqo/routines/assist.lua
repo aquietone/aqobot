@@ -159,6 +159,7 @@ end
 
 ---Begin attacking the assist target if not already attacking.
 assist.attack = function(skip_no_los)
+    if config.get_mode():get_name() == 'manual' then return end
     if state.get_assist_mob_id() == 0 or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or not assist.should_assist() then
         if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
         return
