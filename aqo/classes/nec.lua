@@ -25,6 +25,12 @@ local OPTS = {
     USEFD=true,
     USEINSPIRE=true,
     USEDISPEL=true,
+    BYOS=false,
+    USEWOUNDS=true,
+    MULTIDOT=false,
+    MULTICOUNT=3,
+    USEGLYPH=false,
+    USEINTENSITY=false,
 }
 config.set_spell_set('standard')
 
@@ -117,8 +123,7 @@ local items = {}
 table.insert(items, mq.TLO.FindItem('Blightbringer\'s Tunic of the Grave').ID()) -- buff, 5 minute CD
 table.insert(items, mq.TLO.InvSlot('Chest').Item.ID()) -- buff, Consuming Magic, 10 minute CD
 table.insert(items, mq.TLO.FindItem('Rage of Rolfron').ID()) -- song, 30 minute CD
-
---table.insert(items, mq.TLO.FindItem('Bifold Focus of the Evil Eye').ID())
+--table.insert(items, mq.TLO.FindItem('Vicious Rabbit').ID()) -- 5 minute CD
 --table.insert(items, mq.TLO.FindItem('Necromantic Fingerbone').ID()) -- 3 minute CD
 --table.insert(items, mq.TLO.FindItem('Amulet of the Drowned Mariner').ID()) -- 5 minute CD
 
@@ -142,11 +147,8 @@ table.insert(AAs, common.get_aa('Rise of Bones')) -- 10 minute CD
 table.insert(AAs, common.get_aa('Wake the Dead')) -- 3 minute CD
 table.insert(AAs, common.get_aa('Swarm of Decay')) -- 9 minute CD
 
---table.insert(AAs, get_aaid_and_name('Life Burn')) -- 20 minute CD
---table.insert(AAs, get_aaid_and_name('Dying Grasp')) -- 20 minute CD
-
---table.insert(AAs, get_aaid_and_name('Glyph of Destruction (115+)'))
---table.insert(AAs, get_aaid_and_name('Intensity of the Resolute'))
+local glyph = common.get_aa('Mythic Glyph of Ultimate Power V')
+local intensity = common.get_aa('Intensity of the Resolute')
 
 local pre_burn_AAs = {}
 table.insert(pre_burn_AAs, common.get_aa('Focus of Arcanum')) -- buff
@@ -204,6 +206,11 @@ nec.load_settings = function()
     if settings.nec.USEINSPIRE ~= nil then OPTS.USEINSPIRE = settings.nec.USEINSPIRE end
     if settings.nec.USEREZ ~= nil then OPTS.USEREZ = settings.nec.USEREZ end
     if settings.nec.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.nec.USEDISPEL end
+    if settings.nec.USEWOUNDS ~= nil then OPTS.USEWOUNDS = settings.nec.USEWOUNDS end
+    if settings.nec.MULTIDOT ~= nil then OPTS.MULTIDOT = settings.nec.MULTIDOT end
+    if settings.nec.MULTICOUNT ~= nil then OPTS.MULTICOUNT = settings.nec.MULTICOUNT end
+    if settings.nec.USEGLYPH ~= nil then OPTS.USEGLYPH = settings.nec.USEGLYPH end
+    if settings.nec.USEINTENSITY ~= nil then OPTS.USEINTENSITY = settings.nec.USEINTENSITY end
 end
 
 nec.save_settings = function()
@@ -280,11 +287,8 @@ local function find_next_dot_to_cast()
             --         return dot
             --     end
             -- else
-            if common.is_dot_ready(dot) then
-                -- extra check for wounds dot to not refresh it before it fades
-                if dot['id'] ~= spells['wounds']['id'] or not common.is_target_dotted_with(dot['id'], dot['name']) then
-                    return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
-                end
+            if (OPTS.USEWOUNDS or dot['id'] ~= spells['wounds']['id']) and common.is_dot_ready(dot) then
+                return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
         end
     end
@@ -298,12 +302,12 @@ local function find_next_dot_to_cast()
 end
 
 local function cycle_dots()
+    if mq.TLO.Me.SpellInCooldown() then return false end
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
         if OPTS.USEDISPEL and mq.TLO.Target.Beneficial() then
             common.use_aa(dispel)
         end
-    --if common.is_fighting() or assist.should_assist() then
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             if spell['name'] == spells['pyreshort']['name'] and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
@@ -311,8 +315,34 @@ local function cycle_dots()
                 common.use_item(tc_item)
             end
             common.cast(spell['name'], true) -- then cast the dot
-            return true
         end
+
+        if OPTS.MULTIDOT then
+            local original_target_id = 0
+            if mq.TLO.Target.Type() == 'NPC' then original_target_id = mq.TLO.Target.ID() end
+            local dotted_count = 1
+            for i=1,13 do
+                if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
+                    local xtar_id = mq.TLO.Me.XTarget(i).ID()
+                    local xtar_spawn = mq.TLO.Spawn(xtar_id)
+                    if xtar_id ~= original_target_id and assist.should_assist(xtar_spawn) then
+                        xtar_spawn.DoTarget()
+                        mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
+                        local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
+                        if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
+                            --if not mq.TLO.Me.SpellReady(spell['name'])() then break end
+                            common.cast(spell['name'], true)
+                            dotted_count = dotted_count + 1
+                            if dotted_count >= OPTS.MULTICOUNT then break end
+                        end
+                    end
+                end
+            end
+            if original_target_id ~= 0 and mq.TLO.Target.ID() ~= original_target_id then
+                mq.cmdf('/mqtar id %s', original_target_id)
+            end
+        end
+        return true
     end
     return false
 end
@@ -434,6 +464,17 @@ local function try_burn()
             end
         end
 
+        if OPTS.USEGLYPH then
+            if not mq.TLO.Me.Song(intensity['name'])() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+                common.use_aa(glyph)
+            end
+        end
+        if OPTS.USEINTENSITY then
+            if not mq.TLO.Me.Buff(glyph['name'])() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+                common.use_aa(intensity)
+            end
+        end
+
         if mq.TLO.Me.PctHPs() > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
             common.use_aa(lifeburn)
             mq.delay(5)
@@ -463,6 +504,12 @@ local function pre_pop_burns()
 
     for _,aa in ipairs(pre_burn_AAs) do
         common.use_aa(aa)
+    end
+
+    if OPTS.USEGLYPH then
+        if not mq.TLO.Me.Song(intensity['name'])() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+            common.use_aa(glyph)
+        end
     end
 end
 
@@ -504,6 +551,7 @@ end
 
 local check_aggro_timer = timer:new(10)
 local function check_aggro()
+    if config.get_mode():is_manual_mode() then return end
     --if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
     if OPTS.USEFD and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
@@ -627,7 +675,7 @@ local function should_swap_dots()
     local pyrelongDuration = mq.TLO.Target.MyBuffDuration(spells['pyrelong']['name'])()
     local fireshadowDuration = mq.TLO.Target.MyBuffDuration(spells['fireshadow']['name'])()
     if mq.TLO.Me.Gem(spells['wounds']['name'])() then
-        if woundsDuration and woundsDuration > 20000 then
+        if not OPTS.USEWOUNDS or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swap_spell(spells['pyrelong'], swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
@@ -636,7 +684,7 @@ local function should_swap_dots()
         end
     elseif mq.TLO.Me.Gem(spells['pyrelong']['name'])() then
         if pyrelongDuration and pyrelongDuration > 20000 then
-            if not woundsDuration or woundsDuration < 20000 then
+            if OPTS.USEWOUNDS and (not woundsDuration or woundsDuration < 20000) then
                 common.swap_spell(spells['wounds'], swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
                 common.swap_spell(spells['fireshadow'], swap_gem or 10)
@@ -644,7 +692,7 @@ local function should_swap_dots()
         end
     elseif mq.TLO.Me.Gem(spells['fireshadow']['name'])() then
         if fireshadowDuration and fireshadowDuration > 20000 then
-            if not woundsDuration or woundsDuration < 20000 then
+            if OPTS.USEWOUNDS and (not woundsDuration or woundsDuration < 20000) then
                 common.swap_spell(spells['wounds'], swap_gem or 10)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swap_spell(spells['pyrelong'], swap_gem or 10)
@@ -689,7 +737,7 @@ local function check_spell_set()
             common.swap_spell(spells['haze'], 5)
             common.swap_spell(spells['grasp'], 6)
             common.swap_spell(spells['leech'], 7)
-            common.swap_spell(spells['wounds'], 10)
+            --common.swap_spell(spells['wounds'], 10)
             common.swap_spell(spells['decay'], 11)
             common.swap_spell(spells['synergy'], 13)
             state.set_spellset_loaded(config.get_spell_set())
@@ -743,6 +791,11 @@ local function check_spell_set()
             common.swap_spell(spells['ignite'], 8)
             common.swap_spell(spells['alliance'], 9)
             common.swap_spell(spells['scourge'], 12)
+        end
+        if not OPTS.USEWOUNDS then
+            common.swap_spell(spells['pyrelong'], 10)
+        else
+            common.swap_spell(spells['wounds'], 10)
         end
     elseif config.get_spell_set() == 'short' then
         if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
@@ -867,6 +920,9 @@ nec.draw_skills_tab = function()
     OPTS.USEFD = ui.draw_check_box('Feign Death', '##dofeign', OPTS.USEFD, 'Use FD AA\'s to reduce aggro')
     OPTS.USEREZ = ui.draw_check_box('Use Rez', '##userez', OPTS.USEREZ, 'Use Convergence AA to rez group members')
     OPTS.USEDISPEL = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEDISPEL, 'Dispel mobs with Eradicate Magic AA')
+    OPTS.USEWOUNDS = ui.draw_check_box('Use Wounds', '##usewounds', OPTS.USEWOUNDS, 'Use wounds DoT')
+    OPTS.MULTIDOT = ui.draw_check_box('Multi DoT', '##multidot', OPTS.MULTIDOT, 'DoT all mobs')
+    OPTS.MULTICOUNT = ui.draw_input_int('Multi DoT #', '##multidotnum', OPTS.MULTICOUNT, 'Number of mobs to rotate through when multi-dot is enabled')
 end
 
 nec.draw_burn_tab = function()
@@ -875,6 +931,8 @@ nec.draw_burn_tab = function()
     OPTS.BURNPROC = ui.draw_check_box('Burn On Proc', '##burnproc', OPTS.BURNPROC, 'Burn when proliferation procs')
     config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
     config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
+    OPTS.USEGLYPH = ui.draw_check_box('Use Glyph', '##glyph', OPTS.USEGLYPH, 'Use Glyph of Destruction on Burn')
+    OPTS.USEINTENSITY = ui.draw_check_box('Use Intensity', '##intensity', OPTS.USEINTENSITY, 'Use Intensity of the Resolute on Burn')
 end
 
 return nec
