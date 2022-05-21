@@ -3,6 +3,8 @@ local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
 local mez = require('aqo.routines.mez')
+local pull = require('aqo.routines.pull')
+local tank = require('aqo.routines.tank')
 local logger = require('aqo.utils.logger')
 local persistence = require('aqo.utils.persistence')
 local timer = require('aqo.utils.timer')
@@ -177,6 +179,8 @@ local hymn = common.get_aa('Hymn of the Last Stand')
 local fade = common.get_aa('Fading Memories')
 -- aa mez
 local dirge = common.get_aa('Dirge of the Sleepwalker')
+local sonic = common.get_aa('Sonic Disturbance')
+local fluxstaff = mq.TLO.FindItem('Staff of Viral Flux').ID()
 
 local SETTINGS_FILE = ('%s/bardbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
 brd.load_settings = function()
@@ -569,6 +573,15 @@ local function check_spell_set()
     end
 end
 
+brd.pull_func = function()
+    if fluxstaff then
+        local item = mq.TLO.FindItem(fluxstaff)
+        common.use_item(item)
+    elseif sonic then
+        common.use_aa(sonic)
+    end
+end
+
 brd.setup_events = function()
     mez.setup_events()
 end
@@ -617,37 +630,54 @@ brd.main_loop = function()
         common.use_aa(selos)
         selos_timer:reset()
     end
-    -- ensure correct spells are loaded based on selected spell set
-    check_spell_set()
-    -- check whether we need to return to camp
-    camp.check_camp()
-    -- check whether we need to go chasing after the chase target
-    common.check_chase()
-    -- check our surroundings for mobs to deal with
-    camp.mob_radar()
-    if not pause_for_rally() then
-        -- assist the MA if the target matches assist criteria
-        assist.check_target(brd.reset_class_timers)
-        assist.attack()
-        -- check we have the correct target to attack
-        check_mez()
-        -- assist the MA if the target matches assist criteria
-        assist.check_target(brd.reset_class_timers)
-        assist.attack()
-        -- begin actual combat stuff
-        assist.send_pet()
-        if mq.TLO.Me.CombatState() ~= 'ACTIVE' and mq.TLO.Me.CombatState() ~= 'RESTING' then
-            cycle_songs()
+    if not state.get_pull_in_progress() then
+        -- ensure correct spells are loaded based on selected spell set
+        check_spell_set()
+        if config.get_mode():is_tank_mode() then
+            -- get mobs in camp
+            camp.mob_radar()
+            -- pick mob to tank if not tanking
+            tank.find_mob_to_tank()
+            tank.tank_mob()
+        else
+            -- check our surroundings for mobs to deal with
+            camp.mob_radar()
         end
-        mash()
-        -- pop a bunch of burn stuff if burn conditions are met
-        try_burn()
-        -- try not to run OOM
-        check_aggro()
+        -- check whether we need to return to camp
+        camp.check_camp()
+        -- check whether we need to go chasing after the chase target
+        common.check_chase()
+        if not pause_for_rally() then
+            -- assist the MA if the target matches assist criteria
+            if config.get_mode():is_assist_mode() then
+                assist.check_target(brd.reset_class_timers)
+                assist.attack()
+            end
+            -- check we have the correct target to attack
+            check_mez()
+            -- assist the MA if the target matches assist criteria
+            if config.get_mode():is_assist_mode() then
+                assist.check_target(brd.reset_class_timers)
+                assist.attack()
+            end
+            -- begin actual combat stuff
+            assist.send_pet()
+            if mq.TLO.Me.CombatState() ~= 'ACTIVE' and mq.TLO.Me.CombatState() ~= 'RESTING' then
+                cycle_songs()
+            end
+            mash()
+            -- pop a bunch of burn stuff if burn conditions are met
+            try_burn()
+            -- try not to run OOM
+            check_aggro()
+        end
+        check_mana()
+        check_buffs()
+        common.rest()
     end
-    check_mana()
-    check_buffs()
-    common.rest()
+    if config.get_mode():is_pull_mode() and not pause_for_rally() then
+        pull.pull_mob(brd.pull_func)
+    end
 end
 
 brd.draw_skills_tab = function()

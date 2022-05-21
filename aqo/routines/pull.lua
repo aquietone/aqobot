@@ -73,7 +73,7 @@ end
 ---@return boolean @Returns true if the spawn meets all the criteria for pulling, otherwise false.
 local function validate_pull(pull_spawn, path_len, zone_sn)
     local mob_id = pull_spawn.ID()
-    if mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' then return false end
+    if not mob_id or mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' then return false end
     if path_len < 0 or path_len > config.get_pull_radius() then return false end
     if check_mob_angle(pull_spawn) and check_z_rad(pull_spawn) and check_level(pull_spawn) and not config.ignores_contains(zone_sn, pull_spawn.CleanName()) then
         return true
@@ -131,7 +131,7 @@ local pc_near = 'pc radius 30 loc %d %d'
 ---Sets common.PULL_MOB_ID to the mob ID of the first matching spawn.
 local pull_radar_timer = timer:new(3)
 pull.pull_radar = function()
-    if not pull_radar_timer:timer_expired() then return end
+    if not pull_radar_timer:timer_expired() then return 0 end
     pull_radar_timer:reset()
     local pull_radius_count
     local pull_radius = config.get_pull_radius()
@@ -252,18 +252,16 @@ local function pull_engage(pull_spawn, pull_func)
         clear_pull_vars()
         return false
     end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-        mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
-    end
-    mq.cmd('/squelch /face fast')
-    --logger.printf('agroing mob')
     if mq.TLO.Target.Distance3D() < 35 then
-        -- use class close range pull ability
+        if mq.TLO.Navigation.Active() then
+            mq.cmd('/squelch /nav stop')
+            mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
+        end
+        mq.cmd('/squelch /face fast')
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
         mq.cmd('/attack on')
-        mq.delay(5000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() end)
+        mq.delay(5000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target() end)
     else
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
@@ -272,19 +270,18 @@ local function pull_engage(pull_spawn, pull_func)
         if pull_func then
             pull_func()
         else
+            mq.cmd('/squelch /face fast')
             mq.cmd('/autofire on')
             mq.delay(1000)
             if not mq.TLO.Me.AutoFire() then
                 mq.cmd('/autofire on')
             end
+            mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target() end)
         end
-        -- use class long range pull ability
-        -- tag with range
-        mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() end)
     end
     --logger.printf('mob agrod or timed out')
     mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
-    return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets()
+    return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target()
 end
 
 ---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
