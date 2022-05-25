@@ -15,6 +15,7 @@ local ui = require('aqo.ui')
 
 local brd = {}
 
+local song_timer = timer:new(3)
 local SPELLSETS = {melee=1,caster=1,meleedot=1}
 local EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
 local OPTS = {
@@ -203,7 +204,7 @@ end
 
 local boastful_timer = timer:new(30)
 local synergy_timer = timer:new(18)
-local crescendo_timer = timer:new(50)
+local crescendo_timer = timer:new(53)
 brd.reset_class_timers = function()
     boastful_timer:reset(0)
     synergy_timer:reset(0)
@@ -212,6 +213,7 @@ end
 local function cast(spell_name, requires_target, requires_los)
     if not common.in_control() or (requires_los and not mq.TLO.Target.LineOfSight()) then return end
     if requires_target and mq.TLO.Target.ID() ~= state.get_assist_mob_id() then return end
+    if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -219,20 +221,22 @@ local function cast(spell_name, requires_target, requires_los)
     mq.delay(10)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
     mq.delay(10)
-    mq.delay(3200, function()
-        -- this caused client to lock up...
-        common.check_chase()
-        assist.check_target(brd.reset_class_timers)
-        assist.attack(true) -- don't attack unless already have los to the target to avoid delay in delay
-        return not mq.TLO.Me.Casting()
-    end)
-    mq.cmd('/stopcast')
+    song_timer:reset()
+    --mq.delay(3200, function()
+    --    -- this caused client to lock up...
+    --    common.check_chase()
+    --    assist.check_target(brd.reset_class_timers)
+    --    assist.attack(true) -- don't attack unless already have los to the target to avoid delay in delay
+    --    return not mq.TLO.Me.Casting()
+    --end)
+    --mq.cmd('/stopcast')
     if spells['crescendo'] and spell_name == spells['crescendo']['name'] then crescendo_timer:reset() end
 end
 
 local function cast_mez(spell_name)
     if not common.in_control() or not mq.TLO.Target.LineOfSight() then return end
     local mez_target_id = mq.TLO.Target.ID()
+    if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -623,6 +627,14 @@ brd.process_cmd = function(opt, new_value)
     end
 end
 
+local function can_i_sing()
+    if song_timer:timer_expired() then
+        if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
+        return true
+    end
+    return false
+end
+
 local selos_timer = timer:new(30)
 brd.main_loop = function()
     -- keep cursor clear for spell swaps and such
@@ -632,7 +644,7 @@ brd.main_loop = function()
     end
     if not state.get_pull_in_progress() then
         -- ensure correct spells are loaded based on selected spell set
-        check_spell_set()
+        if can_i_sing() then check_spell_set() end
         if config.get_mode():is_tank_mode() then
             -- get mobs in camp
             camp.mob_radar()
@@ -663,16 +675,16 @@ brd.main_loop = function()
             -- begin actual combat stuff
             assist.send_pet()
             if mq.TLO.Me.CombatState() ~= 'ACTIVE' and mq.TLO.Me.CombatState() ~= 'RESTING' then
-                cycle_songs()
+                if can_i_sing() then cycle_songs() end
             end
             mash()
             -- pop a bunch of burn stuff if burn conditions are met
-            try_burn()
+            if can_i_sing() then try_burn() end
             -- try not to run OOM
             check_aggro()
         end
         check_mana()
-        check_buffs()
+        if can_i_sing() then check_buffs() end
         common.rest()
     end
     if config.get_mode():is_pull_mode() and not pause_for_rally() then

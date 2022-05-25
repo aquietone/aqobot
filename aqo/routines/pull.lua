@@ -129,7 +129,7 @@ local pull_spawn_camp = '%d, npc nopet loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.PULL_MOB_ID to the mob ID of the first matching spawn.
-local pull_radar_timer = timer:new(3)
+local pull_radar_timer = timer:new(1)
 pull.pull_radar = function()
     if not pull_radar_timer:timer_expired() then return 0 end
     pull_radar_timer:reset()
