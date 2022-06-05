@@ -2,6 +2,8 @@
 
 EverQuest class automation Lua scripts for MacroQuest.
 
+![image.png](./image.png)
+
 ## Description
 Provides a CWTN-like interface for bard, necro, ranger and warrior (so far) class automation with assist and chase modes, pre-configured spells, discs, AAs and abilities to use, and a UI to control a handful of settings.
 
