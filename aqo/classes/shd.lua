@@ -331,7 +331,7 @@ local function check_ae()
     local xtar_aggro_count = 0
     for i=1,13 do
         local xtar = mq.TLO.Me.XTarget(i)
-        if xtar.ID() ~= mq.TLO.Target.ID() and xtar.Type() == 'Auto Hater' and xtar.PctAggro() < 100 then
+        if xtar.ID() ~= mq.TLO.Target.ID() and xtar.TargetType() == 'Auto Hater' and xtar.PctAggro() < 100 then
             xtar_aggro_count = xtar_aggro_count + 1
         end
     end

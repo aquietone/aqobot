@@ -73,10 +73,10 @@ local function check_ignore(pull_spawn)
 end
 
 --loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
-local pull_count = 'npc radius %d'-- zradius 50'
-local pull_spawn = '%d, npc radius %d'-- zradius 50'
-local pull_count_camp = 'npc loc %d %d radius %d'-- zradius 50'
-local pull_spawn_camp = '%d, npc loc %d %d radius %d'-- zradius 50'
+local pull_count = 'npc nopet radius %d'-- zradius 50'
+local pull_spawn = '%d, npc nopet radius %d'-- zradius 50'
+local pull_count_camp = 'npc nopet loc %d %d radius %d'-- zradius 50'
+local pull_spawn_camp = '%d, npc nopet loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.PULL_MOB_ID to the mob ID of the first matching spawn.
@@ -100,7 +100,7 @@ pull.pull_radar = function()
             end 
             local mob_id = mob.ID()
             local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < pull_radius and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) and config.ignores_contains(zone_sn, mob.CleanName()) then
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < pull_radius and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) and not config.ignores_contains(zone_sn, mob.CleanName()) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
