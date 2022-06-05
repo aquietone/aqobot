@@ -49,6 +49,13 @@ local pull_min_level = 0
 
 local pull_max_level = 0
 
+local group_watch_who = 'healer'
+
+local med_mana_start = 5
+local med_mana_stop = 30
+local med_end_start = 5
+local med_end_stop = 30
+
 local ignores = {}
 
 ---Check whether the specified file exists or not.
@@ -98,6 +105,11 @@ function config.load_settings(settings_file)
     if settings.common.PULLARC ~= nil then pull_arc = settings.common.PULLARC end
     if settings.common.PULLMINLEVEL ~= nil then pull_min_level = settings.common.PULLMINLEVEL end
     if settings.common.PULLMAXLEVEL ~= nil then pull_max_level = settings.common.PULLMAXLEVEL end
+    if settings.common.GROUPWATCHWHO ~= nil then group_watch_who = settings.common.GROUPWATCHWHO end
+    if settings.common.MEDMANASTART ~= nil then med_mana_start = settings.common.MEDMANASTART end
+    if settings.common.MEDMANASTOP ~= nil then med_mana_stop = settings.common.MEDMANASTOP end
+    if settings.common.MEDENDSTART ~= nil then med_end_start = settings.common.MEDENDSTART end
+    if settings.common.MEDENDSTOP ~= nil then med_end_stop = settings.common.MEDENDSTOP end
     return settings
 end
 
@@ -275,6 +287,46 @@ end
 
 function config.set_pull_max_level(new_pull_max_level)
     pull_max_level = new_pull_max_level
+end
+
+function config.get_group_watch_who()
+    return group_watch_who
+end
+
+function config.set_group_watch_who(new_group_watch_who)
+    group_watch_who = new_group_watch_who
+end
+
+function config.get_med_mana_start()
+    return med_mana_start
+end
+
+function config.set_med_mana_start(new_med_mana_start)
+    med_mana_start = new_med_mana_start
+end
+
+function config.get_med_mana_stop()
+    return med_mana_stop
+end
+
+function config.set_med_mana_stop(new_med_mana_stop)
+    med_mana_stop = new_med_mana_stop
+end
+
+function config.get_med_end_start()
+    return med_end_start
+end
+
+function config.set_med_end_start(new_med_end_start)
+    med_end_start = new_med_end_start
+end
+
+function config.get_med_end_stop()
+    return med_end_stop
+end
+
+function config.set_med_end_stop(new_med_end_stop)
+    med_end_stop = new_med_end_stop
 end
 
 function config.get_ignores(zone_short_name)

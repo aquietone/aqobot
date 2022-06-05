@@ -71,12 +71,17 @@ local medding = false
 local healers = {CLR=true,DRU=true,SHM=true}
 pull.check_pull_conditions = function()
     if common.am_i_dead() then return false end
-    if mq.TLO.Me.PctEndurance() < 10 then
-        medding = true
-        return false
-    end
-    if mq.TLO.Me.PctEndurance() < 30 and medding then
-        return false
+    if config.get_group_watch_who() == 'none' then return true end
+    if config.get_group_watch_who() == 'self' then
+        if mq.TLO.Me.PctEndurance() < config.get_med_end_start() or mq.TLO.Me.PctMana() < config.get_med_mana_start() then
+            medding = true
+            return false
+        end
+        if (mq.TLO.Me.PctEndurance() < config.get_med_end_stop() or mq.TLO.Me.PctMana() < config.get_med_mana_stop()) and medding then
+            return false
+        else
+            medding = false
+        end
     end
     for i=1,mq.TLO.Group.Members() do
         local member = mq.TLO.Group.Member(i)
@@ -84,8 +89,16 @@ pull.check_pull_conditions = function()
             local pctmana = member.PctMana()
             if member.Dead() then
                 return false
-            elseif healers[member.Class.ShortName()] and pctmana and pctmana < 20 then
-                return false
+            elseif healers[member.Class.ShortName()] and config.get_group_watch_who() == 'healer' and pctmana then
+                if pctmana < config.get_med_mana_stop() then
+                    medding = true
+                    return false
+                end
+                if pctmana < config.get_med_mana_start() and medding then
+                    return false
+                else
+                    medding = false
+                end
             end
         end
     end
@@ -324,7 +337,7 @@ pull.pull_mob = function(pull_func)
         clear_pull_vars()
     end
     -- return to camp
-    if config.get_mode():is_camp_mode() and state.get_camp() then
+    if config.get_mode():return_to_camp() and state.get_camp() then
         pull_return()
     end
     --common.TANK_MOB_ID = common.PULL_MOB_ID -- pull mob reached camp, mark it as tank mob

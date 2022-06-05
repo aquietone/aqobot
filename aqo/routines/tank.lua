@@ -74,7 +74,7 @@ local function tank_mob_in_range(tank_spawn)
     if not mob_x or not mob_y then return false end
     local camp = state.get_camp()
     local camp_radius = config.get_camp_radius()
-    if camp then
+    if config.get_mode():return_to_camp() and camp then
         local dist = common.check_distance(camp.X, camp.Y, mob_x, mob_y)
         if dist < camp_radius then
             return true

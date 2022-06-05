@@ -111,6 +111,18 @@ local function cmd_bind(...)
     elseif opt == 'zradius' then
         get_or_set_opt(opt, config.get_pull_z_low(), new_value, config.set_pull_z_low)
         get_or_set_opt(opt, config.get_pull_z_high(), new_value, config.set_pull_z_high)
+    elseif opt == 'groupwatch' then
+        if common.GROUP_WATCH_OPTS[new_value] then
+            get_or_set_opt(opt, config.get_group_watch_who(), new_value, config.set_group_watch_who)
+        end
+    elseif opt == 'medmanastart' then
+        get_or_set_opt(opt, config.get_med_mana_start(), new_value, config.set_med_mana_start)
+    elseif opt == 'medmanastop' then
+        get_or_set_opt(opt, config.get_med_mana_stop(), new_value, config.set_med_mana_stop)
+    elseif opt == 'medendstart' then
+        get_or_set_opt(opt, config.get_med_end_start(), new_value, config.set_med_end_start)
+    elseif opt == 'medendstop' then
+        get_or_set_opt(opt, config.get_med_end_stop(), new_value, config.set_med_end_stop)
     elseif opt == 'usealliance' then
         get_or_set_opt(opt, config.get_use_alliance(), new_value, config.set_use_alliance)
     elseif opt == 'burnallnamed' then

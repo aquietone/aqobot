@@ -53,7 +53,7 @@ end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 camp.check_camp = function()
-    if not config.get_mode():is_camp_mode() or not state.get_camp() then return end
+    if not config.get_mode():return_to_camp() or not state.get_camp() then return end
     if common.am_i_dead() or mq.TLO.Me.Casting() or not common.clear_to_buff() then return end
     --if common.is_fighting() or not state.get_camp() then return end
     --if mq.TLO.Me.XTarget() > 0 then return end
@@ -122,7 +122,7 @@ end
 camp.set_camp = function(reset)
     local my_camp = state.get_camp()
     local mode = config.get_mode()
-    if mode:is_camp_mode() then
+    if mode:set_camp_mode() then
         mq.cmd('/squelch /maploc remove')
         if not my_camp or reset then
             my_camp = {
