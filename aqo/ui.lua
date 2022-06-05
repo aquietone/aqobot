@@ -160,6 +160,7 @@ ui.draw_pull_tab = function()
     common.OPTS.PULLRADIUS = ui.draw_input_int('Pull Radius', '##pullrad', common.OPTS.PULLRADIUS, 'Radius to pull mobs within')
     common.OPTS.PULLHIGH = ui.draw_input_int('Pull ZHigh', '##pullhigh', common.OPTS.PULLHIGH, 'Z High pull range')
     common.OPTS.PULLLOW = ui.draw_input_int('Pull ZLow', '##pulllow', common.OPTS.PULLLOW, 'Z Low pull range')
+    common.OPTS.PULLARC = ui.draw_input_int('Pull Arc', '##pullarc', common.OPTS.PULLARC, 'Only pull from this slice of the radius, centered around your current heading')
     common.OPTS.PULLMINLEVEL = ui.draw_input_int('Pull Min Level', '##pullminlvl', common.OPTS.PULLMINLEVEL, 'Minimum level mobs to pull')
     common.OPTS.PULLMAXLEVEL = ui.draw_input_int('Pull Max Level', '##pullmaxlvl', common.OPTS.PULLMAXLEVEL, 'Maximum level mobs to pull')
 end

@@ -29,6 +29,7 @@ common.OPTS = {
     PULLRADIUS=100,
     PULLHIGH=25,
     PULLLOW=25,
+    PULLARC=360,
     PULLMINLEVEL=0,
     PULLMAXLEVEL=0,
 }
@@ -169,19 +170,104 @@ common.check_camp = function()
     end
 end
 
+--[[
+Lua math degrees start from 0 on the right and go ccw
+      90
+       |
+190____|____0
+       |
+       |
+      270
+
+MQ degrees start from 0 on the top and go cw
+       0
+       |
+270____|____90
+       |
+       |
+      180
+
+Converts MQ Heading degrees to normal heading degrees
+]]--
+local function convert_heading(heading)
+    if heading > 270 then
+        heading = 180 - heading + 270
+    elseif heading > 180 then
+        heading = 270 - heading + 180
+    elseif heading > 90 then
+        heading = 360 - heading + 90
+    else
+        heading = 90 - heading
+    end
+    return heading
+end
+
+local function draw_maploc(heading, color)
+    local my_x = mq.TLO.Me.X()
+    local my_y = mq.TLO.Me.Y()
+    if heading < 0 then
+        heading = 360 - heading
+    elseif heading > 360 then
+        heading = heading - 360
+    end
+    local x_move = math.cos(math.rad(convert_heading(heading)))
+    if x_move > 0 and heading > 0 and heading < 180 then
+        x_move = x_move * -1
+    elseif x_move < 0 and heading >= 180 then
+        x_move = math.abs(x_move)
+    end
+    local y_move = math.sin(math.rad(convert_heading(heading)))
+    if y_move > 0 and heading > 90 and heading < 270 then
+        y_move = y_move * -1
+    elseif y_move < 0 and (heading <= 90 or heading >= 270) then
+        y_move = math.abs(y_move)
+    end
+    local x_off = my_x + common.OPTS.PULLRADIUS * x_move
+    local y_off = my_y + common.OPTS.PULLRADIUS * y_move
+    mq.cmdf('/squelch /maploc size 10 width 2 color %s radius 5 rcolor 0 0 0 %s %s', color, y_off, x_off)
+end
+
+local function set_pull_angles()
+    if not common.OPTS.PULLARC or common.OPTS.PULLARC == 0 then return end
+    if not common.CAMP.HEADING then common.CAMP.HEADING = 0 end
+    if common.CAMP.HEADING-(common.OPTS.PULLARC*.5) < 0 then
+        common.CAMP.PULL_ARC_LEFT = 360-((common.OPTS.PULLARC*.5)-common.CAMP.HEADING)
+    else
+        common.CAMP.PULL_ARC_LEFT = common.CAMP.HEADING-(common.OPTS.PULLARC*.5)
+    end
+    if common.CAMP.HEADING + (common.OPTS.PULLARC*.5) > 360 then
+        common.CAMP.PULL_ARC_RIGHT = (common.OPTS.PULLARC*.5)+common.CAMP.HEADING-360
+    else
+        common.CAMP.PULL_ARC_RIGHT = (common.OPTS.PULLARC*.5)+common.CAMP.HEADING
+    end
+end
+
 common.set_camp = function(reset)
     if (common.CAMP_MODES[common.OPTS.MODE] and not common.CAMP) or reset then
+        mq.cmd('/squelch /maploc remove')
         common.CAMP = {
             ['X']=mq.TLO.Me.X(),
             ['Y']=mq.TLO.Me.Y(),
             ['Z']=mq.TLO.Me.Z(),
+            ['HEADING']=mq.TLO.Me.Heading.Degrees(),
             ['ZoneID']=mq.TLO.Zone.ID()
         }
-        common.printf('Camp set to X: %s Y: %s Z: %s R: %s', common.CAMP.X, common.CAMP.Y, common.CAMP.Z, common.OPTS.CAMPRADIUS)
-        --mq.cmdf('/mapf campradius %d', common.OPTS.CAMPRADIUS)
+        common.printf('Camp set to X: %s Y: %s Z: %s R: %s H: %s', common.CAMP.X, common.CAMP.Y, common.CAMP.Z, common.OPTS.CAMPRADIUS, common.CAMP.HEADING)
+        mq.cmdf('/squelch /mapf campradius %d', common.OPTS.CAMPRADIUS)
+        if common.PULLER_MODES[common.OPTS.MODE] then
+            if common.OPTS.PULLARC > 0 and common.OPTS.PULLARC < 360 then
+                set_pull_angles()
+                draw_maploc(common.CAMP.PULL_ARC_LEFT, '0 0 255')
+                draw_maploc(common.CAMP.PULL_ARC_RIGHT, '0 0 255')
+                draw_maploc(common.CAMP.HEADING, '255 0 0')
+            end
+            mq.cmdf('/squelch /mapf pullradius %d', common.OPTS.PULLRADIUS)
+        end
     elseif not common.CAMP_MODES[common.OPTS.MODE] and common.CAMP then
         common.CAMP = nil
-        --mq.cmd('/mapf campradius 0')
+        mq.cmd('/squelch /mapf campradius 0')
+        mq.cmd('/squelch /mapf pullradius 0')
+        mq.cmd('/squelch /maploc remove')
     end
 end
 
@@ -241,34 +327,17 @@ common.TANK_MOB_ID = 0
 common.PULL_MOB_ID = 0
 local PULL_TARGET_SKIP = {}
 
-local pull_heading = 0 -- direction we are facing at time pull arc is set
-local pull_l = 0 -- left boundary degrees
-local pull_r = 0 -- right boundary degrees
-local function set_pull_angles(dir, width)
-    if not width or width == 0 then return end
-    if not dir then dir = 0 end
-    if dir-(width*.5) < 0 then
-        pull_l = 360-((width*.5)-dir)
-    else
-        pull_l = dir-(width*.5)
-    end
-    if dir + (width*.5) > 360 then
-        pull_r = (width*.5)+dir-360
-    else
-        pull_r = (width*.5)+dir
-    end
-end
-
--- 0 invalid, 1 valid
+-- false invalid, true valid
 local function check_mob_angle(pull_spawn)
-    local direction_to_mob = pull_spawn.HeadingTo(common.OPTS.CAMP.Y, common.OPTS.CAMP.X).Degrees()
-    if not direction_to_mob then return 0 end
-    if pull_l >= pull_r then
-        if direction_to_mob < pull_l and direction_to_mob > pull_r then return 0 end
+    if common.OPTS.PULLARC == 360 or common.OPTS.PULLARC == 0 then return true end
+    local direction_to_mob = pull_spawn.HeadingTo(common.CAMP.Y, common.CAMP.X).Degrees()
+    if not direction_to_mob then return false end
+    if common.CAMP.PULL_ARC_LEFT >= common.CAMP.PULL_ARC_RIGHT then
+        if direction_to_mob < common.CAMP.PULL_ARC_LEFT and direction_to_mob > common.CAMP.PULL_ARC_RIGHT then return false end
     else
-        if direction_to_mob < pull_l and direction_to_mob > pull_r then return 0 end
+        if direction_to_mob < common.CAMP.PULL_ARC_LEFT and direction_to_mob > common.CAMP.PULL_ARC_RIGHT then return false end
     end
-    return 1
+    return true
 end
 
 -- TODO: zhigh zlow, radius from camp vs from me
@@ -282,7 +351,7 @@ common.pull_radar = function()
             local mob = mq.TLO.NearestSpawn(pull_spawn:format(i, common.OPTS.PULLRADIUS))
             local mob_id = mob.ID()
             local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS then
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS and check_mob_angle(mob) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
@@ -914,6 +983,7 @@ common.load_settings = function(settings_file)
     if settings.common.PULLRADIUS ~= nil then common.OPTS.PULLRADIUS = settings.common.PULLRADIUS end
     if settings.common.PULLHIGH ~= nil then common.OPTS.PULLHIGH = settings.common.PULLHIGH end
     if settings.common.PULLLOW ~= nil then common.OPTS.PULLLOW = settings.common.PULLLOW end
+    if settings.common.PULLARC ~= nil then common.OPTS.PULLARC = settings.common.PULLARC end
     if settings.common.PULLMINLEVEL ~= nil then common.OPTS.PULLMINLEVEL = settings.common.PULLMINLEVEL end
     if settings.common.PULLMAXLEVEL ~= nil then common.OPTS.PULLMAXLEVEL = settings.common.PULLMAXLEVEL end
     return settings
