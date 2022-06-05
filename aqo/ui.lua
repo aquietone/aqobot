@@ -124,6 +124,16 @@ ui.draw_input_int = function(labelText, idText, resultVar, helpText)
     return resultVar
 end
 
+ui.draw_input_int_sameline = function(labelText, idText, xoffset, resultVar, helpText)
+    ImGui.Text(labelText)
+    ImGui.SameLine()
+    help_marker(helpText)
+    ImGui.SameLine()
+    ImGui.SetCursorPosX(xoffset)
+    resultVar = ImGui.InputInt(idText, resultVar)
+    return resultVar
+end
+
 ui.draw_input_text = function(labelText, idText, resultVar, helpText)
     ImGui.Text(labelText)
     ImGui.SameLine()
@@ -161,12 +171,14 @@ end
 ui.draw_pull_tab = function()
     local current_radius = config.get_pull_radius()
     local current_pullarc = config.get_pull_arc()
-    config.set_pull_radius(ui.draw_input_int('Pull Radius', '##pullrad', config.get_pull_radius(), 'Radius to pull mobs within'))
-    config.set_pull_z_high(ui.draw_input_int('Pull ZHigh', '##pullhigh', config.get_pull_z_high(), 'Z High pull range'))
-    config.set_pull_z_low(ui.draw_input_int('Pull ZLow', '##pulllow', config.get_pull_z_low(), 'Z Low pull range'))
-    config.set_pull_arc(ui.draw_input_int('Pull Arc', '##pullarc', config.get_pull_arc(), 'Only pull from this slice of the radius, centered around your current heading'))
-    config.set_pull_min_level(ui.draw_input_int('Pull Min Level', '##pullminlvl', config.get_pull_min_level(), 'Minimum level mobs to pull'))
-    config.set_pull_max_level(ui.draw_input_int('Pull Max Level', '##pullmaxlvl', config.get_pull_max_level(), 'Maximum level mobs to pull'))
+    ImGui.PushItemWidth(150)
+    config.set_pull_radius(ui.draw_input_int_sameline('Pull Radius', '##pullrad', 200, config.get_pull_radius(), 'Radius to pull mobs within'))
+    config.set_pull_min_level(ui.draw_input_int_sameline('Pull Min Level', '##pullminlvl', 200, config.get_pull_min_level(), 'Minimum level mobs to pull'))
+    config.set_pull_z_high(ui.draw_input_int_sameline('Pull ZHigh', '##pullhigh', 200, config.get_pull_z_high(), 'Z High pull range'))
+    config.set_pull_max_level(ui.draw_input_int_sameline('Pull Max Level', '##pullmaxlvl', 200, config.get_pull_max_level(), 'Maximum level mobs to pull'))
+    config.set_pull_z_low(ui.draw_input_int_sameline('Pull ZLow', '##pulllow', 200, config.get_pull_z_low(), 'Z Low pull range'))
+    config.set_pull_arc(ui.draw_input_int_sameline('Pull Arc', '##pullarc', 200, config.get_pull_arc(), 'Only pull from this slice of the radius, centered around your current heading'))
+    ImGui.PopItemWidth()
     if current_radius ~= config.get_pull_radius() or current_pullarc ~= config.get_pull_arc() then
         camp.set_camp()
     end

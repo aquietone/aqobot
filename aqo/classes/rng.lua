@@ -228,7 +228,8 @@ local function attack_range()
         if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
         return
     end
-    if not mq.TLO.Target.LineOfSight() or mq.TLO.Target.Distance3D() < 35 then
+    local dist3d = mq.TLO.Target.Distance3D()
+    if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
         if not get_ranged_combat_position(40) then
             return false
         end
