@@ -17,6 +17,7 @@ local OPTS = {
     USEPRECISION=false,
     USESNARE=false,
 }
+mq.cmd('/squelch /stick mod -2')
 
 -- dps burn brightfield's onslaught, offensive discipline, war sheol's heroic blade, exploitive strike, warlord's resurgence, gut punch, knee strike, throat jab, shield splinter, knuckle break, kick, brace for impact
 -- always on abilities
@@ -28,13 +29,16 @@ table.insert(mashAbilities, 'Kick')
 local mashDiscs = {}
 table.insert(mashDiscs, common.get_discid_and_name('Shield Splinter'))
 table.insert(mashDiscs, common.get_discid_and_name('Primal Defense'))
-table.insert(mashDiscs, common.get_discid_and_name('Namdrows\'s Roar'))
+table.insert(mashDiscs, common.get_discid_and_name('Namdrows\' Roar'))
 table.insert(mashDiscs, common.get_discid_and_name('Bristle'))
 table.insert(mashDiscs, common.get_discid_and_name('Throat Jab'))
 table.insert(mashDiscs, common.get_discid_and_name('Knuckle Break'))
 table.insert(mashDiscs, common.get_discid_and_name('Twilight Shout'))
 table.insert(mashDiscs, common.get_discid_and_name('Composite Shield'))
 table.insert(mashDiscs, common.get_discid_and_name('Finish the Fight'))
+for _,disc in ipairs(mashDiscs) do
+    common.printf('Found disc %s (%s)', disc.name, disc.id)
+end
 
 -- toggled mash discs
 local phantom = common.get_discid_and_name('Phantom Aggressor')
@@ -129,11 +133,9 @@ war.check_ae = function()
     if common.MOB_COUNT >= 3 then
         for _,disc in ipairs(mashAEDiscs) do
             common.use_disc(disc)
-            mq.delay(50)
         end
         for _,aa in ipairs(mashAEAAs) do
             common.use_aa(aa)
-            mq.delay(50)
         end
     end
 end
@@ -153,19 +155,15 @@ local function mash()
         if dist and dist < 15 then
             if not mq.TLO.Me.Song(leap['name'])() then
                 common.use_aa(leap)
-                mq.delay(50)
             end
             for _,aa in ipairs(mashAAs) do
                 common.use_aa(aa)
-                mq.delay(50)
             end
             for _,disc in ipairs(mashDiscs) do
                 common.use_disc(disc)
-                mq.delay(50)
             end
             for _,ability in ipairs(mashAbilities) do
                 common.use_ability(ability)
-                mq.delay(50)
             end
         end
     end
@@ -184,7 +182,6 @@ local function try_burn()
 
         for _,aa in ipairs(burnAAs) do
             common.use_aa(aa)
-            mq.delay(50)
         end
 
         --[[
@@ -196,7 +193,6 @@ local function try_burn()
         for _,item_id in ipairs(items) do
             local item = mq.TLO.FindItem(item_id)
             common.use_item(item)
-            mq.delay(50)
         end
 
         --[[
@@ -206,7 +202,6 @@ local function try_burn()
         ]]--
         for _,disc in ipairs(burnDiscs) do
             common.use_disc(disc)
-            mq.delay(50)
         end
     end
 end
@@ -216,7 +211,6 @@ local function check_buffs()
     common.check_combat_buffs()
     if not mq.TLO.Me.Song(champion['name'])() then
         common.use_disc(champion)
-        mq.delay('3s')
     end
     if not mq.TLO.Me.Song(voice['name'])() then
         common.use_disc(voice)
@@ -230,6 +224,7 @@ local function check_buffs()
 
     if not mq.TLO.Me.Song(aura['name'])() then
         common.use_disc(aura)
+        mq.delay('3s')
     end
 
     common.check_item_buffs()
@@ -285,6 +280,9 @@ war.process_cmd = function(opt, new_value)
 end
 
 war.main_loop = function()
+    if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
+        common.TANK_MOB_ID = 0
+    end
     if common.TANK_MODES[common.OPTS.MODE] then
         common.debug('in tank mode so find a mob to tank')
         -- get mobs in camp
@@ -307,7 +305,10 @@ war.main_loop = function()
         common.attack()
     end
     -- if in a pull mode and no mobs
-    if common.PULLER_MODES[common.OPTS.MODE] and common.ASSIST_TARGET_ID == 0 and common.TANK_MOB_ID == 0 and common.PULL_MOB_ID == 0 then
+    if common.PULLER_MODES[common.OPTS.MODE] and common.ASSIST_TARGET_ID == 0 and common.TANK_MOB_ID == 0 and common.PULL_MOB_ID == 0 and mq.TLO.Me.XTarget() == 0 then
+        mq.cmd('/multiline ; /squelch /nav stop; /attack off; /autofire off;')
+        mq.delay(50)
+        common.debug('in puller mode so find mob to pull')
         common.pull_radar()
         common.pull_mob()
         common.find_mob_to_tank()

@@ -18,6 +18,7 @@ local OPTS = {
 }
 common.OPTS.SPELLSET = 'melee'
 local AE_MEZ_COUNT = 3
+mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
 local spells = {
@@ -224,8 +225,8 @@ local function check_mez()
                 local mob = mq.TLO.Spawn('id '..id)
                 if mob() and not MEZ_IMMUNES[mob.CleanName()] then
                     mob.DoTarget()
-                    mq.delay(50) -- allow time for target to actually change before checking buffs populated on new target
-                    mq.delay('1s', function() return mq.TLO.Target.BuffsPopulated() end)
+                    mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
+                    mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                     if mq.TLO.Target() and mq.TLO.Target.Buff(spells['mezae']['name'])() then
                         common.debug('AEMEZ setting meztimer mob_id %d', id)
                         common.TARGETS[id].meztimer = common.current_time()
@@ -242,10 +243,10 @@ local function check_mez()
             if mob() and not MEZ_IMMUNES[mob.CleanName()] then
                 if id ~= common.ASSIST_TARGET_ID and mob.Level() <= 123 and mob.Type() == 'NPC' then
                     mq.cmd('/attack off')
-                    mq.delay(100)
+                    mq.delay(100, function() return not mq.TLO.Me.Combat() end)
                     mob.DoTarget()
-                    mq.delay(50) -- allow time for target to actually change before checking buffs populated on new target
-                    mq.delay('1s', function() return mq.TLO.Target.BuffsPopulated() end)
+                    mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
+                    mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                     local pct_hp = mq.TLO.Target.PctHPs()
                     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                         common.TARGETS[id] = nil
