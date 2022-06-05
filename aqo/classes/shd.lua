@@ -474,6 +474,7 @@ local function check_buffs()
 end
 
 local function check_pet()
+    if not OPTS.SUMMONPET then return end
     if not spells['pet']['name'] or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
