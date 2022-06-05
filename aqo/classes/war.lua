@@ -218,14 +218,14 @@ end
 
 local function mash()
     if common.is_fighting() or assist.should_assist() then
-        if not mq.TLO.Me.Song(leap['name'])() then
-            common.use_aa(leap)
-            mq.delay(30)
-        end
         local target = mq.TLO.Target
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
         local targethp = target.PctHPs()
+        if not mq.TLO.Me.Song(leap['name'])() and dist and dist < 30 then
+            common.use_aa(leap)
+            mq.delay(30)
+        end
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             for _,aa in ipairs(mashAggroAAs) do
                 if not aa['opt'] or OPTS[aa['opt']] then
