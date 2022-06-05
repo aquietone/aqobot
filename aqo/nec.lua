@@ -299,7 +299,7 @@ local function find_next_dot_to_cast()
             end
         end
     end
-    if common.OPTS.SPELLSET == 'short' and mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
+    if mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
         return spells['manatap']
     end
     if common.OPTS.SPELLSET == 'short' and mq.TLO.Me.SpellReady(spells['venin']['name'])() and mq.TLO.Spell(spells['venin']['name']).Mana() < mq.TLO.Me.CurrentMana() then
@@ -845,6 +845,7 @@ nec.main_loop = function()
     -- keep cursor clear for spell swaps and such
     if common.OPTS.USEALLIANCE and common.timer_expired(nec_count_timer, 60) then
         get_necro_count()
+        nec_count_timer = common.current_time()
     end
     -- ensure correct spells are loaded based on selected spell set
     -- currently only checks at startup or when selection changes
