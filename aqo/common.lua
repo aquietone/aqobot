@@ -412,12 +412,13 @@ common.is_burn_condition_met = function(always_condition)
         state.set_burn_now(false)
         return true
     elseif common.is_fighting() then
+        local zone_sn = mq.TLO.Zone.ShortName():lower()
         if config.get_burn_always() then
             if always_condition and not always_condition() then
                 return false
             end
             return true
-        elseif config.get_burn_all_named() and mq.TLO.Target.Named() then -- and named[mq.TLO.Zone.ShortName():lower()] and named[mq.TLO.Zone.ShortName():lower()][mq.TLO.Target.CleanName()] then
+        elseif config.get_burn_all_named() and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
             logger.printf('\arActivating Burns (named)\ax')
             state.get_burn_active_timer():reset()
             state.set_burn_active(true)
