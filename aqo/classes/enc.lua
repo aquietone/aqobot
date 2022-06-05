@@ -253,7 +253,12 @@ end
 local function check_mez()
     if OPTS.MEZ then
         mez.do_ae(spells['mezae']['name'], common.cast)
-        mez.do_single(spells['mezst']['name'], common.cast)
+        if not mq.TLO.Me.SpellInCooldown() then
+            if not mq.TLO.Target.Tashed() and OPTS.TASHTHENMEZ and tash then
+                common.use_aa(tash)
+            end
+            mez.do_single(spells['mezst']['name'], common.cast)
+        end
     end
 end
 
@@ -268,69 +273,38 @@ local function cast_synergy()
     return false
 end
 
-local function is_dot_ready(spell)
-    if not spell then return false end
-    local spellId = spell['id']
-    local spellName = spell['name']
-    local buffDuration = 0
-    local remainingCastTime = 0
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() then
-        return false
-    end
-    buffDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buffDuration then
-            return true
-        end
-        remainingCastTime = mq.TLO.Spell(spellName).MyCastTime()
-        return buffDuration < remainingCastTime + 3000
-    end
-
-    return false
-end
-
-local function is_spell_ready(spell)
-    if not spell then return false end
-    local spellName = spell['name']
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).TargetType() == 'Single' then
-        if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
-    end
-
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    return true
-end
-
 -- composite
 -- synergy
 -- nuke5
 -- dot2
 local function find_next_spell_to_cast()
-    if is_spell_ready(spells['composite']) then return spells['composite'] end
+    if not mq.TLO.Target.Tashed() and OPTS.USETASH and common.is_spell_ready(spells['tash']) then return spells['tash'] end
+    if common.is_spell_ready(spells['composite']) then return spells['composite'] end
     if cast_synergy() then return nil end
-    if is_spell_ready(spells['nuke5']) then return spells['nuke5'] end
-    if is_dot_ready(spells['dot2']) then return spells['dot2'] end
+    if common.is_spell_ready(spells['nuke5']) then return spells['nuke5'] end
+    if common.is_dot_ready(spells['dot2']) then return spells['dot2'] end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
+
+local SLOW_IMMUNES = {}
 
 local function cycle_spells()
     if common.am_i_dead() then return false end
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if OPTS.USEERADICATE and dispel and mq.TLO.Target.Beneficial() then
+        if mq.TLO.Target.Beneficial() and OPTS.USEERADICATE and dispel then
             common.use_aa(dispel)
+        end
+        if not mq.TLO.Target.Tashed() and OPTS.USETASHAOE and tash then
+            common.use_aa(tash)
+        end
+        if not mq.TLO.Target.Slowed() and not SLOW_IMMUNES[target.CleanName()] then
+            if OPTS.USESLOWAOE and aeslow then
+                common.use_aa(aeslow)
+            elseif OPTS.USESLOW and slow then
+                common.use_aa(slow)
+            end
+            mq.doevents('event_slowimmune')
         end
         local spell = find_next_spell_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
@@ -377,7 +351,7 @@ local function check_mana()
         -- death bloom at some %
         common.use_aa(gathermana)
     end
-    if pct_mana < 30 then
+    if pct_mana < 75 then
         local manacrystal = mq.TLO.FindItem(azure['name'])
         common.use_item(manacrystal)
     end
@@ -501,8 +475,25 @@ local function check_spell_set()
     end
 end
 
+local function event_slowimmune(line)
+    local target_name = mq.TLO.Target.CleanName()
+    if target_name and not SLOW_IMMUNES[target_name] then
+        SLOW_IMMUNES[target_name] = 1
+    end
+end
+
+--[[
+#Event CAST_IMMUNE                 "Your target has no mana to affect#*#"
+#Event CAST_IMMUNE                 "Your target is immune to changes in its attack speed#*#"
+#Event CAST_IMMUNE                 "Your target is immune to changes in its run speed#*#"
+#Event CAST_IMMUNE                 "Your target is immune to snare spells#*#"
+#Event CAST_IMMUNE                 "Your target is immune to the stun portion of this effect#*#"
+#Event CAST_IMMUNE                 "Your target cannot be mesmerized#*#"
+#Event CAST_IMMUNE                 "Your target looks unaffected#*#"
+]]--
 enc.setup_events = function()
     mez.setup_events()
+    mq.event('event_slowimmune', 'Your target is immune to changes in its attack speed#*#', event_slowimmune)
 end
 
 enc.process_cmd = function(opt, new_value)

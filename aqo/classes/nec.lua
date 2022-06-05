@@ -258,38 +258,11 @@ local function cast_synergy()
     return false
 end
 
-local function is_dot_ready(spellId, spellName)
-    local buffDuration = 0
-    local remainingCastTime = 0
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() then
-        return false
-    end
-    buffDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buffDuration then
-            return true
-        end
-        -- Do not return wounds as ready while it still has any duration left
-        if spellId == spells['wounds']['id'] then return false end
-        remainingCastTime = mq.TLO.Spell(spellName).MyCastTime()
-        return buffDuration < remainingCastTime + 3000
-    end
-
-    return false
-end
-
 local function find_next_dot_to_cast()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
     -- Just cast composite as part of the normal dot rotation, no special handling
-    --if is_dot_ready(spells['composite']['id'], spells['composite']['name']) then
+    --if common.is_dot_ready(spells['composite']['id'], spells['composite']['name']) then
     --    return spells['composite']['id'], spells['composite']['name']
     --end
     if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
@@ -301,16 +274,17 @@ local function find_next_dot_to_cast()
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > OPTS.STOPPCT then
         for _,dot in ipairs(dots[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-            local spell_id = dot['id']
-            local spell_name = dot['name']
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
             -- if spell_id == spells['combodis']['id'] then
             --     if (not is_target_dotted_with(spells['decay']['id'], spells['decay']['name']) or not is_target_dotted_with(spells['grip']['id'], spells['grip']['name'])) and mq.TLO.Me.SpellReady(spells['combodis']['name'])() then
             --         return dot
             --     end
             -- else
-            if is_dot_ready(spell_id, spell_name) then
-                return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
+            if common.is_dot_ready(dot) then
+                -- extra check for wounds dot to not refresh it before it fades
+                if dot['id'] ~= spells['wounds']['id'] or not common.is_target_dotted_with(dot['id'], dot['name']) then
+                    return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
+                end
             end
         end
     end

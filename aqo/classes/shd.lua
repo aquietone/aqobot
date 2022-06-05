@@ -226,55 +226,6 @@ shd.reset_class_timers = function()
     -- no-op
 end
 
-local function is_dot_ready(spell)
-    local spellId = spell['id']
-    local spellName = spell['name']
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
-        return false
-    end
-    if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
-
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    local buffDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buffDuration then
-            return true
-        end
-        local remainingCastTime = mq.TLO.Spell(spellName).MyCastTime()
-        return buffDuration < remainingCastTime + 3000
-    end
-
-    return false
-end
-
-local function is_spell_ready(spell)
-    local spellName = spell['name']
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
-        return false
-    end
-    if mq.TLO.Spell(spellName).TargetType() == 'Single' then
-        if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
-    end
-
-    if not mq.TLO.Me.SpellReady(spellName)() then
-        return false
-    end
-
-    return true
-end
-
 local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
     -- aggro
@@ -287,29 +238,29 @@ local function find_next_spell()
                     xtar_aggro_count = xtar_aggro_count + 1
                 end
             end
-            if xtar_aggro_count ~= 0 and is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
+            if xtar_aggro_count ~= 0 and common.is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
         end
-        if is_dot_ready(spells['challenge']) then return spells['challenge'] end
-        if is_spell_ready(spells['terror']) then return spells['terror'] end
+        if common.is_dot_ready(spells['challenge']) then return spells['challenge'] end
+        if common.is_spell_ready(spells['terror']) then return spells['terror'] end
     end
     -- taps
     if myhp < 65 then
-        if is_spell_ready(spells['composite']) then return spells['composite'] end
-        if is_spell_ready(spells['largetap']) then return spells['largetap'] end
+        if common.is_spell_ready(spells['composite']) then return spells['composite'] end
+        if common.is_spell_ready(spells['largetap']) then return spells['largetap'] end
     end
     if myhp < 90 then
-        if is_spell_ready(spells['tap1']) then return spells['tap1'] end
+        if common.is_spell_ready(spells['tap1']) then return spells['tap1'] end
     end
-    if not mq.TLO.Me.Buff('Gift of Namdrows')() and is_spell_ready(spells['tap2']) then return spells['tap2'] end
-    if is_dot_ready(spells['dottap']) then return spells['dottap'] end
-    if is_spell_ready(spells['bitetap']) then return spells['bitetap'] end
-    if is_dot_ready(spells['acdebuff']) then return spells['acdebuff'] end
+    if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(spells['tap2']) then return spells['tap2'] end
+    if common.is_dot_ready(spells['dottap']) then return spells['dottap'] end
+    if common.is_spell_ready(spells['bitetap']) then return spells['bitetap'] end
+    if common.is_dot_ready(spells['acdebuff']) then return spells['acdebuff'] end
     -- dps
-    if is_spell_ready(spells['spear']) then return spells['spear'] end
+    if common.is_spell_ready(spells['spear']) then return spells['spear'] end
     if config.get_mode():is_assist_mode() and config.get_spell_set() == 'dps' then
-        if is_dot_ready(spells['poison']) then return spells['poison'] end
-        if is_dot_ready(spells['disease']) then return spells['disease'] end
-        if is_dot_ready(spells['corruption']) then return spells['corruption'] end
+        if common.is_dot_ready(spells['poison']) then return spells['poison'] end
+        if common.is_dot_ready(spells['disease']) then return spells['disease'] end
+        if common.is_dot_ready(spells['corruption']) then return spells['corruption'] end
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end

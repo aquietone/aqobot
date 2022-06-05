@@ -22,6 +22,8 @@ local OPTS = {
     MEZAE=true,
     USEEPIC='always',
     BYOS=false,
+    USEINSULTS=true,
+    USEBELLOW=true,
 }
 config.set_spell_set('melee')
 mq.cmd('/squelch /stick mod 0')
@@ -150,6 +152,7 @@ local selos = common.get_aa('Selo\'s Sonata')
 local rallyingsolo = common.get_aa('Rallying Solo')
 local rallyingcall = common.get_aa('Rallying Call')
 local shieldofnotes = common.get_aa('Shield of Notes')
+local hymn = common.get_aa('Hymn of the Last Stand')
 -- Mana Recovery items
 --local item_feather = mq.TLO.FindItem('Unified Phoenix Feather')
 --local item_horn = mq.TLO.FindItem('Miniature Horn of Unity') -- 10 minute CD
@@ -169,6 +172,8 @@ brd.load_settings = function()
     if settings.brd.MEZAE ~= nil then OPTS.MEZAE = settings.brd.MEZAE end
     if settings.brd.USEEPIC ~= nil then OPTS.USEEPIC = settings.brd.USEEPIC end
     if settings.brd.BYOS ~= nil then OPTS.BYOS = settings.brd.BYOS end
+    if settings.brd.USEINSULTS ~= nil then OPTS.USEINSULTS = settings.brd.USEINSULTS end
+    if settings.brd.USEBELLOW ~= nil then OPTS.USEBELLOW = settings.brd.USEBELLOW end
 end
 
 brd.save_settings = function()
@@ -224,6 +229,8 @@ local function cast_mez(spell_name)
 end
 
 local function check_mez()
+    -- don't try to mez in manual mode
+    if config.get_mode():get_name() == 'manual' then return end
     if OPTS.MEZAE and spells['mezae'] then
         mez.do_ae(spells['mezae']['name'], cast)
     end
@@ -247,7 +254,8 @@ local function try_alliance()
 end
 
 local function cast_synergy()
-    if synergy_timer:timer_expired() and spells['insult'] then
+    -- don't nuke if i'm not attacking
+    if OPTS.USEINSULTS and synergy_timer:timer_expired() and spells['insult'] and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(spells['insult']['name'])() and mq.TLO.Me.GemTimer(spells['insult']['name'])() == 0 then
             if mq.TLO.Spell(spells['insult']['name']).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
@@ -261,6 +269,8 @@ local function cast_synergy()
 end
 
 local function is_dot_ready(spellId, spellName)
+    -- don't dot if i'm not attacking
+    if not spellName or not mq.TLO.Me.Combat() then return false end
     local songDuration = 0
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() ~= 0  then
         return false
@@ -283,6 +293,7 @@ local function is_dot_ready(spellId, spellName)
 end
 
 local function is_song_ready(spellId, spellName)
+    if not spellName then return false end
     if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
         return false
     end
@@ -356,14 +367,15 @@ end
 
 local function mash()
     local cur_mode = config.get_mode()
-    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    -- try mash in manual mode only if auto attack is on
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then--and mq.TLO.Me.CombatState() == 'COMBAT') then
         if OPTS.USEEPIC == 'always' then
             use_epic()
         elseif OPTS.USEEPIC == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')() then
             use_epic()
         end
         for _,aa in ipairs(mashAAs) do
-            if aa ~= 'Boastful Bellow' or boastful_timer:timer_expired() then
+            if aa ~= 'Boastful Bellow' or (OPTS.USEBELLOW and boastful_timer:timer_expired()) then
                 if common.use_aa(aa) and aa == 'Boastful Bellow' then
                     boastful_timer:reset()
                 end
@@ -435,6 +447,7 @@ local function check_aggro()
     if common.am_i_dead() then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
         common.use_aa(shieldofnotes)
+        common.use_aa(hymn)
     end
     if config.get_mode():get_name() ~= 'manual' and OPTS.USEFADE and state.get_mob_count() > 0 and check_aggro_timer:timer_expired() then
         if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 50 then
@@ -620,11 +633,13 @@ brd.draw_skills_tab = function()
     config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
     OPTS.USEEPIC = ui.draw_combo_box('Epic', OPTS.USEEPIC, EPIC_OPTS, true)
     config.set_use_alliance(ui.draw_check_box('Alliance', '##alliance', config.get_use_alliance(), 'Use alliance spell'))
-    OPTS.RALLYGROUP = ui.draw_check_box('Rallying Group', '##rallygroup', OPTS.RALLYGROUP, 'Use Rallying Group AA')
     OPTS.MEZST = ui.draw_check_box('Mez ST', '##mezst', OPTS.MEZST, 'Mez single target')
     OPTS.MEZAE = ui.draw_check_box('Mez AE', '##mezae', OPTS.MEZAE, 'Mez AOE')
+    OPTS.USEINSULTS = ui.draw_check_box('Use Insults', '##useinsults', OPTS.USEINSULTS, 'Use insult songs')
+    OPTS.USEBELLOW = ui.draw_check_box('Use Bellow', '##usebellow', OPTS.USEBELLOW, 'Use Boastful Bellow AA')
     OPTS.USEFADE = ui.draw_check_box('Use Fade', '##usefade', OPTS.USEFADE, 'Fade when agro')
     OPTS.BYOS = ui.draw_check_box('BYOS', '##byos', OPTS.BYOS, 'Bring your own spells')
+    OPTS.RALLYGROUP = ui.draw_check_box('Rallying Group', '##rallygroup', OPTS.RALLYGROUP, 'Use Rallying Group AA')
 end
 
 brd.draw_burn_tab = function()
