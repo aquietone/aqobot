@@ -33,36 +33,36 @@ mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
 local spells = {
-    ['shots']=common.get_spellid_and_rank('Claimed Shots'), -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    ['focused']=common.get_spellid_and_rank('Focused Whirlwind of Arrows'), -- 4x archery attacks, Focused Blizzard of Arrows
-    ['composite']=common.get_spellid_and_rank('Composite Fusillade'), -- double bow shot and fire+ice nuke
-    ['heart']=common.get_spellid_and_rank('Heartruin'), -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
-    ['opener']=common.get_spellid_and_rank('Stealthy Shot'), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    ['summer']=common.get_spellid_and_rank('Summer\'s Torrent'), -- fire + ice nuke, Summer's Sleet
-    ['boon']=common.get_spellid_and_rank('Lunarflare boon'), -- 
-    ['healtot']=common.get_spellid_and_rank('Desperate Geyser'), -- heal ToT, Desperate Meltwater, fast cast, long cd
-    ['healtot2']=common.get_spellid_and_rank('Darkflow Spring'), -- heal ToT, Meltwater Spring, slow cast
-    ['dot']=common.get_spellid_and_rank('Bloodbeetle Swarm'), -- main DoT
-    ['dotds']=common.get_spellid_and_rank('Swarm of Bloodflies'), -- DoT + reverse DS, Swarm of Hyperboreads
-    ['dmgbuff']=common.get_spellid_and_rank('Arbor Stalker\'s Enrichment'), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
-    ['alliance']=common.get_spellid_and_rank('Arbor Stalker\'s Coalition'),
-    ['buffs']=common.get_spellid_and_rank('Shout of the Dusksage Stalker'), -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
+    ['shots']=common.get_spell('Claimed Shots'), -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    ['focused']=common.get_spell('Focused Whirlwind of Arrows'), -- 4x archery attacks, Focused Blizzard of Arrows
+    ['composite']=common.get_spell('Composite Fusillade'), -- double bow shot and fire+ice nuke
+    ['heart']=common.get_spell('Heartruin'), -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    ['opener']=common.get_spell('Stealthy Shot'), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
+    ['summer']=common.get_spell('Summer\'s Torrent'), -- fire + ice nuke, Summer's Sleet
+    ['boon']=common.get_spell('Lunarflare boon'), -- 
+    ['healtot']=common.get_spell('Desperate Geyser'), -- heal ToT, Desperate Meltwater, fast cast, long cd
+    ['healtot2']=common.get_spell('Darkflow Spring'), -- heal ToT, Meltwater Spring, slow cast
+    ['dot']=common.get_spell('Bloodbeetle Swarm'), -- main DoT
+    ['dotds']=common.get_spell('Swarm of Bloodflies'), -- DoT + reverse DS, Swarm of Hyperboreads
+    ['dmgbuff']=common.get_spell('Arbor Stalker\'s Enrichment'), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    ['alliance']=common.get_spell('Arbor Stalker\'s Coalition'),
+    ['buffs']=common.get_spell('Shout of the Dusksage Stalker'), -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    ['cloak']=common.get_spellid_and_rank('Cloak of Bloodbarbs'), -- Cloak of Rimespurs
-    ['predator']=common.get_spellid_and_rank('Bay of the Predator'), -- Frostroar of the Predator
-    ['strength']=common.get_spellid_and_rank('Strength of the Dusksage Stalker'), -- Strength of the Arbor Stalker
+    ['cloak']=common.get_spell('Cloak of Bloodbarbs'), -- Cloak of Rimespurs
+    ['predator']=common.get_spell('Bay of the Predator'), -- Frostroar of the Predator
+    ['strength']=common.get_spell('Strength of the Dusksage Stalker'), -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    ['protection']=common.get_spellid_and_rank('Protection of the Valley'), -- Protection of the Wakening Land
-    ['eyes']=common.get_spellid_and_rank('Eyes of the Senshali'), -- Eyes of the Visionary
-    ['hunt']=common.get_spellid_and_rank('Steeled by the Hunt'), -- Provoked by the Hunt
-    ['coat']=common.get_spellid_and_rank('Moonthorn Coat'), -- Rimespur Coat
+    ['protection']=common.get_spell('Protection of the Valley'), -- Protection of the Wakening Land
+    ['eyes']=common.get_spell('Eyes of the Senshali'), -- Eyes of the Visionary
+    ['hunt']=common.get_spell('Steeled by the Hunt'), -- Provoked by the Hunt
+    ['coat']=common.get_spell('Moonthorn Coat'), -- Rimespur Coat
     -- Unity Azia only
-    ['barrage']=common.get_spellid_and_rank('Devastating Barrage'), -- Devastating Velium
+    ['barrage']=common.get_spell('Devastating Barrage'), -- Devastating Velium
     -- Unity Beza only
-    ['blades']=common.get_spellid_and_rank('Vociferous Blades'), -- Howling Blades
-    ['ds']=common.get_spellid_and_rank('Shield of Shadethorns'), -- DS
-    ['rune']=common.get_spellid_and_rank('Luclin\'s Darkfire Cloak'), -- self rune + debuff proc
-    ['regen']=common.get_spellid_and_rank('Dusksage Stalker\'s Vigor'), -- regen
+    ['blades']=common.get_spell('Vociferous Blades'), -- Howling Blades
+    ['ds']=common.get_spell('Shield of Shadethorns'), -- DS
+    ['rune']=common.get_spell('Luclin\'s Darkfire Cloak'), -- self rune + debuff proc
+    ['regen']=common.get_spell('Dusksage Stalker\'s Vigor'), -- regen
 }
 -- Pyroclastic Boon, 
 for name,spell in pairs(spells) do
@@ -102,55 +102,55 @@ table.insert(mash_items, mq.TLO.InvSlot('Chest').Item.ID())
 
 -- entries in the AAs table are pairs of {aa name, aa id}
 local burnAAs = {}
-table.insert(burnAAs, common.get_aaid_and_name('Spire of the Pathfinders')) -- 7.5min CD
-table.insert(burnAAs, common.get_aaid_and_name('Auspice of the Hunter')) -- crit buff, 9min CD
-table.insert(burnAAs, common.get_aaid_and_name('Pack Hunt')) -- swarm pets, 15min CD
-table.insert(burnAAs, common.get_aaid_and_name('Empowered Blades')) -- melee dmg burn, 10min CD
-table.insert(burnAAs, common.get_aaid_and_name('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
-table.insert(burnAAs, common.get_aaid_and_name('Group Guardian of the Forest')) -- base dmg, atk, overhaste, 10min CD
-table.insert(burnAAs, common.get_aaid_and_name('Outrider\'s Accuracy')) -- base dmg, accuracy, atk, crit dmg, 5min CD
-table.insert(burnAAs, common.get_aaid_and_name('Imbued Ferocity')) -- 100% wep proc chance, 8min CD
-table.insert(burnAAs, common.get_aaid_and_name('Silent Strikes')) -- silent casting
-table.insert(burnAAs, common.get_aaid_and_name('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
+table.insert(burnAAs, common.get_aa('Spire of the Pathfinders')) -- 7.5min CD
+table.insert(burnAAs, common.get_aa('Auspice of the Hunter')) -- crit buff, 9min CD
+table.insert(burnAAs, common.get_aa('Pack Hunt')) -- swarm pets, 15min CD
+table.insert(burnAAs, common.get_aa('Empowered Blades')) -- melee dmg burn, 10min CD
+table.insert(burnAAs, common.get_aa('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
+table.insert(burnAAs, common.get_aa('Group Guardian of the Forest')) -- base dmg, atk, overhaste, 10min CD
+table.insert(burnAAs, common.get_aa('Outrider\'s Accuracy')) -- base dmg, accuracy, atk, crit dmg, 5min CD
+table.insert(burnAAs, common.get_aa('Imbued Ferocity')) -- 100% wep proc chance, 8min CD
+table.insert(burnAAs, common.get_aa('Silent Strikes')) -- silent casting
+table.insert(burnAAs, common.get_aa('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
 
 local meleeBurnDiscs = {}
-table.insert(meleeBurnDiscs, common.get_discid_and_name('Dusksage Stalker\'s Discipline')) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
+table.insert(meleeBurnDiscs, common.get_disc('Dusksage Stalker\'s Discipline')) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
 local rangedBurnDiscs = {}
-table.insert(rangedBurnDiscs, common.get_discid_and_name('Pureshot Discipline')) -- bow dmg buff, 1hr7min CD, timer 2
+table.insert(rangedBurnDiscs, common.get_disc('Pureshot Discipline')) -- bow dmg buff, 1hr7min CD, timer 2
 
 local mashAAs = {}
-table.insert(mashAAs, common.get_aaid_and_name('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
+table.insert(mashAAs, common.get_aa('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
 
 local mashDiscs = {}
-table.insert(mashDiscs, common.get_discid_and_name('Jolting Roundhouse Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
-table.insert(mashDiscs, common.get_discid_and_name('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
-table.insert(mashDiscs, common.get_discid_and_name('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
--- table.insert(mashDiscs, common.get_aaid_and_name('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
+table.insert(mashDiscs, common.get_disc('Jolting Roundhouse Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+table.insert(mashDiscs, common.get_disc('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
+table.insert(mashDiscs, common.get_disc('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
+-- table.insert(mashDiscs, common.get_aa('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
 
 local mashAbilities = {}
 table.insert(mashAbilities, 'Kick')
 
-local dispel = common.get_aaid_and_name('Entropy of Nature') -- dispel 9 slots
-local snare = common.get_aaid_and_name('Entrap')
-local fade = common.get_aaid_and_name('Cover Tracks')
-local evasion = common.get_aaid_and_name('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
-local brownies = common.get_aaid_and_name('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
-local chameleon = common.get_aaid_and_name('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
-local protection = common.get_aaid_and_name('Protection of the Spirit Wolf') -- 20min cd, large rune
-local unity_azia = common.get_aaid_and_name('Wildstalker\'s Unity (Azia)')
+local dispel = common.get_aa('Entropy of Nature') -- dispel 9 slots
+local snare = common.get_aa('Entrap')
+local fade = common.get_aa('Cover Tracks')
+local evasion = common.get_aa('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
+local brownies = common.get_aa('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
+local chameleon = common.get_aa('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
+local protection = common.get_aa('Protection of the Spirit Wolf') -- 20min cd, large rune
+local unity_azia = common.get_aa('Wildstalker\'s Unity (Azia)')
 --Slot 1: 	Devastating Barrage
 --Slot 2: 	Steeled by the Hunt
 --Slot 3: 	Protection of the Valley
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
-local unity_beza = common.get_aaid_and_name('Wildstalker\'s Unity (Beza)')
+local unity_beza = common.get_aa('Wildstalker\'s Unity (Beza)')
 --Slot 1: 	Vociferous Blades
 --Slot 2: 	Steeled by the Hunt
 --Slot 3: 	Protection of the Valley
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
-local poison = common.get_aaid_and_name('Poison Arrows')
-local fire = common.get_aaid_and_name('Flaming Arrows')
+local poison = common.get_aa('Poison Arrows')
+local fire = common.get_aa('Flaming Arrows')
 
 local SETTINGS_FILE = ('%s/rangerbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
 rng.load_settings = function()
@@ -561,7 +561,7 @@ local function check_buffs()
     if OPTS.USEREGEN and not mq.TLO.Me.Buff(spells['regen']['name'])() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         mq.delay(500)
-        if common.swap_and_cast(spells['regen']['name'], 13) then return end
+        if common.swap_and_cast(spells['regen'], 13) then return end
     end
 
     if OPTS.DSTANK then
@@ -572,7 +572,7 @@ local function check_buffs()
                     tank_spawn.DoTarget()
                     mq.delay('1s') -- time to target and for buffs to be populated
                     if target_missing_buff(spells['ds']['name']) then
-                        if common.swap_and_cast(spells['ds']['name'], 13) then return end
+                        if common.swap_and_cast(spells['ds'], 13) then return end
                     end
                 end
             end
@@ -605,23 +605,24 @@ local function check_buffs()
     end
 end
 
+local composite_names = {['Composite Fusillade']=true,['Dissident Fusillade']=true,['Dichotomic Fusillade']=true}
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
-            if mq.TLO.Me.Gem(1)() ~= spells['shots']['name'] then common.swap_spell(spells['shots']['name'], 1) end
-            if mq.TLO.Me.Gem(2)() ~= spells['focused']['name'] then common.swap_spell(spells['focused']['name'], 2) end
-            if mq.TLO.Me.Gem(3)() ~= 'Composite Fusillade' then common.swap_spell(spells['composite']['name'], 3) end
-            if mq.TLO.Me.Gem(4)() ~= spells['heart']['name'] then common.swap_spell(spells['heart']['name'], 4) end
-            if mq.TLO.Me.Gem(5)() ~= spells['opener']['name'] then common.swap_spell(spells['opener']['name'], 5) end
-            if mq.TLO.Me.Gem(6)() ~= spells['summer']['name'] then common.swap_spell(spells['summer']['name'], 6) end
-            if mq.TLO.Me.Gem(7)() ~= spells['healtot']['name'] then common.swap_spell(spells['healtot']['name'], 7) end
-            if mq.TLO.Me.Gem(8)() ~= spells['rune']['name'] then common.swap_spell(spells['rune']['name'], 8) end
-            if mq.TLO.Me.Gem(9)() ~= spells['dot']['name'] then common.swap_spell(spells['dot']['name'], 9) end
-            if mq.TLO.Me.Gem(10)() ~= spells['dotds']['name'] then common.swap_spell(spells['dotds']['name'], 10) end
-            if mq.TLO.Me.Gem(12)() ~= spells['dmgbuff']['name'] then common.swap_spell(spells['dmgbuff']['name'], 12) end
-            if mq.TLO.Me.Gem(13)() ~= spells['buffs']['name'] then common.swap_spell(spells['buffs']['name'], 13) end
+            common.swap_spell(spells['shots'], 1)
+            common.swap_spell(spells['focused'], 2)
+            common.swap_spell(spells['composite'], 3, composite_names)
+            common.swap_spell(spells['heart'], 4)
+            common.swap_spell(spells['opener'], 5)
+            common.swap_spell(spells['summer'], 6)
+            common.swap_spell(spells['healtot'], 7)
+            common.swap_spell(spells['rune'], 8)
+            common.swap_spell(spells['dot'], 9)
+            common.swap_spell(spells['dotds'], 10)
+            common.swap_spell(spells['dmgbuff'], 12)
+            common.swap_spell(spells['buffs'], 13)
             state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer:reset()

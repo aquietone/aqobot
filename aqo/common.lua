@@ -67,7 +67,7 @@ end
 ---@param spell_name string @The name of the spell.
 ---@param option_name string @The name of the option which controls whether this spell should be used.
 ---@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
-common.get_spellid_and_rank = function(spell_name, option_name)
+common.get_spell = function(spell_name, option_name)
     local spell_rank = mq.TLO.Spell(spell_name).RankName()
     if not mq.TLO.Me.Book(spell_rank)() then return nil end
     return {['id']=mq.TLO.Spell(spell_rank).ID(), ['name']=spell_rank, ['opt']=option_name}
@@ -76,7 +76,7 @@ end
 ---@param aa_name string @The name of the AA.
 ---@param option_name string @The name of the option which controls whether this AA should be used.
 ---@return table @Returns a table containing the AA name, AA ID and the provided option name.
-common.get_aaid_and_name = function(aa_name, option_name)
+common.get_aa = function(aa_name, option_name)
     if not mq.TLO.Me.AltAbility(aa_name)() then return nil end
     return {['id']=mq.TLO.Me.AltAbility(aa_name).ID(), ['name']=aa_name, ['opt']=option_name}
 end
@@ -84,7 +84,7 @@ end
 ---@param disc_name string @The name of the disc.
 ---@param option_name string @The name of the option which controls whether this disc should be used.
 ---@return table @Returns a table containing the disc name with rank, disc ID and the provided option name.
-common.get_discid_and_name = function(disc_name, option_name)
+common.get_disc = function(disc_name, option_name)
     local disc_rank = mq.TLO.Spell(disc_name).RankName()
     if not disc_rank then return nil end
     return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank, ['opt']=option_name}
@@ -327,7 +327,7 @@ common.use_ability = function(name)
 end
 
 local function item_ready(item)
-    if item() and item.Timer() == '0' then
+    if item() and item.Clicky.Spell() and item.Timer() == '0' then
         local spell = item.Clicky.Spell
         return can_use_spell(spell, 'item') and should_use_spell(spell)
     else
@@ -484,23 +484,27 @@ common.swap_gem_ready = function(spell_name, gem)
 end
 
 ---Swap the specified spell into the specified gem slot.
----@param spell_name string @The name of the spell to memorize.
+---@param spell userdata @The MQ Spell to memorize.
 ---@param gem number @The gem index to memorize the spell into.
-common.swap_spell = function(spell_name, gem)
-    if not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
-    mq.cmdf('/memspell %d "%s"', gem, spell_name)
-    mq.delay('3s', common.swap_gem_ready(spell_name, gem))
+---@param other_names table @List of spell names to compare against, because of dissident,dichotomic,composite
+common.swap_spell = function(spell, gem, other_names)
+    if not spell or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if mq.TLO.Me.Gem(gem)() == spell['name'] then return end
+    if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
+    mq.cmdf('/memspell %d "%s"', gem, spell['name'])
+    mq.delay('3s', common.swap_gem_ready(spell['name'], gem))
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
 
-common.swap_and_cast = function(spell_name, gem)
+common.swap_and_cast = function(spell, gem)
+    if not spell then return false end
     local restore_gem = nil
-    if not mq.TLO.Me.Gem(spell_name)() then
-        restore_gem = mq.TLO.Me.Gem(gem)()
-        common.swap_spell(spell_name, gem)
+    if not mq.TLO.Me.Gem(spell['name'])() then
+        restore_gem = {name=mq.TLO.Me.Gem(gem)()}
+        common.swap_spell(spell, gem)
     end
-    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spell_name)() end)
-    local did_cast = common.cast(spell_name)
+    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spell['name'])() end)
+    local did_cast = common.cast(spell['name'])
     if restore_gem then
         common.swap_spell(restore_gem, gem)
     end
