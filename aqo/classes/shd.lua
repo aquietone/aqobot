@@ -31,47 +31,48 @@ local OPTS = {
 }
 config.set_spell_set('standard')
 mq.cmd('/squelch /stick mod -2')
+mq.cmd('/squelch /stick set delaystrafe on')
 
 local spells = {
-    ['composite']=common.get_spell('Composite Fang'), -- big lifetap
-    ['alliance']=common.get_spell('Bloodletting Coalition'), -- alliance
+    ['composite']=common.get_spell('Composite Fang') or {id=nil,name=nil}, -- big lifetap
+    ['alliance']=common.get_spell('Bloodletting Coalition') or {id=nil,name=nil}, -- alliance
     -- Aggro
-    ['challenge']=common.get_spell('Parlay for Power'), -- main hate spell
-    ['terror']=common.get_spell('Terror of Ander'), -- ST increase hate by 1
-    ['aeterror']=common.get_spell('Antipathy'), -- ST increase hate by 1
+    ['challenge']=common.get_spell('Parlay for Power') or {id=nil,name=nil}, -- main hate spell
+    ['terror']=common.get_spell('Terror of Ander') or {id=nil,name=nil}, -- ST increase hate by 1
+    ['aeterror']=common.get_spell('Antipathy') or {id=nil,name=nil}, -- ST increase hate by 1
     --['']=common.get_spell('Usurper\'s Audacity'), -- increase hate by a lot, does this get used?
     -- Lifetaps
-    ['largetap']=common.get_spell('Dire Censure'), -- large lifetap
-    ['tap1']=common.get_spell('Touch of Txiki'), -- lifetap
-    ['tap2']=common.get_spell('Touch of Namdrows'), -- lifetap + temp hp buff Gift of Namdrows
-    ['dottap']=common.get_spell('Bond of Bynn'), -- lifetap dot
-    ['bitetap']=common.get_spell('Cruor\'s Bite'), -- lifetap with hp/mana recourse
+    ['largetap']=common.get_spell('Dire Censure') or {id=nil,name=nil}, -- large lifetap
+    ['tap1']=common.get_spell('Touch of Txiki') or {id=nil,name=nil}, -- lifetap
+    ['tap2']=common.get_spell('Touch of Namdrows') or {id=nil,name=nil}, -- lifetap + temp hp buff Gift of Namdrows
+    ['dottap']=common.get_spell('Bond of Bynn') or {id=nil,name=nil}, -- lifetap dot
+    ['bitetap']=common.get_spell('Cruor\'s Bite') or {id=nil,name=nil}, -- lifetap with hp/mana recourse
     -- AE lifetap + aggro
-    ['aetap']=common.get_spell('Insidious Renunciation'), -- large hate + lifetap
+    ['aetap']=common.get_spell('Insidious Renunciation') or {id=nil,name=nil}, -- large hate + lifetap
     -- DPS
-    ['spear']=common.get_spell('Spear of Bloodwretch'), -- poison nuke
-    ['poison']=common.get_spell('Blood of Tearc'), -- poison dot
-    ['disease']=common.get_spell('Plague of Fleshrot'), -- disease dot
-    ['corruption']=common.get_spell('Unscrupulous Blight'), -- corruption dot
-    ['acdis']=common.get_spell('Dire Seizure'), -- disease + ac dot
-    ['acdebuff']=common.get_spell('Torrent of Melancholy'), -- ac debuff
+    ['spear']=common.get_spell('Spear of Bloodwretch') or {id=nil,name=nil}, -- poison nuke
+    ['poison']=common.get_spell('Blood of Tearc') or {id=nil,name=nil}, -- poison dot
+    ['disease']=common.get_spell('Plague of Fleshrot') or {id=nil,name=nil}, -- disease dot
+    ['corruption']=common.get_spell('Unscrupulous Blight') or {id=nil,name=nil}, -- corruption dot
+    ['acdis']=common.get_spell('Dire Seizure') or {id=nil,name=nil}, -- disease + ac dot
+    ['acdebuff']=common.get_spell('Torrent of Melancholy') or {id=nil,name=nil}, -- ac debuff
     --['']=common.get_spell('Despicable Bargain'), -- nuke, does this get used?
     -- Short Term Buffs
-    ['stance']=common.get_spell('Adamant Stance'), -- temp HP buff, 2.5min
-    ['skin']=common.get_spell('Xenacious\' Skin'), -- Xenacious' Skin proc, 5min buff
-    ['disruption']=common.get_spell('Confluent Disruption'), -- lifetap proc on heal
+    ['stance']=common.get_spell('Adamant Stance') or {id=nil,name=nil}, -- temp HP buff, 2.5min
+    ['skin']=common.get_spell('Xenacious\' Skin') or {id=nil,name=nil}, -- Xenacious' Skin proc, 5min buff
+    ['disruption']=common.get_spell('Confluent Disruption') or {id=nil,name=nil}, -- lifetap proc on heal
     --['']=common.get_spell('Impertinent Influence'), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    ['pet']=common.get_spell('Minion of Itzal'), -- pet
-    ['pethaste']=common.get_spell('Gift of Itzal'), -- pet haste
+    ['pet']=common.get_spell('Minion of Itzal') or {id=nil,name=nil}, -- pet
+    ['pethaste']=common.get_spell('Gift of Itzal') or {id=nil,name=nil}, -- pet haste
     -- Unity Buffs
-    ['shroud']=common.get_spell('Shroud of Zelinstein'), -- Shroud of Zelinstein Strike proc
-    ['bezaproc']=common.get_spell('Mental Anguish'), -- Mental Anguish Strike proc
-    ['aziaproc']=common.get_spell('Brightfield\'s Horror'), -- Brightfield's Horror Strike proc
-    ['ds']=common.get_spell('Tekuel Skin'), -- large damage shield self buff
-    ['lich']=common.get_spell('Aten Ha Ra\'s Covenant'), -- lich mana regen
-    ['drape']=common.get_spell('Drape of the Akheva'), -- self buff hp, ac, ds
-    ['atkbuff']=common.get_spell('Penumbral Call'), -- atk buff, hp drain on self
+    ['shroud']=common.get_spell('Shroud of Zelinstein') or {id=nil,name=nil}, -- Shroud of Zelinstein Strike proc
+    ['bezaproc']=common.get_spell('Mental Anguish') or {id=nil,name=nil}, -- Mental Anguish Strike proc
+    ['aziaproc']=common.get_spell('Brightfield\'s Horror') or {id=nil,name=nil}, -- Brightfield's Horror Strike proc
+    ['ds']=common.get_spell('Tekuel Skin') or {id=nil,name=nil}, -- large damage shield self buff
+    ['lich']=common.get_spell('Aten Ha Ra\'s Covenant') or {id=nil,name=nil}, -- lich mana regen
+    ['drape']=common.get_spell('Drape of the Akheva') or {id=nil,name=nil}, -- self buff hp, ac, ds
+    ['atkbuff']=common.get_spell('Penumbral Call') or {id=nil,name=nil}, -- atk buff, hp drain on self
     --['']=common.get_spell('Remorseless Demeanor')
 }
 for name,spell in pairs(spells) do
@@ -244,11 +245,11 @@ local function find_next_spell()
         if common.is_spell_ready(spells['terror']) then return spells['terror'] end
     end
     -- taps
-    if myhp < 65 then
-        if common.is_spell_ready(spells['composite']) then return spells['composite'] end
+    if common.is_spell_ready(spells['composite']) then return spells['composite'] end
+    if myhp < 80 then
         if common.is_spell_ready(spells['largetap']) then return spells['largetap'] end
     end
-    if myhp < 90 then
+    if myhp < 95 then
         if common.is_spell_ready(spells['tap1']) then return spells['tap1'] end
     end
     if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(spells['tap2']) then return spells['tap2'] end
@@ -333,7 +334,7 @@ local function mash()
         local mobhp = target.PctHPs()
 
         -- hate's attraction
-        if OPTS.USEHATESATTRACTION and mobhp and mobhp > 95 then
+        if OPTS.USEHATESATTRACTION and attraction and mobhp and mobhp > 95 then
             common.use_aa(attraction)
         end
 
@@ -436,24 +437,24 @@ local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     -- stance, disruption, skin
-    if not mq.TLO.Me.Buff(spells['stance']['name'])() then
+    if spells['stance'] and not mq.TLO.Me.Buff(spells['stance']['name'])() then
         if common.cast(spells['stance']['name']) then return end
     end
-    if not mq.TLO.Me.Buff(spells['skin']['name'])() then
+    if spells['skin'] and not mq.TLO.Me.Buff(spells['skin']['name'])() then
         if common.cast(spells['skin']['name']) then return end
     end
 
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if OPTS.USEDISRUPTION and not mq.TLO.Me.Buff(spells['disruption']['name'])() then
+    if OPTS.USEDISRUPTION and spells['disruption'] and not mq.TLO.Me.Buff(spells['disruption']['name'])() then
         if common.swap_and_cast(spells['disruption'], 13) then return end
     end
 
-    if not OPTS.USEBEZA and missing_unity_buffs(buffazia['name']) then
+    if not OPTS.USEBEZA and buffazia and missing_unity_buffs(buffazia['name']) then
         if common.use_aa(buffazia) then return end
     end
-    if OPTS.USEBEZA and missing_unity_buffs(buffbeza['name']) then
+    if OPTS.USEBEZA and buffbeza and missing_unity_buffs(buffbeza['name']) then
         if common.use_aa(buffbeza) then return end
     end
 
@@ -465,7 +466,7 @@ local function check_buffs()
         end
     end
 
-    if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
+    if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 and spells['pethaste'] then
         if not mq.TLO.Pet.Buff(spells['pethaste']['name'])() and mq.TLO.Spell(spells['pethaste']['name']).StacksPet() and mq.TLO.Spell(spells['pethaste']['name']).Mana() < mq.TLO.Me.CurrentMana() then
             common.swap_and_cast(spells['pethaste'], 13)
         end
@@ -473,7 +474,7 @@ local function check_buffs()
 end
 
 local function check_pet()
-    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
+    if not spells['pet']['name'] or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(spells['pet'], 13)
@@ -524,9 +525,15 @@ shd.pull_func = function()
         mq.cmd('/squelch /nav stop')
         mq.delay(300)
     end
-    for _=1,3 do
-        if common.cast(spells['challenge']['name'], true) then return end
-        mq.delay(50)
+    if spells['challenge'] then
+        for _=1,3 do
+            --if common.cast(spells['challenge']['name'], true) then return end
+            if mq.TLO.Me.SpellReady(spells['challenge']['name'])() then
+                mq.cmdf('/cast %s', spells['challenge']['name'])
+                break
+            end
+            mq.delay(100)
+        end
     end
 end
 
@@ -565,47 +572,47 @@ shd.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
         state.set_tank_mob_id(0)
     end
-    check_spell_set()
-    if config.get_mode():is_tank_mode() then
-        -- get mobs in camp
-        camp.mob_radar()
-        -- pick mob to tank if not tanking
-        tank.find_mob_to_tank()
-        tank.tank_mob()
-    end
-    -- check whether we need to return to camp
-    camp.check_camp()
-    -- check whether we need to go chasing after the chase target
-    common.check_chase()
-    -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
-    oh_shit()
-    if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-        check_ae()
-    end
-    -- if in an assist mode
-    if config.get_mode():is_assist_mode() then
-        assist.check_target(shd.reset_class_timers)
-        assist.attack()
-    end
-    -- if in a pull mode and no mobs
-    if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and not common.hostile_xtargets() then
-        mq.cmd('/multiline ; /attack off; /autofire off;')
-        mq.delay(50)
-        if pull.check_pull_conditions() then
-            pull.pull_radar()
-            pull.pull_mob(shd.pull_func)
+    if not state.get_pull_in_progress() then
+        check_spell_set()
+        if config.get_mode():is_tank_mode() then
+            -- get mobs in camp
+            camp.mob_radar()
+            -- pick mob to tank if not tanking
+            tank.find_mob_to_tank()
+            tank.tank_mob()
         end
+        -- check whether we need to return to camp
+        camp.check_camp()
+        -- check whether we need to go chasing after the chase target
+        common.check_chase()
+        -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
+        oh_shit()
+        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+            check_ae()
+        end
+        -- if in an assist mode
+        if config.get_mode():is_assist_mode() then
+            assist.check_target(shd.reset_class_timers)
+            assist.attack()
+        end
+        -- begin actual combat stuff, if mob is in radius
+        local mob_x = mq.TLO.Target.X()
+        local mob_y = mq.TLO.Target.Y()
+        if mob_x and mob_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < config.get_camp_radius() then
+            assist.send_pet()
+            cycle_spells()
+            mash()
+            -- pop a bunch of burn stuff if burn conditions are met
+            try_burn()
+        end
+        common.check_mana()
+        check_buffs()
+        check_pet()
+        common.rest()
     end
-    -- begin actual combat stuff
-    assist.send_pet()
-    cycle_spells()
-    mash()
-    -- pop a bunch of burn stuff if burn conditions are met
-    try_burn()
-    common.check_mana()
-    check_buffs()
-    check_pet()
-    common.rest()
+    if config.get_mode():is_pull_mode() then
+        pull.pull_mob(shd.pull_func)
+    end
 end
 
 shd.draw_skills_tab = function()

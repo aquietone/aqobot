@@ -26,6 +26,7 @@ local OPTS = {
     NUKE=false,
     USEDISPEL=true,
     USEREGEN=false,
+    USECOMPOSITE=true,
 }
 config.set_spell_set('standard')
 mq.cmd('/squelch /stick mod 0')
@@ -95,6 +96,7 @@ table.insert(combat_heal_spells, spells['healtot'])
 -- entries in the items table are MQ item datatypes
 local burn_items = {}
 table.insert(burn_items, mq.TLO.FindItem('Rage of Rolfron').ID())
+table.insert(burn_items, mq.TLO.FindItem('Miniature Horn of Unity').ID())
 
 local mash_items = {}
 table.insert(mash_items, mq.TLO.InvSlot('Chest').Item.ID())
@@ -167,6 +169,7 @@ rng.load_settings = function()
     if settings.rng.NUKE ~= nil then OPTS.NUKE = settings.rng.NUKE end
     if settings.rng.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.rng.USEDISPEL end
     if settings.rng.USEREGEN ~= nil then OPTS.USEREGEN = settings.rng.USEREGEN end
+    if settings.rng.USECOMPOSITE ~= nil then OPTS.USEREGEN = settings.rng.USECOMPOSITE end
 end
 
 rng.save_settings = function()
@@ -203,8 +206,8 @@ local function get_ranged_combat_position(radius)
                     if allmobs - xtars == 0 then
                         logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
                         mq.cmdf('/squelch /nav locyxz %d %d %d log=off', y_off, x_off, z_off)
-                        mq.delay('1s', function() return mq.TLO.Navigation.Active() end)
-                        mq.delay('5s', function() return not mq.TLO.Navigation.Active() end)
+                        mq.delay(1000, function() return mq.TLO.Navigation.Active() end)
+                        mq.delay(5000, function() return not mq.TLO.Navigation.Active() end)
                         return true
                     end
                 end
@@ -282,14 +285,16 @@ local function find_next_spell()
     end
     for _,spell in ipairs(dot_spells) do
         if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.get_burn_always() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
-            if common.is_dot_ready(spell['id'], spell['name']) then
+            if common.is_dot_ready(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(arrow_spells) do
-        if common.is_spell_ready(spell) then
-            return spell
+        if not spells['composite']['name'] or spell['name'] ~= spells['composite']['name'] or OPTS.USECOMPOSITE then
+            if common.is_spell_ready(spell) then
+                return spell
+            end
         end
     end
     if OPTS.NUKE then
@@ -421,7 +426,7 @@ local function check_aggro()
             if mq.TLO.Me.PctAggro() >= 70 then
                 common.use_aa(fade)
                 check_aggro_timer:reset()
-                mq.delay('1s')
+                mq.delay(1000)
                 mq.cmd('/makemevis')
             end
         end
@@ -523,7 +528,7 @@ local function check_buffs()
             if tank_spawn() then
                 if spawn_missing_cachedbuff(tank_spawn, spells['ds']['name']) then
                     tank_spawn.DoTarget()
-                    mq.delay('1s') -- time to target and for buffs to be populated
+                    mq.delay(1000) -- time to target and for buffs to be populated
                     if target_missing_buff(spells['ds']['name']) then
                         if common.swap_and_cast(spells['ds'], 13) then return end
                     end
@@ -538,7 +543,7 @@ local function check_buffs()
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
                     if spells['buffs']['name'] and spawn_missing_cachedbuff(group_member, spells['buffs']['name']) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
-                        mq.delay('1s') -- time to target and for buffs to be populated
+                        mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(spells['buffs']['name']) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
                             if common.cast(spells['buffs']['name']) then return end
@@ -546,7 +551,7 @@ local function check_buffs()
                     end
                     if spells['dmgbuff']['name'] and spawn_missing_cachedbuff(group_member, spells['dmgbuff']['name']) then
                         group_member.DoTarget()
-                        mq.delay('1s') -- time to target and for buffs to be populated
+                        mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(spells['dmgbuff']['name']) then
                             if common.cast(spells['dmgbuff']['name']) then return end
                         end
@@ -652,6 +657,7 @@ rng.draw_skills_tab = function()
     OPTS.USERANGE = ui.draw_check_box('Use Ranged', '##userange', OPTS.USERANGE, 'Ranged DPS if possible')
     OPTS.NUKE = ui.draw_check_box('Use Nukes', '##nuke', OPTS.NUKE, 'Cast nukes on all mobs')
     OPTS.USEDOT = ui.draw_check_box('Use DoT', '##usedot', OPTS.USEDOT, 'Cast expensive DoT on all mobs')
+    OPTS.USECOMPOSITE = ui.draw_check_box('Use Composite', '##comp', OPTS.USECOMPOSITE, 'Cast composite as its available')
     OPTS.USEPOISONARROW = ui.draw_check_box('Use Poison Arrow', '##usepoison', OPTS.USEPOISONARROW, 'Use Poison Arrows AA')
     if OPTS.USEPOISONARROW then OPTS.USEFIREARROW = false end
     OPTS.USEFIREARROW = ui.draw_check_box('Use Fire Arrow', '##usefire', OPTS.USEFIREARROW, 'Use Fire Arrows AA')

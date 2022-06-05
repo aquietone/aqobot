@@ -221,7 +221,7 @@ local function cast_mez(spell_name)
     mq.delay(10)
     assist.check_target(brd.reset_class_timers)
     if mq.TLO.Target.ID() ~= mez_target_id then
-        mq.delay('1s')
+        mq.delay(1000)
         assist.attack()
     end
     mq.delay(3200, function() return not mq.TLO.Me.Casting() end)
@@ -375,9 +375,13 @@ local function mash()
             use_epic()
         end
         for _,aa in ipairs(mashAAs) do
-            if aa ~= 'Boastful Bellow' or (OPTS.USEBELLOW and boastful_timer:timer_expired()) then
-                if common.use_aa(aa) and aa == 'Boastful Bellow' then
-                    boastful_timer:reset()
+            if aa['name'] ~= 'Boastful Bellow' or (OPTS.USEBELLOW and boastful_timer:timer_expired()) then
+                if common.use_aa(aa) then
+                    if aa['name'] == 'Boastful Bellow' then
+                        boastful_timer:reset()
+                    elseif aa['name'] == 'Song of Stone' or aa['name'] == 'Lyrical Prankster' then
+                        mq.delay(1500)
+                    end
                 end
             end
         end
@@ -453,7 +457,7 @@ local function check_aggro()
         if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 50 then
             common.use_aa(fade)
             check_aggro_timer:reset()
-            mq.delay('1s')
+            mq.delay(1000)
             mq.cmd('/makemevis')
         end
     end
@@ -469,7 +473,7 @@ local function check_buffs()
             restore_gem = {name=mq.TLO.Me.Gem(1)()}
             common.swap_spell(spells['aura'], 1)
         end
-        mq.delay('3s', function() return mq.TLO.Me.Gem(spells['aura']['name'])() and mq.TLO.Me.GemTimer(spells['aura']['name'])() == 0  end)
+        mq.delay(3000, function() return mq.TLO.Me.Gem(spells['aura']['name'])() and mq.TLO.Me.GemTimer(spells['aura']['name'])() == 0  end)
         cast(spells['aura']['name'])
         if restore_gem then
             common.swap_spell(restore_gem, 1)
