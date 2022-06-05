@@ -164,8 +164,7 @@ assist.attack = function()
         mq.cmd('/squelch /nav stop')
     end
     if config.get_mode():get_name() ~= 'manual' and not mq.TLO.Stick.Active() and stick_timer:timer_expired() then
-        --mq.cmd('/squelch /stick loose moveback 10 uw')
-        mq.cmd('/squelch /stick snaproll rear moveback 10 uw')
+        mq.cmd('/squelch /stick loose behind moveback 10 uw')
         stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() then
