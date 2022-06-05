@@ -2,6 +2,7 @@
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
+local mez = require('aqo.routines.mez')
 local logger = require('aqo.utils.logger')
 local persistence = require('aqo.utils.persistence')
 local timer = require('aqo.utils.timer')
@@ -223,7 +224,7 @@ local function check_mez()
         mez.do_ae(spells['mezae']['name'], cast)
     end
     if OPTS.MEZST then
-        mez.do_st(spells['mezst']['name'], cast_mez)
+        mez.do_single(spells['mezst']['name'], cast_mez)
     end
     assist.check_target(brd.reset_class_timers)
 end
