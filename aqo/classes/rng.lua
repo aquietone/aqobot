@@ -702,56 +702,31 @@ rng.main_loop = function()
     mq.delay(1)
 end
 
-rng.draw_left_panel = function()
-    local current_mode = config.get_mode():get_name()
-    local current_camp_radius = config.get_camp_radius()
-    config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
-    config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
-    config.set_camp_radius(ui.draw_input_int('Camp Radius', '##campradius', config.get_camp_radius(), 'Camp radius to assist within'))
-    config.set_chase_target(ui.draw_input_text('Chase Target', '##chasetarget', config.get_chase_target(), 'Chase Target'))
-    config.set_chase_distance(ui.draw_input_int('Chase Distance', '##chasedist', config.get_chase_distance(), 'Distance to follow chase target'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
-        camp.set_camp()
-    end
-end
-
-rng.draw_right_panel = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    ui.get_next_item_loc()
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    ui.get_next_item_loc()
-    config.set_switch_with_ma(ui.draw_check_box('Switch With MA', '##switchwithma', config.get_switch_with_ma(), 'Switch targets with MA'))
-    ui.get_next_item_loc()
+rng.draw_skills_tab = function()
     OPTS.USEUNITYAZIA = ui.draw_check_box('Use Unity (Azia)', '##useazia', OPTS.USEUNITYAZIA, 'Use Azia Unity Buff')
     if OPTS.USEUNITYAZIA then OPTS.USEUNITYBEZA = false end
-    ui.get_next_item_loc()
     OPTS.USEUNITYBEZA = ui.draw_check_box('Use Unity (Beza)', '##usebeza', OPTS.USEUNITYBEZA, 'Use Beza Unity Buff')
     if OPTS.USEUNITYBEZA then OPTS.USEUNITYAZIA = false end
-    ui.get_next_item_loc()
     OPTS.USEMELEE = ui.draw_check_box('Use Melee', '##usemelee', OPTS.USEMELEE, 'Melee DPS if ranged is disabled or not enough room')
-    ui.get_next_item_loc()
     OPTS.USERANGE = ui.draw_check_box('Use Ranged', '##userange', OPTS.USERANGE, 'Ranged DPS if possible')
-    ui.get_next_item_loc()
     OPTS.NUKE = ui.draw_check_box('Use Nukes', '##nuke', OPTS.NUKE, 'Cast nukes on all mobs')
-    ui.get_next_item_loc()
     OPTS.USEDOT = ui.draw_check_box('Use DoT', '##usedot', OPTS.USEDOT, 'Cast expensive DoT on all mobs')
-    ui.get_next_item_loc()
     OPTS.USEPOISONARROW = ui.draw_check_box('Use Poison Arrow', '##usepoison', OPTS.USEPOISONARROW, 'Use Poison Arrows AA')
     if OPTS.USEPOISONARROW then OPTS.USEFIREARROW = false end
-    ui.get_next_item_loc()
     OPTS.USEFIREARROW = ui.draw_check_box('Use Fire Arrow', '##usefire', OPTS.USEFIREARROW, 'Use Fire Arrows AA')
     if OPTS.USEFIREARROW then OPTS.USEPOISONARROW = false end
-    ui.get_next_item_loc()
     OPTS.BUFFGROUP = ui.draw_check_box('Buff Group', '##buffgroup', OPTS.BUFFGROUP, 'Buff group members')
-    ui.get_next_item_loc()
     OPTS.DSTANK = ui.draw_check_box('DS Tank', '##dstank', OPTS.DSTANK, 'DS Tank')
-    ui.get_next_item_loc()
     OPTS.USEDISPEL = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEDISPEL, 'Dispel mobs with Entropy AA')
-    ui.get_next_item_loc()
     OPTS.USEREGEN = ui.draw_check_box('Use Regen', '##regen', OPTS.USEREGEN, 'Buff regen on self')
+end
+
+rng.draw_burn_tab = function()
+    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
+    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
+    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
+    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
+
 end
 
 return rng

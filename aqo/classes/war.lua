@@ -414,9 +414,6 @@ war.main_loop = function()
         check_end()
         pull.pull_radar()
         pull.pull_mob()
-        -- TODO: not necessarily a tank just because pulling
-        --tank.find_mob_to_tank()
-        --tank.tank_mob()
     end
     -- begin actual combat stuff
     assist.send_pet()
@@ -429,48 +426,25 @@ war.main_loop = function()
     mq.delay(1)
 end
 
-war.draw_left_panel = function()
-    local current_mode = config.get_mode():get_name()
-    local current_camp_radius = config.get_camp_radius()
-    config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
-    config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
-    config.set_camp_radius(ui.draw_input_int('Camp Radius', '##campradius', config.get_camp_radius(), 'Camp radius to assist within'))
-    config.set_chase_target(ui.draw_input_text('Chase Target', '##chasetarget', config.get_chase_target(), 'Chase Target'))
-    config.set_chase_distance(ui.draw_input_int('Chase Distance', '##chasedist', config.get_chase_distance(), 'Distance to follow chase target'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
-        camp.set_camp()
-    end
-end
-
-war.draw_right_panel = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    ui.get_next_item_loc()
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    ui.get_next_item_loc()
-    config.set_switch_with_ma(ui.draw_check_box('Switch With MA', '##switchwithma', config.get_switch_with_ma(), 'Switch targets with MA'))
-    ui.get_next_item_loc()
+war.draw_skills_tab = function()
     OPTS.USEBATTLELEAP = ui.draw_check_box('Use Battle Leap', '##useleap', OPTS.USEBATTLELEAP, 'Keep the Battle Leap AA Buff up')
-    ui.get_next_item_loc()
     OPTS.USEFORTITUDE = ui.draw_check_box('Use Fortitude', '##usefort', OPTS.USEFORTITUDE, 'Use Fortitude Discipline on burn')
-    ui.get_next_item_loc()
     OPTS.USEGRAPPLE = ui.draw_check_box('Use Grapple', '##usegrapple', OPTS.USEGRAPPLE, 'Use Grappling Strike AA')
-    ui.get_next_item_loc()
     OPTS.USEGRASP = ui.draw_check_box('Use Grasp', '##usegrasp', OPTS.USEGRASP, 'Use Warlord\'s Grasp AA')
-    ui.get_next_item_loc()
     OPTS.USEPHANTOM = ui.draw_check_box('Use Phantom', '##usephantom', OPTS.USEPHANTOM, 'Use Phantom Aggressor pet discipline')
-    ui.get_next_item_loc()
     OPTS.USEPROJECTION = ui.draw_check_box('Use Projection', '##useproj', OPTS.USEPROJECTION, 'Use Projection of Fury pet AA')
-    ui.get_next_item_loc()
     OPTS.USEEXPANSE = ui.draw_check_box('Use Expanse', '##useexpanse', OPTS.USEEXPANSE, 'Use Concordant Expanse for AE aggro')
     if OPTS.USEEXPANSE then OPTS.USEPRECISION = false end
-    ui.get_next_item_loc()
     OPTS.USEPRECISION = ui.draw_check_box('Use Precision', '##useprecision', OPTS.USEPRECISION, 'Use Concordant Precision for single target aggro')
     if OPTS.USEPRECISION then OPTS.USEEXPANSE = false end
-    ui.get_next_item_loc()
     OPTS.USESNARE = ui.draw_check_box('Use Snare', '##usesnare', OPTS.USESNARE, 'Use Call of Challenge AA, which includes a snare')
+end
+
+war.draw_burn_tab = function()
+    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
+    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
+    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
+    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
 end
 
 return war
