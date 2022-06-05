@@ -132,7 +132,7 @@ local function pull_nav_to(pull_spawn)
         -- TODO: disrupt if mob aggro otw to pull
         mq.delay('15s', function()
             if not pull_spawn or not mq.TLO.Navigation.Active() then
-                return false
+                return true
             end
             local dist3d = pull_spawn.Distance3D()
             -- return right away if we can't read distance, as pull spawn is probably no longer valid
@@ -224,7 +224,7 @@ local function pull_engage(pull_spawn, pull_func)
         -- TODO: disrupt if mob aggro otw to pull
         mq.delay('15s', function()
             if not pull_spawn or not mq.TLO.Navigation.Active() then
-                return false
+                return true
             end
             local dist3d = pull_spawn.Distance3D()
             -- return right away if we can't read distance, as pull spawn is probably no longer valid
@@ -301,7 +301,7 @@ pull.pull_mob = function(pull_func)
         clear_pull_vars()
     end
     -- return to camp
-    if config.get_mode():is_camp_mode() and state.get_camp() and not mq.TLO.Navigation.Active() then
+    if config.get_mode():is_camp_mode() and state.get_camp() then
         pull_return()
     end
     --common.TANK_MOB_ID = common.PULL_MOB_ID -- pull mob reached camp, mark it as tank mob

@@ -279,7 +279,16 @@ local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
     -- aggro
     if config.get_mode():is_tank_mode() and config.get_spell_set() == 'standard' and myhp > 70 then
-        if state.get_mob_count() > 2 and is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
+        if state.get_mob_count() > 2 then
+            local xtar_aggro_count = 0
+            for i=1,13 do
+                local xtar = mq.TLO.Me.XTarget(i)
+                if xtar.ID() ~= mq.TLO.Target.ID() and xtar.TargetType() == 'Auto Hater' and xtar.PctAggro() < 100 then
+                    xtar_aggro_count = xtar_aggro_count + 1
+                end
+            end
+            if xtar_aggro_count ~= 0 and is_spell_ready(spells['aeterror']) then return spells['aeterror'] end
+        end
         if is_spell_ready(spells['terror']) then return spells['terror'] end
     end
     -- taps
@@ -351,7 +360,7 @@ local function check_ae()
                 if common.use_aa(aa) then return end
             end
         end
-        if mobs_in_range >= 4 then
+        if mobs_in_range >= 3 then
             -- Discs to use when 4 or more mobs on aggro
             for _,aa in ipairs(mashAEAggroAAs4) do
                 if not aa['opt'] or OPTS[aa['opt']] then
