@@ -353,7 +353,9 @@ local function use_epic()
 end
 
 local function mash()
-    if common.is_fighting() or assist.should_assist() then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    --if common.is_fighting() or assist.should_assist() then
         if OPTS.USEEPIC == 'always' then
             use_epic()
         elseif OPTS.USEEPIC == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')() then
@@ -421,7 +423,8 @@ local function check_mana()
     common.check_mana()
     local pct_mana = mq.TLO.Me.PctMana()
     local pct_end = mq.TLO.Me.PctEndurance()
-    if not common.is_fighting() and (pct_mana < 20 or pct_end < 20) then
+    --if not common.is_fighting() and (pct_mana < 20 or pct_end < 20) then
+    if not mq.TLO.Me.CombatState() == 'COMBAT' and (pct_mana < 20 or pct_end < 20) then
         -- death bloom at some %
         common.use_aa(rallyingsolo)
     end
@@ -442,8 +445,9 @@ end
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
-    if common.is_fighting() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    --if common.is_fighting() then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then return end
+    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if not mq.TLO.Me.Aura(spells['aura']['name'])() then
         local restore_gem = nil
         if not mq.TLO.Me.Gem(spells['aura']['name'])() then
@@ -476,7 +480,8 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'melee' then
             if mq.TLO.Me.Gem(1)() ~= spells['aria']['name'] then common.swap_spell(spells['aria']['name'], 1) end

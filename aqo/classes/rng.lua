@@ -253,7 +253,8 @@ local function attack_range()
 end
 
 local function use_opener()
-    if not common.is_fighting() and state.get_assist_mob_id() > 0 and assist.should_assist() and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
+    if mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if assist.should_assist() and state.get_assist_mob_id() > 0 and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
         common.cast(spells['opener']['name'], true, true)
     end
 end
@@ -343,20 +344,25 @@ end
 
 local function cycle_spells()
     if not mq.TLO.Me.Invis() then
-        local spell = find_next_spell()
-        if spell then
-            if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                common.cast(spell['name'], true, true)
-            else
-                common.cast(spell['name'])
+        local cur_mode = config.get_mode()
+        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+            local spell = find_next_spell()
+            if spell then
+                if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
+                    common.cast(spell['name'], true, true)
+                else
+                    common.cast(spell['name'])
+                end
+                return true
             end
-            return true
         end
     end
 end
 
 local function mash()
-    if common.is_fighting() or assist.should_assist() then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    --if common.is_fighting() or assist.should_assist() then
         if OPTS.USEDISPEL then
             local target_hp = mq.TLO.Target.PctHPs()
             if target_hp and target_hp > 90 then
@@ -512,8 +518,8 @@ local function check_buffs()
     if not mq.TLO.Me.Song(chameleon['name'])() then
         common.use_aa(chameleon)
     end
-    if common.is_fighting() or mq.TLO.Me.AutoFire() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.AutoFire() then return end
+    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEPOISONARROW then
         if not mq.TLO.Me.Buff('Poison Arrows')() then
@@ -595,7 +601,7 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['shots']['name'] then common.swap_spell(spells['shots']['name'], 1) end

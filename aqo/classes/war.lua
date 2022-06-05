@@ -217,7 +217,9 @@ local function check_end()
 end
 
 local function mash()
-    if common.is_fighting() or assist.should_assist() then
+    local cur_mode = config.get_mode()
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    --if common.is_fighting() or assist.should_assist() then
         local target = mq.TLO.Target
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
@@ -301,7 +303,7 @@ local function try_burn()
 end
 
 local function oh_shit()
-    if mq.TLO.Me.PctHPs() < 35 and common.is_fighting() then
+    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         common.use_aa(resurgence)
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if mq.TLO.Me.CombatAbilityReady(flash['name'])() then
@@ -332,8 +334,8 @@ local function check_buffs()
         mq.cmd('/autoinv')
     end
 
-    if common.is_fighting() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then return end
+    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if not mq.TLO.Me.Song(aura['name'])() and not mq.TLO.Me.Moving() then
         common.use_disc(aura)

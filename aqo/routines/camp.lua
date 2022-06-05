@@ -53,10 +53,10 @@ end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 camp.check_camp = function()
-    if not config.get_mode():is_camp_mode() then return end
-    if common.am_i_dead() or mq.TLO.Me.Casting() then return end
-    if common.is_fighting() or not state.get_camp() then return end
-    if mq.TLO.Me.XTarget() > 0 then return end
+    if not config.get_mode():is_camp_mode() or not state.get_camp() then return end
+    if common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then return end
+    --if common.is_fighting() or not state.get_camp() then return end
+    --if mq.TLO.Me.XTarget() > 0 then return end
     if mq.TLO.Zone.ID() ~= state.get_camp().ZoneID then
         logger.printf('Clearing camp due to zoning.')
         state.set_camp(nil)
