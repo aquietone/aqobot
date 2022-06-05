@@ -87,6 +87,7 @@ local function cmd_bind(...)
         else
             logger.printf('Mode: %s', config:get_mode():get_name())
         end
+        camp.set_camp()
     elseif opt == 'resetcamp' then
         camp.set_camp(true)
     elseif opt == 'campradius' then
