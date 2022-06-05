@@ -1016,7 +1016,7 @@ common.check_mana = function()
 end
 
 common.rest = function()
-    if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and (mq.TLO.Me.PctMana() < 60 or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', common.OPTS.CAMPRADIUS))() == 0 then
+    if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', common.OPTS.CAMPRADIUS))() == 0 then
         mq.cmd('/sit')
     end
 end
