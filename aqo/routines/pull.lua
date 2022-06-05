@@ -184,7 +184,7 @@ local function pull_engage(pull_spawn, pull_func)
         mq.cmd('/squelch /nav stop')
         mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
     end
-    mq.cmd('/face fast')
+    mq.cmd('/squelch /face fast')
     --logger.printf('agroing mob')
     -- TODO: class pull abilities
     local get_closer = false
@@ -264,7 +264,7 @@ local function pull_return()
     mq.delay('30s', function() return not mq.TLO.Navigation.Active() end)
     -- wait for mob to show up
     logger.debug(state.get_debug(), 'Waiting for pull target to reach camp (%s)', state.get_pull_mob_id())
-    mq.cmd('/multiline ; /face fast; /squelch /target clear;')
+    mq.cmd('/multiline ; /squelch /face fast; /squelch /target clear;')
     -- TODO: swap to closer mobs in camp if any
     --if mq.TLO.Me.XTarget() == 0 then
     --    clear_pull_vars()
