@@ -258,7 +258,7 @@ local function mash()
                 common.use_ability(ability)
             end
         end
-        if targethp <= 20 then
+        if targethp and targethp <= 20 then
             common.use_disc(exploitive)
         end
     end
