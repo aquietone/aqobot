@@ -289,12 +289,14 @@ function config.add_ignore(zone_short_name, mob_name)
     if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then return end
     if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
+    logger.printf('Added pull ignore \ay%s\ax for zone \ar%s\ax', mob_name, zone_short_name)
     config.save_ignores()
 end
 
 function config.remove_ignore(zone_short_name, mob_name)
     if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then return end
     ignores[zone_short_name:lower()][mob_name] = nil
+    logger.printf('Removed pull ignore \ay%s\ax for zone \ar%s\ax', mob_name, zone_short_name)
     config.save_ignores()
 end
 
