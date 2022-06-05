@@ -235,7 +235,7 @@ local function is_dot_ready(spell)
     if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
         return false
     end
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
+    if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
 
     if not mq.TLO.Me.SpellReady(spellName)() then
         return false
@@ -571,7 +571,10 @@ shd.pull_func = function()
         mq.cmd('/squelch /nav stop')
         mq.delay(300)
     end
-    common.cast(spells['challenge']['name'], true, true)
+    for _=1,3 do
+        if common.cast(spells['challenge']['name'], true, true) then return end
+        mq.delay(50)
+    end
 end
 
 shd.setup_events = function()
