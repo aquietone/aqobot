@@ -329,12 +329,9 @@ local function check_ae()
     -- and not current target.
     -- if > 0, then we need some ae aggro
     local xtar_aggro_count = 0
-    for i=1,mq.TLO.Me.XTarget() do
+    for i=1,13 do
         local xtar = mq.TLO.Me.XTarget(i)
-        local xtarid = xtar.ID()
-        local targettype = xtar.TargetType()
-        local pctaggro = xtar.PctAggro()
-        if xtarid ~= mq.TLO.Target.ID() and targettype == 'Auto Hater' and pctaggro and pctaggro < 100 then
+        if xtar.ID() ~= mq.TLO.Target.ID() and xtar.Type() == 'Auto Hater' and xtar.PctAggro() < 100 then
             xtar_aggro_count = xtar_aggro_count + 1
         end
     end
@@ -485,7 +482,7 @@ local function check_buffs()
         if common.cast(spells['skin']['name']) then return end
     end
 
-    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then return end
+    if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEDISRUPTION and not mq.TLO.Me.Buff(spells['disruption']['name'])() then
@@ -515,7 +512,7 @@ local function check_buffs()
 end
 
 local function check_pet()
-    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
+    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(spells['pet']['name'], 13)
@@ -523,7 +520,7 @@ end
 
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
-    if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['tap1']['name'] then common.swap_spell(spells['tap1']['name'], 1) end
@@ -626,7 +623,7 @@ shd.main_loop = function()
         assist.attack()
     end
     -- if in a pull mode and no mobs
-    if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and mq.TLO.Me.XTarget() == 0 then
+    if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and not common.hostile_xtargets() then
         mq.cmd('/multiline ; /squelch /nav stop; /attack off; /autofire off;')
         mq.delay(50)
         pull.pull_radar()

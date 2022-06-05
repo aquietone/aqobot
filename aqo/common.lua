@@ -106,6 +106,22 @@ common.is_fighting = function()
     return mq.TLO.Me.CombatState() == 'COMBAT'--mq.TLO.Target.ID() and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target.Type() == "NPC"-- and mq.TLO.Me.Standing()
 end
 
+---Determine if there are any hostile targets on XTarget.
+---@return boolean @Returns true if at least 1 hostile auto hater spawn on XTarget, otherwise false.
+common.hostile_xtargets = function()
+    if mq.TLO.Me.XTarget() == 0 then return false end
+    for i=1,13 do
+        if mq.TLO.Me.XTarget(i).Type() == 'Auto Hater' then
+            return true
+        end
+    end
+    return false
+end
+
+common.clear_to_buff = function()
+    return mq.TLO.Me.CombatState() ~= 'COMBAT' and not common.hostile_xtargets()
+end
+
 common.is_fighting_modebased = function()
     local mode = config.get_mode()
     if mode:is_tank_mode() then
@@ -237,7 +253,7 @@ end
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 ---@param name string @The name of the ability to use.
 common.use_ability = function(name)
-    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() and mq.TLO.Me.XTarget() > 0 then
+    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
     end
@@ -277,7 +293,7 @@ local function can_use_aa(name)
         local dist3d = mq.TLO.Target.Distance3D()
         if not dist3d or dist3d > spell.Range() then return false end
         if mq.TLO.Target.MyBuff(name)() then return false end
-        if mq.TLO.Me.XTarget() == 0 then return false end
+        --if mq.TLO.Me.XTarget() == 0 then return false end
     elseif spell.TargetType() == 'Self' then
         if mq.TLO.Me.Song(name)() or mq.TLO.Me.Buff(name)() then return false end
         if not mq.TLO.Spell(spell.Name()).Stacks() then return false end
@@ -353,7 +369,7 @@ local function can_use_disc(name)
         if not mq.TLO.Target() then return false end
         local dist3d = mq.TLO.Target.Distance3D()
         if not dist3d or dist3d > mq.TLO.Spell(name).Range() then return false end
-        if mq.TLO.Me.XTarget() == 0 then return false end
+        --if mq.TLO.Me.XTarget() == 0 then return false end
     end
     return true
 end
@@ -416,7 +432,7 @@ common.is_burn_condition_met = function(always_condition)
         state.set_burn_now(false)
         return true
     --elseif common.is_fighting() then
-    elseif mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.XTarget() > 0 then
+    elseif mq.TLO.Me.CombatState() == 'COMBAT' or common.hostile_xtargets() then
         local zone_sn = mq.TLO.Zone.ShortName():lower()
         if config.get_burn_always() then
             if always_condition and not always_condition() then

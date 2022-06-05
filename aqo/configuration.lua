@@ -1,3 +1,5 @@
+--- @type mq
+local mq = require 'mq'
 local logger = require('aqo.utils.logger')
 local persistence = require('aqo.utils.persistence')
 local modes = require('aqo.mode')
