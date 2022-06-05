@@ -125,7 +125,7 @@ local function pull_nav_to(pull_spawn)
     end
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
         logger.debug(state.get_debug(), 'Moving to pull target (%s)', state.get_pull_mob_id())
-        if not mq.TLO.Navigation.Active() then
+        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.get_pull_mob_id()))() then
             mq.cmdf('/nav spawn id %d | log=off', state.get_pull_mob_id())
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
         end
@@ -217,7 +217,7 @@ local function pull_engage(pull_spawn, pull_func)
     mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
 
     if not common.hostile_xtargets() and get_closer then
-        if not mq.TLO.Navigation.Active() then
+        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.get_pull_mob_id()))() then
             mq.cmdf('/nav spawn id %d | log=off', pull_mob_id)
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
         end

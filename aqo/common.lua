@@ -178,7 +178,7 @@ common.check_chase = function()
     local chase_y = chase_spawn.Y()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.get_chase_distance() then
-        if not mq.TLO.Nav.Active() then
+        if not mq.TLO.Nav.Active() and mq.TLO.Nav.PathExists(string.format('spawn pc =%s', config.get_chase_target()))() then
             mq.cmdf('/nav spawn pc =%s | log=off', config.get_chase_target())
         end
     end

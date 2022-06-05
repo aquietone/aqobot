@@ -64,7 +64,7 @@ camp.check_camp = function()
     end
     local my_camp = state.get_camp()
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), my_camp.X, my_camp.Y) > 15 then
-        if not mq.TLO.Nav.Active() then
+        if not mq.TLO.Nav.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', my_camp.Y, my_camp.X, my_camp.Z))() then
             mq.cmdf('/nav locyxz %d %d %d log=off', my_camp.Y, my_camp.X, my_camp.Z)
         end
     end

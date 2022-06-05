@@ -130,6 +130,7 @@ assist.get_combat_position = function()
     if not target_id or target_id == 0 or (target_distance and target_distance > config.get_camp_radius()) or state.get_paused() then
         return
     end
+    if not mq.TLO.Navigation.PathExists(string.format('id %d', target_id))() then return end
     mq.cmdf('/nav id %d log=off', target_id)
     local begin_time = timer.current_time()
     while true do
@@ -150,7 +151,7 @@ assist.check_los = function()
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) then
     --if config.get_mode():get_name() ~= 'manual' and (common.is_fighting() or assist.should_assist()) then
-        if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
+        if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists('target')() then
             mq.cmd('/nav target log=off')
         end
     end
