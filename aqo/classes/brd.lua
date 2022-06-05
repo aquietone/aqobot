@@ -424,7 +424,7 @@ local function check_mana()
     local pct_mana = mq.TLO.Me.PctMana()
     local pct_end = mq.TLO.Me.PctEndurance()
     --if not common.is_fighting() and (pct_mana < 20 or pct_end < 20) then
-    if not mq.TLO.Me.CombatState() == 'COMBAT' and (pct_mana < 20 or pct_end < 20) then
+    if mq.TLO.Me.CombatState() ~= 'COMBAT' and (pct_mana < 20 or pct_end < 20) then
         -- death bloom at some %
         common.use_aa(rallyingsolo)
     end
