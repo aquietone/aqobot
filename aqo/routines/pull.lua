@@ -24,6 +24,8 @@ local function check_mob_angle(pull_spawn)
     local pull_arc = config.get_pull_arc()
     if pull_arc == 360 or pull_arc == 0 then return true end
     local camp = state.get_camp()
+    -- TODO: pull arcs without camp set???
+    if not camp then return true end
     local direction_to_mob = pull_spawn.HeadingTo(camp.Y, camp.X).Degrees()
     if not direction_to_mob then return false end
     -- switching from non-puller mode to puller mode, the camp may not be updated yet

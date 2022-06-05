@@ -4,6 +4,7 @@ local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
 local logger = require('aqo.utils.logger')
 local persistence = require('aqo.utils.persistence')
+local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
 local mode = require('aqo.mode')
@@ -367,7 +368,7 @@ end
 local function is_nec_burn_condition_met()
     if OPTS.BURNPROC and target_has_proliferation() then
         logger.printf('\arActivating Burns (proliferation proc)\ax')
-        state.set_burn_active_timer(common.current_time())
+        state.get_burn_active_timer():reset()
         state.set_burn_active(true)
         return true
     end
@@ -510,17 +511,17 @@ local function safe_to_stand()
     end
 end
 
-local check_aggro_timer = 0
+local check_aggro_timer = timer:new(10)
 local function check_aggro()
     if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.timer_expired(check_aggro_timer, 10) then
+        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
                 if mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
                     common.use_aa(dyinggrasp)
                 end
                 common.use_aa(deathseffigy)
                 if mq.TLO.Me.Feigning() then
-                    check_aggro_timer = common.current_time()
+                    check_aggro_timer:reset()
                     mq.delay(500)
                     if safe_to_stand() then
                         mq.TLO.Me.Sit() -- Use a sit TLO to stand up, what wizardry is this?
@@ -530,7 +531,7 @@ local function check_aggro()
             elseif mq.TLO.Me.PctAggro() >= 70 then
                 common.use_aa(deathpeace)
                 if mq.TLO.Me.Feigning() then
-                    check_aggro_timer = common.current_time()
+                    check_aggro_timer:reset()
                     mq.delay(500)
                     if safe_to_stand() then
                         mq.TLO.Me.Sit() -- Use a sit TLO to stand up, what wizardry is this?
@@ -542,24 +543,24 @@ local function check_aggro()
     end
 end
 
-local rez_timer = 0
+local rez_timer = timer:new(5)
 local function check_rez()
     if not OPTS.USEREZ or common.am_i_dead() then return end
-    if common.time_remaining(rez_timer, 5) then return end
+    if not rez_timer:timer_expired() then return end
     if not mq.TLO.Me.AltAbilityReady(convergence['name'])() then return end
     if mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
     if mq.TLO.SpawnCount('pccorpse group healer radius 100')() > 0 then
         mq.TLO.Spawn('pccorpse group healer radius 100').DoTarget()
         mq.cmd('/corpse')
         common.use_aa(convergence)
-        rez_timer = common.current_time()
+        rez_timer:reset()
         return
     end
     if mq.TLO.SpawnCount('pccorpse raid healer radius 100')() > 0 then
         mq.TLO.Spawn('pccorpse raid healer radius 100').DoTarget()
         mq.cmd('/corpse')
         common.use_aa(convergence)
-        rez_timer = common.current_time()
+        rez_timer:reset()
         return
     end
     if mq.TLO.Group.MainTank() and mq.TLO.Group.MainTank.Dead() then
@@ -569,7 +570,7 @@ local function check_rez()
         if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) > 100 then return end
         mq.cmd('/corpse')
         common.use_aa(convergence)
-        rez_timer = common.current_time()
+        rez_timer:reset()
         return
     end
     for i=1,5 do
@@ -580,7 +581,7 @@ local function check_rez()
             if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) < 100 then
                 mq.cmd('/corpse')
                 common.use_aa(convergence)
-                rez_timer = common.current_time()
+                rez_timer:reset()
                 return
             end
         end
@@ -698,10 +699,10 @@ local function should_swap_dots()
     end
 end
 
-local check_spell_timer = 0
+local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or common.timer_expired(check_spell_timer, 30) then
+    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= 'Composite Paroxysm' then common.swap_spell(spells['composite']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['pyreshort']['name'] then common.swap_spell(spells['pyreshort']['name'], 2) end
@@ -727,7 +728,7 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(13)() ~= spells['synergy']['name'] then common.swap_spell(spells['synergy']['name'], 13) end
             state.set_spellset_loaded(config.get_spell_set())
         end
-        check_spell_timer = common.current_time()
+        check_spell_timer:reset()
         swap_gem = mq.TLO.Me.Gem(spells['wounds']['name'])() or mq.TLO.Me.Gem(spells['fireshadow']['name'])() or mq.TLO.Me.Gem(spells['pyrelong']['name'])() or 10
         swap_gem_dis = mq.TLO.Me.Gem(spells['decay']['name'])() or mq.TLO.Me.Gem(spells['grip']['name'])() or 11
     end
@@ -813,50 +814,37 @@ nec.process_cmd = function(opt, new_value)
                 logger.printf('Setting %s to: %s', opt, new_value)
                 config.set_spell_set(new_value)
             end
-        elseif opt == 'ASSIST' then
-            if common.ASSISTS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
-                config.set_assist(new_value)
-            end
-        --[[elseif type(OPTS[opt]) == 'boolean' or type(common.OPTS[opt]) == 'boolean' then
-            if new_value == '0' or new_value == 'off' then
+        elseif type(OPTS[opt]) == 'boolean' then
+            if common.BOOL.FALSE[new_value] then
                 logger.printf('Setting %s to: false', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = false end
                 if OPTS[opt] ~= nil then OPTS[opt] = false end
-            elseif new_value == '1' or new_value == 'on' then
+            elseif common.BOOL.TRUE[new_value] then
                 logger.printf('Setting %s to: true', opt)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = true end
                 if OPTS[opt] ~= nil then OPTS[opt] = true end
             end
-        elseif type(OPTS[opt]) == 'number' or type(common.OPTS[opt]) == 'number' then
+        elseif type(OPTS[opt]) == 'number' then
             if tonumber(new_value) then
                 logger.printf('Setting %s to: %s', opt, tonumber(new_value))
-                OPTS[opt] = tonumber(new_value)
-                if common.OPTS[opt] ~= nil then common.OPTS[opt] = tonumber(new_value) end
                 if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
-            end]]--
+            end
         else
             logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
-        if opt == 'PREP' then
-            pre_pop_burns()
-        elseif OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt, OPTS[opt])
-        --elseif common.OPTS[opt] ~= nil then
-        --    logger.printf('%s: %s', opt, common.OPTS[opt])
+        if OPTS[opt] ~= nil then
+            logger.printf('%s: %s', opt:lower(), OPTS[opt])
         else
             logger.printf('Unrecognized option: %s', opt)
         end
     end
 end
 
-local nec_count_timer = 0
+local nec_count_timer = timer:new(60)
 nec.main_loop = function()
     -- keep cursor clear for spell swaps and such
-    if config.get_use_alliance() and common.timer_expired(nec_count_timer, 60) then
+    if config.get_use_alliance() and nec_count_timer:timer_expired() then
         get_necro_count()
-        nec_count_timer = common.current_time()
+        nec_count_timer:reset()
     end
     -- ensure correct spells are loaded based on selected spell set
     -- currently only checks at startup or when selection changes

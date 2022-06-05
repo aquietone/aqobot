@@ -1,6 +1,13 @@
-local timer = {}
+---@class Timer
+local Timer = {
+    expiration=0,
+    start_time = 0,
+}
 
-function timer:new(expiration)
+---Initialize a new timer istance.
+---@param expiration number @The number of seconds after the start time which the timer will be expired.
+---@return Timer @The timer instance.
+function Timer:new(expiration)
     local t = {}
     setmetatable(t, self)
     self.__index = self
@@ -11,37 +18,35 @@ end
 
 ---Return the current time in seconds.
 ---@return number @Returns a number representing the current time in seconds.
-function timer.current_time()
+function Timer.current_time()
     return os.time()
 end
 
-function timer:reset()
-    self.start_time = timer.current_time()
+---Reset the start time value to the current time.
+---@param to_value number @The value to reset the timer to.
+function Timer:reset(to_value)
+    self.start_time = to_value or Timer.current_time()
 end
 
----Check whether the specified timer has passed the given expiration.
----@param t number @The current value of the timer.
----@param expiration number @The number of seconds which must have passed for the timer to be expired.
----@return boolean
-function timer:timer_expired()
-    if os.difftime(timer.current_time(), self.start_time) > self.expiration then
+---Check whether the specified timer has passed its expiration.
+---@return boolean @Returns true if the timer has expired, otherwise false.
+function Timer:timer_expired()
+    if os.difftime(Timer.current_time(), self.start_time) > self.expiration then
         return true
     else
         return false
     end
 end
 
----Check whether the time remaining on the given timer is less than the provided value.
----@param t number @The current value of the timer.
----@param less_than number @The maximum number of seconds remaining to return true.
----@return boolean @Returns true if the timer has less than the specified number of seconds remaining.
-function timer:time_remaining(less_than)
-    return not timer:timer_expired()
+---Get the time remaining before the timer expires.
+---@return number @Returns the number of seconds remaining until the timer expires.
+function Timer:time_remaining()
+    return self.expiration - os.difftime(Timer.current_time(), self.start_time)
 end
 
 
 --[[local mq = require('mq')
-local my_timer = timer:new(10)
+local my_timer = Timer:new(10)
 
 -- by default, timer begins expired because initial start time is 0, so this loop ends immediately
 while true do
@@ -61,9 +66,9 @@ while true do
         print('timer expired')
         break
     else
-        print('not yet')
+        print(my_timer:time_remaining())
     end
     mq.delay(1000)
-end
-]]--
-return timer
+end]]--
+
+return Timer

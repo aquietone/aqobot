@@ -1,8 +1,9 @@
 --- @type mq
 local mq = require 'mq'
+local logger = require('aqo.utils.logger')
+local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
-local logger = require('aqo.utils.logger')
 local state = require('aqo.state')
 
 local camp = {}
@@ -29,7 +30,7 @@ camp.mob_radar = function()
                     num_corpses = num_corpses+1
                 elseif not targets[mob_id] then
                     logger.debug(state.get_debug(), 'Adding mob_id %d', mob_id)
-                    targets[mob_id] = {meztimer=0}
+                    targets[mob_id] = {meztimer=timer:new(30)}
                 end
             end
         end
