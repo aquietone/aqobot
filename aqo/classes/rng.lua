@@ -321,7 +321,7 @@ local function find_next_spell()
         end
     end
     for _,spell in ipairs(dot_spells) do
-        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT then
+        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if is_dot_ready(spell['id'], spell['name']) then
                 return spell
             end
