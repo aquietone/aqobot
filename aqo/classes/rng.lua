@@ -133,6 +133,10 @@ table.insert(mashAbilities, 'Kick')
 local dispel = common.get_aaid_and_name('Entropy of Nature') -- dispel 9 slots
 local snare = common.get_aaid_and_name('Entrap')
 local fade = common.get_aaid_and_name('Cover Tracks')
+local evasion = common.get_aaid_and_name('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
+local brownies = common.get_aaid_and_name('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
+local chameleon = common.get_aaid_and_name('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
+local protection = common.get_aaid_and_name('Protection of the Spirit Wolf') -- 20min cd, large rune
 local unity_azia = common.get_aaid_and_name('Wildstalker\'s Unity (Azia)')
 --Slot 1: 	Devastating Barrage
 --Slot 2: 	Steeled by the Hunt
@@ -441,8 +445,13 @@ local function try_burn()
     end
 end
 
+-- fade -- cover tracks
+-- evasion -- 7min cd, 30sec buff, avoidance
 --local check_aggro_timer = timer:new(10)
 local function check_aggro()
+    if mq.TLO.Me.PctHPs() < 50 then
+        common.use_aa(evasion)
+    end
     --[[
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
@@ -497,6 +506,12 @@ local group_buff_timer = timer:new(60)
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
+    if not mq.TLO.Me.Buff(brownies['name'])() then
+        common.use_aa(brownies)
+    end
+    if not mq.TLO.Me.Song(chameleon['name'])() then
+        common.use_aa(chameleon)
+    end
     if common.is_fighting() or mq.TLO.Me.AutoFire() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
