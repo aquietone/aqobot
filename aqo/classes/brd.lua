@@ -29,28 +29,28 @@ mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
 local spells = {
-    ['aura']=common.get_spellid_and_rank('Aura of Pli Xin Liako'), -- spell dmg, overhaste, flurry, triple atk
-    ['composite']=common.get_spellid_and_rank('Composite Psalm'), -- DD+melee dmg bonus + small heal
-    ['aria']=common.get_spellid_and_rank('Aria of Pli Xin Liako'), -- spell dmg, overhaste, flurry, triple atk
-    ['warmarch']=common.get_spellid_and_rank('War March of Centien Xi Va Xakra'), -- haste, atk, ds
-    ['arcane']=common.get_spellid_and_rank('Arcane Harmony'), -- spell dmg proc
-    ['suffering']=common.get_spellid_and_rank('Shojralen\'s Song of Suffering'), -- melee dmg proc
-    ['spiteful']=common.get_spellid_and_rank('Von Deek\'s Spiteful Lyric'), -- AC
-    ['pulse']=common.get_spellid_and_rank('Pulse of Nikolas'), -- heal focus + regen
-    ['sonata']=common.get_spellid_and_rank('Xetheg\'s Spry Sonata'), -- spell shield, AC, dmg mitigation
-    ['dirge']=common.get_spellid_and_rank('Dirge of the Restless'), -- spell+melee dmg mitigation
-    ['firenukebuff']=common.get_spellid_and_rank('Constance\'s Aria'), -- inc fire DD
-    ['firemagicdotbuff']=common.get_spellid_and_rank('Fyrthek Fior\'s Psalm of Potency'), -- inc fire+mag dot
-    ['crescendo']=common.get_spellid_and_rank('Zelinstein\'s Lively Crescendo'), -- small heal hp, mana, end
-    ['insult']=common.get_spellid_and_rank('Yelinak\'s Insult'), -- synergy DD
-    ['insult2']=common.get_spellid_and_rank('Sogran\'s Insult'), -- synergy DD 2
-    ['chantflame']=common.get_spellid_and_rank('Shak Dathor\'s Chant of Flame'),
-    ['chantfrost']=common.get_spellid_and_rank('Sylra Fris\' Chant of Frost'),
-    ['chantdisease']=common.get_spellid_and_rank('Coagulus\' Chant of Disease'),
-    ['chantpoison']=common.get_spellid_and_rank('Cruor\'s Chant of Poison'),
-    ['alliance']=common.get_spellid_and_rank('Coalition of Sticks and Stones'),
-    ['mezst']=common.get_spellid_and_rank('Slumber of the Diabo'),
-    ['mezae']=common.get_spellid_and_rank('Wave of Nocturn'),
+    ['aura']=common.get_spellid_and_rank('Aura of Pli Xin Liako') or common.get_spellid_and_rank('Aura of Margidor') or common.get_spellid_and_rank('Aura of Begalru') or {name=nil,id=nil}, -- spell dmg, overhaste, flurry, triple atk
+    ['composite']=common.get_spellid_and_rank('Composite Psalm') or common.get_spellid_and_rank('Dissident Psalm') or common.get_spellid_and_rank('Dichotomic Psalm') or {name=nil,id=nil}, -- DD+melee dmg bonus + small heal
+    ['aria']=common.get_spellid_and_rank('Aria of Pli Xin Liako') or common.get_spellid_and_rank('Aria of Margidor') or {name=nil,id=nil}, -- spell dmg, overhaste, flurry, triple atk
+    ['warmarch']=common.get_spellid_and_rank('War March of Centien Xi Va Xakra') or common.get_spellid_and_rank('War March of Radiwol') or {name=nil,id=nil}, -- haste, atk, ds
+    ['arcane']=common.get_spellid_and_rank('Arcane Harmony')or common.get_spellid_and_rank('Arcane Ballad') or {name=nil,id=nil}, -- spell dmg proc
+    ['suffering']=common.get_spellid_and_rank('Shojralen\'s Song of Suffering') or common.get_spellid_and_rank('Omorden\'s Song of Suffering') or {name=nil,id=nil}, -- melee dmg proc
+    ['spiteful']=common.get_spellid_and_rank('Von Deek\'s Spiteful Lyric') or common.get_spellid_and_rank('Kaficus\' Spiteful Lyric') or {name=nil,id=nil}, -- AC
+    ['pulse']=common.get_spellid_and_rank('Pulse of Nikolas') or common.get_spellid_and_rank('Pulse of Vhal`Sera') or {name=nil,id=nil}, -- heal focus + regen
+    ['sonata']=common.get_spellid_and_rank('Xetheg\'s Spry Sonata') or common.get_spellid_and_rank('Kellek\'s Spry Sonata') or {name=nil,id=nil}, -- spell shield, AC, dmg mitigation
+    ['dirge']=common.get_spellid_and_rank('Dirge of the Restless') or {name=nil,id=nil},-- or common.get_spellid_and_rank('Dirge of the Restless'), -- spell+melee dmg mitigation
+    ['firenukebuff']=common.get_spellid_and_rank('Constance\'s Aria') or common.get_spellid_and_rank('Sontalak\'s Aria') or {name=nil,id=nil}, -- inc fire DD
+    ['firemagicdotbuff']=common.get_spellid_and_rank('Fyrthek Fior\'s Psalm of Potency') or common.get_spellid_and_rank('Velketor\'s Psalm of Potency') or {name=nil,id=nil}, -- inc fire+mag dot
+    ['crescendo']=common.get_spellid_and_rank('Zelinstein\'s Lively Crescendo') or common.get_spellid_and_rank('Zburator\'s Lively Crescendo') or {name=nil,id=nil}, -- small heal hp, mana, end
+    ['insult']=common.get_spellid_and_rank('Yelinak\'s Insult') or common.get_spellid_and_rank('Sathir\'s Insult') or {name=nil,id=nil}, -- synergy DD
+    ['insult2']=common.get_spellid_and_rank('Sogran\'s Insult') or common.get_spellid_and_rank('Omorden\'s Insult') or {name=nil,id=nil}, -- synergy DD 2
+    ['chantflame']=common.get_spellid_and_rank('Shak Dathor\'s Chant of Flame') or common.get_spellid_and_rank('Sontalak\'s Chant of Flame') or {name=nil,id=nil},
+    ['chantfrost']=common.get_spellid_and_rank('Sylra Fris\' Chant of Frost') or common.get_spellid_and_rank('Yelinak\'s Chant of Frost') or {name=nil,id=nil},
+    ['chantdisease']=common.get_spellid_and_rank('Coagulus\' Chant of Disease') or common.get_spellid_and_rank('Zlexak\'s Chant of Disease') or {name=nil,id=nil},
+    ['chantpoison']=common.get_spellid_and_rank('Cruor\'s Chant of Poison') or common.get_spellid_and_rank('Malvus\'s Chant of Poison') or {name=nil,id=nil},
+    ['alliance']=common.get_spellid_and_rank('Coalition of Sticks and Stones') or common.get_spellid_and_rank('Covenant of Sticks and Stones') or {name=nil,id=nil},
+    ['mezst']=common.get_spellid_and_rank('Slumber of the Diabo') or common.get_spellid_and_rank('Slumber of Zburator') or {name=nil,id=nil},
+    ['mezae']=common.get_spellid_and_rank('Wave of Nocturn') or common.get_spellid_and_rank('Wave of Sleep') or common.get_spellid_and_rank('Wave of Somnolence') or {name=nil,id=nil},
 }
 for name,spell in pairs(spells) do
     if spell['name'] then
