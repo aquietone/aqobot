@@ -28,6 +28,23 @@ local OPTS = {
 config.set_spell_set('melee')
 mq.cmd('/squelch /stick mod 0')
 
+--[[
+    - aria
+    - chant of flame
+    - chant of frost
+    - song of suffering
+    - yelinaks insult
+    - war march
+    - chant of disease
+    - sathir's insult
+    - ae mez
+    - chant of poison
+    - pulse
+    - composite
+    - dirge
+
+    general use AAs: bladed song, cacophony, boastful bellow, epic+fierce eye, lyrical prankster
+]]
 -- All spells ID + Rank name
 local spells = {
     ['aura']=common.get_spell('Aura of Pli Xin Liako') or common.get_spell('Aura of Margidor') or common.get_spell('Aura of Begalru') or {name=nil,id=nil}, -- spell dmg, overhaste, flurry, triple atk
