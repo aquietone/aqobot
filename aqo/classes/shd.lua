@@ -179,6 +179,8 @@ table.insert(burnDPSAAs, common.get_aaid_and_name('Chattering Bones', 'USESWARM'
 table.insert(burnDPSAAs, common.get_aaid_and_name('Visage of Death')) -- 12min CD, melee dmg burn
 table.insert(burnDPSAAs, common.get_aaid_and_name('Visage of Decay')) -- 12min CD, dot dmg burn
 
+local leechtouch = common.get_aaid_and_name('Leech Touch') -- 9min CD, giant lifetap
+
 -- Buffs
 -- dark lord's unity azia X -- shroud of zelinstein, brightfield's horror, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
 local buffazia = common.get_aaid_and_name('Dark Lord\'s Unity (Azia)')
@@ -317,25 +319,44 @@ local function cycle_spells()
     end
 end
 
-local aggro_nopet_count = 'xtarhater radius %d zradius 50 nopet'
+local aggro_nopet_count = 'xtarhater radius 50 zradius 50 nopet'
 local function check_ae()
     if common.am_i_dead() then return end
-    local mobs_on_aggro = mq.TLO.SpawnCount(aggro_nopet_count:format(config.get_camp_radius()))()
-    if mobs_on_aggro >= 2 then
+    -- count number of aggro mobs on xtarget that are < 100% aggro
+    -- and not current target.
+    -- if > 0, then we need some ae aggro
+    local xtar_aggro_count = 0
+    for i=1,mq.TLO.Me.XTarget() do
+        local xtar = mq.TLO.Me.XTarget(i)
+        local xtarid = xtar.ID()
+        local targettype = xtar.TargetType()
+        local pctaggro = xtar.PctAggro()
+        if xtarid ~= mq.TLO.Target.ID() and targettype == 'Auto Hater' and pctaggro and pctaggro < 100 then
+            xtar_aggro_count = xtar_aggro_count + 1
+        end
+    end
+    -- if 1 or more mobs on xtarget < 100 aggro then no ae needed
+    if xtar_aggro_count == 0 then return end
+    -- now see how many xtarhater spawns are actually in range of ae
+    local mobs_in_range = mq.TLO.SpawnCount(aggro_nopet_count)()
+    if mobs_in_range >= 3 then
+        local epicitem = mq.TLO.FindItem(epic)
+        common.use_item(epicitem)
+        common.use_disc(carapace)
+    end
+    if mobs_in_range >= 2 then
         -- Discs to use when 2 or more mobs on aggro
         for _,aa in ipairs(mashAEAggroAAs2) do
             if not aa['opt'] or OPTS[aa['opt']] then
-                common.use_aa(aa)
+                if common.use_aa(aa) then return end
             end
         end
-        if mobs_on_aggro >= 3 then
-            local epicitem = mq.TLO.FindItem(epic)
-            common.use_item(epicitem)
-            if mobs_on_aggro >= 4 then
+        if mobs_in_range >= 3 then
+            if mobs_in_range >= 4 then
                 -- Discs to use when 4 or more mobs on aggro
                 for _,aa in ipairs(mashAEAggroAAs4) do
                     if not aa['opt'] or OPTS[aa['opt']] then
-                        common.use_aa(aa)
+                        if common.use_aa(aa) then return end
                     end
                 end
             end
@@ -436,6 +457,7 @@ local function oh_shit()
             elseif OPTS.USEDEFLECTION then
                 common.use_disc(deflection)
             end
+            common.use_aa(leechtouch)
         end
     end
 end
@@ -454,33 +476,24 @@ local function check_buffs()
     common.check_combat_buffs()
     -- stance, disruption, skin
     if not mq.TLO.Me.Buff(spells['stance']['name'])() then
-        common.cast(spells['stance']['name'])
+        if common.cast(spells['stance']['name']) then return end
     end
     if not mq.TLO.Me.Buff(spells['skin']['name'])() then
-        common.cast(spells['skin']['name'])
+        if common.cast(spells['skin']['name']) then return end
     end
 
     if common.is_fighting() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if OPTS.USEDISRUPTION and not mq.TLO.Me.Buff(spells['disruption']['name'])() then
-        local restore_gem = nil
-        if not mq.TLO.Me.Gem(spells['disruption']['name'])() then
-            restore_gem = mq.TLO.Me.Gem(13)()
-            common.swap_spell(spells['disruption']['name'], 13)
-        end
-        mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['disruption']['name'])() end)
-        common.cast(spells['disruption']['name'])
-        if restore_gem then
-            common.swap_spell(restore_gem, 13)
-        end
+        if common.swap_and_cast(spells['disruption']['name'], 13) then return end
     end
 
     if not OPTS.USEBEZA and missing_unity_buffs(buffazia['name']) then
-        common.use_aa(buffazia)
+        if common.use_aa(buffazia) then return end
     end
     if OPTS.USEBEZA and missing_unity_buffs(buffbeza['name']) then
-        common.use_aa(buffbeza)
+        if common.use_aa(buffbeza) then return end
     end
 
     common.check_item_buffs()
@@ -493,16 +506,7 @@ local function check_buffs()
 
     if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
         if not mq.TLO.Pet.Buff(spells['pethaste']['name'])() and mq.TLO.Spell(spells['pethaste']['name']).StacksPet() and mq.TLO.Spell(spells['pethaste']['name']).Mana() < mq.TLO.Me.CurrentMana() then
-            local restore_gem = nil
-            if not mq.TLO.Me.Gem(spells['pethaste']['name'])() then
-                restore_gem = mq.TLO.Me.Gem(13)()
-                common.swap_spell(spells['pethaste']['name'], 13)
-            end
-            mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['pethaste']['name'])() end)
-            common.cast(spells['pethaste']['name'])
-            if restore_gem then
-                common.swap_spell(restore_gem, 13)
-            end
+            common.swap_and_cast(spells['pethaste']['name'], 13)
         end
     end
 end
@@ -511,16 +515,7 @@ local function check_pet()
     if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
-    local restore_gem = nil
-    if not mq.TLO.Me.Gem(spells['pet']['name'])() then
-        restore_gem = mq.TLO.Me.Gem(13)()
-        common.swap_spell(spells['pet']['name'], 13)
-    end
-    mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['pet']['name'])() end)
-    common.cast(spells['pet']['name'])
-    if restore_gem then
-        common.swap_spell(restore_gem, 13)
-    end
+    common.swap_and_cast(spells['pet']['name'], 13)
 end
 
 local check_spell_timer = timer:new(30)
@@ -563,6 +558,10 @@ local function check_spell_set()
 end
 
 shd.pull_func = function()
+    if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
+        mq.cmd('/squelch /nav stop')
+        mq.delay(300)
+    end
     common.cast(spells['challenge']['name'], true, true)
 end
 

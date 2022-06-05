@@ -1,4 +1,5 @@
 local logger = require('aqo.utils.logger')
+local persistence = require('aqo.utils.persistence')
 local modes = require('aqo.mode')
 
 local config = {}
@@ -46,19 +47,34 @@ local pull_min_level = 0
 
 local pull_max_level = 0
 
+local ignores = {}
+
 ---Check whether the specified file exists or not.
 ---@param file_name string @The name of the file to check existence of.
 ---@return boolean @Returns true if the file exists, false otherwise.
-local function file_exists(file_name)
+function config.file_exists(file_name)
     local f = io.open(file_name, "r")
     if f ~= nil then io.close(f) return true else return false end
+end
+
+---Load mob ignore lists file
+function config.load_ignores()
+    local ignore_file = ('%s/%s'):format(mq.configDir, 'aqo_ignore.lua')
+    if config.file_exists(ignore_file) then
+        ignores = assert(loadfile(ignore_file))()
+    end
+end
+
+function config.save_ignores()
+    local ignore_file = ('%s/%s'):format(mq.configDir, 'aqo_ignore.lua')
+    persistence.store(ignore_file, ignores)
 end
 
 ---Load common settings from settings file
 ---@param settings_file string @The name of the settings file to load.
 ---@return table @Returns a table containing the loaded settings file content.
 function config.load_settings(settings_file)
-    if not file_exists(settings_file) then return end
+    if not config.file_exists(settings_file) then return end
     local settings = assert(loadfile(settings_file))()
     if not settings or not settings.common then return settings end
     if settings.common.MODE ~= nil then mode = modes.from_string(settings.common.MODE) end
@@ -257,6 +273,30 @@ end
 
 function config.set_pull_max_level(new_pull_max_level)
     pull_max_level = new_pull_max_level
+end
+
+function config.get_ignores(zone_short_name)
+    if not zone_short_name then
+        return ignores
+    else
+        return ignores[zone_short_name]
+    end
+end
+
+function config.add_ignore(zone_short_name, mob_name)
+    if ignores[zone_short_name][mob_name] then return false end
+    ignores[zone_short_name][mob_name] = true
+    return true
+end
+
+function config.remove_ignore(zone_short_name, mob_name)
+    if not ignores[zone_short_name][mob_name] then return false end
+    ignores[zone_short_name][mob_name] = nil
+    return true
+end
+
+function config.ignores_contains(zone_short_name, mob_name)
+    return ignores[zone_short_name][mob_name]
 end
 
 --for k,v in pairs(config.get_all()) do
