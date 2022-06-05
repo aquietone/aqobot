@@ -94,7 +94,8 @@ end
 ---@return boolean @True if standing with an NPC targeted, and not in a resting state, false otherwise.
 common.is_fighting = function()
     --if mq.TLO.Target.CleanName() == 'Combat Dummy Beza' then return true end -- Dev hook for target dummy
-    return mq.TLO.Target.ID() ~= nil and mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Me.Standing() and not mq.TLO.Me.Feigning() and mq.TLO.Target.Type() == "NPC" and mq.TLO.Target.Type() ~= "Corpse"
+    -- mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Target.Type() ~= "Corpse" and not mq.TLO.Me.Feigning()
+    return mq.TLO.Target.ID() and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.Standing() and mq.TLO.Target.Type() == "NPC"
 end
 
 ---Calculate the distance between two points (x1,y1), (x2,y2).
@@ -188,6 +189,7 @@ common.cast = function(spell_name, requires_target, requires_los)
         if requires_los and not mq.TLO.Target.LineOfSight() then return end
         local dist3d = mq.TLO.Target.Distance3D()
         if not dist3d or dist3d > mq.TLO.Spell(spell_name).MyRange() then return end
+        if mq.TLO.Spell(name).TargetType() == 'Single' and mq.TLO.Me.XTarget() == 0 then return end
     end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
@@ -208,7 +210,7 @@ end
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 ---@param name string @The name of the ability to use.
 common.use_ability = function(name)
-    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() then
+    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() and mq.TLO.Me.XTarget() > 0 then
         mq.cmdf('/doability %s', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
     end
@@ -244,8 +246,9 @@ local function can_use_aa(name)
     if spell.TargetType() == 'Single' then
         if not mq.TLO.Target() then return false end
         local dist3d = mq.TLO.Target.Distance3D()
-        if dist3d and dist3d < spell.Range() then return false end
+        if not dist3d or dist3d > spell.Range() then return false end
         if mq.TLO.Target.MyBuff(name)() then return false end
+        if mq.TLO.Me.XTarget() == 0 then return false end
     elseif spell.TargetType() == 'Self' then
         if mq.TLO.Me.Song(name)() or mq.TLO.Me.Buff(name)() then return false end
         if not mq.TLO.Spell(spell.Name()).Stacks() then return false end
@@ -321,6 +324,7 @@ local function can_use_disc(name)
         if not mq.TLO.Target() then return false end
         local dist3d = mq.TLO.Target.Distance3D()
         if not dist3d or dist3d > mq.TLO.Spell(name).Range() then return false end
+        if mq.TLO.Me.XTarget() == 0 then return false end
     end
     return true
 end
@@ -503,6 +507,14 @@ common.check_cursor = function()
     end
 end
 
+---Event callback for handling spell resists from mobs
+---@param line any
+---@param target_name any
+---@param spell_name any
+local function event_resist(line, target_name, spell_name)
+
+end
+
 ---Set common.I_AM_DEAD flag to true in the event of death.
 local function event_dead()
     logger.printf('HP hit 0. what do!')
@@ -514,6 +526,7 @@ common.setup_events = function()
     mq.event('event_dead_released', '#*#Returning to Bind Location#*#', event_dead)
     mq.event('event_dead', 'You died.', event_dead)
     mq.event('event_dead_slain', 'You have been slain by#*#', event_dead)
+    mq.event('event_resist', '#1# resisted your #2#!', event_resist)
 end
 
 return common
