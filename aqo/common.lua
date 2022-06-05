@@ -81,12 +81,6 @@ common.get_discid_and_name = function(disc_name, option_name)
     return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank, ['opt']=option_name}
 end
 
----Check that we nothing is currently being cast.
----@return boolean @Returns true if not currently casting anything, false otherwise.
-common.can_cast_weave = function()
-    return not mq.TLO.Me.Casting()
-end
-
 ---Check whether the specified dot is applied to the target.
 ---@param spell_id number @The ID of the spell to check.
 ---@param spell_name string @The name of the spell to check.
@@ -231,7 +225,7 @@ common.use_item = function(item)
             if not dist3d or dist3d > item.Clicky.Spell.Range() then return end
         end
         if item.Clicky.Spell.TargetType() == 'Self' and not mq.TLO.Spell(item.Clicky.Spell.Name()).Stacks() then return end
-        if common.can_cast_weave() then
+        if not mq.TLO.Me.Casting() then
             logger.printf('Use Item: \ax\ar%s\ax', item)
             mq.cmdf('/useitem "%s"', item)
             mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -239,26 +233,42 @@ common.use_item = function(item)
     end
 end
 
+---Determine whether conditions are met to use the AA specified by name.
+---@param name string @The AA to use.
+---@return boolean @Returns true if the AA can be used, otherwise false.
+local function can_use_aa(name)
+    if not common.in_control() or mq.TLO.Me.Casting() then return false end
+    local spell = mq.TLO.Me.AltAbility(name).Spell
+    if spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < state.get_min_end() then return false end
+    if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return false end
+    if spell.TargetType() == 'Single' then
+        if not mq.TLO.Target() then return false end
+        local dist3d = mq.TLO.Target.Distance3D()
+        if dist3d and dist3d < spell.Range() then return false end
+        if mq.TLO.Target.MyBuff(name)() then return false end
+    elseif spell.TargetType() == 'Self' then
+        if mq.TLO.Me.Song(name)() or mq.TLO.Me.Buff(name)() then return false end
+        if not mq.TLO.Spell(spell.Name()).Stacks() then return false end
+    end
+    return true
+end
+
+---Determine whether an AA is ready, including checking whether the character is currently capable.
+---@param name string @The name of the AA to be used.
+---@return boolean @Returns true if the AA is ready to be used, otherwise false.
+local function aa_ready(name)
+    if mq.TLO.Me.AltAbilityReady(name)() then
+        return can_use_aa(name)
+    else
+        return false
+    end
+end
+
 ---Use the AA specified in the passed in table aa.
 ---@param aa table @A table containing the AA name and ID.
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 common.use_aa = function(aa)
-    if not common.in_control() or mq.TLO.Me.Casting() then return end
-    if mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < state.get_min_end() then return end
-    if mq.TLO.Me.AltAbility(aa['name']).Spell.Mana() > mq.TLO.Me.CurrentMana() then return end
-    if mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return end
-    if mq.TLO.Me.AltAbility(aa['name']).Spell.TargetType() == 'Single' then
-        if not mq.TLO.Target() then return end
-        local dist3d = mq.TLO.Target.Distance3D()
-        if dist3d and dist3d < mq.TLO.Me.AltAbility(aa['name']).Spell.Range() and not mq.TLO.Target.MyBuff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() then
-            logger.printf('Use AA: \ax\ar%s\ax', aa['name'])
-            mq.cmdf('/alt activate %d', aa['id'])
-            mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-            mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(aa['name'])() end)
-            return true
-        end
-    elseif not mq.TLO.Me.Song(aa['name'])() and not mq.TLO.Me.Buff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() then
-        if mq.TLO.Me.AltAbility(aa['name']).Spell.TargetType() == 'Self' and not mq.TLO.Spell(mq.TLO.Me.AltAbility(aa['name']).Spell.Name()).Stacks() then return end
+    if aa_ready(aa['name']) then
         logger.printf('Use AA: \ax\ar%s\ax', aa['name'])
         mq.cmdf('/alt activate %d', aa['id'])
         mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -268,6 +278,26 @@ common.use_aa = function(aa)
     return false
 end
 
+--[[
+bool IsActiveDisc(EQ_Spell* pSpell) {
+    if (!InGame())
+        return false;
+
+    if ((pSpell->DurationType == 11 || pSpell->DurationType == 15) &&
+        pSpell->SpellType == ST_Beneficial &&
+        pSpell->TargetType == TT_Self &&
+        (pSpell->Skill == 33 || pSpell->Skill == 15) &&
+        pSpell->spaindex == 51 &&
+        pSpell->SpellAnim != 0 &&
+        pSpell->Subcategory != 155)
+        return true;
+
+    return false;
+}
+]]--
+---Determine whether the disc specified by name is an "active" disc that appears in ${Me.ActiveDisc}.
+---@param name string @The name of the disc to check.
+---@return boolean @Returns true if the disc is an active disc, otherwise false.
 local function is_disc(name)
     if mq.TLO.Spell(name).IsSkill() and (tonumber(mq.TLO.Spell(name).Duration()) and tonumber(mq.TLO.Spell(name).Duration()) > 0) and mq.TLO.Spell(name).TargetType() == 'Self' and not mq.TLO.Spell(name).StacksWithDiscs() then
         return true
@@ -276,13 +306,11 @@ local function is_disc(name)
     end
 end
 
-local function disc_ready(name)
-    if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
-        return true
-    end
-end
-
-local function conditions_valid(name)
+---Determine whether conditions are met to use the disc specified by name.
+---@param name string @The disc to use.
+---@return boolean @Returns true if the disc can be used, otherwise false.
+local function can_use_disc(name)
+    if not common.in_control() or mq.TLO.Me.Casting() then return false end
     if mq.TLO.Spell(name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() then
         return false
     end
@@ -297,14 +325,22 @@ local function conditions_valid(name)
     return true
 end
 
+---Determine whether an disc is ready, including checking whether the character is currently capable.
+---@param name string @The name of the disc to be used.
+---@return boolean @Returns true if the disc is ready to be used, otherwise false.
+local function disc_ready(name)
+    if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
+        return can_use_disc(name)
+    else
+        return false
+    end
+end
+
 ---Use the disc specified in the passed in table disc.
 ---@param disc table @A table containing the disc name and ID.
 ---@param overwrite boolean @The name of a disc which should be stopped in order to run this disc.
----@param skip_duration_check boolean @Indivate whether to skip checking the disc duration and current active disc, primarily for Breather line of discs.
-common.use_disc = function(disc, overwrite, skip_duration_check)
-    if not common.in_control() or mq.TLO.Me.Casting() then return end
-
-    if disc_ready(disc['name']) and conditions_valid(disc['name']) then
+common.use_disc = function(disc, overwrite)
+    if disc_ready(disc['name']) then
         if not is_disc(disc['name']) or not mq.TLO.Me.ActiveDisc.ID() then
             logger.printf('Use Disc: \ax\ar%s\ax', disc['name'])
             if disc['name']:find('Composite') then
