@@ -141,7 +141,7 @@ camp.set_camp = function(reset)
             end
             mq.cmdf('/squelch /maploc size 10 width 1 color 0 0 255 radius %s rcolor 0 0 255 %s %s', config.get_pull_radius(), my_camp.Y, my_camp.X)
         end
-        logger.printf('Camp set to X: %s Y: %s Z: %s R: %s H: %s', my_camp.X, my_camp.Y, my_camp.Z, config.get_camp_radius(), my_camp.HEADING)
+        logger.printf('Camp set to X: %.02f Y: %.02f Z: %.02f R: %s H: %s', my_camp.X, my_camp.Y, my_camp.Z, config.get_camp_radius(), my_camp.HEADING)
         mq.cmdf('/squelch /maploc size 10 width 1 color 255 0 0 radius %s rcolor 255 0 0 %s %s', config.get_camp_radius(), my_camp.Y+1, my_camp.X+1)
         state.set_camp(my_camp)
     elseif my_camp then

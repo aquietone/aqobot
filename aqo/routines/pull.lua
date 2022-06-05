@@ -290,11 +290,9 @@ pull.pull_mob = function(pull_func)
     else
         logger.printf('Mobs on xtarget, canceling pull and returning to camp')
         clear_pull_vars()
-        pull_return()
-        return
     end
     -- return to camp
-    if state.get_camp() and not mq.TLO.Navigation.Active() then
+    if config.get_mode():is_camp_mode() and state.get_camp() and not mq.TLO.Navigation.Active() then
         pull_return()
     end
     --common.TANK_MOB_ID = common.PULL_MOB_ID -- pull mob reached camp, mark it as tank mob
