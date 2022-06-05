@@ -68,10 +68,10 @@ local function cmd_bind(...)
         camp.set_camp(true)
     elseif args[1] == 'radius' then
         get_or_set_opt('PULLRADIUS', config.get_pull_radius(), args[2], config.set_pull_radius)
-        camp.set_camp(true)
+        camp.set_camp()
     elseif args[1] == 'pullarc' then
         get_or_set_opt('PULLARC', config.get_pull_arc(), args[2], config.set_pull_arc)
-        camp.set_camp(true)
+        camp.set_camp()
     elseif args[1] == 'levelmin' then
         get_or_set_opt('PULLMINLEVEL', config.get_pull_min_level(), args[2], config.set_pull_min_level)
     elseif args[1] == 'levelmax' then
@@ -138,7 +138,7 @@ while true do
             -- stay in camp or stay chasing chase target if not paused but invis
             local pet_target_id = mq.TLO.Pet.Target.ID() or 0
             if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
-            common.mob_radar()
+            camp.mob_radar()
             if (mode:is_tank_mode() and state.get_mob_count() > 0) or (mode:is_assist_mode() and assist.should_assist()) then mq.cmd('/makemevis') end
             camp.check_camp()
             common.check_chase()

@@ -64,9 +64,9 @@ local spells = {
 -- Pyroclastic Boon, 
 for name,spell in pairs(spells) do
     if spell['name'] then
-        common.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
+        logger.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
     else
-        common.printf('[%s] Could not find spell!', name)
+        logger.printf('[%s] Could not find spell!', name)
     end
 end
 
@@ -188,7 +188,7 @@ local function get_ranged_combat_position(radius)
         if mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', y_off, x_off, z_off))() then
             if mq.TLO.LineOfSight(string.format('%d,%d,%d:%d,%d,%d', y_off, x_off, z_off, mob_y, mob_x, mob_z))() then
                 if mq.TLO.EverQuest.ValidLoc(string.format('%d %d %d', x_off, y_off, z_off))() then
-                    common.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
+                    logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
                     mq.cmdf('/squelch /nav locyxz %d %d %d', y_off, x_off, z_off)
                     mq.delay('1s', function() return mq.TLO.Navigation.Active() end)
                     mq.delay('5s', function() return not mq.TLO.Navigation.Active() end)
@@ -571,31 +571,31 @@ rng.process_cmd = function(opt, new_value)
             end
         --[[elseif type(OPTS[opt]) == 'boolean' or type(common.OPTS[opt]) == 'boolean' then
             if new_value == '0' or new_value == 'off' then
-                common.printf('Setting %s to: false', opt)
+                logger.printf('Setting %s to: false', opt)
                 if common.OPTS[opt] ~= nil then common.OPTS[opt] = false end
                 if OPTS[opt] ~= nil then OPTS[opt] = false end
             elseif new_value == '1' or new_value == 'on' then
-                common.printf('Setting %s to: true', opt)
+                logger.printf('Setting %s to: true', opt)
                 if common.OPTS[opt] ~= nil then common.OPTS[opt] = true end
                 if OPTS[opt] ~= nil then OPTS[opt] = true end
             end
         elseif type(OPTS[opt]) == 'number' or type(common.OPTS[opt]) == 'number' then
             if tonumber(new_value) then
-                common.printf('Setting %s to: %s', opt, tonumber(new_value))
+                logger.printf('Setting %s to: %s', opt, tonumber(new_value))
                 OPTS[opt] = tonumber(new_value)
                 if common.OPTS[opt] ~= nil then common.OPTS[opt] = tonumber(new_value) end
                 if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
             end]]--
         else
-            common.printf('Unsupported command line option: %s %s', opt, new_value)
+            logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if OPTS[opt] ~= nil then
-            common.printf('%s: %s', opt, OPTS[opt])
+            logger.printf('%s: %s', opt, OPTS[opt])
         --elseif common.OPTS[opt] ~= nil then
-        --    common.printf('%s: %s', opt, common.OPTS[opt])
+        --    logger.printf('%s: %s', opt, common.OPTS[opt])
         else
-            common.printf('Unrecognized option: %s', opt)
+            logger.printf('Unrecognized option: %s', opt)
         end
     end
 end
@@ -631,10 +631,8 @@ end
 
 rng.draw_left_panel = function()
     local current_mode = config.get_mode():get_name()
+    local current_camp_radius = config.get_camp_radius()
     config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    if current_mode ~= config.get_mode():get_name() then
-        camp.set_camp(true)
-    end
     config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
     config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
     config.set_camp_radius(ui.draw_input_int('Camp Radius', '##campradius', config.get_camp_radius(), 'Camp radius to assist within'))
@@ -642,6 +640,9 @@ rng.draw_left_panel = function()
     config.set_chase_distance(ui.draw_input_int('Chase Distance', '##chasedist', config.get_chase_distance(), 'Distance to follow chase target'))
     config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
     config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
+    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
+        camp.set_camp()
+    end
 end
 
 rng.draw_right_panel = function()

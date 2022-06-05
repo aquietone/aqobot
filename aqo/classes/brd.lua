@@ -226,7 +226,7 @@ local function check_mez()
         if mq.TLO.Me.Gem(spells['mezae']['name'])() and mq.TLO.Me.GemTimer(spells['mezae']['name'])() == 0 then
             logger.printf('AE Mezzing (MOB_COUNT=%d)', state.get_mob_count())
             cast(spells['mezae']['name'])
-            common.mob_radar()
+            camp.mob_radar()
             for id,_ in pairs(state.get_targets()) do
                 local mob = mq.TLO.Spawn('id '..id)
                 if mob() and not MEZ_IMMUNES[mob.CleanName()] then
@@ -691,10 +691,8 @@ end
 
 brd.draw_left_panel = function()
     local current_mode = config.get_mode():get_name()
+    local current_camp_radius = config.get_camp_radius()
     config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    if current_mode ~= config.get_mode():get_name() then
-        camp.set_camp(true)
-    end
     config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
     config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
     config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
@@ -704,6 +702,9 @@ brd.draw_left_panel = function()
     OPTS.USEEPIC = ui.draw_combo_box('Epic', OPTS.USEEPIC, EPIC_OPTS, true)
     config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
     config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
+    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
+        camp.set_camp()
+    end
 end
 
 brd.draw_right_panel = function()

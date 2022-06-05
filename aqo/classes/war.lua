@@ -389,10 +389,8 @@ end
 
 war.draw_left_panel = function()
     local current_mode = config.get_mode():get_name()
+    local current_camp_radius = config.get_camp_radius()
     config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), mode.mode_names)))
-    if current_mode ~= config.get_mode():get_name() then
-        camp.set_camp(true)
-    end
     config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
     config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
     config.set_camp_radius(ui.draw_input_int('Camp Radius', '##campradius', config.get_camp_radius(), 'Camp radius to assist within'))
@@ -400,6 +398,9 @@ war.draw_left_panel = function()
     config.set_chase_distance(ui.draw_input_int('Chase Distance', '##chasedist', config.get_chase_distance(), 'Distance to follow chase target'))
     config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
     config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
+    if current_mode ~= config.get_mode():get_name() or current_camp_radius ~= config.get_camp_radius() then
+        camp.set_camp()
+    end
 end
 
 war.draw_right_panel = function()

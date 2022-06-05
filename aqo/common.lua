@@ -141,7 +141,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.get_mode():get_name() ~= 'chase' then return end
-    if common.am_i_dead() or mq.TLO.Stick.Active() then return end
+    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.get_chase_target())
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
@@ -186,15 +186,6 @@ common.convert_heading = function(heading)
         heading = 90 - heading
     end
     return heading
-end
-
----Navigate to the current target if if isn't in LOS and should be.
-common.check_los = function()
-    if config.get_mode():get_name() ~= 'manual' and (common.is_fighting() or assist.should_assist()) then
-        if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
-            mq.cmd('/nav target log=off')
-        end
-    end
 end
 
 -- Casting Functions
