@@ -185,7 +185,7 @@ local function pull_engage(pull_spawn)
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
         mq.cmd('/attack on')
-        mq.delay('1s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
+        mq.delay('3s', function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() end)
     else
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
@@ -251,7 +251,7 @@ local function pull_return()
     mq.delay('30s', function() return not mq.TLO.Navigation.Active() end)
     -- wait for mob to show up
     logger.debug(state.get_debug(), 'Waiting for pull target to reach camp (%s)', state.get_pull_mob_id())
-    mq.cmd('/face fast')
+    mq.cmd('/multiline ; /face fast; /squelch /target clear;')
     -- TODO: swap to closer mobs in camp if any
     --if mq.TLO.Me.XTarget() == 0 then
     --    clear_pull_vars()
