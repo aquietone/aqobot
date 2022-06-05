@@ -132,16 +132,16 @@ assist.get_combat_position = function()
     end
     if not mq.TLO.Navigation.PathExists(string.format('id %d', target_id))() then return end
     mq.cmdf('/nav id %d log=off', target_id)
-    local begin_time = timer.current_time()
+    mq.delay(100)
+    local position_timer = timer:new(5)
     while true do
         if mq.TLO.Target.LineOfSight() then
-            mq.cmd('/squelch /nav stop')
             break
         end
-        if os.difftime(begin_time, timer.current_time()) > 5 then
+        if position_timer:timer_expired() then
             break
         end
-        mq.delay(1)
+        mq.delay(100)
     end
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
 end
@@ -158,12 +158,16 @@ assist.check_los = function()
 end
 
 ---Begin attacking the assist target if not already attacking.
-assist.attack = function()
+assist.attack = function(skip_no_los)
     if state.get_assist_mob_id() == 0 or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or not assist.should_assist() then
         if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
         return
     end
-    if not mq.TLO.Target.LineOfSight() then assist.get_combat_position() end
+    if not mq.TLO.Target.LineOfSight() then
+        -- incase this is called during bard song, to avoid mq.delay inside mq.delay
+        if skip_no_los then return end
+        assist.get_combat_position()
+    end
     if mq.TLO.Navigation.Active() then
         mq.cmd('/squelch /nav stop')
     end

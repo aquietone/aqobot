@@ -877,7 +877,6 @@ nec.main_loop = function()
     check_pet()
     check_rez()
     common.rest()
-    mq.delay(1)
 end
 
 nec.draw_skills_tab = function()

@@ -638,12 +638,10 @@ shd.main_loop = function()
     if config.get_mode():is_pull_mode() and state.get_assist_mob_id() == 0 and state.get_tank_mob_id() == 0 and state.get_pull_mob_id() == 0 and not common.hostile_xtargets() then
         mq.cmd('/multiline ; /attack off; /autofire off;')
         mq.delay(50)
-        pull.pull_radar()
-        if state.get_pull_mob_id() == 0 then
-            -- slow things down a bit?
-            mq.delay('1s')
+        if pull.check_pull_conditions() then
+            pull.pull_radar()
+            pull.pull_mob(shd.pull_func)
         end
-        pull.pull_mob(shd.pull_func)
     end
     -- begin actual combat stuff
     assist.send_pet()
@@ -655,7 +653,6 @@ shd.main_loop = function()
     check_buffs()
     check_pet()
     common.rest()
-    mq.delay(1)
 end
 
 shd.draw_skills_tab = function()

@@ -9,7 +9,7 @@ local state = require('aqo.state')
 local common = {}
 
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
-common.FD_CLASSES = {mnk=1,bst=1,shd=1,nec=1}
+common.FD_CLASSES = {nec=true}--{mnk=true,bst=true,shd=true,nec=true}
 common.BOOL = {
     ['TRUE']={
         ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
@@ -175,7 +175,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.get_mode():get_name() ~= 'chase' then return end
-    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or mq.TLO.Me.Casting() then return end
+    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and mq.TLO.Me.Casting()) then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.get_chase_target())
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
