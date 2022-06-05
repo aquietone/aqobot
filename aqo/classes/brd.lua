@@ -150,6 +150,7 @@ local selos = common.get_aaid_and_name('Selo\'s Sonata')
 -- Mana Recovery AAs
 local rallyingsolo = common.get_aaid_and_name('Rallying Solo')
 local rallyingcall = common.get_aaid_and_name('Rallying Call')
+local shieldofnotes = common.get_aaid_and_name('Shield of Notes')
 -- Mana Recovery items
 --local item_feather = mq.TLO.FindItem('Unified Phoenix Feather')
 --local item_horn = mq.TLO.FindItem('Miniature Horn of Unity') -- 10 minute CD
@@ -194,7 +195,12 @@ local function cast(spell_name, requires_target, requires_los)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
     mq.delay(10)
     --mq.delay(200+mq.TLO.Spell(spell_name).MyCastTime(), function() return not mq.TLO.Me.Casting() end)
-    mq.delay(3200, function() return not mq.TLO.Me.Casting() end)
+    mq.delay(3200, function()
+        common.check_chase()
+        assist.check_target(brd.reset_class_timers)
+        assist.attack()
+        return not mq.TLO.Me.Casting()
+    end)
     mq.cmd('/stopcast')
     if spell_name == spells['crescendo']['name'] then crescendo_timer:reset() end
 end
@@ -226,7 +232,6 @@ local function check_mez()
     if OPTS.MEZST then
         mez.do_single(spells['mezst']['name'], cast_mez)
     end
-    assist.check_target(brd.reset_class_timers)
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
@@ -432,8 +437,12 @@ end
 
 local check_aggro_timer = timer:new(5)
 local function check_aggro()
+    if common.am_i_dead() then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
+        common.use_aa(shieldofnotes)
+    end
     if config.get_mode():get_name() ~= 'manual' and OPTS.USEFADE and state.get_mob_count() > 0 and check_aggro_timer:timer_expired() then
-        if (mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or mq.TLO.Me.PctHPs() < 50 then
+        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 50 then
             common.use_aa(fade)
             check_aggro_timer:reset()
             mq.delay('1s')
@@ -587,13 +596,16 @@ brd.main_loop = function()
     camp.check_camp()
     -- check whether we need to go chasing after the chase target
     common.check_chase()
-    assist.check_target(brd.reset_class_timers)
     -- check our surroundings for mobs to deal with
     camp.mob_radar()
     if not pause_for_rally() then
+        -- assist the MA if the target matches assist criteria
+        assist.check_target(brd.reset_class_timers)
+        assist.attack()
         -- check we have the correct target to attack
         check_mez()
-        -- if we should be assisting but aren't in los, try to be?
+        -- assist the MA if the target matches assist criteria
+        assist.check_target(brd.reset_class_timers)
         assist.attack()
         -- begin actual combat stuff
         assist.send_pet()

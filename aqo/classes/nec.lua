@@ -171,6 +171,7 @@ local deathpeace = common.get_aaid_and_name('Death Peace')
 local deathseffigy = common.get_aaid_and_name('Death\'s Effigy')
 
 local convergence = common.get_aaid_and_name('Convergence')
+local dispel = common.get_aaid_and_name('Eradicate Magic')
 
 local buffs={
     ['self']={},
@@ -201,6 +202,7 @@ nec.load_settings = function()
     if settings.nec.USEFD ~= nil then OPTS.USEFD = settings.nec.USEFD end
     if settings.nec.USEINSPIRE ~= nil then OPTS.USEINSPIRE = settings.nec.USEINSPIRE end
     if settings.nec.USEREZ ~= nil then OPTS.USEREZ = settings.nec.USEREZ end
+    if settings.nec.USEDISPELL ~= nil then OPTS.USEDISPELL = settings.nec.USEDISPELL end
 end
 
 nec.save_settings = function()
@@ -323,6 +325,9 @@ end
 local function cycle_dots()
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+        if OPTS.USEDISPEL and mq.TLO.Target.Beneficial() then
+            common.use_aa(dispel)
+        end
     --if common.is_fighting() or assist.should_assist() then
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
@@ -886,6 +891,7 @@ nec.draw_skills_tab = function()
     OPTS.USEMANATAP = ui.draw_check_box('Mana Drain', '##manadrain', OPTS.USEMANATAP, 'Use group mana drain dot. Replaces Ignite DoT.')
     OPTS.USEFD = ui.draw_check_box('Feign Death', '##dofeign', OPTS.USEFD, 'Use FD AA\'s to reduce aggro')
     OPTS.USEREZ = ui.draw_check_box('Use Rez', '##userez', OPTS.USEREZ, 'Use Convergence AA to rez group members')
+    OPTS.USEDISPEL = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEDISPEL, 'Dispel mobs with Eradicate Magic AA')
 end
 
 nec.draw_burn_tab = function()

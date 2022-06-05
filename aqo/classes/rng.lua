@@ -196,11 +196,13 @@ local function get_ranged_combat_position(radius)
         if mq.TLO.Navigation.PathLength(string.format('loc yxz %d %d %d', y_off, x_off, z_off))() < 150 then
             if mq.TLO.LineOfSight(string.format('%d,%d,%d:%d,%d,%d', y_off, x_off, z_off, mob_y, mob_x, mob_z))() then
                 if mq.TLO.EverQuest.ValidLoc(string.format('%d %d %d', x_off, y_off, z_off))() then
-                    logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
-                    mq.cmdf('/squelch /nav locyxz %d %d %d', y_off, x_off, z_off)
-                    mq.delay('1s', function() return mq.TLO.Navigation.Active() end)
-                    mq.delay('5s', function() return not mq.TLO.Navigation.Active() end)
-                    return true
+                    if mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 30', y_off, x_off, z_off))() == 0 then
+                        logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
+                        mq.cmdf('/squelch /nav locyxz %d %d %d', y_off, x_off, z_off)
+                        mq.delay('1s', function() return mq.TLO.Navigation.Active() end)
+                        mq.delay('5s', function() return not mq.TLO.Navigation.Active() end)
+                        return true
+                    end
                 end
             end
         end
@@ -313,7 +315,7 @@ end
 ]]--
 local function find_next_spell()
     local tothp = mq.TLO.Me.TargetOfTarget.PctHPs()
-    if tothp and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.TargetOfTarget() and tothp < 40 then
+    if tothp and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.TargetOfTarget() and tothp < 65 then
         for _,spell in ipairs(combat_heal_spells) do
             if is_spell_ready(spell['id'], spell['name']) then
                 return spell
@@ -363,11 +365,8 @@ local function mash()
     local cur_mode = config.get_mode()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
     --if common.is_fighting() or assist.should_assist() then
-        if OPTS.USEDISPEL then
-            local target_hp = mq.TLO.Target.PctHPs()
-            if target_hp and target_hp > 90 then
-                common.use_aa(dispel)
-            end
+        if OPTS.USEDISPEL and mq.TLO.Target.Beneficial() then
+            common.use_aa(dispel)
         end
         for _,item_id in ipairs(mash_items) do
             local item = mq.TLO.FindItem(item_id)

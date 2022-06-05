@@ -8,6 +8,8 @@ local state = require('aqo.state')
 
 local tank = {}
 
+local camp_buffer = 20
+
 --- Tank Functions
 
 ---Iterate through mobs in the common.TARGETS table and find a mob in camp to begin tanking.
@@ -73,9 +75,14 @@ local function tank_mob_in_range(tank_spawn)
     local camp = state.get_camp()
     local camp_radius = config.get_camp_radius()
     if camp then
-        if common.check_distance(camp.X, camp.Y, mob_x, mob_y) < camp_radius then
+        local dist = common.check_distance(camp.X, camp.Y, mob_x, mob_y)
+        if dist < camp_radius then
             return true
         else
+            local targethp = tank_spawn.PctHPs()
+            if targethp and targethp < 95 and dist < camp_radius+camp_buffer then
+                return true
+            end
             return false
         end
     else
@@ -120,7 +127,7 @@ tank.tank_mob = function()
         mq.cmd('/attack on')
         stick_timer:reset(0)
     end
-    if stick_timer:timer_expired() and not mq.TLO.Stick.Active() and config.get_mode():get_name() ~= 'manual' then
+    if mq.TLO.Me.Combat() and stick_timer:timer_expired() and not mq.TLO.Stick.Active() and config.get_mode():get_name() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')
         stick_timer:reset()
     end
