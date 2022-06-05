@@ -2,12 +2,14 @@
 
 EverQuest class automation Lua scripts for MacroQuest.
 
-![image.png](./image.png)
+![](./images/assist.png) ![](./images/camp.png)
+![](./images/skills.png) ![](./images/burn.png)
+![](./images/pull.png)
 
 ## Description
-Provides a CWTN-like interface for bard, necro, ranger and warrior (so far) class automation with assist and chase modes, pre-configured spells, discs, AAs and abilities to use, and a UI to control a handful of settings.
+Provides a CWTN-like interface for bard, necro, ranger, shadow knight and warrior (so far) class automation with assist and chase modes, pre-configured spells, discs, AAs and abilities to use, and a UI to control a handful of settings.
 
-Each of the class files, `brd.lua`, `nec.lua`, `rng.lua` and `war.lua` includes a number of tables for spells, AAs, discs and items. Hopefully its clear from the naming which are for burns, which are standard rotations, mash abilities, etc.
+Each of the class files, `brd.lua`, `nec.lua`, `rng.lua`, `shd.lua` and `war.lua` includes a number of tables for spells, AAs, discs and items. Hopefully its clear from the naming which are for burns, which are standard rotations, mash abilities, etc.
 
 ### Common Settings
 
