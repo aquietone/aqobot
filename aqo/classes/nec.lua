@@ -24,6 +24,7 @@ local OPTS = {
     USEREZ=true,
     USEFD=true,
     USEINSPIRE=true,
+    USEDISPEL=true,
 }
 config.set_spell_set('standard')
 
@@ -202,7 +203,7 @@ nec.load_settings = function()
     if settings.nec.USEFD ~= nil then OPTS.USEFD = settings.nec.USEFD end
     if settings.nec.USEINSPIRE ~= nil then OPTS.USEINSPIRE = settings.nec.USEINSPIRE end
     if settings.nec.USEREZ ~= nil then OPTS.USEREZ = settings.nec.USEREZ end
-    if settings.nec.USEDISPELL ~= nil then OPTS.USEDISPELL = settings.nec.USEDISPELL end
+    if settings.nec.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.nec.USEDISPEL end
 end
 
 nec.save_settings = function()
@@ -235,7 +236,7 @@ local function try_alliance()
         if mq.TLO.Me.SpellReady(spells['alliance']['name'])() and neccount > 1 and not mq.TLO.Target.Buff(spells['alliance']['name'])() and mq.TLO.Spell(spells['alliance']['name']).StacksTarget() then
             -- pick the first 3 dots in the rotation as they will hopefully always be up given their priority
             if mq.TLO.Target.MyBuff(spells['pyreshort']['name'])() and mq.TLO.Target.MyBuff(spells['venom']['name'])() and mq.TLO.Target.MyBuff(spells['magic']['name'])() then
-                common.cast(spells['alliance']['name'], true, true)
+                common.cast(spells['alliance']['name'], true)
                 return true
             end
         end
@@ -250,7 +251,7 @@ local function cast_synergy()
         end
         -- don't bother with proc'ing synergy until we've got most dots applied
         if mq.TLO.Target.MyBuff(spells['pyreshort']['name'])() and mq.TLO.Target.MyBuff(spells['venom']['name'])() and mq.TLO.Target.MyBuff(spells['magic']['name'])() then
-            common.cast(spells['synergy']['name'], true, true)
+            common.cast(spells['synergy']['name'], true)
             return true
         end
     end
@@ -335,7 +336,7 @@ local function cycle_dots()
                 local tc_item = mq.TLO.FindItem(tcclick)
                 common.use_item(tc_item)
             end
-            common.cast(spell['name'], true, true) -- then cast the dot
+            common.cast(spell['name'], true) -- then cast the dot
             return true
         end
     end
@@ -362,7 +363,7 @@ local function try_debuff_target()
             end
 
             if isScentAAReady and not isDebuffedAlready then
-                logger.printf('use_aa: \ax\arScent of Thule\ax')
+                logger.printf('Use AA: \ax\arScent of Thule\ax')
                 mq.cmd('/alt activate 751')
                 mq.delay(10)
             end
@@ -509,7 +510,7 @@ local function check_mana()
 end
 
 local function safe_to_stand()
-    if mq.TLo.Raid.Members() > 0 and mq.TLO.SpawnCount('pc raid tank radius 300')() > 2 then
+    if mq.TLO.Raid.Members() > 0 and mq.TLO.SpawnCount('pc raid tank radius 300')() > 2 then
         return true
     end
     if mq.TLO.Group.MainTank() then

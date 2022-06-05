@@ -262,7 +262,7 @@ end
 local function use_opener()
     if mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if assist.should_assist() and state.get_assist_mob_id() > 0 and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
-        common.cast(spells['opener']['name'], true, true)
+        common.cast(spells['opener']['name'], true)
     end
 end
 
@@ -356,7 +356,7 @@ local function cycle_spells()
             local spell = find_next_spell()
             if spell then
                 if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                    common.cast(spell['name'], true, true)
+                    common.cast(spell['name'], true)
                 else
                     common.cast(spell['name'])
                 end

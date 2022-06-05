@@ -322,7 +322,7 @@ local function cycle_spells()
             local spell = find_next_spell()
             if spell then
                 if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                    common.cast(spell['name'], true, true)
+                    common.cast(spell['name'], true)
                 else
                     common.cast(spell['name'])
                 end
@@ -573,7 +573,7 @@ shd.pull_func = function()
         mq.delay(300)
     end
     for _=1,3 do
-        if common.cast(spells['challenge']['name'], true, true) then return end
+        if common.cast(spells['challenge']['name'], true) then return end
         mq.delay(50)
     end
 end

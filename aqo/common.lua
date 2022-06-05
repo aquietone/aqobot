@@ -163,7 +163,9 @@ end
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
 ---@return boolean @Returns true if not under any loss of control effects, false otherwise.
 common.in_control = function()
-    return not mq.TLO.Me.Stunned() and not mq.TLO.Me.Silenced() and not mq.TLO.Me.Feigning() and not mq.TLO.Me.Mezzed() and not mq.TLO.Me.Invulnerable() and not mq.TLO.Me.Hovering()
+    return not mq.TLO.Me.Dead() and not mq.TLO.Me.Ducking() and not mq.TLO.Me.Charmed() and
+            not mq.TLO.Me.Stunned() and not mq.TLO.Me.Silenced() and not mq.TLO.Me.Feigning() and
+            not mq.TLO.Me.Mezzed() and not mq.TLO.Me.Invulnerable() and not mq.TLO.Me.Hovering()
 end
 
 common.blocking_window_open = function()
@@ -225,20 +227,79 @@ end
 
 -- Casting Functions
 
+--- Stacking check stuff
+local function should_use_spell(spell)
+    local result = false
+    local dist = mq.TLO.Target.Distance3D()
+    if spell.Beneficial() then
+        -- duration is number of ticks, so it tostring'd
+        if spell.Duration() ~= '0' then
+            if spell.TargetType() == 'Self' then
+                result = (spell.Stacks() and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()) == true
+            elseif spell.TargetType() == 'Single' then
+                result = (dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())()) == true
+            else
+                -- no one to check stacking on, sure
+                result = true
+            end
+        else
+            if spell.TargetType() == 'Single' then
+                result = (dist and dist <= spell.MyRange()) == true
+            else
+                -- instant beneficial spell, sure
+                result = true
+            end
+        end
+    else
+        -- duration is number of ticks, so it tostring'd
+        if spell.Duration() ~= '0' then
+            if spell.TargetType() == 'Single' or spell.TargetType() == 'Targeted AE' then
+                result = (dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight() and spell.StacksTarget() and not mq.TLO.Target.MyBuff(spell.Name())()) == true
+            else
+                -- no one to check stacking on, sure
+                result = true
+            end
+        else
+            if spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' then
+                result = (dist and dist <= spell.MyRange()) == true
+            else
+                -- instant detrimental spell that requires no target, sure
+                result = true
+            end
+        end
+    end
+    logger.debug(state.get_debug(), 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
+    return result
+end
+
+--- Spell requirements, i.e. enough mana, enough reagents, have a target, target in range, not casting, in control
+local function can_use_spell(spell, type)
+    local result = true
+    if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
+    if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
+    if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then result = false end
+    for i=1,3 do
+        local reagentid = spell.ReagentID(i)()
+        if reagentid ~= -1 then
+            local reagent_count = spell.ReagentCount(i)()
+            if mq.TLO.FindItemCount(reagentid)() < reagent_count then
+                --logger.debug(state.get_debug(), 'Missing Reagent (%s)', reagentid)
+                result = false
+            end
+        else
+            break
+        end
+    end
+    logger.debug(state.get_debug(), 'Can use spell: \ay%s\ax=%s', spell.Name(), result)
+    return result
+end
+
 ---Cast the spell specified by spell_name.
 ---@param spell_name string @The name of the spell to be cast.
 ---@param requires_target boolean @Indicate whether the spell requires a target.
----@param requires_los boolean @Indicate whether the spell requires line of sight to the target.
-common.cast = function(spell_name, requires_target, requires_los)
-    if not common.in_control() or mq.TLO.Me.Moving() then return false end
-    if not mq.TLO.Me.SpellReady(spell_name)() then return false end
-    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() then return false end
-    if requires_target then
-        if requires_los and not mq.TLO.Target.LineOfSight() then return false end
-        local dist3d = mq.TLO.Target.Distance3D()
-        if not dist3d or dist3d > mq.TLO.Spell(spell_name).MyRange() then return false end
-        --if requires_aggro and mq.TLO.Spell(name).TargetType() == 'Single' and mq.TLO.Me.XTarget() == 0 then return false end
-    end
+common.cast = function(spell_name, requires_target)
+    local spell = mq.TLO.Spell(spell_name)
+    if not can_use_spell(spell, 'spell') or not should_use_spell(spell) then return false end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -265,46 +326,26 @@ common.use_ability = function(name)
     end
 end
 
----Use the item specified by item.
----@param item Item @The MQ Item userdata object.
-common.use_item = function(item)
-    if not item() or not common.in_control() or mq.TLO.Me.Casting() or mq.TLO.Me.Moving() then return false end
-    if item.Timer() == '0' then
-        if item.Clicky.Spell.TargetType() == 'Single' then
-            if not mq.TLO.Target() then return false end
-            local dist3d = mq.TLO.Target.Distance3D()
-            if not dist3d or dist3d > item.Clicky.Spell.Range() then return false end
-        end
-        if item.Clicky.Spell.TargetType() == 'Self' and (item.Clicky.Spell.SpellGroup() ~= 17000 and not item.Clicky.Spell.Stacks()) then return false end
-        if not mq.TLO.Me.Casting() then
-            logger.printf('Use Item: \ax\ar%s\ax', item)
-            mq.cmdf('/useitem "%s"', item)
-            mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-            return true
-        end
+local function item_ready(item)
+    if item() and item.Timer() == '0' then
+        local spell = item.Clicky.Spell
+        return can_use_spell(spell, 'item') and should_use_spell(spell)
+    else
+        return false
     end
-    return false
 end
 
----Determine whether conditions are met to use the AA specified by name.
----@param name string @The AA to use.
----@return boolean @Returns true if the AA can be used, otherwise false.
-local function can_use_aa(name)
-    if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and mq.TLO.Me.Casting()) then return false end
-    local spell = mq.TLO.Me.AltAbility(name).Spell
-    if spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < state.get_min_end() then return false end
-    if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return false end
-    if spell.TargetType() == 'Single' then
-        if not mq.TLO.Target() then return false end
-        local dist3d = mq.TLO.Target.Distance3D()
-        if not dist3d or dist3d > spell.Range() then return false end
-        if mq.TLO.Target.MyBuff(name)() then return false end
-        --if mq.TLO.Me.XTarget() == 0 then return false end
-    elseif spell.TargetType() == 'Self' then
-        if mq.TLO.Me.Song(name)() or mq.TLO.Me.Buff(name)() then return false end
-        if not mq.TLO.Spell(spell.Name()).Stacks() then return false end
+---Use the item specified by item.
+---@param item Item @The MQ Item userdata object.
+---@return boolean @Returns true if the item was fired, otherwise false.
+common.use_item = function(item)
+    if item_ready(item) then
+        logger.printf('Use Item: \ax\ar%s\ax', item)
+        mq.cmdf('/useitem "%s"', item)
+        mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        return true
     end
-    return true
+    return false
 end
 
 ---Determine whether an AA is ready, including checking whether the character is currently capable.
@@ -312,7 +353,8 @@ end
 ---@return boolean @Returns true if the AA is ready to be used, otherwise false.
 local function aa_ready(name)
     if mq.TLO.Me.AltAbilityReady(name)() then
-        return can_use_aa(name)
+        local spell = mq.TLO.Me.AltAbility(name).Spell
+        return can_use_spell(spell, 'aa') and should_use_spell(spell)
     else
         return false
     end
@@ -332,23 +374,6 @@ common.use_aa = function(aa)
     return false
 end
 
---[[
-bool IsActiveDisc(EQ_Spell* pSpell) {
-    if (!InGame())
-        return false;
-
-    if ((pSpell->DurationType == 11 || pSpell->DurationType == 15) &&
-        pSpell->SpellType == ST_Beneficial &&
-        pSpell->TargetType == TT_Self &&
-        (pSpell->Skill == 33 || pSpell->Skill == 15) &&
-        pSpell->spaindex == 51 &&
-        pSpell->SpellAnim != 0 &&
-        pSpell->Subcategory != 155)
-        return true;
-
-    return false;
-}
-]]--
 ---Determine whether the disc specified by name is an "active" disc that appears in ${Me.ActiveDisc}.
 ---@param name string @The name of the disc to check.
 ---@return boolean @Returns true if the disc is an active disc, otherwise false.
@@ -360,32 +385,13 @@ local function is_disc(name)
     end
 end
 
----Determine whether conditions are met to use the disc specified by name.
----@param name string @The disc to use.
----@return boolean @Returns true if the disc can be used, otherwise false.
-local function can_use_disc(name)
-    if not common.in_control() or mq.TLO.Me.Casting() then return false end
-    if mq.TLO.Spell(name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() then
-        return false
-    end
-    if mq.TLO.Spell(name).Mana() > mq.TLO.Me.CurrentMana() then
-        return false
-    end
-    if mq.TLO.Spell(name).TargetType() == 'Single' then
-        if not mq.TLO.Target() then return false end
-        local dist3d = mq.TLO.Target.Distance3D()
-        if not dist3d or dist3d > mq.TLO.Spell(name).Range() then return false end
-        --if mq.TLO.Me.XTarget() == 0 then return false end
-    end
-    return true
-end
-
 ---Determine whether an disc is ready, including checking whether the character is currently capable.
 ---@param name string @The name of the disc to be used.
 ---@return boolean @Returns true if the disc is ready to be used, otherwise false.
 local function disc_ready(name)
     if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
-        return can_use_disc(name)
+        local spell = mq.TLO.Spell(name)
+        return can_use_spell(spell, 'disc') and should_use_spell(spell)
     else
         return false
     end
