@@ -3,13 +3,13 @@
 Lua class automation scripts for MQ.
 
 ## Description
-Provides a CWTN-like interface for bard, necro and ranger class automation with assist and chase modes, pre-configured spells, discs, AAs and abilities to use, and a UI to control a handful of settings.
+Provides a CWTN-like interface for bard, necro, ranger and warrior (so far) class automation with assist and chase modes, pre-configured spells, discs, AAs and abilities to use, and a UI to control a handful of settings.
 
-Each of the class files, `brd.lua`, `nec.lua` and `rng.lua` includes a number of tables for spells, AAs and discs. Hopefully its clear from the naming which are for burns, which are standard rotations, mash abilities, etc.
+Each of the class files, `brd.lua`, `nec.lua`, `rng.lua` and `war.lua` includes a number of tables for spells, AAs and discs. Hopefully its clear from the naming which are for burns, which are standard rotations, mash abilities, etc.
 
 ### Common Settings
 
-- *Mode*: Manual, Assist or Chase.
+- *Mode*: Manual, Assist or Chase. (Other modes still a work in progress.. pullertank sort of works on warrior as of writing)
 
 - *Camp Radius*: The radius within which you will assist on mobs.
 
@@ -72,6 +72,10 @@ Each of the class files, `brd.lua`, `nec.lua` and `rng.lua` includes a number of
 - *Use Flaming Arrows*: Buff self with `Flaming Arrows` AA. Cannot be enabled at the same time as Poison Arrows.
 - *Use DoT*: Controls whether to cast the high mana cost DoT on mobs. My rangers gear is bad, so dotting all the things is expensive.
 
+### Warrior Settings
+
+- placeholder
+
 ## Installation
 Copy the `aqo.lua` file and `aqo` folder into your MQ Lua folder.
 
@@ -90,3 +94,8 @@ The script uses the same sort of command structure to the class plugins, using c
 
 ## Roadmap
 Just filling in the missing stuff from my group, making things that work for me. No real plans.
+Necro works pretty well atm.  
+Bard works decent.  
+Ranger is alright.  
+Warrior still a work in progress.  
+Missing a lot of functionality atm, such as: ignore lists, z radius checks on everything, probably a lot of unhappy path issues not handled, probably does poorly in water, ...
