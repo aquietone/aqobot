@@ -352,6 +352,8 @@ local function check_mana()
         common.use_aa(gathermana)
     end
     if pct_mana < 75 then
+        local cursor = mq.TLO.Cursor()
+        if cursor and cursor:find(azure['name']) then mq.cmd('/autoinventory') end
         local manacrystal = mq.TLO.FindItem(azure['name'])
         common.use_item(manacrystal)
     end
@@ -360,6 +362,8 @@ end
 local check_aggro_timer = timer:new(10)
 local function check_aggro()
     if mq.TLO.Me.PctHPs() < 40 then
+        local cursor = mq.TLO.Cursor()
+        if cursor and cursor:find(sanguine['name']) then mq.cmd('/autoinventory') end
         local hpcrystal = mq.TLO.FindItem('='..sanguine['name'])
         common.use_item(hpcrystal)
     end

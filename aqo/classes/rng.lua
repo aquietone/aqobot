@@ -169,7 +169,7 @@ rng.load_settings = function()
     if settings.rng.NUKE ~= nil then OPTS.NUKE = settings.rng.NUKE end
     if settings.rng.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.rng.USEDISPEL end
     if settings.rng.USEREGEN ~= nil then OPTS.USEREGEN = settings.rng.USEREGEN end
-    if settings.rng.USECOMPOSITE ~= nil then OPTS.USEREGEN = settings.rng.USECOMPOSITE end
+    if settings.rng.USECOMPOSITE ~= nil then OPTS.USECOMPOSITE = settings.rng.USECOMPOSITE end
 end
 
 rng.save_settings = function()
