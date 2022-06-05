@@ -1,4 +1,4 @@
-local logger = require('aqo.logger')
+local logger = require('aqo.utils.logger')
 local modes = require('aqo.mode')
 
 local config = {}
@@ -61,7 +61,7 @@ function config.load_settings(settings_file)
     if not file_exists(settings_file) then return end
     local settings = assert(loadfile(settings_file))()
     if not settings or not settings.common then return settings end
-    if settings.common.MODE ~= nil then mode = settings.common.MODE end
+    if settings.common.MODE ~= nil then mode = modes.from_string(settings.common.MODE) end
     if settings.common.CHASETARGET ~= nil then chase_target = settings.common.CHASETARGET end
     if settings.common.CHASEDISTANCE ~= nil then chase_distance = settings.common.CHASEDISTANCE end
     if settings.common.CAMPRADIUS ~= nil then camp_radius = settings.common.CAMPRADIUS end
@@ -85,7 +85,7 @@ end
 
 function config.get_all()
     return {
-        MODE=mode,
+        MODE=mode:get_name(),
         CHASETARGET=chase_target,
         CHASEDISTANCE=chase_distance,
         CAMPRADIUS=camp_radius,

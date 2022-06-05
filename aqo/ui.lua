@@ -3,8 +3,7 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
-local common = require('aqo.common')
-local config = require('aqo.config')
+local config = require('aqo.configuration')
 local state = require('aqo.state')
 
 -- GUI Control variables
