@@ -35,6 +35,12 @@ local tank_mob_id = 0
 
 local pull_mob_id = 0
 
+local mez_immunes = {}
+
+local mez_target_name = nil
+
+local mez_target_id = 0
+
 function state.get_all()
     return {
         debug=debug,
@@ -47,6 +53,13 @@ function state.get_all()
         min_end=min_end,
         spellset_loaded=spellset_loaded,
         i_am_dead=i_am_dead,
+        tank_mob_id=tank_mob_id,
+        pull_mob_id=pull_mob_id,
+        targets=targets,
+        mob_count=mob_count,
+        mez_ummunes=mez_immunes,
+        mez_target_name=mez_target_name,
+        mez_target_id=mez_target_id,
     }
 end
 
@@ -168,6 +181,41 @@ end
 
 function state.set_mob_count(new_mob_count)
     mob_count = new_mob_count
+end
+
+function state.get_mez_target_name()
+    return mez_target_name
+end
+
+function state.set_mez_target_name(new_mez_target_name)
+    mez_target_name = new_mez_target_name
+end
+
+function state.get_mez_target_id()
+    return mez_target_id
+end
+
+function state.set_mez_target_id(new_mez_target_id)
+    mez_target_id = new_mez_target_id
+end
+
+function state.get_mez_immunes()
+    return mez_immunes
+end
+
+function state.set_mez_immunes(new_mez_immunes)
+    mez_immunes = new_mez_immunes
+end
+
+function state.reset_combat_state()
+    burn_active=false
+    burn_active_timer:reset(0)
+    tank_mob_id=0
+    pull_mob_id=0
+    targets={}
+    mob_count=0
+    mez_target_name=nil
+    mez_target_id=0
 end
 
 --for k,v in pairs(state.get_all()) do
