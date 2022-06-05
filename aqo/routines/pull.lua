@@ -244,8 +244,9 @@ local function pull_engage(pull_spawn, pull_func)
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
     local targethp = mq.TLO.Target.PctHPs()
-    if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
-        logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax)', pull_mob_id)
+    --if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
+    if targethp and targethp < 99 then
+        logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pull_mob_id, tot_id, mq.TLO.Me.ID(), targethp)
         -- TODO: clear skip targets
         PULL_TARGET_SKIP[pull_mob_id] = 1
         clear_pull_vars()
@@ -272,7 +273,7 @@ local function pull_engage(pull_spawn, pull_func)
             pull_func()
         else
             mq.cmd('/autofire on')
-            mq.delay(100)
+            mq.delay(1000)
             if not mq.TLO.Me.AutoFire() then
                 mq.cmd('/autofire on')
             end

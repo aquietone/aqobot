@@ -419,6 +419,10 @@ end
 local function check_aggro()
     if mq.TLO.Me.PctHPs() < 50 then
         common.use_aa(evasion)
+        if config.get_mode():return_to_camp() then
+            local my_camp = state.get_camp()
+            mq.cmdf('/nav locyxz %d %d %d log=off', my_camp.Y, my_camp.X, my_camp.Z)
+        end
     end
     --[[
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
@@ -629,8 +633,11 @@ rng.main_loop = function()
     assist.check_target(rng.reset_class_timers)
     use_opener()
     -- if we should be assisting but aren't in los, try to be?
-    if not OPTS.USERANGE or not attack_range() then
-        if OPTS.USEMELEE then assist.attack() end
+    -- try to deal with ranger noobishness running out to ranged and dying
+    if mq.TLO.Me.PctHPs() > 40 then
+        if not OPTS.USERANGE or not attack_range() then
+            if OPTS.USEMELEE then assist.attack() end
+        end
     end
     -- begin actual combat stuff
     assist.send_pet()

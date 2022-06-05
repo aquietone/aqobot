@@ -105,7 +105,7 @@ tank.tank_mob = function()
         return
     end
     if not tank_mob_in_range(tank_spawn) or not tank_spawn.LineOfSight() then
-        --logger.printf('tank mob not in range')
+        state.set_tank_mob_id(0)
         return
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= tank_spawn.ID() then
