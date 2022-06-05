@@ -258,7 +258,7 @@ local function check_mez()
                     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                         state.get_targets()[id] = nil
                     elseif pct_hp and pct_hp > 85 then
-                        local assist_spawn = common.get_assist_spawn()
+                        local assist_spawn = assist.get_assist_spawn()
                         if assist_spawn.ID() ~= id then
                             MEZ_TARGET_NAME = mob.CleanName()
                             MEZ_TARGET_ID = id
