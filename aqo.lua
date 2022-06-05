@@ -3,32 +3,35 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
-local common = require('aqo.common')
 local class = mq.TLO.Me.Class.ShortName():lower()
 local class_funcs = require('aqo.'..class)
+local common = require('aqo.common')
+local config = require('aqo.configuration')
+local logger = require('aqo.logger')
+local mode = require('aqo.mode')
 local ui = require('aqo.ui')
 
 local function check_game_state()
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
-        common.printf('Not in game, stopping aqo.')
+        logger.printf('Not in game, stopping aqo.')
         mq.exit()
     end
 end
 
 local function show_help()
-    common.printf('AQO Bot 1.0')
-    common.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', class))
+    logger.printf('AQO Bot 1.0')
+    logger.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', class))
 end
 
-local function get_or_set_opt(opt, new_value)
+local function get_or_set_opt(name, current_value, new_value, setter)
     if new_value then
-        if type(common.OPTS[opt]) == 'number' then
-            common.OPTS[opt] = tonumber(new_value) or common.OPTS[opt]
+        if type(current_value) == 'number' then
+            setter(tonumber(new_value) or current_value)
         else
-            common.OPTS[opt] = new_value
+            setter(new_value)
         end
     else
-        common.printf('%s: %s', opt, new_value)
+        logger.printf('%s: %s', name, current_value)
     end
 end
 
@@ -37,15 +40,15 @@ local function cmd_bind(...)
     if not args[1] or args[1] == 'help' then
         show_help()
     elseif args[1]:lower() == 'burnnow' then
-        common.BURN_NOW = true
+        state.set_burn_now(true)
     elseif args[1] == 'pause' then
         if not args[2] then
-            common.PAUSED = not common.PAUSED
+            state.set_paused(not state.get_paused())
         else
             if args[2] == 'on' or args[2] == '1' then
-                common.PAUSED = true
+                state.set_paused(true)
             elseif args[2] == 'off' or args[2] == '0' then
-                common.PAUSED = false
+                state.set_paused(false)
             end
         end
     elseif args[1] == 'show' then
@@ -53,49 +56,30 @@ local function cmd_bind(...)
     elseif args[1] == 'hide' then
         ui.toggle_gui(false)
     elseif args[1] == 'mode' then
-        if args[2] == '0' then -- manual, clears camp
-            common.OPTS.MODE = common.MODES[1]
-            common.set_camp()
-        elseif args[2] == '1' then -- assist, sets camp
-            common.OPTS.MODE = common.MODES[2]
-            common.set_camp()
-        elseif args[2] == '2' then -- chase, clears camp
-            common.OPTS.MODE = common.MODES[3]
-            common.set_camp()
-        elseif args[2] == '3' and common.MODES[4] then -- vorpal, clears camp
-            common.OPTS.MODE = common.MODES[4]
-            common.set_camp()
-        elseif args[2] == '4' and common.MODES[5] then -- tank, sets camp
-            common.OPTS.MODE = common.MODES[5]
-            common.set_camp()
-        elseif args[2] == '5' and common.MODES[6] then -- pullertank, sets camp
-            common.OPTS.MODE = common.MODES[6]
-            common.set_camp()
-        elseif args[2] == '6' and common.MODES[7] then -- puller, sets camp
-            common.OPTS.MODE = common.MODES[7]
-            common.set_camp()
-        elseif not args[2] then
-            common.printf('%s: %s', 'Mode', common.OPTS.MODE)
+        if args[2] then
+            config.set_mode(mode.from_string(args[2]) or config.get_mode())
+        else
+            logger.printf('Mode: %s', config:get_mode():get_name())
         end
     elseif args[1] == 'resetcamp' then
         common.set_camp(true)
     elseif args[1] == 'radius' then
-        get_or_set_opt('PULLRADIUS', args[2])
+        get_or_set_opt('PULLRADIUS', config.get_pull_radius(), args[2], config.set_pull_radius)
         common.set_camp(true)
     elseif args[1] == 'pullarc' then
-        get_or_set_opt('PULLARC', args[2])
+        get_or_set_opt('PULLARC', config.get_pull_arc(), args[2], config.set_pull_arc)
         common.set_camp(true)
     elseif args[1] == 'levelmin' then
-        get_or_set_opt('PULLMINLEVEL', args[2])
+        get_or_set_opt('PULLMINLEVEL', config.get_pull_min_level(), args[2], config.set_pull_min_level)
     elseif args[1] == 'levelmax' then
-        get_or_set_opt('PULLMAXLEVEL', args[2])
+        get_or_set_opt('PULLMAXLEVEL', config.get_pull_max_level(), args[2], config.set_pull_max_level)
     elseif args[1] == 'zlow' then
-        get_or_set_opt('PULLLOW', args[2])
+        get_or_set_opt('PULLLOW', config.get_pull_z_low(), args[2], config.set_pull_z_low)
     elseif args[1] == 'zhigh' then
-        get_or_set_opt('PULLHIGH', args[2])
+        get_or_set_opt('PULLHIGH', config.set_pull_z_high(), args[2], config.set_pull_z_high)
     elseif args[1] == 'zradius' then
-        get_or_set_opt('PULLLOW', args[2])
-        get_or_set_opt('PULLHIGH', args[2])
+        get_or_set_opt('PULLLOW', config.get_pull_z_low(), args[2], config.set_pull_z_low)
+        get_or_set_opt('PULLHIGH', config.set_pull_z_high(), args[2], config.set_pull_z_high)
     elseif args[1] == 'ignore' then
         
     else
@@ -121,9 +105,9 @@ local debug_timer = 0
 -- Main Loop
 while true do
     check_game_state()
-    if common.DEBUG and common.timer_expired(debug_timer, 3) then
-        common.debug('main loop: PAUSED=%s, Me.Invis=%s', common.PAUSED, mq.TLO.Me.Invis())
-        common.debug('#TARGETS: %d, MOB_COUNT: %d', common.table_size(common.TARGETS), common.MOB_COUNT)
+    if state.get_debug() and common.timer_expired(debug_timer, 3) then
+        logger.debug(state.get_debug(), 'main loop: PAUSED=%s, Me.Invis=%s', state.get_paused(), mq.TLO.Me.Invis())
+        logger.debug(state.get_debug(), '#TARGETS: %d, MOB_COUNT: %d', common.table_size(common.TARGETS), common.MOB_COUNT)
         debug_timer = common.current_time()
     end
 
@@ -134,7 +118,7 @@ while true do
 
     -- Process death events
     mq.doevents()
-    if not common.PAUSED then
+    if not state.get_paused() then
         common.clean_targets()
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             common.ASSIST_TARGET_ID = 0
@@ -149,9 +133,10 @@ while true do
             class_funcs.main_loop()
         else
             -- stay in camp or stay chasing chase target if not paused but invis
-            if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target() and mq.TLO.Pet.Target.ID() > 0 then mq.cmd('/pet back') end
+            local pet_target_id = mq.TLO.Pet.Target.ID() or 0
+            if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
             common.mob_radar()
-            if (common.TANK_MODES[common.OPTS.MODE] and common.MOB_COUNT > 0) or (common.ASSIST_MODES[common.OPTS.MODE] and common.should_assist()) then mq.cmd('/makemevis') end
+            if (mode:is_tank_mode() and common.MOB_COUNT > 0) or (mode:is_assist_mode() and common.should_assist()) then mq.cmd('/makemevis') end
             common.check_camp()
             common.check_chase()
             common.rest()
@@ -160,7 +145,8 @@ while true do
     else
         if mq.TLO.Me.Invis() then
             -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
-            if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target() and mq.TLO.Pet.Target.ID() > 0 then mq.cmd('/pet back') end
+            local pet_target_id = mq.TLO.Pet.Target.ID() or 0
+            if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
         end
         mq.delay(500)
     end

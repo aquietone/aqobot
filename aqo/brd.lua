@@ -1,8 +1,11 @@
 --- @type mq
 local mq = require 'mq'
 local common = require('aqo.common')
-local ui = require('aqo.ui')
+local config = require('aqo.configuration')
+local logger = require('aqo.logger')
+local mode = require('aqo.mode')
 local persistence = require('aqo.persistence')
+local ui = require('aqo.ui')
 
 local brd = {}
 
@@ -16,7 +19,7 @@ local OPTS = {
     USEEPIC='always',
     BYOS=false,
 }
-common.OPTS.SPELLSET = 'melee'
+config.set_spell_set('melee')
 local AE_MEZ_COUNT = 3
 mq.cmd('/squelch /stick mod 0')
 
@@ -47,9 +50,9 @@ local spells = {
 }
 for name,spell in pairs(spells) do
     if spell['name'] then
-        common.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
+        logger.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
     else
-        common.printf('[%s] Could not find spell!', name)
+        logger.printf('[%s] Could not find spell!', name)
     end
 end
 
@@ -153,7 +156,7 @@ local dirge = common.get_aaid_and_name('Dirge of the Sleepwalker')
 
 local SETTINGS_FILE = ('%s/bardbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
 brd.load_settings = function()
-    local settings = common.load_settings(SETTINGS_FILE)
+    local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.brd then return end
     if settings.brd.USESWARM ~= nil then OPTS.USESWARM = settings.brd.USESWARM end
     if settings.brd.RALLYGROUP ~= nil then OPTS.RALLYGROUP = settings.brd.RALLYGROUP end
@@ -165,7 +168,7 @@ brd.load_settings = function()
 end
 
 brd.save_settings = function()
-    persistence.store(SETTINGS_FILE, {common=common.OPTS, brd=OPTS})
+    persistence.store(SETTINGS_FILE, {common=config.get_all(), brd=OPTS})
 end
 
 local boastful_timer = 0
@@ -179,7 +182,7 @@ end
 local function cast(spell_name, requires_target, requires_los)
     if not common.in_control() or (requires_los and not mq.TLO.Target.LineOfSight()) then return end
     if requires_target and mq.TLO.Target.ID() ~= common.ASSIST_TARGET_ID then return end
-    common.printf('Casting \ar%s\ax', spell_name)
+    logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
@@ -195,7 +198,7 @@ end
 local function cast_mez(spell_name)
     if not common.in_control() or not mq.TLO.Target.LineOfSight() then return end
     local mez_target_id = mq.TLO.Target.ID()
-    common.printf('Casting \ar%s\ax', spell_name)
+    logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
@@ -218,7 +221,7 @@ local MEZ_TARGET_ID = 0
 local function check_mez()
     if common.MOB_COUNT >= AE_MEZ_COUNT and OPTS.MEZAE then
         if mq.TLO.Me.Gem(spells['mezae']['name'])() and mq.TLO.Me.GemTimer(spells['mezae']['name'])() == 0 then
-            common.printf('AE Mezzing (MOB_COUNT=%d)', common.MOB_COUNT)
+            logger.printf('AE Mezzing (MOB_COUNT=%d)', common.MOB_COUNT)
             cast(spells['mezae']['name'])
             common.mob_radar()
             for id,_ in pairs(common.TARGETS) do
@@ -228,7 +231,7 @@ local function check_mez()
                     mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
                     mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
                     if mq.TLO.Target() and mq.TLO.Target.Buff(spells['mezae']['name'])() then
-                        common.debug('AEMEZ setting meztimer mob_id %d', id)
+                        logger.debug(state.get_debug(), 'AEMEZ setting meztimer mob_id %d', id)
                         common.TARGETS[id].meztimer = common.current_time()
                     end
                 end
@@ -238,7 +241,7 @@ local function check_mez()
     if not OPTS.MEZST or common.MOB_COUNT <= 1 or not mq.TLO.Me.Gem(spells['mezst']['name'])() then return end
     for id,mobdata in pairs(common.TARGETS) do
         if id ~= common.ASSIST_TARGET_ID and (mobdata['meztimer'] == 0 or common.timer_expired(mobdata['meztimer'], 30)) then
-            common.debug('[%s] meztimer: %s timer_expired: %s', id, mobdata['meztimer'], common.timer_expired(mobdata['meztimer'], 30))
+            logger.debug(state.get_debug(), '[%s] meztimer: %s timer_expired: %s', id, mobdata['meztimer'], common.timer_expired(mobdata['meztimer'], 30))
             local mob = mq.TLO.Spawn('id '..id)
             if mob() and not MEZ_IMMUNES[mob.CleanName()] then
                 if id ~= common.ASSIST_TARGET_ID and mob.Level() <= 123 and mob.Type() == 'NPC' then
@@ -255,9 +258,9 @@ local function check_mez()
                         if assist_spawn.ID() ~= id then
                             MEZ_TARGET_NAME = mob.CleanName()
                             MEZ_TARGET_ID = id
-                            common.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
+                            logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
                             cast_mez(spells['mezst']['name'])
-                            common.debug('STMEZ setting meztimer mob_id %d', id)
+                            logger.debug(state.get_debug(), 'STMEZ setting meztimer mob_id %d', id)
                             common.TARGETS[id].meztimer = common.current_time()
                             mq.doevents('event_mezimmune')
                             mq.doevents('event_mezresist')
@@ -277,7 +280,7 @@ end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    if common.OPTS.USEALLIANCE then
+    if config.get_use_alliance() then
         if mq.TLO.Spell(spells['alliance']['name']).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
@@ -314,11 +317,11 @@ local function is_dot_ready(spellId, spellName)
     songDuration = mq.TLO.Target.MyBuffDuration(spellName)()
     if not common.is_target_dotted_with(spellId, spellName) then
         -- target does not have the dot, we are ready
-        common.debug('song ready %s', spellName)
+        logger.debug(state.get_debug(), 'song ready %s', spellName)
         return true
     else
         if not songDuration then
-            common.debug('song ready %s', spellName)
+            logger.debug(state.get_debug(), 'song ready %s', spellName)
             return true
         end
     end
@@ -327,10 +330,10 @@ local function is_dot_ready(spellId, spellName)
 end
 
 local function is_song_ready(spellId, spellName)
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < common.MIN_MANA) then
+    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
         return false
     end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < common.MIN_END) then
+    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
         return false
     end
     if mq.TLO.Spell(spellName).TargetType() == 'Single' then
@@ -347,12 +350,12 @@ local function is_song_ready(spellId, spellName)
 
     local songDuration = mq.TLO.Me.Song(spellName).Duration()
     if not songDuration then
-        common.debug('song ready %s', spellName)
+        logger.debug(state.get_debug(), 'song ready %s', spellName)
         return true
     else
         local cast_time = mq.TLO.Spell(spellName).MyCastTime()
         if songDuration < cast_time + 3000 then
-            common.debug('song ready %s', spellName)
+            logger.debug(state.get_debug(), 'song ready %s', spellName)
         end
         return songDuration < cast_time + 3000
     end
@@ -361,7 +364,7 @@ end
 local function find_next_song()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
-    for _,song in ipairs(songs[common.OPTS.SPELLSET]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+    for _,song in ipairs(songs[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local spell_id = song['id']
         local spell_name = song['name']
         if is_song_ready(spell_id, spell_name) then
@@ -476,7 +479,7 @@ end
 
 local check_aggro_timer = 0
 local function check_aggro()
-    if OPTS.MODE ~= 'manual' and OPTS.USEFADE and common.MOB_COUNT > 0 and common.timer_expired(check_aggro_timer, 5) then
+    if config.get_mode():get_name() ~= 'manual' and OPTS.USEFADE and common.MOB_COUNT > 0 and common.timer_expired(check_aggro_timer, 5) then
         if (mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or mq.TLO.Me.PctHPs() < 50 then
             common.use_aa(fade)
             check_aggro_timer = common.current_time()
@@ -490,7 +493,7 @@ local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if common.is_fighting() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', common.OPTS.CAMPRADIUS))() > 0 then return end
+    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if not mq.TLO.Me.Aura(spells['aura']['name'])() then
         local restore_gem = nil
         if not mq.TLO.Me.Gem(spells['aura']['name'])() then
@@ -524,8 +527,8 @@ end
 local check_spell_timer = 0
 local function check_spell_set()
     if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
-    if common.SPELLSET_LOADED ~= common.OPTS.SPELLSET or common.timer_expired(check_spell_timer, 30) then
-        if common.OPTS.SPELLSET == 'melee' then
+    if state.get_spellset_loaded() ~= config.get_spell_set() or common.timer_expired(check_spell_timer, 30) then
+        if config.get_spell_set() == 'melee' then
             if mq.TLO.Me.Gem(1)() ~= spells['aria']['name'] then common.swap_spell(spells['aria']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['arcane']['name'] then common.swap_spell(spells['arcane']['name'], 2) end
             if mq.TLO.Me.Gem(3)() ~= spells['spiteful']['name'] then common.swap_spell(spells['spiteful']['name'], 3) end
@@ -539,8 +542,8 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(11)() ~= spells['pulse']['name'] then common.swap_spell(spells['pulse']['name'], 11) end
             if mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' then common.swap_spell(spells['composite']['name'], 12) end
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
-            common.SPELLSET_LOADED = common.OPTS.SPELLSET
-        elseif common.OPTS.SPELLSET == 'caster' then
+            state.set_spellset_loaded(config.get_spell_set())
+        elseif config.get_spell_set() == 'caster' then
             if mq.TLO.Me.Gem(1)() ~= spells['aria']['name'] then common.swap_spell(spells['aria']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['arcane']['name'] then common.swap_spell(spells['arcane']['name'], 2) end
             if mq.TLO.Me.Gem(3)() ~= spells['firenukebuff']['name'] then common.swap_spell(spells['firenukebuff']['name'], 3) end
@@ -554,8 +557,8 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(11)() ~= spells['pulse']['name'] then common.swap_spell(spells['pulse']['name'], 11) end
             if mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' then common.swap_spell(spells['composite']['name'], 12) end
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
-            common.SPELLSET_LOADED = common.OPTS.SPELLSET
-        elseif common.OPTS.SPELLSET == 'meleedot' then
+            state.set_spellset_loaded(config.get_spell_set())
+        elseif config.get_spell_set() == 'meleedot' then
             if mq.TLO.Me.Gem(1)() ~= spells['aria']['name'] then common.swap_spell(spells['aria']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['chantflame']['name'] then common.swap_spell(spells['chantflame']['name'], 2) end
             if mq.TLO.Me.Gem(3)() ~= spells['chantfrost']['name'] then common.swap_spell(spells['chantfrost']['name'], 3) end
@@ -569,24 +572,24 @@ local function check_spell_set()
             if mq.TLO.Me.Gem(11)() ~= spells['pulse']['name'] then common.swap_spell(spells['pulse']['name'], 11) end
             if mq.TLO.Me.Gem(12)() ~= 'Composite Psalm' then common.swap_spell(spells['composite']['name'], 12) end
             if mq.TLO.Me.Gem(13)() ~= spells['dirge']['name'] then common.swap_spell(spells['dirge']['name'], 13) end
-            common.SPELLSET_LOADED = common.OPTS.SPELLSET
+            state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer = common.current_time()
     end
 end
 
 local function event_mezbreak(line, mob, breaker)
-    common.printf('\ay%s\ax mez broken by \ag%s\ax', mob, breaker)
+    logger.printf('\ay%s\ax mez broken by \ag%s\ax', mob, breaker)
 end
 local function event_mezimmune(line)
     if MEZ_TARGET_NAME then
-        common.printf('Added to MEZ_IMMUNE: \ay%s', MEZ_TARGET_NAME)
+        logger.printf('Added to MEZ_IMMUNE: \ay%s', MEZ_TARGET_NAME)
         MEZ_IMMUNES[MEZ_TARGET_NAME] = 1
     end
 end
 local function event_mezresist(line, mob)
     if MEZ_TARGET_NAME and mob == MEZ_TARGET_NAME then
-        common.printf('MEZ RESIST >>> %s <<<', MEZ_TARGET_NAME)
+        logger.printf('MEZ RESIST >>> %s <<<', MEZ_TARGET_NAME)
         common.TARGETS[MEZ_TARGET_ID].meztimer = 0
     end
 end
@@ -600,46 +603,48 @@ brd.process_cmd = function(opt, new_value)
     if new_value then
         if opt == 'USEEPIC' then
             if EPIC_OPTS[new_value] then
-                common.printf('Setting %s to: %s', opt, new_value)
+                logger.printf('Setting %s to: %s', opt, new_value)
                 OPTS[opt] = new_value
             end
         elseif opt == 'SPELLSET' then
             if SPELLSETS[new_value] then
-                common.printf('Setting %s to: %s', opt, new_value)
-                common.OPTS[opt] = new_value
+                logger.printf('Setting %s to: %s', opt, new_value)
+                config.set_spell_set(new_value)
             end
         elseif opt == 'ASSIST' then
             if common.ASSISTS[new_value] then
-                common.printf('Setting %s to: %s', opt, new_value)
-                common.OPTS[opt] = new_value
+                logger.printf('Setting %s to: %s', opt, new_value)
+                config.set_assist(new_value)
             end
+        --[[
         elseif type(OPTS[opt]) == 'boolean' or type(common.OPTS[opt]) == 'boolean' then
             if new_value == '0' or new_value == 'off' then
-                common.printf('Setting %s to: false', opt)
+                logger.printf('Setting %s to: false', opt)
                 if common.OPTS[opt] ~= nil then common.OPTS[opt] = false end
                 if OPTS[opt] ~= nil then OPTS[opt] = false end
             elseif new_value == '1' or new_value == 'on' then
-                common.printf('Setting %s to: true', opt)
+                logger.printf('Setting %s to: true', opt)
                 if common.OPTS[opt] ~= nil then common.OPTS[opt] = true end
                 if OPTS[opt] ~= nil then OPTS[opt] = true end
             end
         elseif type(OPTS[opt]) == 'number' or type(common.OPTS[opt]) == 'number' then
             if tonumber(new_value) then
-                common.printf('Setting %s to: %s', opt, tonumber(new_value))
+                logger.printf('Setting %s to: %s', opt, tonumber(new_value))
                 OPTS[opt] = tonumber(new_value)
                 if common.OPTS[opt] ~= nil then common.OPTS[opt] = tonumber(new_value) end
                 if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
             end
+        ]]--
         else
-            common.printf('Unsupported command line option: %s %s', opt, new_value)
+            logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if OPTS[opt] ~= nil then
-            common.printf('%s: %s', opt, OPTS[opt])
-        elseif common.OPTS[opt] ~= nil then
-            common.printf('%s: %s', opt, common.OPTS[opt])
+            logger.printf('%s: %s', opt, OPTS[opt])
+        --elseif common.OPTS[opt] ~= nil then
+        --    logger.printf('%s: %s', opt, common.OPTS[opt])
         else
-            common.printf('Unrecognized option: %s', opt)
+            logger.printf('Unrecognized option: %s', opt)
         end
     end
 end
@@ -683,27 +688,27 @@ brd.main_loop = function()
 end
 
 brd.draw_left_panel = function()
-    common.OPTS.MODE = ui.draw_combo_box('Mode', common.OPTS.MODE, common.MODES)
+    config.set_mode(mode.from_string(ui.draw_combo_box('Mode', config.get_mode():get_name(), config.modes, true)))
     common.set_camp()
-    common.OPTS.SPELLSET = ui.draw_combo_box('Spell Set', common.OPTS.SPELLSET, SPELLSETS, true)
-    common.OPTS.ASSIST = ui.draw_combo_box('Assist', common.OPTS.ASSIST, common.ASSISTS, true)
-    common.OPTS.AUTOASSISTAT = ui.draw_input_int('Assist %', '##assistat', common.OPTS.AUTOASSISTAT, 'Percent HP to assist at')
-    common.OPTS.CAMPRADIUS = ui.draw_input_int('Camp Radius', '##campradius', common.OPTS.CAMPRADIUS, 'Camp radius to assist within')
-    common.OPTS.CHASETARGET = ui.draw_input_text('Chase Target', '##chasetarget',common. OPTS.CHASETARGET, 'Chase Target')
-    common.OPTS.CHASEDISTANCE = ui.draw_input_int('Chase Distance', '##chasedist', common.OPTS.CHASEDISTANCE, 'Distance to follow chase target')
+    config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
+    config.set_assist(ui.draw_combo_box('Assist', config.get_assist(), common.ASSISTS, true))
+    config.set_auto_assist_at(ui.draw_input_int('Assist %', '##assistat', config.get_auto_assist_at(), 'Percent HP to assist at'))
+    config.set_camp_radius(ui.draw_input_int('Camp Radius', '##campradius', config.get_camp_radius(), 'Camp radius to assist within'))
+    config.set_chase_target(ui.draw_input_text('Chase Target', '##chasetarget', config.get_chase_target(), 'Chase Target'))
+    config.set_chase_distance(ui.draw_input_int('Chase Distance', '##chasedist', config.get_chase_distance(), 'Distance to follow chase target'))
     OPTS.USEEPIC = ui.draw_combo_box('Epic', OPTS.USEEPIC, EPIC_OPTS, true)
-    common.OPTS.BURNPCT = ui.draw_input_int('Burn Percent', '##burnpct', common.OPTS.BURNPCT, 'Percent health to begin burns')
-    common.OPTS.BURNCOUNT = ui.draw_input_int('Burn Count', '##burncnt', common.OPTS.BURNCOUNT, 'Trigger burns if this many mobs are on aggro')
+    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
+    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
 end
 
 brd.draw_right_panel = function()
-    common.OPTS.BURNALWAYS = ui.draw_check_box('Burn Always', '##burnalways', common.OPTS.BURNALWAYS, 'Always be burning')
+    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
     ui.get_next_item_loc()
-    common.OPTS.BURNALLNAMED = ui.draw_check_box('Burn Named', '##burnnamed', common.OPTS.BURNALLNAMED, 'Burn all named')
+    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
     ui.get_next_item_loc()
-    common.OPTS.USEALLIANCE = ui.draw_check_box('Alliance', '##alliance', common.OPTS.USEALLIANCE, 'Use alliance spell')
+    config.set_use_alliance(ui.draw_check_box('Alliance', '##alliance', config.get_use_alliance(), 'Use alliance spell'))
     ui.get_next_item_loc()
-    common.OPTS.SWITCHWITHMA = ui.draw_check_box('Switch With MA', '##switchwithma', common.OPTS.SWITCHWITHMA, 'Switch targets with MA')
+    config.set_switch_with_ma(ui.draw_check_box('Switch With MA', '##switchwithma', config.get_switch_with_ma(), 'Switch targets with MA'))
     ui.get_next_item_loc()
     OPTS.RALLYGROUP = ui.draw_check_box('Rallying Group', '##rallygroup', OPTS.RALLYGROUP, 'Use Rallying Group AA')
     ui.get_next_item_loc()
