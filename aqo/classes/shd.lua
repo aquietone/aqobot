@@ -351,13 +351,11 @@ local function check_ae()
                 if common.use_aa(aa) then return end
             end
         end
-        if mobs_in_range >= 3 then
-            if mobs_in_range >= 4 then
-                -- Discs to use when 4 or more mobs on aggro
-                for _,aa in ipairs(mashAEAggroAAs4) do
-                    if not aa['opt'] or OPTS[aa['opt']] then
-                        if common.use_aa(aa) then return end
-                    end
+        if mobs_in_range >= 4 then
+            -- Discs to use when 4 or more mobs on aggro
+            for _,aa in ipairs(mashAEAggroAAs4) do
+                if not aa['opt'] or OPTS[aa['opt']] then
+                    if common.use_aa(aa) then return end
                 end
             end
         end
