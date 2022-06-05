@@ -280,6 +280,9 @@ local function find_next_dot_to_cast()
     --if is_dot_ready(spells['composite']['id'], spells['composite']['name']) then
     --    return spells['composite']['id'], spells['composite']['name']
     --end
+    if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
+        return spells['manatap']
+    end
     if common.OPTS.SPELLSET == 'short' and mq.TLO.Me.SpellReady(spells['swarm']['name'])() and mq.TLO.Spell(spells['swarm']['name']).Mana() < mq.TLO.Me.CurrentMana() then
         return spells['swarm']
     end
@@ -483,6 +486,9 @@ local function check_mana()
 end
 
 local function safe_to_stand()
+    if mq.TLo.Raid.Members() > 0 and mq.TLO.SpawnCount('pc raid tank radius 300')() > 2 then
+        return true
+    end
     if mq.TLO.Group.MainTank() then
         if not mq.TLO.Group.MainTank.Dead() then
             return true

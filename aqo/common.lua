@@ -55,22 +55,37 @@ local mount = mq.TLO.Mount.Stat.Item.ID() or mq.TLO.FindItem('Golden Owlbear Sad
 -- Generic Helper Functions
 
 common.LOG_PREFIX = '\a-t[\ax\ayAQOBot\ax\a-t]\ax '
+
+---The formatted string and zero or more replacement variables for the formatted string.
+---@vararg string
 common.printf = function(...)
     print(common.LOG_PREFIX..string.format(...))
 end
+
+---The formatted string and zero or more replacement variables for the formatted string.
+---@vararg string
 common.debug = function(...)
     if common.DEBUG then common.printf(...) end
 end
 
+---Check whether the specified file exists or not.
+---@param file_name string @The name of the file to check existence of.
+---@return boolean @Returns true of the file exists, false otherwise.
 common.file_exists = function(file_name)
     local f = io.open(file_name, "r")
     if f ~= nil then io.close(f) return true else return false end
 end
 
+---Return the current time in seconds. TODO: is the os.date("!*t") really necessary? "!*t" returns UTC instead of local time.
+---@return number @Returns a number representing the current time.
 common.current_time = function()
     return os.time(os.date("!*t"))
 end
 
+---Check whether the specified timer has passed the given expiration.
+---@param t number @The current value of the timer.
+---@param expiration number @The number of seconds which must have passed for the timer to be expired.
+---@return boolean
 common.timer_expired = function(t, expiration)
     if os.difftime(common.current_time(), t) > expiration then
         return true
@@ -79,10 +94,16 @@ common.timer_expired = function(t, expiration)
     end
 end
 
+---@param t number
+---@param less_than number
+---@return boolean
 common.time_remaining = function(t, less_than)
     return not common.timer_expired(t, less_than)
 end
 
+---Count the number of keys in the given table
+---@param t table @The table.
+---@return number @The number of keys in the table.
 common.table_size = function(t)
     local count = 0
     for _,_ in pairs(t) do
@@ -93,16 +114,28 @@ end
 
 -- MQ Helper Functions
 
-common.get_spellid_and_rank = function(spell_name)
+---Lookup the ID for a given spell.
+---@param spell_name string @The name of the spell.
+---@param option_name string @The name of the option which controls whether this spell should be used.
+---@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
+common.get_spellid_and_rank = function(spell_name, option_name)
     local spell_rank = mq.TLO.Spell(spell_name).RankName()
-    return {['id']=mq.TLO.Spell(spell_rank).ID(), ['name']=spell_rank}
+    return {['id']=mq.TLO.Spell(spell_rank).ID(), ['name']=spell_rank, ['opt']=option_name}
 end
-common.get_aaid_and_name = function(aa_name)
-    return {['id']=mq.TLO.Me.AltAbility(aa_name).ID(), ['name']=aa_name}
+---Lookup the ID for a given spell.
+---@param spell_name string @The name of the spell.
+---@param option_name string @The name of the option which controls whether this spell should be used.
+---@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
+common.get_aaid_and_name = function(aa_name, option_name)
+    return {['id']=mq.TLO.Me.AltAbility(aa_name).ID(), ['name']=aa_name, ['opt']=option_name}
 end
-common.get_discid_and_name = function(disc_name)
+---Lookup the ID for a given spell.
+---@param spell_name string @The name of the spell.
+---@param option_name string @The name of the option which controls whether this spell should be used.
+---@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
+common.get_discid_and_name = function(disc_name, option_name)
     local disc_rank = mq.TLO.Spell(disc_name).RankName()
-    return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank}
+    return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank, ['opt']=option_name}
 end
 
 -- Check that we are not currently casting anything
@@ -118,7 +151,7 @@ end
 
 common.is_fighting = function()
     --if mq.TLO.Target.CleanName() == 'Combat Dummy Beza' then return true end -- Dev hook for target dummy
-    return (mq.TLO.Target.ID() ~= nil and (mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING") and mq.TLO.Me.Standing() and not mq.TLO.Me.Feigning() and mq.TLO.Target.Type() == "NPC" and mq.TLO.Target.Type() ~= "Corpse")
+    return mq.TLO.Target.ID() ~= nil and mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Me.Standing() and not mq.TLO.Me.Feigning() and mq.TLO.Target.Type() == "NPC" and mq.TLO.Target.Type() ~= "Corpse"
 end
 
 common.check_distance = function(x1, y1, x2, y2)
@@ -359,6 +392,14 @@ local function check_z_rad(pull_spawn)
     return true
 end
 
+local function check_level(pull_spawn)
+    if common.OPTS.PULLMINLEVEL == 0 and common.OPTS.PULLMAXLEVEL == 0 then return true end
+    local mob_level = pull_spawn.Level()
+    if not mob_level then return false end
+    if mob_level >= common.OPTS.PULLMINLEVEL and mob_level <= common.OPTS.PULLMAXLEVEL then return true end
+    return false
+end
+
 -- TODO: zhigh zlow, radius from camp vs from me
 --loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
 local pull_count = 'npc radius %d'-- zradius 50'
@@ -383,7 +424,7 @@ common.pull_radar = function()
             end 
             local mob_id = mob.ID()
             local pathlen = mq.TLO.Navigation.PathLength('id '..mob_id)()
-            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS and check_mob_angle(mob) and check_z_rad(mob) then
+            if mob_id > 0 and not PULL_TARGET_SKIP[mob_id] and mob.Type() ~= 'Corpse' and pathlen > 0 and pathlen < common.OPTS.PULLRADIUS and check_mob_angle(mob) and check_z_rad(mob) and check_level(mob) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
                 --if pc_near_count == 0 then
@@ -868,7 +909,7 @@ common.use_item = function(item)
     if item.Timer() == '0' then
         if item.Clicky.Spell.TargetType() == 'Single' and not mq.TLO.Target() then return end
         if common.can_cast_weave() then
-            common.printf('use_item: \ax\ar%s\ax', item)
+            common.printf('Use Item: \ax\ar%s\ax', item)
             mq.cmdf('/useitem "%s"', item)
             mq.delay(50)
             mq.delay(250+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -881,14 +922,14 @@ common.use_aa = function(aa)
     if mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() > 0 and mq.TLO.Me.PctEndurance() < common.MIN_END then return end
     if mq.TLO.Me.AltAbility(aa['name']).Spell.TargetType() == 'Single' then
         if mq.TLO.Target() and not mq.TLO.Target.MyBuff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() and mq.TLO.Me.AltAbility(aa['name']).Spell.EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
-            common.printf('use_aa: \ax\ar%s\ax', aa['name'])
+            common.printf('Use AA: \ax\ar%s\ax', aa['name'])
             mq.cmdf('/alt activate %d', aa['id'])
             mq.delay(50)
             mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
             return true
         end
     elseif not mq.TLO.Me.Song(aa['name'])() and not mq.TLO.Me.Buff(aa['name'])() and mq.TLO.Me.AltAbilityReady(aa['name'])() and common.can_cast_weave() then
-        common.printf('use_aa: \ax\ar%s\ax', aa['name'])
+        common.printf('Use AA: \ax\ar%s\ax', aa['name'])
         mq.cmdf('/alt activate %d', aa['id'])
         mq.delay(50)
         mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -896,27 +937,27 @@ common.use_aa = function(aa)
     end
 end
 
-common.use_disc = function(disc, overwrite)
+common.use_disc = function(disc, overwrite, skip_duration_check)
     if not common.in_control() then return end
     if mq.TLO.Me.CombatAbility(disc['name'])() and mq.TLO.Me.CombatAbilityTimer(disc['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(disc['name'])() and mq.TLO.Spell(disc['name']).EnduranceCost() < mq.TLO.Me.CurrentEndurance() then
-        if tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6 or not mq.TLO.Me.ActiveDisc.ID() then
-            common.printf('use_disc: \ax\ar%s\ax', disc['name'])
+        if skip_duration_check or not mq.TLO.Me.ActiveDisc.ID() or (tonumber(mq.TLO.Spell(disc['name']).Duration()) and tonumber(mq.TLO.Spell(disc['name']).Duration()) < 6) then
+            common.printf('Use Disc: \ax\ar%s\ax', disc['name'])
             if disc['name']:find('Composite') then
                 mq.cmdf('/disc %s', disc['id'])
-                --mq.delay(300)
-                --mq.delay(50)
-                mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+                mq.delay(50)
+                mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             else
                 mq.cmdf('/disc %s', disc['name'])
-                --mq.delay(300)
-                --mq.delay(50)
-                mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+                mq.delay(50)
+                mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
             end
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
+            common.printf('Use Disc: \ax\ar%s\ax', disc['name'])
             mq.cmdf('/disc %s', disc['name'])
-            mq.delay(300, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+            mq.delay(50)
+            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
         end
     end
 end
@@ -1015,9 +1056,14 @@ common.check_mana = function()
     -- unified phoenix feather
 end
 
+local sit_timer = 0
 common.rest = function()
-    if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', common.OPTS.CAMPRADIUS))() == 0 then
-        mq.cmd('/sit')
+    -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
+    if common.timer_expired(sit_timer, 10) then
+        if not common.is_fighting() and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', common.OPTS.CAMPRADIUS))() == 0 then
+            mq.cmd('/sit')
+            sit_timer = common.current_time()
+        end
     end
 end
 

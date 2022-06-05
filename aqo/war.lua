@@ -36,13 +36,14 @@ table.insert(mashDiscs, common.get_discid_and_name('Knuckle Break'))
 table.insert(mashDiscs, common.get_discid_and_name('Twilight Shout'))
 table.insert(mashDiscs, common.get_discid_and_name('Composite Shield'))
 table.insert(mashDiscs, common.get_discid_and_name('Finish the Fight'))
+table.insert(mashDiscs, common.get_discid_and_name('Phantom Aggressor', 'USEPHANTOM'))
+table.insert(mashDiscs, common.get_discid_and_name('Confluent Precision', 'USEPRECISION'))
+table.insert(mashDiscs, common.get_discid_and_name('Phantom Aggressor', 'USEPHANTOM'))
 for _,disc in ipairs(mashDiscs) do
     common.printf('Found disc %s (%s)', disc.name, disc.id)
 end
 
--- toggled mash discs
-local phantom = common.get_discid_and_name('Phantom Aggressor')
-local precision = common.get_discid_and_name('Confluent Precision')
+-- what to do with this one..
 local attraction = common.get_discid_and_name('Forceful Attraction')
 
 -- always on mash AAs
@@ -52,22 +53,22 @@ table.insert(mashAAs, common.get_aaid_and_name('Knee Strike'))
 table.insert(mashAAs, common.get_aaid_and_name('Blast of Anger'))
 table.insert(mashAAs, common.get_aaid_and_name('Blade Guardian'))
 table.insert(mashAAs, common.get_aaid_and_name('Brace for Impact'))
-
--- toggled mash AAs
-local challenge = common.get_aaid_and_name('Call of Challenge')
-local grapple = common.get_aaid_and_name('Grappling Strike')
-local projection = common.get_aaid_and_name('Projection of Fury')
-local grasp = common.get_aaid_and_name('Warlord\'s Grasp')
+table.insert(mashAAs, common.get_aaid_and_name('Call of Challenge', 'USESNARE'))
+table.insert(mashAAs, common.get_aaid_and_name('Grappling Strike', 'USEGRAPPLE'))
+table.insert(mashAAs, common.get_aaid_and_name('Projection of Fury', 'USEPROJECTION'))
+table.insert(mashAAs, common.get_aaid_and_name('Warlord\'s Grasp', 'USEGRASP'))
 
 -- mash use together
 local aegis = common.get_discid_and_name('Warrior\'s Aegis')
 local spire = common.get_aaid_and_name('Spire of the Warlord')
 
 -- mash AE aggro
-local mashAEDiscs = {}
-table.insert(mashAEDiscs, common.get_discid_and_name('Roar of Challenge'))
-table.insert(mashAEDiscs, common.get_discid_and_name('Wade into Battle'))
-local expanse = common.get_discid_and_name('Concordant Expanse')
+local mashAEDiscs2 = {}
+table.insert(mashAEDiscs2, common.get_discid_and_name('Roar of Challenge'))
+table.insert(mashAEDiscs2, common.get_discid_and_name('Concordant Expanse', 'USEEXPANSE'))
+
+local mashAEDiscs4 = {}
+table.insert(mashAEDiscs4, common.get_discid_and_name('Wade into Battle'))
 
 local mashAEAAs = {}
 table.insert(mashAEAAs, common.get_aaid_and_name('Area Taunt'))
@@ -78,6 +79,8 @@ local burnAgroAAs = {}
 table.insert(burnAgroAAs, common.get_aaid_and_name('Ageless Enmity'))
 
 local regen = common.get_discid_and_name('Breather')
+print(regen['id'])
+print(regen['name'])
 
 local leap = common.get_aaid_and_name('Battle Leap')
 local aura = common.get_discid_and_name('Champion\'s Aura')
@@ -94,7 +97,7 @@ local runes = common.get_discid_and_name('Armor of Akhevan Runes')
 local burnAAs = {}
 table.insert(burnAAs, common.get_aaid_and_name('Mark of the Mage Hunter'))
 
-local fortitude = common.get_discid_and_name('Fortitude Discipline')
+local fortitude = common.get_discid_and_name('Fortitude Discipline', 'USEFORTITUDE')
 local flash = common.get_discid_and_name('Flash of Anger')
 
 -- entries in the items table are MQ item datatypes
@@ -133,29 +136,37 @@ war.reset_class_timers = function()
     -- no-op
 end
 
+local agro_nopet_count = 'xtarhater radius %d zradius 50 nopet'
 war.check_ae = function()
-    if common.MOB_COUNT < 2 then return end
     if common.am_i_dead() then return end
-    if common.MOB_COUNT >= 3 then
-        for _,disc in ipairs(mashAEDiscs) do
-            common.use_disc(disc)
+    local mobs_on_agro = mq.TLO.SpawnCount(agro_nopet_count:format(common.OPTS.CAMPRADIUS))()
+    if mobs_on_agro >= 2 then
+        for _,disc in ipairs(mashAEDiscs2) do
+            if not disc['opt'] or OPTS[disc['opt']] then
+                common.use_disc(disc)
+            end
         end
-        for _,aa in ipairs(mashAEAAs) do
-            common.use_aa(aa)
-        end
-        if OPTS.USEEXPANSE then
-            common.use_disc(expanse)
+        if mobs_on_agro >= 3 then
+            for _,aa in ipairs(mashAEAAs) do
+                common.use_aa(aa)
+            end
+
+            if mobs_on_agro >= 4 then
+                for _,disc in ipairs(mashAEDiscs4) do
+                    if not disc['opt'] or OPTS[disc['opt']] then
+                        common.use_disc(disc)
+                    end
+                end
+            end
         end
     end
 end
 
 war.check_end = function()
     if common.am_i_dead() then return end
-    if mq.TLO.Me.PctEndurance() > 15 then return end
-    if mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" then return end
-    if mq.TLO.Me.CombatAbility(regen['name'])() and mq.TLO.Me.CombatAbilityTimer(regen['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(regen['name'])() then
-        common.use_disc(regen)
-    end
+    if mq.TLO.Me.PctEndurance() > 20 then return end
+    if mq.TLO.Me.CombatState() == "COMBAT" then return end
+    common.use_disc(regen, nil, true) -- skip duration check
 end
 
 local function mash()
@@ -166,32 +177,22 @@ local function mash()
                 common.use_aa(leap)
             end
             for _,aa in ipairs(mashAAs) do
-                common.use_aa(aa)
+                if not aa['opt'] or OPTS[aa['opt']] then
+                    common.use_aa(aa)
+                end
             end
             for _,disc in ipairs(mashDiscs) do
-                common.use_disc(disc)
+                if not disc['opt'] or OPTS[disc['opt']] then
+                    common.use_disc(disc)
+                end
             end
             for _,ability in ipairs(mashAbilities) do
                 common.use_ability(ability)
             end
-            if OPTS.USEGRAPPLE then
-
-            end
-            if OPTS.USEGRASP then
-
-            end
-            if OPTS.USEPHANTOM then
-
-            end
-            if OPTS.USEPROJECTION then
-
-            end
-            if OPTS.USESNARE then
-
-            end
-            if OPTS.USEPRECISION then
-
-            end
+        end
+        if mq.TLO.Me.AltAbilityReady(spire['name']) and mq.TLO.Me.CombatAbilityReady(aegis['name']) then
+            common.use_aa(spire)
+            common.use_disc(aegis)
         end
     end
 end
@@ -311,7 +312,6 @@ war.main_loop = function()
     end
     war.check_end()
     if common.TANK_MODES[common.OPTS.MODE] or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-        common.debug('in tank mode so find a mob to tank')
         -- get mobs in camp
         common.mob_radar()
         -- pick mob to tank if not tanking
@@ -335,7 +335,7 @@ war.main_loop = function()
     if common.PULLER_MODES[common.OPTS.MODE] and common.ASSIST_TARGET_ID == 0 and common.TANK_MOB_ID == 0 and common.PULL_MOB_ID == 0 and mq.TLO.Me.XTarget() == 0 then
         mq.cmd('/multiline ; /squelch /nav stop; /attack off; /autofire off;')
         mq.delay(50)
-        common.debug('in puller mode so find mob to pull')
+        war.check_end()
         common.pull_radar()
         common.pull_mob()
         common.find_mob_to_tank()
