@@ -18,6 +18,7 @@ local OPTS = {
     BUFFGROUP=false,
     DSTANK=false,
     NUKE=false,
+    USEDISPEL=true,
 }
 common.OPTS.SPELLSET = 'standard'
 mq.cmd('/squelch /stick mod 0')
@@ -31,8 +32,8 @@ local spells = {
     ['opener']=common.get_spellid_and_rank('Stealthy Shot'), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     ['summer']=common.get_spellid_and_rank('Summer\'s Torrent'), -- fire + ice nuke, Summer's Sleet
     ['boon']=common.get_spellid_and_rank('Lunarflare boon'), -- 
-    ['healtot']=common.get_spellid_and_rank('Desperate Geyser'), -- heal ToT, Desperate Meltwater
-    ['healtot2']=common.get_spellid_and_rank('Darkwater Spring'), -- heal ToT, Meltwater Spring
+    ['healtot']=common.get_spellid_and_rank('Desperate Geyser'), -- heal ToT, Desperate Meltwater, fast cast, long cd
+    ['healtot2']=common.get_spellid_and_rank('Darkflow Spring'), -- heal ToT, Meltwater Spring, slow cast
     ['dot']=common.get_spellid_and_rank('Bloodbeetle Swarm'), -- main DoT
     ['dotds']=common.get_spellid_and_rank('Swarm of Bloodflies'), -- DoT + reverse DS, Swarm of Hyperboreads
     ['dmgbuff']=common.get_spellid_and_rank('Arbor Stalker\'s Enrichment'), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
@@ -52,6 +53,7 @@ local spells = {
     -- Unity Beza only
     ['blades']=common.get_spellid_and_rank('Vociferous Blades'), -- Howling Blades
     ['ds']=common.get_spellid_and_rank('Shield of Shadethorns'), -- DS
+    ['rune']=common.get_spellid_and_rank('Luclin\'s Darkfire Cloak'), -- self rune + debuff proc
 }
 -- Pyroclastic Boon, 
 for name,spell in pairs(spells) do
@@ -111,7 +113,7 @@ local mashAAs = {}
 table.insert(mashAAs, common.get_aaid_and_name('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
 
 local mashDiscs = {}
-table.insert(mashDiscs, common.get_discid_and_name('Jolting Axe Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+table.insert(mashDiscs, common.get_discid_and_name('Jolting Roundhouse Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
 table.insert(mashDiscs, common.get_discid_and_name('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
 table.insert(mashDiscs, common.get_discid_and_name('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
 -- table.insert(mashDiscs, common.get_aaid_and_name('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
@@ -151,6 +153,7 @@ rng.load_settings = function()
     if settings.rng.BUFFGROUP ~= nil then OPTS.USEFIREARROW = settings.rng.BUFFGROUP end
     if settings.rng.DSTANK ~= nil then OPTS.DSTANK = settings.rng.DSTANK end
     if settings.rng.NUKE ~= nil then OPTS.NUKE = settings.rng.NUKE end
+    if settings.rng.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.rng.USEDISPEL end
 end
 
 rng.save_settings = function()
@@ -167,11 +170,11 @@ local function get_ranged_combat_position(radius)
     local mob_z = mq.TLO.Spawn('id '..common.ASSIST_TARGET_ID).Z()
     local degrees = mq.TLO.Spawn('id '..common.ASSIST_TARGET_ID).Heading.Degrees()
     if not mob_x or not mob_y or not mob_z or not degrees then return false end
-    local my_heading = degrees - 10
+    local my_heading = degrees
     local base_radian = 10
     for i=1,36 do
-        local x_move = math.cos(base_radian * i + my_heading)
-        local y_move = math.sin(base_radian * i + my_heading)
+        local x_move = math.cos(math.rad(common.convert_heading(base_radian * i + my_heading)))
+        local y_move = math.sin(math.rad(common.convert_heading(base_radian * i + my_heading)))
         local x_off = mob_x + radius * x_move
         local y_off = mob_y + radius * y_move
         local z_off = mob_z
@@ -274,6 +277,14 @@ end
     4. wildfire spam
 ]]--
 local function find_next_spell()
+    local tothp = mq.TLO.Me.TargetOfTarget.PctHPs()
+    if tothp and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.TargetOfTarget() and tothp < 40 then
+        for _,spell in ipairs(combat_heal_spells) do
+            if is_spell_ready(spell['id'], spell['name']) then
+                return spell
+            end
+        end
+    end
     for _,spell in ipairs(dot_spells) do
         if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT then
             if is_dot_ready(spell['id'], spell['name']) then
@@ -312,6 +323,12 @@ end
 
 local function mash()
     if common.is_fighting() or common.should_assist() then
+        if OPTS.USEDISPEL then
+            local target_hp = mq.TLO.Target.PctHPs()
+            if target_hp and target_hp > 90 then
+                common.use_aa(dispel)
+            end
+        end
         for _,item_id in ipairs(mash_items) do
             local item = mq.TLO.FindItem(item_id)
             common.use_item(item)
@@ -432,6 +449,19 @@ local function check_buffs()
         -- wait for GCD incase we move on to cast another right away
         mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['buffs']['name']) end)
     end
+    if not mq.TLO.Me.Buff(spells['rune']['name'])() then
+        local restore_gem = nil
+        if not mq.TLO.Me.Gem(spells['rune']['name'])() then
+            restore_gem = mq.TLO.Me.Gem(13)()
+            common.swap_spell(spells['rune']['name'], 13)
+        end
+        mq.delay('3s', function() return mq.TLO.Me.SpellReady(spells['rune']['name'])() end)
+        common.cast(spells['rune']['name'])
+        if restore_gem then
+            common.swap_spell(restore_gem, 13)
+        end
+        mq.delay('1.5s', function() return mq.TLO.Me.SpellReady(spells['rune']['name']) end)
+    end
     if OPTS.BUFFGROUP and common.timer_expired(group_buff_timer, 60) then
         if mq.TLO.Group.Members() then
             for i=1,mq.TLO.Group.Members() do
@@ -504,12 +534,12 @@ local function check_spell_set()
         if common.OPTS.SPELLSET == 'standard' then
             if mq.TLO.Me.Gem(1)() ~= spells['shots']['name'] then common.swap_spell(spells['shots']['name'], 1) end
             if mq.TLO.Me.Gem(2)() ~= spells['focused']['name'] then common.swap_spell(spells['focused']['name'], 2) end
-            if mq.TLO.Me.Gem(3)() ~= 'Dissident Fusillade' then common.swap_spell(spells['composite']['name'], 3) end
+            if mq.TLO.Me.Gem(3)() ~= 'Composite Fusillade' then common.swap_spell(spells['composite']['name'], 3) end
             if mq.TLO.Me.Gem(4)() ~= spells['heart']['name'] then common.swap_spell(spells['heart']['name'], 4) end
             if mq.TLO.Me.Gem(5)() ~= spells['opener']['name'] then common.swap_spell(spells['opener']['name'], 5) end
             if mq.TLO.Me.Gem(6)() ~= spells['summer']['name'] then common.swap_spell(spells['summer']['name'], 6) end
             if mq.TLO.Me.Gem(7)() ~= spells['healtot']['name'] then common.swap_spell(spells['healtot']['name'], 7) end
-            if mq.TLO.Me.Gem(8)() ~= spells['healtot2']['name'] then common.swap_spell(spells['healtot2']['name'], 8) end
+            if mq.TLO.Me.Gem(8)() ~= spells['healtot2']['name'] then common.swap_spell(spells['healtot2']['name'], 8) end -- TODO: replace this one
             if mq.TLO.Me.Gem(9)() ~= spells['dot']['name'] then common.swap_spell(spells['dot']['name'], 9) end
             if mq.TLO.Me.Gem(10)() ~= spells['dotds']['name'] then common.swap_spell(spells['dotds']['name'], 10) end
             if mq.TLO.Me.Gem(12)() ~= spells['dmgbuff']['name'] then common.swap_spell(spells['dmgbuff']['name'], 12) end
@@ -638,6 +668,8 @@ rng.draw_right_panel = function()
     OPTS.BUFFGROUP = ui.draw_check_box('Buff Group', '##buffgroup', OPTS.BUFFGROUP, 'Buff group members')
     ui.get_next_item_loc()
     OPTS.DSTANK = ui.draw_check_box('DS Tank', '##dstank', OPTS.DSTANK, 'DS Tank')
+    ui.get_next_item_loc()
+    OPTS.USEDISPEL = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEDISPEL, 'Dispel mobs with Entropy AA')
 end
 
 return rng

@@ -85,9 +85,12 @@ local champion = common.get_discid_and_name('Full Moon\'s Champion')
 local voice = common.get_discid_and_name('Commanding Voice')
 local command = common.get_aaid_and_name('Imperator\'s Command')
 
-local burnDiscs = {}
-table.insert(burnDiscs, common.get_aaid_and_name('Resolute Stand')) -- 
-table.insert(burnDiscs, common.get_aaid_and_name('Armor of Akhevan Runes')) -- 
+local mash_defensive = common.get_discid_and_name('Primal Defense')
+local defensive = common.get_discid_and_name('Resolute Stand')
+local runes = common.get_discid_and_name('Armor of Akhevan Runes')
+--local burnDiscs = {}
+--table.insert(burnDiscs, common.get_aaid_and_name('Resolute Stand')) -- 
+--table.insert(burnDiscs, common.get_aaid_and_name('Armor of Akhevan Runes')) -- 
 local burnAAs = {}
 table.insert(burnAAs, common.get_aaid_and_name('Mark of the Mage Hunter'))
 
@@ -103,6 +106,9 @@ local buff_items = {}
 table.insert(buff_items, mq.TLO.FindItem('Chestplate of the Dark Flame').ID())
 table.insert(buff_items, mq.TLO.FindItem('Violet Conch of the Tempest').ID())
 table.insert(buff_items, mq.TLO.FindItem('Mask of the Lost Guktan').ID())
+
+local summon_items = {}
+table.insert(summon_items, mq.TLO.FindItem('Huntsman\'s Ethereal Quiver').ID())
 
 local SETTINGS_FILE = ('%s/warbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
 war.load_settings = function()
@@ -137,13 +143,16 @@ war.check_ae = function()
         for _,aa in ipairs(mashAEAAs) do
             common.use_aa(aa)
         end
+        if OPTS.USEEXPANSE then
+            common.use_disc(expanse)
+        end
     end
 end
 
 war.check_end = function()
     if common.am_i_dead() then return end
     if mq.TLO.Me.PctEndurance() > 15 then return end
-
+    if mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" then return end
     if mq.TLO.Me.CombatAbility(regen['name'])() and mq.TLO.Me.CombatAbilityTimer(regen['name'])() == '0' and mq.TLO.Me.CombatAbilityReady(regen['name'])() then
         common.use_disc(regen)
     end
@@ -165,6 +174,24 @@ local function mash()
             for _,ability in ipairs(mashAbilities) do
                 common.use_ability(ability)
             end
+            if OPTS.USEGRAPPLE then
+
+            end
+            if OPTS.USEGRASP then
+
+            end
+            if OPTS.USEPHANTOM then
+
+            end
+            if OPTS.USEPROJECTION then
+
+            end
+            if OPTS.USESNARE then
+
+            end
+            if OPTS.USEPRECISION then
+
+            end
         end
     end
 end
@@ -173,6 +200,8 @@ local function try_burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if common.is_burn_condition_met() then
+        common.use_disc(defensive, mash_defensive['name'])
+        common.use_disc(runes, mash_defensive['name'])
 
         --[[
         |===========================================================================================
@@ -194,15 +223,6 @@ local function try_burn()
             local item = mq.TLO.FindItem(item_id)
             common.use_item(item)
         end
-
-        --[[
-        |===========================================================================================
-        |Disc Burn
-        |===========================================================================================
-        ]]--
-        for _,disc in ipairs(burnDiscs) do
-            common.use_disc(disc)
-        end
     end
 end
 
@@ -217,6 +237,12 @@ local function check_buffs()
     end
     if not mq.TLO.Me.Song(command['name'])() then
         common.use_aa(command)
+    end
+    if mq.TLO.FindItemCount('Ethereal Arrow')() < 30 then
+        local item = mq.TLO.FindItem(summon_items[1])
+        common.use_item(item)
+        mq.delay(50)
+        mq.cmd('/autoinv')
     end
 
     if common.is_fighting() then return end
@@ -283,7 +309,8 @@ war.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
         common.TANK_MOB_ID = 0
     end
-    if common.TANK_MODES[common.OPTS.MODE] then
+    war.check_end()
+    if common.TANK_MODES[common.OPTS.MODE] or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         common.debug('in tank mode so find a mob to tank')
         -- get mobs in camp
         common.mob_radar()
@@ -296,7 +323,7 @@ war.main_loop = function()
     -- check whether we need to go chasing after the chase target
     common.check_chase()
     -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
-    if common.TANK_MODES[common.OPTS.MODE] then
+    if common.TANK_MODES[common.OPTS.MODE] or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         war.check_ae()
     end
     -- if in an assist mode
