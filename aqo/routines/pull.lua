@@ -126,12 +126,12 @@ local function pull_nav_to(pull_spawn)
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
         logger.debug(state.get_debug(), 'Moving to pull target (%s)', state.get_pull_mob_id())
         if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.get_pull_mob_id()))() then
-            mq.cmdf('/nav spawn id %d | log=off', state.get_pull_mob_id())
+            mq.cmdf('/nav spawn id %d | dist=15 log=off', state.get_pull_mob_id())
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
         end
         -- TODO: disrupt if mob aggro otw to pull
         mq.delay('15s', function()
-            if not pull_spawn then
+            if not pull_spawn or not mq.TLO.Navigation.Active() then
                 return false
             end
             local dist3d = pull_spawn.Distance3D()
@@ -218,12 +218,12 @@ local function pull_engage(pull_spawn, pull_func)
 
     if not common.hostile_xtargets() and get_closer then
         if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.get_pull_mob_id()))() then
-            mq.cmdf('/nav spawn id %d | log=off', pull_mob_id)
+            mq.cmdf('/nav id %d | dist=15 log=off', pull_mob_id)
             mq.delay(100, function() return mq.TLO.Navigation.Active() end)
         end
         -- TODO: disrupt if mob aggro otw to pull
         mq.delay('15s', function()
-            if not pull_spawn then
+            if not pull_spawn or not mq.TLO.Navigation.Active() then
                 return false
             end
             local dist3d = pull_spawn.Distance3D()
@@ -238,6 +238,8 @@ local function pull_engage(pull_spawn, pull_func)
             mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
         end
 
+        local dist3d = mq.TLO.Target.Distance3D()
+        if not dist3d or dist3d > 25 or not mq.TLO.Target.LineOfSight() then return end
         -- use class close range pull ability
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
