@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
@@ -50,85 +50,65 @@ mq.cmd('/squelch /stick mod 0')
 ]]
 -- All spells ID + Rank name
 local spells = {
-    ['aura']=common.get_spell('Aura of Pli Xin Liako') or common.get_spell('Aura of Margidor') or common.get_spell('Aura of Begalru') or {name=nil,id=nil}, -- spell dmg, overhaste, flurry, triple atk
-    ['composite']=common.get_spell('Composite Psalm') or common.get_spell('Dissident Psalm') or common.get_spell('Dichotomic Psalm') or {name=nil,id=nil}, -- DD+melee dmg bonus + small heal
-    ['aria']=common.get_spell('Aria of Pli Xin Liako') or common.get_spell('Aria of Margidor') or common.get_spell('Aria of Begalru') or {name=nil,id=nil}, -- spell dmg, overhaste, flurry, triple atk
-    ['warmarch']=common.get_spell('War March of Centien Xi Va Xakra') or common.get_spell('War March of Radiwol') or common.get_spell('War March of Dekloaz') or {name=nil,id=nil}, -- haste, atk, ds
-    ['arcane']=common.get_spell('Arcane Harmony') or common.get_spell('Arcane Symphony') or common.get_spell('Arcane Ballad') or {name=nil,id=nil}, -- spell dmg proc
-    ['suffering']=common.get_spell('Shojralen\'s Song of Suffering') or common.get_spell('Omorden\'s Song of Suffering') or common.get_spell('Travenro\'s Song of Suffering') or {name=nil,id=nil}, -- melee dmg proc
-    ['spiteful']=common.get_spell('Von Deek\'s Spiteful Lyric') or common.get_spell('Omorden\'s Spiteful Lyric') or common.get_spell('Travenro\' Spiteful Lyric') or {name=nil,id=nil}, -- AC
-    ['pulse']=common.get_spell('Pulse of Nikolas') or common.get_spell('Pulse of Vhal`Sera') or common.get_spell('Pulse of Xigarn') or {name=nil,id=nil}, -- heal focus + regen
-    ['sonata']=common.get_spell('Xetheg\'s Spry Sonata') or common.get_spell('Kellek\'s Spry Sonata') or common.get_spell('Kluzen\'s Spry Sonata') or {name=nil,id=nil}, -- spell shield, AC, dmg mitigation
-    ['dirge']=common.get_spell('Dirge of the Restless') or common.get_spell('Dirge of Lost Horizons') or {name=nil,id=nil},-- or common.get_spell('Dirge of the Restless'), -- spell+melee dmg mitigation
-    ['firenukebuff']=common.get_spell('Constance\'s Aria') or common.get_spell('Sontalak\'s Aria') or common.get_spell('Quinard\'s Aria') or {name=nil,id=nil}, -- inc fire DD
-    ['firemagicdotbuff']=common.get_spell('Fyrthek Fior\'s Psalm of Potency') or common.get_spell('Velketor\'s Psalm of Potency') or common.get_spell('Akett\'s Psalm of Potency') or {name=nil,id=nil}, -- inc fire+mag dot
-    ['crescendo']=common.get_spell('Zelinstein\'s Lively Crescendo') or common.get_spell('Zburator\'s Lively Crescendo') or common.get_spell('Jembel\'s Lively Crescendo') or {name=nil,id=nil}, -- small heal hp, mana, end
-    ['insult']=common.get_spell('Yelinak\'s Insult') or common.get_spell('Sathir\'s Insult') or {name=nil,id=nil}, -- synergy DD
-    ['insult2']=common.get_spell('Sogran\'s Insult') or common.get_spell('Omorden\'s Insult') or common.get_spell('Travenro\'s Insult') or {name=nil,id=nil}, -- synergy DD 2
-    ['chantflame']=common.get_spell('Shak Dathor\'s Chant of Flame') or common.get_spell('Sontalak\'s Chant of Flame') or common.get_spell('Quinard\'s Chant of Flame') or {name=nil,id=nil},
-    ['chantfrost']=common.get_spell('Sylra Fris\' Chant of Frost') or common.get_spell('Yelinak\'s Chant of Frost') or common.get_spell('Ekron\'s Chant of Frost') or {name=nil,id=nil},
-    ['chantdisease']=common.get_spell('Coagulus\' Chant of Disease') or common.get_spell('Zlexak\'s Chant of Disease') or common.get_spell('Hoshkar\'s Chant of Disease') or {name=nil,id=nil},
-    ['chantpoison']=common.get_spell('Cruor\'s Chant of Poison') or common.get_spell('Malvus\'s Chant of Poison') or common.get_spell('Nexona\'s Chant of Poison') or {name=nil,id=nil},
-    ['alliance']=common.get_spell('Coalition of Sticks and Stones') or common.get_spell('Covenant of Sticks and Stones') or common.get_spell('Alliance of Sticks and Stones') or {name=nil,id=nil},
-    ['mezst']=common.get_spell('Slumber of the Diabo') or common.get_spell('Slumber of Zburator') or common.get_spell('Slumber of Jembel') or {name=nil,id=nil},
-    ['mezae']=common.get_spell('Wave of Nocturn') or common.get_spell('Wave of Sleep') or common.get_spell('Wave of Somnolence') or {name=nil,id=nil},
+    aura = common.get_best_spell({'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}), -- spell dmg, overhaste, flurry, triple atk
+    composite = common.get_best_spell({'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}), -- DD+melee dmg bonus + small heal
+    aria = common.get_best_spell({'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru'}), -- spell dmg, overhaste, flurry, triple atk
+    warmarch = common.get_best_spell({'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}), -- haste, atk, ds
+    arcane = common.get_best_spell({'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad'}), -- spell dmg proc
+    suffering = common.get_best_spell({'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering'}), -- melee dmg proc
+    spiteful = common.get_best_spell({'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}), -- AC
+    pulse = common.get_best_spell({'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn'}), -- heal focus + regen
+    sonata = common.get_best_spell({'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}), -- spell shield, AC, dmg mitigation
+    dirge = common.get_best_spell({'Dirge of the Restless', 'Dirge of Lost Horizons'}), -- spell+melee dmg mitigation
+    firenukebuff = common.get_best_spell({'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria'}), -- inc fire DD
+    firemagicdotbuff = common.get_best_spell({'Fyrthek Fior\'s Psalm of Potency', 'Velketor\'s Psalm of Potency', 'Akett\'s Psalm of Potency'}), -- inc fire+mag dot
+    crescendo = common.get_best_spell({'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}), -- small heal hp, mana, end
+    insult = common.get_best_spell({'Yelinak\'s Insult', 'Sathir\'s Insult'}), -- synergy DD
+    insult2 = common.get_best_spell({'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}), -- synergy DD 2
+    chantflame = common.get_best_spell({'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame'}),
+    chantfrost = common.get_best_spell({'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost'}),
+    chantdisease = common.get_best_spell({'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease'}),
+    chantpoison = common.get_best_spell({'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison'}),
+    alliance = common.get_best_spell({'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}),
+    mezst = common.get_best_spell({'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'}),
+    mezae = common.get_best_spell({'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'}),
 }
 for name,spell in pairs(spells) do
-    if spell['name'] then
-        logger.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
+    if spell.name then
+        logger.printf('[%s] Found spell: %s (%s)', name, spell.name, spell.id)
     else
         logger.printf('[%s] Could not find spell!', name)
     end
 end
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
-local melee = {}
-table.insert(melee, spells['composite'])
-table.insert(melee, spells['crescendo'])
-table.insert(melee, spells['aria'])
-table.insert(melee, spells['spiteful'])
-table.insert(melee, spells['suffering'])
-table.insert(melee, spells['warmarch'])
-table.insert(melee, spells['pulse'])
-table.insert(melee, spells['dirge'])
--- synergy
--- mezst
--- mezae
+local melee = {
+    spells.composite, spells.crescendo, spells.aria,
+    spells.spiteful, spells.suffering, spells.warmarch,
+    spells.pulse, spells.dirge
+}
+-- synergy, mezst, mstae
 
-local caster = {}
-table.insert(caster, spells['composite'])
-table.insert(caster, spells['crescendo'])
-table.insert(caster, spells['aria'])
-table.insert(caster, spells['arcane'])
-table.insert(caster, spells['firenukebuff'])
-table.insert(caster, spells['suffering'])
-table.insert(caster, spells['warmarch'])
-table.insert(caster, spells['firemagicdotbuff'])
-table.insert(caster, spells['pulse'])
-table.insert(caster, spells['dirge'])
--- synergy
--- mezst
--- mezae
+local caster = {
+    spells.composite, spells.crescendo, spells.aria,
+    spells.arcane, spells.firenukebuff, spells.suffering,
+    spells.warmarch, spells.firemagicdotbuff, spells.pulse,
+    spells.dirge
+}
+-- synergy, mezst, mezae
 
-local meleedot = {}
-table.insert(meleedot, spells['composite'])
-table.insert(meleedot, spells['crescendo'])
-table.insert(meleedot, spells['chantflame'])
-table.insert(meleedot, spells['aria'])
-table.insert(meleedot, spells['warmarch'])
-table.insert(meleedot, spells['chantdisease'])
-table.insert(meleedot, spells['suffering'])
-table.insert(meleedot, spells['pulse'])
-table.insert(meleedot, spells['dirge'])
-table.insert(meleedot, spells['chantfrost'])
--- synergy
--- mezst
--- mezae
+local meleedot = {
+    spells.composite, spells.crescendo, spells.chantflame,
+    spells.aria, spells.warmarch, spells.chantdisease,
+    spells.suffering, spells.pulse, spells.dirge,
+    spells.chantfrost
+}
+-- synergy, mezst, mezae
 
 local songs = {
-    ['melee']=melee,
-    ['caster']=caster,
-    ['meleedot']=meleedot,
+    melee=melee,
+    caster=caster,
+    meleedot=meleedot,
 }
 
 -- entries in the items table are MQ item datatypes
@@ -182,6 +162,7 @@ local fade = common.get_aa('Fading Memories')
 local dirge = common.get_aa('Dirge of the Sleepwalker')
 local sonic = common.get_aa('Sonic Disturbance')
 local fluxstaff = mq.TLO.FindItem('Staff of Viral Flux').ID()
+local symphony = mq.TLO.FindItem('Songblade of the Eternal').ID() or mq.TLO.FindItem('Rapier of Somber Notes').ID()
 
 local SETTINGS_FILE = ('%s/bardbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
 brd.load_settings = function()
@@ -230,7 +211,7 @@ local function cast(spell_name, requires_target, requires_los)
     --    return not mq.TLO.Me.Casting()
     --end)
     --mq.cmd('/stopcast')
-    if spells['crescendo'] and spell_name == spells['crescendo']['name'] then crescendo_timer:reset() end
+    if spells.crescendo and spell_name == spells.crescendo.name then crescendo_timer:reset() end
 end
 
 local function cast_mez(spell_name)
@@ -256,22 +237,22 @@ end
 local function check_mez()
     -- don't try to mez in manual mode
     if config.get_mode():get_name() == 'manual' then return end
-    if OPTS.MEZAE and spells['mezae'] then
-        mez.do_ae(spells['mezae']['name'], cast)
+    if OPTS.MEZAE and spells.mezae then
+        mez.do_ae(spells.mezae.name, cast)
     end
-    if OPTS.MEZST and spells['mezst'] then
-        mez.do_single(spells['mezst']['name'], cast_mez)
+    if OPTS.MEZST and spells.mezst then
+        mez.do_single(spells.mezst.name, cast_mez)
     end
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    if config.get_use_alliance() and spells['alliance'] then
-        if mq.TLO.Spell(spells['alliance']['name']).Mana() > mq.TLO.Me.CurrentMana() then
+    if config.get_use_alliance() and spells.alliance then
+        if mq.TLO.Spell(spells.alliance.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
-        if mq.TLO.Me.Gem(spells['alliance']['name'])() and mq.TLO.Me.GemTimer(spells['alliance']['name'])() == 0  and not mq.TLO.Target.Buff(spells['alliance']['name'])() and mq.TLO.Spell(spells['alliance']['name']).StacksTarget() then
-            cast(spells['alliance']['name'], true, true)
+        if mq.TLO.Me.Gem(spells.alliance.name)() and mq.TLO.Me.GemTimer(spells.alliance.name)() == 0  and not mq.TLO.Target.Buff(spells.alliance.name)() and mq.TLO.Spell(spells.alliance.name).StacksTarget() then
+            cast(spells.alliance.name, true, true)
             return true
         end
     end
@@ -280,12 +261,12 @@ end
 
 local function cast_synergy()
     -- don't nuke if i'm not attacking
-    if OPTS.USEINSULTS and synergy_timer:timer_expired() and spells['insult'] and mq.TLO.Me.Combat() then
-        if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(spells['insult']['name'])() and mq.TLO.Me.GemTimer(spells['insult']['name'])() == 0 then
-            if mq.TLO.Spell(spells['insult']['name']).Mana() > mq.TLO.Me.CurrentMana() then
+    if OPTS.USEINSULTS and synergy_timer:timer_expired() and spells.insult and mq.TLO.Me.Combat() then
+        if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(spells.insult.name)() and mq.TLO.Me.GemTimer(spells.insult.name)() == 0 then
+            if mq.TLO.Spell(spells.insult.name).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
             end
-            cast(spells['insult']['name'], true, true)
+            cast(spells.insult.name, true, true)
             synergy_timer:reset()
             return true
         end
@@ -332,7 +313,7 @@ local function is_song_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spellName == spells['crescendo']['name'] and (mq.TLO.Me.Buff(spells['crescendo']['name'])() or not crescendo_timer:timer_expired()) then
+    if spells.crescendo and spellName == spells.crescendo.name and (mq.TLO.Me.Buff(spells.crescendo.name)() or not crescendo_timer:timer_expired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
@@ -354,10 +335,10 @@ local function find_next_song()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
     for _,song in ipairs(songs[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-        local spell_id = song['id']
-        local spell_name = song['name']
-        if is_song_ready(spell_id, spell_name) then
-            if spell_name ~= 'Composite Psalm' or mq.TLO.Target() then
+        local song_id = song['id']
+        local song_name = song['name']
+        if is_song_ready(song_id, song_name) then
+            if song_name ~= 'Composite Psalm' or mq.TLO.Target() then
                 return song
             end
         end
@@ -383,7 +364,7 @@ end
 local fierceeye = common.get_aa('Fierce Eye')
 local function use_epic()
     local epic = mq.TLO.FindItem('=Blade of Vesagran')
-    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye['name'])()
+    local fierceeye_rdy = fierceeye and mq.TLO.Me.AltAbilityReady(fierceeye['name'])() or true
     if epic.Timer() == '0' and fierceeye_rdy then
         common.use_aa(fierceeye)
         common.use_item(epic)
@@ -492,24 +473,29 @@ local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if not common.clear_to_buff() then return end
-    if spells['aura'] and not mq.TLO.Me.Aura(spells['aura']['name'])() then
+    if spells.aura and not mq.TLO.Me.Aura(spells.aura.name)() then
         local restore_gem = nil
-        if not mq.TLO.Me.Gem(spells['aura']['name'])() then
+        if not mq.TLO.Me.Gem(spells.aura.name)() then
             restore_gem = {name=mq.TLO.Me.Gem(1)()}
-            common.swap_spell(spells['aura'], 1)
+            common.swap_spell(spells.aura, 1)
         end
-        mq.delay(3000, function() return mq.TLO.Me.Gem(spells['aura']['name'])() and mq.TLO.Me.GemTimer(spells['aura']['name'])() == 0  end)
-        cast(spells['aura']['name'])
+        mq.delay(3000, function() return mq.TLO.Me.Gem(spells.aura.name)() and mq.TLO.Me.GemTimer(spells.aura.name)() == 0  end)
+        cast(spells.aura.name)
         if restore_gem then
             common.swap_spell(restore_gem, 1)
         end
     end
 
     common.check_item_buffs()
+
+    if symphony and not mq.TLO.Me.Buff('Symphony of Battle')() then
+        local item = mq.TLO.FindItem(symphony)
+        common.use_item(item)
+    end
 end
 
 local function pause_for_rally()
-    if rallyingsolo and mq.TLO.Me.Song(rallyingsolo['name'])() or mq.TLO.Me.Buff(rallyingsolo['name'])() then
+    if rallyingsolo and mq.TLO.Me.Song(rallyingsolo.name)() or mq.TLO.Me.Buff(rallyingsolo.name)() then
         if state.get_mob_count() >= 3 then
             return true
         elseif mq.TLO.Target() and mq.TLO.Target.Named() then
@@ -522,55 +508,85 @@ local function pause_for_rally()
     end
 end
 
+--[[
+local melee = {
+    spells.aria, spells.arcane, spells.spiteful,
+    spells.suffering, spells.insult, spells.warmarch,
+    spells.sonata, spells.mezst, spells.mezae, 
+    spells.crescendo, spells.pulse, spells.composite, 
+    spells.dirge
+}
+-- synergy, mezst, mstae
+
+local caster = {
+    spells.aria, spells.arcane, spells.firenukebuff,
+    spells.suffering, spells.insult, spells.warmarch,
+    spells.firemagicdotbuff, spells.mezst, spells.mezae,
+    spells.crescendo, spells.pulse, spells.composite,
+    spells.dirge
+}
+-- synergy, mezst, mezae
+
+local meleedot = {
+    spells.aria, spells.chantflame, spells.chantfrost,
+    spells.suffering, spells.insult, spells.warmarch,
+    spells.chantdisease, spells.mezst, spells.mezae,
+    spells.crescendo, spells.pulse, spells.composite,
+    spells.dirge
+}
+]]
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
+        --for i, song in ipairs(songs[config.get_spell_set()]) do
+        --    common.swap_spell(song, i, i == 12 and composite_names or nil)
+        --end
         if config.get_spell_set() == 'melee' then
-            common.swap_spell(spells['aria'], 1)
-            common.swap_spell(spells['arcane'], 2)
-            common.swap_spell(spells['spiteful'], 3)
-            common.swap_spell(spells['suffering'], 4)
-            common.swap_spell(spells['insult'], 5)
-            common.swap_spell(spells['warmarch'], 6)
-            common.swap_spell(spells['sonata'], 7)
-            common.swap_spell(spells['mezst'], 8)
-            common.swap_spell(spells['mezae'], 9)
-            common.swap_spell(spells['crescendo'], 10)
-            common.swap_spell(spells['pulse'], 11)
-            common.swap_spell(spells['composite'], 12, composite_names)
-            common.swap_spell(spells['dirge'], 13)
+            common.swap_spell(spells.aria, 1)
+            common.swap_spell(spells.arcane, 2)
+            common.swap_spell(spells.spiteful, 3)
+            common.swap_spell(spells.suffering, 4)
+            common.swap_spell(spells.insult, 5)
+            common.swap_spell(spells.warmarch, 6)
+            common.swap_spell(spells.sonata, 7)
+            common.swap_spell(spells.mezst, 8)
+            common.swap_spell(spells.mezae, 9)
+            common.swap_spell(spells.crescendo, 10)
+            common.swap_spell(spells.pulse, 11)
+            common.swap_spell(spells.composite, 12, composite_names)
+            common.swap_spell(spells.dirge, 13)
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'caster' then
-            common.swap_spell(spells['aria'], 1)
-            common.swap_spell(spells['arcane'], 2)
-            common.swap_spell(spells['firenukebuff'], 3)
-            common.swap_spell(spells['suffering'], 4)
-            common.swap_spell(spells['insult'], 5)
-            common.swap_spell(spells['warmarch'], 6)
-            common.swap_spell(spells['firemagicdotbuff'], 7)
-            common.swap_spell(spells['mezst'], 8)
-            common.swap_spell(spells['mezae'], 9)
-            common.swap_spell(spells['crescendo'], 10)
-            common.swap_spell(spells['pulse'], 11)
-            common.swap_spell(spells['composite'], 12, composite_names)
-            common.swap_spell(spells['dirge'], 13)
+            common.swap_spell(spells.aria, 1)
+            common.swap_spell(spells.arcane, 2)
+            common.swap_spell(spells.firenukebuff, 3)
+            common.swap_spell(spells.suffering, 4)
+            common.swap_spell(spells.insult, 5)
+            common.swap_spell(spells.warmarch, 6)
+            common.swap_spell(spells.firemagicdotbuff, 7)
+            common.swap_spell(spells.mezst, 8)
+            common.swap_spell(spells.mezae, 9)
+            common.swap_spell(spells.crescendo, 10)
+            common.swap_spell(spells.pulse, 11)
+            common.swap_spell(spells.composite, 12, composite_names)
+            common.swap_spell(spells.dirge, 13)
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'meleedot' then
-            common.swap_spell(spells['aria'], 1)
-            common.swap_spell(spells['chantflame'], 2)
-            common.swap_spell(spells['chantfrost'], 3)
-            common.swap_spell(spells['suffering'], 4)
-            common.swap_spell(spells['insult'], 5)
-            common.swap_spell(spells['warmarch'], 6)
-            common.swap_spell(spells['chantdisease'], 7)
-            common.swap_spell(spells['mezst'], 8)
-            common.swap_spell(spells['mezae'], 9)
-            common.swap_spell(spells['crescendo'], 10)
-            common.swap_spell(spells['pulse'], 11)
-            common.swap_spell(spells['composite'], 12, composite_names)
-            common.swap_spell(spells['dirge'], 13)
+            common.swap_spell(spells.aria, 1)
+            common.swap_spell(spells.chantflame, 2)
+            common.swap_spell(spells.chantfrost, 3)
+            common.swap_spell(spells.suffering, 4)
+            common.swap_spell(spells.insult, 5)
+            common.swap_spell(spells.warmarch, 6)
+            common.swap_spell(spells.chantdisease, 7)
+            common.swap_spell(spells.mezst, 8)
+            common.swap_spell(spells.mezae, 9)
+            common.swap_spell(spells.crescendo, 10)
+            common.swap_spell(spells.pulse, 11)
+            common.swap_spell(spells.composite, 12, composite_names)
+            common.swap_spell(spells.dirge, 13)
             state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer:reset()

@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
@@ -33,41 +33,41 @@ mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
 local spells = {
-    ['shots']=common.get_spell('Claimed Shots') or {name=nil,id=nil}, -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    ['focused']=common.get_spell('Focused Whirlwind of Arrows') or {name=nil,id=nil}, -- 4x archery attacks, Focused Blizzard of Arrows
-    ['composite']=common.get_spell('Composite Fusillade') or {name=nil,id=nil}, -- double bow shot and fire+ice nuke
-    ['heart']=common.get_spell('Heartruin') or {name=nil,id=nil}, -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
-    ['opener']=common.get_spell('Stealthy Shot') or {name=nil,id=nil}, -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    ['summer']=common.get_spell('Summer\'s Torrent') or {name=nil,id=nil}, -- fire + ice nuke, Summer's Sleet
-    ['boon']=common.get_spell('Lunarflare boon') or {name=nil,id=nil}, -- 
-    ['healtot']=common.get_spell('Desperate Geyser') or {name=nil,id=nil}, -- heal ToT, Desperate Meltwater, fast cast, long cd
-    ['healtot2']=common.get_spell('Darkflow Spring') or {name=nil,id=nil}, -- heal ToT, Meltwater Spring, slow cast
-    ['dot']=common.get_spell('Bloodbeetle Swarm') or {name=nil,id=nil}, -- main DoT
-    ['dotds']=common.get_spell('Swarm of Bloodflies') or {name=nil,id=nil}, -- DoT + reverse DS, Swarm of Hyperboreads
-    ['dmgbuff']=common.get_spell('Arbor Stalker\'s Enrichment') or {name=nil,id=nil}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
-    ['alliance']=common.get_spell('Arbor Stalker\'s Coalition') or {name=nil,id=nil},
-    ['buffs']=common.get_spell('Shout of the Dusksage Stalker') or {name=nil,id=nil}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
+    shots=common.get_best_spell({'Claimed Shots'}), -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    focused=common.get_best_spell({'Focused Whirlwind of Arrows'}), -- 4x archery attacks, Focused Blizzard of Arrows
+    composite=common.get_best_spell({'Composite Fusillade'}), -- double bow shot and fire+ice nuke
+    heart=common.get_best_spell({'Heartruin'}), -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    opener=common.get_best_spell({'Stealthy Shot'}), -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
+    summer=common.get_best_spell({'Summer\'s Torrent'}), -- fire + ice nuke, Summer's Sleet
+    boon=common.get_best_spell({'Lunarflare boon'}), -- 
+    healtot=common.get_best_spell({'Desperate Geyser'}), -- heal ToT, Desperate Meltwater, fast cast, long cd
+    healtot2=common.get_best_spell({'Darkflow Spring'}), -- heal ToT, Meltwater Spring, slow cast
+    dot=common.get_best_spell({'Bloodbeetle Swarm'}), -- main DoT
+    dotds=common.get_best_spell({'Swarm of Bloodflies'}), -- DoT + reverse DS, Swarm of Hyperboreads
+    dmgbuff=common.get_best_spell({'Arbor Stalker\'s Enrichment'}), -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    alliance=common.get_best_spell({'Arbor Stalker\'s Coalition'}),
+    buffs=common.get_best_spell({'Shout of the Dusksage Stalker'}), -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    ['cloak']=common.get_spell('Cloak of Bloodbarbs') or {name=nil,id=nil}, -- Cloak of Rimespurs
-    ['predator']=common.get_spell('Bay of the Predator') or {name=nil,id=nil}, -- Frostroar of the Predator
-    ['strength']=common.get_spell('Strength of the Dusksage Stalker') or {name=nil,id=nil}, -- Strength of the Arbor Stalker
+    cloak=common.get_best_spell({'Cloak of Bloodbarbs'}), -- Cloak of Rimespurs
+    predator=common.get_best_spell({'Bay of the Predator'}), -- Frostroar of the Predator
+    strength=common.get_best_spell({'Strength of the Dusksage Stalker'}), -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    ['protection']=common.get_spell('Protection of the Valley') or {name=nil,id=nil}, -- Protection of the Wakening Land
-    ['eyes']=common.get_spell('Eyes of the Senshali') or {name=nil,id=nil}, -- Eyes of the Visionary
-    ['hunt']=common.get_spell('Steeled by the Hunt') or {name=nil,id=nil}, -- Provoked by the Hunt
-    ['coat']=common.get_spell('Moonthorn Coat') or {name=nil,id=nil}, -- Rimespur Coat
+    protection=common.get_best_spell({'Protection of the Valley'}), -- Protection of the Wakening Land
+    eyes=common.get_best_spell({'Eyes of the Senshali'}), -- Eyes of the Visionary
+    hunt=common.get_best_spell({'Steeled by the Hunt'}), -- Provoked by the Hunt
+    coat=common.get_best_spell({'Moonthorn Coat'}), -- Rimespur Coat
     -- Unity Azia only
-    ['barrage']=common.get_spell('Devastating Barrage') or {name=nil,id=nil}, -- Devastating Velium
+    barrage=common.get_best_spell({'Devastating Barrage'}), -- Devastating Velium
     -- Unity Beza only
-    ['blades']=common.get_spell('Vociferous Blades') or {name=nil,id=nil}, -- Howling Blades
-    ['ds']=common.get_spell('Shield of Shadethorns') or {name=nil,id=nil}, -- DS
-    ['rune']=common.get_spell('Luclin\'s Darkfire Cloak') or {name=nil,id=nil}, -- self rune + debuff proc
-    ['regen']=common.get_spell('Dusksage Stalker\'s Vigor') or {name=nil,id=nil}, -- regen
+    blades=common.get_best_spell({'Vociferous Blades'}), -- Howling Blades
+    ds=common.get_best_spell({'Shield of Shadethorns'}), -- DS
+    rune=common.get_best_spell({'Luclin\'s Darkfire Cloak'}), -- self rune + debuff proc
+    regen=common.get_best_spell({'Dusksage Stalker\'s Vigor'}), -- regen
 }
 -- Pyroclastic Boon, 
 for name,spell in pairs(spells) do
-    if spell['name'] then
-        logger.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
+    if spell.name then
+        logger.printf('[%s] Found spell: %s (%s)', name, spell.name, spell.id)
     else
         logger.printf('[%s] Could not find spell!', name)
     end
@@ -75,23 +75,23 @@ end
 
 -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
 local arrow_spells = {}
-table.insert(arrow_spells, spells['shots'])
-table.insert(arrow_spells, spells['focused'])
-table.insert(arrow_spells, spells['composite'])
-table.insert(arrow_spells, spells['heart'])
+table.insert(arrow_spells, spells.shots)
+table.insert(arrow_spells, spells.focused)
+table.insert(arrow_spells, spells.composite)
+table.insert(arrow_spells, spells.heart)
 local dd_spells = {}
-table.insert(dd_spells, spells['boon'])
-table.insert(dd_spells, spells['summer'])
+table.insert(dd_spells, spells.boon)
+table.insert(dd_spells, spells.summer)
 
 -- entries in the dot_spells table are pairs of {spell id, spell name} in priority order
 local dot_spells = {}
-table.insert(dot_spells, spells['dot'])
-table.insert(dot_spells, spells['dotds'])
+table.insert(dot_spells, spells.dot)
+table.insert(dot_spells, spells.dotds)
 
 -- entries in the combat_heal_spells table are pairs of {spell id, spell name} in priority order
 local combat_heal_spells = {}
-table.insert(combat_heal_spells, spells['healtot'])
---table.insert(combat_heal_spells, spells['healtot2']) -- replacing in main spell lineup with self rune buff
+table.insert(combat_heal_spells, spells.healtot)
+--table.insert(combat_heal_spells, spells.healtot2) -- replacing in main spell lineup with self rune buff
 
 -- entries in the items table are MQ item datatypes
 local burn_items = {}
@@ -263,8 +263,8 @@ end
 
 local function use_opener()
     if mq.TLO.Me.CombatState() == 'COMBAT' then return end
-    if assist.should_assist() and state.get_assist_mob_id() > 0 and spells['opener']['name'] and mq.TLO.Me.SpellReady(spells['opener']['name'])() then
-        common.cast(spells['opener']['name'], true)
+    if assist.should_assist() and state.get_assist_mob_id() > 0 and spells.opener.name and mq.TLO.Me.SpellReady(spells.opener.name)() then
+        common.cast(spells.opener.name, true)
     end
 end
 
@@ -284,14 +284,14 @@ local function find_next_spell()
         end
     end
     for _,spell in ipairs(dot_spells) do
-        if spell['name'] ~= spells['dot']['name'] or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.get_burn_always() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
+        if spell.name ~= spells.dot.name or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.get_burn_always() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if common.is_dot_ready(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(arrow_spells) do
-        if not spells['composite']['name'] or spell['name'] ~= spells['composite']['name'] or OPTS.USECOMPOSITE then
+        if not spells.composite.name or spell.name ~= spells.composite.name or OPTS.USECOMPOSITE then
             if common.is_spell_ready(spell) then
                 return spell
             end
@@ -313,10 +313,10 @@ local function cycle_spells()
         if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
             local spell = find_next_spell()
             if spell then
-                if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                    common.cast(spell['name'], true)
+                if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
+                    common.cast(spell.name, true)
                 else
-                    common.cast(spell['name'])
+                    common.cast(spell.name)
                 end
                 return true
             end
@@ -380,7 +380,7 @@ local function try_burn()
         ]]--
 
         for _,aa in ipairs(burnAAs) do
-            if aa['name'] ~= 'Group Guardian of the Forest' or (not mq.TLO.Me.Song('Guardian of the Forest')() and not mq.TLO.Me.Buff('Guardian of the Forest')()) then
+            if aa.name ~= 'Group Guardian of the Forest' or (not mq.TLO.Me.Song('Guardian of the Forest')() and not mq.TLO.Me.Buff('Guardian of the Forest')()) then
                 common.use_aa(aa)
             end
         end
@@ -478,10 +478,10 @@ local group_buff_timer = timer:new(60)
 local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
-    if brownies and not mq.TLO.Me.Buff(brownies['name'])() then
+    if brownies and not mq.TLO.Me.Buff(brownies.name)() then
         common.use_aa(brownies)
     end
-    if chameleon and not mq.TLO.Me.Song(chameleon['name'])() and mq.TLO.Me.AltAbilityReady(chameleon['name'])() then
+    if chameleon and not mq.TLO.Me.Song(chameleon.name)() and mq.TLO.Me.AltAbilityReady(chameleon.name)() then
         mq.cmd('/mqtar myself')
         mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
         common.use_aa(chameleon)
@@ -503,38 +503,38 @@ local function check_buffs()
 
     -- ranger unity aa
     if unity_azia and OPTS.USEUNITYAZIA then
-        if missing_unity_buffs(unity_azia['name']) then
+        if missing_unity_buffs(unity_azia.name) then
             if common.use_aa(unity_azia) then return end
         end
     elseif unity_beza and OPTS.USEUNITYBEZA then
-        if missing_unity_buffs(unity_beza['name']) then
+        if missing_unity_buffs(unity_beza.name) then
             if common.use_aa(unity_beza) then return end
         end
     end
 
-    if spells['dmgbuff']['name'] and not mq.TLO.Me.Buff(spells['dmgbuff']['name'])() then
-        if common.cast(spells['dmgbuff']['name']) then return end
+    if spells.dmgbuff.name and not mq.TLO.Me.Buff(spells.dmgbuff.name)() then
+        if common.cast(spells.dmgbuff.name) then return end
     end
 
-    if spells['rune']['name'] and not mq.TLO.Me.Buff(spells['rune']['name'])() then
-        if common.cast(spells['rune']['name']) then return end
+    if spells.rune.name and not mq.TLO.Me.Buff(spells.rune.name)() then
+        if common.cast(spells.rune.name) then return end
     end
 
-    if OPTS.USEREGEN and spells['regen']['name'] and not mq.TLO.Me.Buff(spells['regen']['name'])() then
+    if OPTS.USEREGEN and spells.regen.name and not mq.TLO.Me.Buff(spells.regen.name)() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         mq.delay(500)
-        if common.swap_and_cast(spells['regen'], 13) then return end
+        if common.swap_and_cast(spells.regen, 13) then return end
     end
 
     if OPTS.DSTANK then
         if mq.TLO.Group.MainTank() then
             local tank_spawn = mq.TLO.Group.MainTank.Spawn
             if tank_spawn() then
-                if spawn_missing_cachedbuff(tank_spawn, spells['ds']['name']) then
+                if spawn_missing_cachedbuff(tank_spawn, spells.ds.name) then
                     tank_spawn.DoTarget()
                     mq.delay(1000) -- time to target and for buffs to be populated
-                    if target_missing_buff(spells['ds']['name']) then
-                        if common.swap_and_cast(spells['ds'], 13) then return end
+                    if target_missing_buff(spells.ds.name) then
+                        if common.swap_and_cast(spells.ds, 13) then return end
                     end
                 end
             end
@@ -545,19 +545,19 @@ local function check_buffs()
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
-                    if spells['buffs']['name'] and spawn_missing_cachedbuff(group_member, spells['buffs']['name']) and not group_member.CachedBuff('Spiritual Vigor')() then
+                    if spells.buffs.name and spawn_missing_cachedbuff(group_member, spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
                         mq.delay(1000) -- time to target and for buffs to be populated
-                        if target_missing_buff(spells['buffs']['name']) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
+                        if target_missing_buff(spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            if common.cast(spells['buffs']['name']) then return end
+                            if common.cast(spells.buffs.name) then return end
                         end
                     end
-                    if spells['dmgbuff']['name'] and spawn_missing_cachedbuff(group_member, spells['dmgbuff']['name']) then
+                    if spells.dmgbuff.name and spawn_missing_cachedbuff(group_member, spells.dmgbuff.name) then
                         group_member.DoTarget()
                         mq.delay(1000) -- time to target and for buffs to be populated
-                        if target_missing_buff(spells['dmgbuff']['name']) then
-                            if common.cast(spells['dmgbuff']['name']) then return end
+                        if target_missing_buff(spells.dmgbuff.name) then
+                            if common.cast(spells.dmgbuff.name) then return end
                         end
                     end
                 end
@@ -567,24 +567,24 @@ local function check_buffs()
     end
 end
 
-local composite_names = {['Composite Fusillade']=true,['Dissident Fusillade']=true,['Dichotomic Fusillade']=true}
+local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
-            common.swap_spell(spells['shots'], 1)
-            common.swap_spell(spells['focused'], 2)
-            common.swap_spell(spells['composite'], 3, composite_names)
-            common.swap_spell(spells['heart'], 4)
-            common.swap_spell(spells['opener'], 5)
-            common.swap_spell(spells['summer'], 6)
-            common.swap_spell(spells['healtot'], 7)
-            common.swap_spell(spells['rune'], 8)
-            common.swap_spell(spells['dot'], 9)
-            common.swap_spell(spells['dotds'], 10)
-            common.swap_spell(spells['dmgbuff'], 12)
-            common.swap_spell(spells['buffs'], 13)
+            common.swap_spell(spells.shots, 1)
+            common.swap_spell(spells.focused, 2)
+            common.swap_spell(spells.composite, 3, composite_names)
+            common.swap_spell(spells.heart, 4)
+            common.swap_spell(spells.opener, 5)
+            common.swap_spell(spells.summer, 6)
+            common.swap_spell(spells.healtot, 7)
+            common.swap_spell(spells.rune, 8)
+            common.swap_spell(spells.dot, 9)
+            common.swap_spell(spells.dotds, 10)
+            common.swap_spell(spells.dmgbuff, 12)
+            common.swap_spell(spells.buffs, 13)
             state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer:reset()

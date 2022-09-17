@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
@@ -182,7 +182,7 @@ local function check_ae()
     local mobs_on_aggro = mq.TLO.SpawnCount(aggro_nopet_count:format(config.get_camp_radius()))()
     if mobs_on_aggro >= 2 then
         -- Use Spire and Aegis when 2 or more mobs on aggro
-        if mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
+        if spire and aegis and mq.TLO.Me.AltAbilityReady(spire.name)() and mq.TLO.Me.CombatAbilityReady(aegis.name)() then
             common.use_aa(spire)
             common.use_disc(aegis)
         end
@@ -201,7 +201,7 @@ local function check_ae()
             if mobs_on_aggro >= 4 then
                 -- Discs to use when 4 or more mobs on aggro
                 for _,disc in ipairs(mashAEDiscs4) do
-                    if not disc['opt'] or OPTS[disc['opt']] then
+                    if not disc.opt or OPTS[disc.opt] then
                         common.use_disc(disc)
                     end
                 end
@@ -224,18 +224,18 @@ local function mash()
         local dist = target.Distance3D()
         local maxdist = target.MaxRangeTo()
         local targethp = target.PctHPs()
-        if OPTS.USEBATTLELEAP and leap and not mq.TLO.Me.Song(leap['name'])() and dist and dist < 30 then
+        if OPTS.USEBATTLELEAP and leap and not mq.TLO.Me.Song(leap.name)() and dist and dist < 30 then
             common.use_aa(leap)
             mq.delay(30)
         end
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             for _,aa in ipairs(mashAggroAAs) do
-                if not aa['opt'] or OPTS[aa['opt']] then
+                if not aa.opt or OPTS[aa.opt] then
                     common.use_aa(aa)
                 end
             end
             for _,disc in ipairs(mashAggroDiscs) do
-                if not disc['opt'] or OPTS[disc['opt']] then
+                if not disc.opt or OPTS[disc.opt] then
                     common.use_disc(disc)
                 end
             end
@@ -246,12 +246,12 @@ local function mash()
             end
         end
         for _,aa in ipairs(mashDPSAAs) do
-            if not aa['opt'] or OPTS[aa['opt']] then
+            if not aa.opt or OPTS[aa.opt] then
                 common.use_aa(aa)
             end
         end
         for _,disc in ipairs(mashDPSDiscs) do
-            if not disc['opt'] or OPTS[disc['opt']] then
+            if not disc.opt or OPTS[disc.opt] then
                 common.use_disc(disc)
             end
         end
@@ -271,9 +271,10 @@ local function try_burn()
     -- Test them both for each item, and see which one(s) actually work.
     if common.is_burn_condition_met() then
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-            common.use_disc(defensive, mash_defensive['name'])
-            common.use_disc(runes, mash_defensive['name'])
-            common.use_disc(stundefense, mash_defensive['name'])
+            local replace_disc = mash_defensive and mash_defensive.name or nil
+            common.use_disc(defensive, replace_disc)
+            common.use_disc(runes, replace_disc)
+            common.use_disc(stundefense, replace_disc)
 
             -- Use Spire and Aegis when burning as tank
             if spire and aegis and mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then
@@ -306,10 +307,10 @@ local function oh_shit()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         common.use_aa(resurgence)
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-            if flash and mq.TLO.Me.CombatAbilityReady(flash['name'])() then
+            if flash and mq.TLO.Me.CombatAbilityReady(flash.name)() then
                 common.use_disc(flash)
             elseif OPTS.USEFORTITUDE then
-                common.use_disc(fortitude, mash_defensive['name'])
+                common.use_disc(fortitude, mash_defensive and mash_defensive.name or nil)
             end
         end
     end
@@ -337,7 +338,7 @@ local function check_buffs()
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if aura and not mq.TLO.Me.Aura(aura['name'])() and not mq.TLO.Me.Moving() then
+    if aura and not mq.TLO.Me.Aura(aura.name)() and not mq.TLO.Me.Moving() then
         common.use_disc(aura)
         mq.delay(3000)
     end

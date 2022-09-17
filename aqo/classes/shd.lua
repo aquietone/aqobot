@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
@@ -34,88 +34,88 @@ mq.cmd('/squelch /stick mod -2')
 mq.cmd('/squelch /stick set delaystrafe on')
 
 local spells = {
-    ['composite']=common.get_spell('Composite Fang') or {id=nil,name=nil}, -- big lifetap
-    ['alliance']=common.get_spell('Bloodletting Coalition') or {id=nil,name=nil}, -- alliance
+    composite=common.get_best_spell({'Composite Fang'}), -- big lifetap
+    alliance=common.get_best_spell({'Bloodletting Coalition'}), -- alliance
     -- Aggro
-    ['challenge']=common.get_spell('Parlay for Power') or {id=nil,name=nil}, -- main hate spell
-    ['terror']=common.get_spell('Terror of Ander') or {id=nil,name=nil}, -- ST increase hate by 1
-    ['aeterror']=common.get_spell('Antipathy') or {id=nil,name=nil}, -- ST increase hate by 1
-    --['']=common.get_spell('Usurper\'s Audacity'), -- increase hate by a lot, does this get used?
+    challenge=common.get_best_spell({'Parlay for Power'}), -- main hate spell
+    terror=common.get_best_spell({'Terror of Ander'}), -- ST increase hate by 1
+    aeterror=common.get_best_spell({'Antipathy'}), -- ST increase hate by 1
+    --['']=common.get_best_spell({'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
     -- Lifetaps
-    ['largetap']=common.get_spell('Dire Censure') or {id=nil,name=nil}, -- large lifetap
-    ['tap1']=common.get_spell('Touch of Txiki') or {id=nil,name=nil}, -- lifetap
-    ['tap2']=common.get_spell('Touch of Namdrows') or {id=nil,name=nil}, -- lifetap + temp hp buff Gift of Namdrows
-    ['dottap']=common.get_spell('Bond of Bynn') or {id=nil,name=nil}, -- lifetap dot
-    ['bitetap']=common.get_spell('Cruor\'s Bite') or {id=nil,name=nil}, -- lifetap with hp/mana recourse
+    largetap=common.get_best_spell({'Dire Censure'}), -- large lifetap
+    tap1=common.get_best_spell({'Touch of Txiki'}), -- lifetap
+    tap2=common.get_best_spell({'Touch of Namdrows'}), -- lifetap + temp hp buff Gift of Namdrows
+    dottap=common.get_best_spell({'Bond of Bynn'}), -- lifetap dot
+    bitetap=common.get_best_spell({'Cruor\'s Bite'}), -- lifetap with hp/mana recourse
     -- AE lifetap + aggro
-    ['aetap']=common.get_spell('Insidious Renunciation') or {id=nil,name=nil}, -- large hate + lifetap
+    aetap=common.get_best_spell({'Insidious Renunciation'}), -- large hate + lifetap
     -- DPS
-    ['spear']=common.get_spell('Spear of Bloodwretch') or {id=nil,name=nil}, -- poison nuke
-    ['poison']=common.get_spell('Blood of Tearc') or {id=nil,name=nil}, -- poison dot
-    ['disease']=common.get_spell('Plague of Fleshrot') or {id=nil,name=nil}, -- disease dot
-    ['corruption']=common.get_spell('Unscrupulous Blight') or {id=nil,name=nil}, -- corruption dot
-    ['acdis']=common.get_spell('Dire Seizure') or {id=nil,name=nil}, -- disease + ac dot
-    ['acdebuff']=common.get_spell('Torrent of Melancholy') or {id=nil,name=nil}, -- ac debuff
-    --['']=common.get_spell('Despicable Bargain'), -- nuke, does this get used?
+    spear=common.get_best_spell({'Spear of Bloodwretch'}), -- poison nuke
+    poison=common.get_best_spell({'Blood of Tearc'}), -- poison dot
+    disease=common.get_best_spell({'Plague of Fleshrot'}), -- disease dot
+    corruption=common.get_best_spell({'Unscrupulous Blight'}), -- corruption dot
+    acdis=common.get_best_spell({'Dire Seizure'}), -- disease + ac dot
+    acdebuff=common.get_best_spell({'Torrent of Melancholy'}), -- ac debuff
+    --['']=common.get_best_spell({'Despicable Bargain'}), -- nuke, does this get used?
     -- Short Term Buffs
-    ['stance']=common.get_spell('Adamant Stance') or {id=nil,name=nil}, -- temp HP buff, 2.5min
-    ['skin']=common.get_spell('Xenacious\' Skin') or {id=nil,name=nil}, -- Xenacious' Skin proc, 5min buff
-    ['disruption']=common.get_spell('Confluent Disruption') or {id=nil,name=nil}, -- lifetap proc on heal
-    --['']=common.get_spell('Impertinent Influence'), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
+    stance=common.get_best_spell({'Adamant Stance'}), -- temp HP buff, 2.5min
+    skin=common.get_best_spell({'Xenacious\' Skin'}), -- Xenacious' Skin proc, 5min buff
+    disruption=common.get_best_spell({'Confluent Disruption'}), -- lifetap proc on heal
+    --['']=common.get_best_spell({'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    ['pet']=common.get_spell('Minion of Itzal') or {id=nil,name=nil}, -- pet
-    ['pethaste']=common.get_spell('Gift of Itzal') or {id=nil,name=nil}, -- pet haste
+    pet=common.get_best_spell({'Minion of Itzal'}), -- pet
+    pethaste=common.get_best_spell({'Gift of Itzal'}), -- pet haste
     -- Unity Buffs
-    ['shroud']=common.get_spell('Shroud of Zelinstein') or {id=nil,name=nil}, -- Shroud of Zelinstein Strike proc
-    ['bezaproc']=common.get_spell('Mental Anguish') or {id=nil,name=nil}, -- Mental Anguish Strike proc
-    ['aziaproc']=common.get_spell('Brightfield\'s Horror') or {id=nil,name=nil}, -- Brightfield's Horror Strike proc
-    ['ds']=common.get_spell('Tekuel Skin') or {id=nil,name=nil}, -- large damage shield self buff
-    ['lich']=common.get_spell('Aten Ha Ra\'s Covenant') or {id=nil,name=nil}, -- lich mana regen
-    ['drape']=common.get_spell('Drape of the Akheva') or {id=nil,name=nil}, -- self buff hp, ac, ds
-    ['atkbuff']=common.get_spell('Penumbral Call') or {id=nil,name=nil}, -- atk buff, hp drain on self
-    --['']=common.get_spell('Remorseless Demeanor')
+    shroud=common.get_best_spell({'Shroud of Zelinstein'}), -- Shroud of Zelinstein Strike proc
+    bezaproc=common.get_best_spell({'Mental Anguish'}), -- Mental Anguish Strike proc
+    aziaproc=common.get_best_spell({'Brightfield\'s Horror'}), -- Brightfield's Horror Strike proc
+    ds=common.get_best_spell({'Tekuel Skin'}), -- large damage shield self buff
+    lich=common.get_best_spell({'Aten Ha Ra\'s Covenant'}), -- lich mana regen
+    drape=common.get_best_spell({'Drape of the Akheva'}), -- self buff hp, ac, ds
+    atkbuff=common.get_best_spell({'Penumbral Call'}), -- atk buff, hp drain on self
+    --['']=common.get_best_spell({'Remorseless Demeanor'})
 }
 for name,spell in pairs(spells) do
-    if spell['name'] then
-        logger.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
+    if spell.name then
+        logger.printf('[%s] Found spell: %s (%s)', name, spell.name, spell.id)
     else
         logger.printf('[%s] Could not find spell!', name)
     end
 end
 
 local standard = {}
-table.insert(standard, spells['tap1'])
-table.insert(standard, spells['tap2'])
-table.insert(standard, spells['largetap'])
-table.insert(standard, spells['composite'])
-table.insert(standard, spells['spear'])
-table.insert(standard, spells['terror'])
-table.insert(standard, spells['aeterror'])
-table.insert(standard, spells['dottap'])
-table.insert(standard, spells['challenge'])
-table.insert(standard, spells['bitetap'])
-table.insert(standard, spells['stance'])
-table.insert(standard, spells['skin'])
-table.insert(standard, spells['acdebuff'])
+table.insert(standard, spells.tap1)
+table.insert(standard, spells.tap2)
+table.insert(standard, spells.largetap)
+table.insert(standard, spells.composite)
+table.insert(standard, spells.spear)
+table.insert(standard, spells.terror)
+table.insert(standard, spells.aeterror)
+table.insert(standard, spells.dottap)
+table.insert(standard, spells.challenge)
+table.insert(standard, spells.bitetap)
+table.insert(standard, spells.stance)
+table.insert(standard, spells.skin)
+table.insert(standard, spells.acdebuff)
 
 local dps = {}
-table.insert(dps, spells['tap1'])
-table.insert(dps, spells['tap2'])
-table.insert(dps, spells['largetap'])
-table.insert(dps, spells['composite'])
-table.insert(dps, spells['spear'])
-table.insert(dps, spells['corruption'])
-table.insert(dps, spells['poison'])
-table.insert(dps, spells['dottap'])
-table.insert(dps, spells['disease'])
-table.insert(dps, spells['bitetap'])
-table.insert(dps, spells['stance'])
-table.insert(dps, spells['skin'])
-table.insert(dps, spells['acdebuff'])
+table.insert(dps, spells.tap1)
+table.insert(dps, spells.tap2)
+table.insert(dps, spells.largetap)
+table.insert(dps, spells.composite)
+table.insert(dps, spells.spear)
+table.insert(dps, spells.corruption)
+table.insert(dps, spells.poison)
+table.insert(dps, spells.dottap)
+table.insert(dps, spells.disease)
+table.insert(dps, spells.bitetap)
+table.insert(dps, spells.stance)
+table.insert(dps, spells.skin)
+table.insert(dps, spells.acdebuff)
 
 local spellsets = {
-    ['standard']=standard,
-    ['dps']=dps,
+    standard=standard,
+    dps=dps,
 }
 
 -- TANK
@@ -129,8 +129,8 @@ local deflection = common.get_disc('Deflection Discipline', 'USEDEFLECTION')
 local mashAggroAbilities = {}
 table.insert(mashAggroAbilities, 'Taunt')
 local mashAggroSpells = {}
-table.insert(mashAggroSpells, spells['challenge'])
-table.insert(mashAggroSpells, spells['terror'])
+table.insert(mashAggroSpells, spells.challenge)
+table.insert(mashAggroSpells, spells.terror)
 local mashAggroDiscs = {}
 table.insert(mashAggroDiscs, common.get_disc('Repudiate')) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
 local mashAggroAAs = {}
@@ -140,7 +140,7 @@ local attraction = common.get_aa('Hate\'s Attraction', 'USEHATESATTRACTION') -- 
 
 -- mash AE aggro
 local mashAESpells = {}
-table.insert(mashAESpells, spells['aeterror'])
+table.insert(mashAESpells, spells.aeterror)
 local mashAEAggroAAs2 = {}
 table.insert(mashAEAggroAAs2, common.get_aa('Explosion of Spite')) -- 45sec CD
 local mashAEAggroAAs4 = {}
@@ -291,7 +291,7 @@ local function check_ae()
     -- and not current target.
     -- if > 0, then we need some ae aggro
     local xtar_aggro_count = 0
-    for i=1,13 do
+    for i=1,20 do
         local xtar = mq.TLO.Me.XTarget(i)
         if xtar.ID() ~= mq.TLO.Target.ID() and xtar.TargetType() == 'Auto Hater' and xtar.PctAggro() < 100 then
             xtar_aggro_count = xtar_aggro_count + 1
@@ -309,14 +309,14 @@ local function check_ae()
     if mobs_in_range >= 2 then
         -- Discs to use when 2 or more mobs on aggro
         for _,aa in ipairs(mashAEAggroAAs2) do
-            if not aa['opt'] or OPTS[aa['opt']] then
+            if not aa.opt or OPTS[aa.opt] then
                 if common.use_aa(aa) then return end
             end
         end
         if mobs_in_range >= 3 then
             -- Discs to use when 4 or more mobs on aggro
             for _,aa in ipairs(mashAEAggroAAs4) do
-                if not aa['opt'] or OPTS[aa['opt']] then
+                if not aa.opt or OPTS[aa.opt] then
                     if common.use_aa(aa) then return end
                 end
             end
@@ -340,12 +340,12 @@ local function mash()
 
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             for _,disc in ipairs(mashAggroDiscs) do
-                if not disc['opt'] or OPTS[disc['opt']] then
+                if not disc.opt or OPTS[disc.opt] then
                     common.use_disc(disc)
                 end
             end
             for _,aa in ipairs(mashAggroAAs) do
-                if not aa['opt'] or OPTS[aa['opt']] then
+                if not aa.opt or OPTS[aa.opt] then
                     common.use_aa(aa)
                 end
             end
@@ -356,12 +356,12 @@ local function mash()
             end
         end
         for _,aa in ipairs(mashDPSAAs) do
-            if not aa['opt'] or OPTS[aa['opt']] then
+            if not aa.opt or OPTS[aa.opt] then
                 common.use_aa(aa)
             end
         end
         for _,disc in ipairs(mashDPSDiscs) do
-            if not disc['opt'] or OPTS[disc['opt']] then
+            if not disc.opt or OPTS[disc.opt] then
                 common.use_disc(disc)
             end
         end
@@ -414,7 +414,7 @@ end
 local function oh_shit()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-            if mq.TLO.Me.AltAbilityReady(flash['name'])() then
+            if mq.TLO.Me.AltAbilityReady(flash.name)() then
                 common.use_aa(flash)
             elseif OPTS.USEDEFLECTION then
                 common.use_disc(deflection)
@@ -437,24 +437,24 @@ local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     -- stance, disruption, skin
-    if spells['stance'] and not mq.TLO.Me.Buff(spells['stance']['name'])() then
-        if common.cast(spells['stance']['name']) then return end
+    if spells.stance and not mq.TLO.Me.Buff(spells.stance.name)() then
+        if common.cast(spells.stance.name) then return end
     end
-    if spells['skin'] and not mq.TLO.Me.Buff(spells['skin']['name'])() then
-        if common.cast(spells['skin']['name']) then return end
+    if spells.skin and not mq.TLO.Me.Buff(spells.skin.name)() then
+        if common.cast(spells.skin.name) then return end
     end
 
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if OPTS.USEDISRUPTION and spells['disruption'] and not mq.TLO.Me.Buff(spells['disruption']['name'])() then
-        if common.swap_and_cast(spells['disruption'], 13) then return end
+    if OPTS.USEDISRUPTION and spells.disruption and not mq.TLO.Me.Buff(spells.disruption.name)() then
+        if common.swap_and_cast(spells.disruption, 13) then return end
     end
 
-    if not OPTS.USEBEZA and buffazia and missing_unity_buffs(buffazia['name']) then
+    if not OPTS.USEBEZA and buffazia and missing_unity_buffs(buffazia.name) then
         if common.use_aa(buffazia) then return end
     end
-    if OPTS.USEBEZA and buffbeza and missing_unity_buffs(buffbeza['name']) then
+    if OPTS.USEBEZA and buffbeza and missing_unity_buffs(buffbeza.name) then
         if common.use_aa(buffbeza) then return end
     end
 
@@ -466,19 +466,19 @@ local function check_buffs()
         end
     end
 
-    if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 and spells['pethaste'] then
-        if not mq.TLO.Pet.Buff(spells['pethaste']['name'])() and mq.TLO.Spell(spells['pethaste']['name']).StacksPet() and mq.TLO.Spell(spells['pethaste']['name']).Mana() < mq.TLO.Me.CurrentMana() then
-            common.swap_and_cast(spells['pethaste'], 13)
+    if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 and spells.pethaste then
+        if not mq.TLO.Pet.Buff(spells.pethaste.name)() and mq.TLO.Spell(spells.pethaste.name).StacksPet() and mq.TLO.Spell(spells.pethaste.name).Mana() < mq.TLO.Me.CurrentMana() then
+            common.swap_and_cast(spells.pethaste, 13)
         end
     end
 end
 
 local function check_pet()
     if not OPTS.SUMMONPET then return end
-    if not spells['pet']['name'] or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
+    if not spells.pet.name or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(spells['pet'], 13)
+    if mq.TLO.Spell(spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
+    common.swap_and_cast(spells.pet, 13)
 end
 
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
@@ -487,34 +487,34 @@ local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
-            common.swap_spell(spells['tap1'], 1)
-            common.swap_spell(spells['tap2'], 2)
-            common.swap_spell(spells['largetap'], 3)
-            common.swap_spell(spells['composite'], 4, composite_names)
-            common.swap_spell(spells['spear'], 5)
-            common.swap_spell(spells['terror'], 6)
-            common.swap_spell(spells['aeterror'], 7)
-            common.swap_spell(spells['dottap'], 8)
-            common.swap_spell(spells['challenge'], 9)
-            common.swap_spell(spells['bitetap'], 10)
-            common.swap_spell(spells['stance'], 11)
-            common.swap_spell(spells['skin'], 12)
-            common.swap_spell(spells['acdebuff'], 13)
+            common.swap_spell(spells.tap1, 1)
+            common.swap_spell(spells.tap2, 2)
+            common.swap_spell(spells.largetap, 3)
+            common.swap_spell(spells.composite, 4, composite_names)
+            common.swap_spell(spells.spear, 5)
+            common.swap_spell(spells.terror, 6)
+            common.swap_spell(spells.aeterror, 7)
+            common.swap_spell(spells.dottap, 8)
+            common.swap_spell(spells.challenge, 9)
+            common.swap_spell(spells.bitetap, 10)
+            common.swap_spell(spells.stance, 11)
+            common.swap_spell(spells.skin, 12)
+            common.swap_spell(spells.acdebuff, 13)
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'dps' then
-            common.swap_spell(spells['tap1'], 1)
-            common.swap_spell(spells['tap2'], 2)
-            common.swap_spell(spells['largetap'], 3)
-            common.swap_spell(spells['composite'], 4, composite_names)
-            common.swap_spell(spells['spear'], 5)
-            common.swap_spell(spells['corruption'], 6)
-            common.swap_spell(spells['poison'], 7)
-            common.swap_spell(spells['dottap'], 8)
-            common.swap_spell(spells['disease'], 9)
-            common.swap_spell(spells['bitetap'], 10)
-            common.swap_spell(spells['stance'], 11)
-            common.swap_spell(spells['skin'], 12)
-            common.swap_spell(spells['acdebuff'], 13)
+            common.swap_spell(spells.tap1, 1)
+            common.swap_spell(spells.tap2, 2)
+            common.swap_spell(spells.largetap, 3)
+            common.swap_spell(spells.composite, 4, composite_names)
+            common.swap_spell(spells.spear, 5)
+            common.swap_spell(spells.corruption, 6)
+            common.swap_spell(spells.poison, 7)
+            common.swap_spell(spells.dottap, 8)
+            common.swap_spell(spells.disease, 9)
+            common.swap_spell(spells.bitetap, 10)
+            common.swap_spell(spells.stance, 11)
+            common.swap_spell(spells.skin, 12)
+            common.swap_spell(spells.acdebuff, 13)
             state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer:reset()
@@ -526,11 +526,11 @@ shd.pull_func = function()
         mq.cmd('/squelch /nav stop')
         mq.delay(300)
     end
-    if spells['challenge'] then
+    if spells.challenge then
         for _=1,3 do
             --if common.cast(spells['challenge']['name'], true) then return end
-            if mq.TLO.Me.SpellReady(spells['challenge']['name'])() then
-                mq.cmdf('/cast %s', spells['challenge']['name'])
+            if mq.TLO.Me.SpellReady(spells.challenge.name)() then
+                mq.cmdf('/cast %s', spells.challenge.name)
                 break
             end
             mq.delay(100)

@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require 'mq'
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
@@ -36,41 +36,49 @@ config.set_spell_set('standard')
 
 -- All spells ID + Rank name
 local spells = {
-    ['wounds']=common.get_spell('Infected Wounds') or common.get_spell('Septic Wounds') or {name=nil,id=nil},
-    ['fireshadow']=common.get_spell('Scalding Shadow') or common.get_spell('Broiling Shadow') or {name=nil,id=nil},
-    ['combodis']=common.get_spell('Danvid\'s Grip of Decay') or {name=nil,id=nil},
-    ['pyreshort']=common.get_spell('Pyre of Va Xakra') or common.get_spell('Pyre of Klraggek') or {name=nil,id=nil},
-    ['pyrelong']=common.get_spell('Pyre of the Neglected') or common.get_spell('Pyre of the Wretched') or {name=nil,id=nil},
-    ['venom']=common.get_spell('Hemorrhagic Venom') or common.get_spell('Crystal Crawler Venom') or {name=nil,id=nil},
-    ['magic']=common.get_spell('Extinction') or common.get_spell('Oblivion') or {name=nil,id=nil},
-    ['haze']=common.get_spell('Zelnithak\'s Pallid Haze') or common.get_spell('Drachnia\'s Pallid Haze') or {name=nil,id=nil},
-    ['grasp']=common.get_spell('The Protector\'s Grasp') or common.get_spell('Tserrina\'s Grasp') or {name=nil,id=nil},
-    ['leech']=common.get_spell('Twilight Leech') or common.get_spell('Frozen Leech') or {name=nil,id=nil},
-    ['ignite']=common.get_spell('Ignite Cognition') or common.get_spell('Ignite Intellect') or {name=nil,id=nil},
-    ['scourge']=common.get_spell('Scourge of Destiny') or {name=nil,id=nil},
-    ['corruption']=common.get_spell('Decomposition') or common.get_spell('Miasma') or {name=nil,id=nil},
-    ['alliance']=common.get_spell('Malevolent Coalition') or common.get_spell('Malevolent Covenant') or {name=nil,id=nil},
-    ['synergy']=common.get_spell('Proclamation for Blood') or common.get_spell('Assert for Blood') or {name=nil,id=nil},
-    ['composite']=common.get_spell('Composite Paroxysm') or common.get_spell('Dissident Paroxysm') or {name=nil,id=nil},
-    ['decay']=common.get_spell('Fleshrot\'s Decay') or common.get_spell('Danvid\'s Decay') or {name=nil,id=nil},
-    ['grip']=common.get_spell('Grip of Quietus') or common.get_spell('Grip of Zorglim') or {name=nil,id=nil},
-    ['proliferation']=common.get_spell('Infected Proliferation') or common.get_spell('Septic Proliferation') or {name=nil,id=nil},
-    ['scentterris']=common.get_spell('Scent of Terris') or {name=nil,id=nil},
-    ['scentmortality']=common.get_spell('Scent of The Grave') or common.get_spell('Scent of Mortality') or {name=nil,id=nil},
-    ['swarm']=common.get_spell('Call Skeleton Mass') or common.get_spell('Call Skeleton Horde') or {name=nil,id=nil},
-    ['venin']=common.get_spell('Embalming Venin') or common.get_spell('Searing Venin') or {name=nil,id=nil},
-    ['lich']=common.get_spell('Lunaside') or common.get_spell('Gloomside') or {name=nil,id=nil},
-    ['flesh']=common.get_spell('Flesh to Venom') or {name=nil,id=nil},
-    ['pet']=common.get_spell('Unrelenting Assassin') or common.get_spell('Restless Assassin') or {name=nil,id=nil},
-    ['pethaste']=common.get_spell('Sigil of Undeath') or common.get_spell('Sigil of Decay') or {name=nil,id=nil},
-    ['shield']=common.get_spell('Shield of Inevitability') or common.get_spell('Shield of Destiny') or {name=nil,id=nil},
-    ['manatap']=common.get_spell('Mind Atrophy') or common.get_spell('Mind Erosion') or {name=nil,id=nil},
-    ['petillusion']=common.get_spell('Form of Mottled Bone') or {name=nil,id=nil},
-    ['inspire']=common.get_spell('Inspire Ally') or common.get_spell('Incite Ally') or {name=nil,id=nil},
+    composite=common.get_best_spell({'Composite Paroxysm', 'Dissident Paroxysm'}),
+    wounds=common.get_best_spell({'Infected Wounds', 'Septic Wounds'}),
+    fireshadow=common.get_best_spell({'Scalding Shadow', 'Broiling Shadow'}),
+    pyreshort=common.get_best_spell({'Pyre of Va Xakra', 'Pyre of Klraggek'}),
+    pyrelong=common.get_best_spell({'Pyre of the Neglected', 'Pyre of the Wretched'}),
+    venom=common.get_best_spell({'Hemorrhagic Venom', 'Crystal Crawler Venom'}),
+    magic=common.get_best_spell({'Extinction', 'Oblivion'}),
+    decay=common.get_best_spell({'Fleshrot\'s Decay', 'Danvid\'s Decay'}),
+    grip=common.get_best_spell({'Grip of Quietus', 'Grip of Zorglim'}),
+    haze=common.get_best_spell({'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze'}),
+    grasp=common.get_best_spell({'The Protector\'s Grasp', 'Tserrina\'s Grasp'}),
+    leech=common.get_best_spell({'Twilight Leech', 'Frozen Leech'}),
+    ignite=common.get_best_spell({'Ignite Cognition', 'Ignite Intellect'}),
+    scourge=common.get_best_spell({'Scourge of Destiny'}),
+    corruption=common.get_best_spell({'Decomposition', 'Miasma'}),
+    -- Wounds proc
+    proliferation=common.get_best_spell({'Infected Proliferation', 'Septic Proliferation'}),
+    -- combo dot, outdated
+    --combodis=common.get_best_spell({'Danvid\'s Grip of Decay'}),
+    -- Alliance
+    alliance=common.get_best_spell({'Malevolent Coalition', 'Malevolent Covenant'}),
+    -- Nukes
+    synergy=common.get_best_spell({'Proclamation for Blood', 'Assert for Blood'}),
+    venin=common.get_best_spell({'Embalming Venin', 'Searing Venin'}),
+    -- Debuffs
+    scentterris=common.get_best_spell({'Scent of Terris'}),
+    scentmortality=common.get_best_spell({'Scent of The Grave', 'Scent of Mortality'}),
+    -- Mana Drain
+    manatap=common.get_best_spell({'Mind Atrophy', 'Mind Erosion'}),
+    -- Buffs
+    lich=common.get_best_spell({'Lunaside', 'Gloomside'}),
+    flesh=common.get_best_spell({'Flesh to Venom'}),
+    shield=common.get_best_spell({'Shield of Inevitability', 'Shield of Destiny'}),
+    -- Pet spells
+    pet=common.get_best_spell({'Unrelenting Assassin', 'Restless Assassin'}),
+    pethaste=common.get_best_spell({'Sigil of Undeath', 'Sigil of Decay'}),
+    petillusion=common.get_best_spell({'Form of Mottled Bone'}),
+    inspire=common.get_best_spell({'Inspire Ally', 'Incite Ally'}),
+    swarm=common.get_best_spell({'Call Skeleton Mass', 'Call Skeleton Horde'}),
 }
 for name,spell in pairs(spells) do
-    if spell['name'] then
-        logger.printf('[%s] Found spell: %s (%s)', name, spell['name'], spell['id'])
+    if spell.name then
+        logger.printf('[%s] Found spell: %s (%s)', name, spell.name, spell.id)
     else
         logger.printf('[%s] Could not find spell!', name)
     end
@@ -78,45 +86,45 @@ end
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local standard = {}
-table.insert(standard, spells['wounds'])
-table.insert(standard, spells['composite'])
-table.insert(standard, spells['pyreshort'])
-table.insert(standard, spells['venom'])
-table.insert(standard, spells['magic'])
-table.insert(standard, spells['decay'])
-table.insert(standard, spells['haze'])
-table.insert(standard, spells['grasp'])
-table.insert(standard, spells['fireshadow'])
-table.insert(standard, spells['leech'])
-table.insert(standard, spells['grip'])
-table.insert(standard, spells['pyrelong'])
-table.insert(standard, spells['ignite'])
-table.insert(standard, spells['scourge'])
-table.insert(standard, spells['corruption'])
+table.insert(standard, spells.wounds)
+table.insert(standard, spells.composite)
+table.insert(standard, spells.pyreshort)
+table.insert(standard, spells.venom)
+table.insert(standard, spells.magic)
+table.insert(standard, spells.decay)
+table.insert(standard, spells.haze)
+table.insert(standard, spells.grasp)
+table.insert(standard, spells.fireshadow)
+table.insert(standard, spells.leech)
+table.insert(standard, spells.grip)
+table.insert(standard, spells.pyrelong)
+table.insert(standard, spells.ignite)
+table.insert(standard, spells.scourge)
+table.insert(standard, spells.corruption)
 
 local short = {}
-table.insert(short, spells['swarm'])
-table.insert(short, spells['composite'])
-table.insert(short, spells['pyreshort'])
-table.insert(short, spells['venom'])
-table.insert(short, spells['magic'])
-table.insert(short, spells['decay'])
-table.insert(short, spells['haze'])
-table.insert(short, spells['grasp'])
-table.insert(short, spells['fireshadow'])
-table.insert(short, spells['leech'])
-table.insert(short, spells['grip'])
-table.insert(short, spells['pyrelong'])
-table.insert(short, spells['ignite'])
+table.insert(short, spells.swarm)
+table.insert(short, spells.composite)
+table.insert(short, spells.pyreshort)
+table.insert(short, spells.venom)
+table.insert(short, spells.magic)
+table.insert(short, spells.decay)
+table.insert(short, spells.haze)
+table.insert(short, spells.grasp)
+table.insert(short, spells.fireshadow)
+table.insert(short, spells.leech)
+table.insert(short, spells.grip)
+table.insert(short, spells.pyrelong)
+table.insert(short, spells.ignite)
 
 local dots = {
-    ['standard']=standard,
-    ['short']=short,
+    standard=standard,
+    short=short,
 }
 
 -- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
-local swap_gem = mq.TLO.Me.Gem(spells['wounds']['name'])() or mq.TLO.Me.Gem(spells['fireshadow']['name'])() or mq.TLO.Me.Gem(spells['pyrelong']['name'])()
-local swap_gem_dis = mq.TLO.Me.Gem(spells['decay']['name'])() or mq.TLO.Me.Gem(spells['grip']['name'])()
+local swap_gem = mq.TLO.Me.Gem(spells.wounds.name)() or mq.TLO.Me.Gem(spells.fireshadow.name)() or mq.TLO.Me.Gem(spells.pyrelong.name)()
+local swap_gem_dis = mq.TLO.Me.Gem(spells.decay.name)() or mq.TLO.Me.Gem(spells.grip.name)()
 
 -- entries in the items table are MQ item datatypes
 local items = {}
@@ -177,10 +185,10 @@ local convergence = common.get_aa('Convergence')
 local dispel = common.get_aa('Eradicate Magic')
 
 local buffs={
-    ['self']={},
-    ['pet']={
-        spells['pethaste'],
-        spells['petillusion'],
+    self={},
+    pet={
+        spells.pethaste,
+        spells.petillusion,
     },
 }
 --[[
@@ -237,13 +245,13 @@ end
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
     if config.get_use_alliance() then
-        if mq.TLO.Spell(spells['alliance']['name']).Mana() > mq.TLO.Me.CurrentMana() then
+        if mq.TLO.Spell(spells.alliance.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
-        if mq.TLO.Me.SpellReady(spells['alliance']['name'])() and neccount > 1 and not mq.TLO.Target.Buff(spells['alliance']['name'])() and mq.TLO.Spell(spells['alliance']['name']).StacksTarget() then
+        if mq.TLO.Me.SpellReady(spells.alliance.name)() and neccount > 1 and not mq.TLO.Target.Buff(spells.alliance.name)() and mq.TLO.Spell(spells.alliance.name).StacksTarget() then
             -- pick the first 3 dots in the rotation as they will hopefully always be up given their priority
-            if mq.TLO.Target.MyBuff(spells['pyreshort']['name'])() and mq.TLO.Target.MyBuff(spells['venom']['name'])() and mq.TLO.Target.MyBuff(spells['magic']['name'])() then
-                common.cast(spells['alliance']['name'], true)
+            if mq.TLO.Target.MyBuff(spells.pyreshort.name)() and mq.TLO.Target.MyBuff(spells.venom.name)() and mq.TLO.Target.MyBuff(spells.magic.name)() then
+                common.cast(spells.alliance.name, true)
                 return true
             end
         end
@@ -252,13 +260,13 @@ local function try_alliance()
 end
 
 local function cast_synergy()
-    if not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(spells['synergy']['name'])() then
-        if mq.TLO.Spell(spells['synergy']['name']).Mana() > mq.TLO.Me.CurrentMana() then
+    if not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(spells.synergy.name)() then
+        if mq.TLO.Spell(spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
         -- don't bother with proc'ing synergy until we've got most dots applied
-        if mq.TLO.Target.MyBuff(spells['pyreshort']['name'])() and mq.TLO.Target.MyBuff(spells['venom']['name'])() and mq.TLO.Target.MyBuff(spells['magic']['name'])() then
-            common.cast(spells['synergy']['name'], true)
+        if mq.TLO.Target.MyBuff(spells.pyreshort.name)() and mq.TLO.Target.MyBuff(spells.venom.name)() and mq.TLO.Target.MyBuff(spells.magic.name)() then
+            common.cast(spells.synergy.name, true)
             return true
         end
     end
@@ -269,34 +277,34 @@ local function find_next_dot_to_cast()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
     -- Just cast composite as part of the normal dot rotation, no special handling
-    --if common.is_dot_ready(spells['composite']['id'], spells['composite']['name']) then
-    --    return spells['composite']['id'], spells['composite']['name']
+    --if common.is_dot_ready(spells.composite.id, spells.composite.name) then
+    --    return spells.composite.id, spells.composite.name
     --end
-    if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
-        return spells['manatap']
+    if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(spells.manatap.name)() and mq.TLO.Spell(spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+        return spells.manatap
     end
-    if config.get_spell_set() == 'short' and mq.TLO.Me.SpellReady(spells['swarm']['name'])() and mq.TLO.Spell(spells['swarm']['name']).Mana() < mq.TLO.Me.CurrentMana() then
-        return spells['swarm']
+    if config.get_spell_set() == 'short' and mq.TLO.Me.SpellReady(spells.swarm.name)() and mq.TLO.Spell(spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
+        return spells.swarm
     end
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > OPTS.STOPPCT then
         for _,dot in ipairs(dots[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
-            -- if spell_id == spells['combodis']['id'] then
-            --     if (not is_target_dotted_with(spells['decay']['id'], spells['decay']['name']) or not is_target_dotted_with(spells['grip']['id'], spells['grip']['name'])) and mq.TLO.Me.SpellReady(spells['combodis']['name'])() then
+            -- if spell_id == spells.combodis.id then
+            --     if (not is_target_dotted_with(spells.decay.id, spells.decay.name) or not is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodis.name)() then
             --         return dot
             --     end
             -- else
-            if (OPTS.USEWOUNDS or dot['id'] ~= spells['wounds']['id']) and common.is_dot_ready(dot) then
+            if (OPTS.USEWOUNDS or dot.id ~= spells.wounds.id) and common.is_dot_ready(dot) then
                 return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
         end
     end
-    if mq.TLO.Me.SpellReady(spells['manatap']['name'])() and mq.TLO.Spell(spells['manatap']['name']).Mana() < mq.TLO.Me.CurrentMana() then
-        return spells['manatap']
+    if mq.TLO.Me.SpellReady(spells.manatap.name)() and mq.TLO.Spell(spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+        return spells.manatap
     end
-    if config.get_spell_set() == 'short' and mq.TLO.Me.SpellReady(spells['venin']['name'])() and mq.TLO.Spell(spells['venin']['name']).Mana() < mq.TLO.Me.CurrentMana() then
-        return spells['venin']
+    if config.get_spell_set() == 'short' and mq.TLO.Me.SpellReady(spells.venin.name)() and mq.TLO.Spell(spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
+        return spells.venin
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
@@ -310,18 +318,18 @@ local function cycle_dots()
         end
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
-            if spell['name'] == spells['pyreshort']['name'] and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+            if spell.name == spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
                 local tc_item = mq.TLO.FindItem(tcclick)
                 common.use_item(tc_item)
             end
-            common.cast(spell['name'], true) -- then cast the dot
+            common.cast(spell.name, true) -- then cast the dot
         end
 
         if OPTS.MULTIDOT then
             local original_target_id = 0
             if mq.TLO.Target.Type() == 'NPC' then original_target_id = mq.TLO.Target.ID() end
             local dotted_count = 1
-            for i=1,13 do
+            for i=1,20 do
                 if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
                     local xtar_id = mq.TLO.Me.XTarget(i).ID()
                     local xtar_spawn = mq.TLO.Spawn(xtar_id)
@@ -330,8 +338,8 @@ local function cycle_dots()
                         mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
                         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
-                            --if not mq.TLO.Me.SpellReady(spell['name'])() then break end
-                            common.cast(spell['name'], true)
+                            --if not mq.TLO.Me.SpellReady(spell.name)() then break end
+                            common.cast(spell.name, true)
                             dotted_count = dotted_count + 1
                             if dotted_count >= OPTS.MULTICOUNT then break end
                         end
@@ -355,14 +363,14 @@ local function try_debuff_target()
         if targetID and targetID > 0 and (not targets[targetID] or not targets[targetID][2]) then
             local isScentAAReady = mq.TLO.Me.AltAbilityReady('Scent of Thule')()
 
-            local isDebuffedAlready = common.is_target_dotted_with(spells['scentterris']['id'], spells['scentterris']['name'])
+            local isDebuffedAlready = common.is_target_dotted_with(spells.scentterris.id, spells.scentterris.name)
             if isDebuffedAlready then
-                isDebuffedAlready = common.is_target_dotted_with(spells['scentmortality']['id'], spells['scentmortality']['name'])
+                isDebuffedAlready = common.is_target_dotted_with(spells.scentmortality.id, spells.scentmortality.name)
             end
-            if not mq.TLO.Spell(spells['scentterris']['name']).StacksTarget() then
+            if not mq.TLO.Spell(spells.scentterris.name).StacksTarget() then
                 isDebuffedAlready = true
             end
-            if not mq.TLO.Spell(spells['scentmortality']['name']).StacksTarget() then
+            if not mq.TLO.Spell(spells.scentmortality.name).StacksTarget() then
                 isDebuffedAlready = true
             end
 
@@ -382,7 +390,7 @@ end
 
 -- Check whether a dot is applied to the target
 local function target_has_proliferation()
-    if not mq.TLO.Target.MyBuff(spells['proliferation']['name'])() then return false else return true end
+    if not mq.TLO.Target.MyBuff(spells.proliferation.name)() then return false else return true end
 end
 
 local function is_nec_burn_condition_met()
@@ -451,11 +459,11 @@ local function try_burn()
 
         for _,aa in ipairs(AAs) do
             -- don't go making twincast dots sad by cutting them in half
-            if aa['name']:lower() == 'funeral pyre' then
+            if aa.name:lower() == 'funeral pyre' then
                 if not mq.TLO.Me.AltAbilityReady('heretic\'s twincast')() and not mq.TLO.Me.Buff('heretic\'s twincast')() then
                     common.use_aa(aa)
                 end
-            elseif aa['name']:lower() == 'wake the dead' then
+            elseif aa.name:lower() == 'wake the dead' then
                 if mq.TLO.SpawnCount('corpse radius 150')() > 0 then
                     common.use_aa(aa)
                 end
@@ -465,12 +473,12 @@ local function try_burn()
         end
 
         if OPTS.USEGLYPH then
-            if not mq.TLO.Me.Song(intensity['name'])() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+            if not mq.TLO.Me.Song(intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
                 common.use_aa(glyph)
             end
         end
         if OPTS.USEINTENSITY then
-            if not mq.TLO.Me.Buff(glyph['name'])() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+            if not mq.TLO.Me.Buff(glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
                 common.use_aa(intensity)
             end
         end
@@ -507,7 +515,7 @@ local function pre_pop_burns()
     end
 
     if OPTS.USEGLYPH then
-        if not mq.TLO.Me.Song(intensity['name'])() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+        if not mq.TLO.Me.Song(intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             common.use_aa(glyph)
         end
     end
@@ -587,7 +595,7 @@ local rez_timer = timer:new(5)
 local function check_rez()
     if not OPTS.USEREZ or common.am_i_dead() then return end
     if not rez_timer:timer_expired() then return end
-    if not mq.TLO.Me.AltAbilityReady(convergence['name'])() then return end
+    if not mq.TLO.Me.AltAbilityReady(convergence.name)() then return end
     if mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
     if mq.TLO.SpawnCount('pccorpse group healer radius 100')() > 0 then
         mq.TLO.Spawn('pccorpse group healer radius 100').DoTarget()
@@ -631,28 +639,28 @@ end
 local function check_buffs()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
     if OPTS.USEBUFFSHIELD then
-        if not mq.TLO.Me.Buff(spells['shield']['name'])() then
-            common.cast(spells['shield']['name'])
+        if not mq.TLO.Me.Buff(spells.shield.name)() then
+            common.cast(spells.shield.name)
         end
     end
     if OPTS.USEINSPIRE then
-        if not mq.TLO.Pet.Buff(spells['inspire']['name'])() then
-            common.cast(spells['inspire']['name'])
+        if not mq.TLO.Pet.Buff(spells.inspire.name)() then
+            common.cast(spells.inspire.name)
         end
     end
     common.check_combat_buffs()
     --if common.is_fighting() then return end
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if not mq.TLO.Me.Buff(spells['lich']['name'])() or not mq.TLO.Me.Buff(spells['flesh']['name'])() then
+    if not mq.TLO.Me.Buff(spells.lich.name)() or not mq.TLO.Me.Buff(spells.flesh.name)() then
         common.use_aa(unity)
     end
 
     common.check_item_buffs()
 
     if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
-        for _,buff in ipairs(buffs['pet']) do
-            if not mq.TLO.Pet.Buff(buff['name'])() and mq.TLO.Spell(buff['name']).StacksPet() and mq.TLO.Spell(buff['name']).Mana() < mq.TLO.Me.CurrentMana() then
+        for _,buff in ipairs(buffs.pet) do
+            if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
                 common.swap_and_cast(buff, 13)
             end
         end
@@ -663,173 +671,173 @@ local function check_pet()
     --if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if mq.TLO.Spell(spells['pet']['name']).Mana() > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(spells['pet'], 13)
+    if mq.TLO.Spell(spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
+    common.swap_and_cast(spells.pet, 13)
 end
 
 local function should_swap_dots()
     -- Only swap spells in standard spell set
     if state.get_spellset_loaded() ~= 'standard' or mq.TLO.Me.Moving() then return end
 
-    local woundsDuration = mq.TLO.Target.MyBuffDuration(spells['wounds']['name'])()
-    local pyrelongDuration = mq.TLO.Target.MyBuffDuration(spells['pyrelong']['name'])()
-    local fireshadowDuration = mq.TLO.Target.MyBuffDuration(spells['fireshadow']['name'])()
-    if mq.TLO.Me.Gem(spells['wounds']['name'])() then
+    local woundsDuration = mq.TLO.Target.MyBuffDuration(spells.wounds.name)()
+    local pyrelongDuration = mq.TLO.Target.MyBuffDuration(spells.pyrelong.name)()
+    local fireshadowDuration = mq.TLO.Target.MyBuffDuration(spells.fireshadow.name)()
+    if mq.TLO.Me.Gem(spells.wounds.name)() then
         if not OPTS.USEWOUNDS or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
-                common.swap_spell(spells['pyrelong'], swap_gem or 10)
+                common.swap_spell(spells.pyrelong, swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                common.swap_spell(spells['fireshadow'], swap_gem or 10)
+                common.swap_spell(spells.fireshadow, swap_gem or 10)
             end
         end
-    elseif mq.TLO.Me.Gem(spells['pyrelong']['name'])() then
+    elseif mq.TLO.Me.Gem(spells.pyrelong.name)() then
         if pyrelongDuration and pyrelongDuration > 20000 then
             if OPTS.USEWOUNDS and (not woundsDuration or woundsDuration < 20000) then
-                common.swap_spell(spells['wounds'], swap_gem or 10)
+                common.swap_spell(spells.wounds, swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                common.swap_spell(spells['fireshadow'], swap_gem or 10)
+                common.swap_spell(spells.fireshadow, swap_gem or 10)
             end
         end
-    elseif mq.TLO.Me.Gem(spells['fireshadow']['name'])() then
+    elseif mq.TLO.Me.Gem(spells.fireshadow.name)() then
         if fireshadowDuration and fireshadowDuration > 20000 then
             if OPTS.USEWOUNDS and (not woundsDuration or woundsDuration < 20000) then
-                common.swap_spell(spells['wounds'], swap_gem or 10)
+                common.swap_spell(spells.wounds, swap_gem or 10)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
-                common.swap_spell(spells['pyrelong'], swap_gem or 10)
+                common.swap_spell(spells.pyrelong, swap_gem or 10)
             end
         end
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize wounds again
-        common.swap_spell(spells['wounds'], swap_gem or 10)
+        common.swap_spell(spells.wounds, swap_gem or 10)
     end
 
-    local decayDuration = mq.TLO.Target.MyBuffDuration(spells['decay']['name'])()
-    local gripDuration = mq.TLO.Target.MyBuffDuration(spells['grip']['name'])()
-    if mq.TLO.Me.Gem(spells['decay']['name'])() then
+    local decayDuration = mq.TLO.Target.MyBuffDuration(spells.decay.name)()
+    local gripDuration = mq.TLO.Target.MyBuffDuration(spells.grip.name)()
+    if mq.TLO.Me.Gem(spells.decay.name)() then
         if decayDuration and decayDuration > 20000 then
             if not gripDuration or gripDuration < 20000 then
-                common.swap_spell(spells['grip'], swap_gem_dis or 11)
+                common.swap_spell(spells.grip, swap_gem_dis or 11)
             end
         end
-    elseif mq.TLO.Me.Gem(spells['grip']['name'])() then
+    elseif mq.TLO.Me.Gem(spells.grip.name)() then
         if gripDuration and gripDuration > 20000 then
             if not decayDuration or decayDuration < 20000 then
-                common.swap_spell(spells['decay'], swap_gem_dis or 11)
+                common.swap_spell(spells.decay, swap_gem_dis or 11)
             end
         end
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize decay again
-        common.swap_spell(spells['decay'], swap_gem_dis or 11)
+        common.swap_spell(spells.decay, swap_gem_dis or 11)
     end
 end
 
-local composite_names = {['Composite Paroxysm']=true,['Dissident Paroxysm']=true,['Dichotomic Paroxysm']=true}
+local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
         if config.get_spell_set() == 'standard' then
-            common.swap_spell(spells['composite'], 1, composite_names)
-            common.swap_spell(spells['pyreshort'], 2)
-            common.swap_spell(spells['venom'], 3)
-            common.swap_spell(spells['magic'], 4)
-            common.swap_spell(spells['haze'], 5)
-            common.swap_spell(spells['grasp'], 6)
-            common.swap_spell(spells['leech'], 7)
-            --common.swap_spell(spells['wounds'], 10)
-            common.swap_spell(spells['decay'], 11)
-            common.swap_spell(spells['synergy'], 13)
+            common.swap_spell(spells.composite, 1, composite_names)
+            common.swap_spell(spells.pyreshort, 2)
+            common.swap_spell(spells.venom, 3)
+            common.swap_spell(spells.magic, 4)
+            common.swap_spell(spells.haze, 5)
+            common.swap_spell(spells.grasp, 6)
+            common.swap_spell(spells.leech, 7)
+            --common.swap_spell(spells.wounds, 10)
+            common.swap_spell(spells.decay, 11)
+            common.swap_spell(spells.synergy, 13)
             state.set_spellset_loaded(config.get_spell_set())
         elseif config.get_spell_set() == 'short' then
-            common.swap_spell(spells['composite'], 1, composite_names)
-            common.swap_spell(spells['pyreshort'], 2)
-            common.swap_spell(spells['venom'], 3)
-            common.swap_spell(spells['magic'], 4)
-            common.swap_spell(spells['haze'], 5)
-            common.swap_spell(spells['grasp'], 6)
-            common.swap_spell(spells['leech'], 7)
-            common.swap_spell(spells['swarm'], 10)
-            common.swap_spell(spells['decay'], 11)
-            common.swap_spell(spells['synergy'], 13)
+            common.swap_spell(spells.composite, 1, composite_names)
+            common.swap_spell(spells.pyreshort, 2)
+            common.swap_spell(spells.venom, 3)
+            common.swap_spell(spells.magic, 4)
+            common.swap_spell(spells.haze, 5)
+            common.swap_spell(spells.grasp, 6)
+            common.swap_spell(spells.leech, 7)
+            common.swap_spell(spells.swarm, 10)
+            common.swap_spell(spells.decay, 11)
+            common.swap_spell(spells.synergy, 13)
             state.set_spellset_loaded(config.get_spell_set())
         end
         check_spell_timer:reset()
-        swap_gem = mq.TLO.Me.Gem(spells['wounds']['name'])() or mq.TLO.Me.Gem(spells['fireshadow']['name'])() or mq.TLO.Me.Gem(spells['pyrelong']['name'])() or 10
-        swap_gem_dis = mq.TLO.Me.Gem(spells['decay']['name'])() or mq.TLO.Me.Gem(spells['grip']['name'])() or 11
+        swap_gem = mq.TLO.Me.Gem(spells.wounds.name)() or mq.TLO.Me.Gem(spells.fireshadow.name)() or mq.TLO.Me.Gem(spells.pyrelong.name)() or 10
+        swap_gem_dis = mq.TLO.Me.Gem(spells.decay.name)() or mq.TLO.Me.Gem(spells.grip.name)() or 11
     end
     if config.get_spell_set() == 'standard' then
         if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['shield'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.shield, 12)
         elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['ignite'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.ignite, 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['scourge'], 9)
-            common.swap_spell(spells['ignite'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.scourge, 9)
+            common.swap_spell(spells.ignite, 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['ignite'], 9)
-            common.swap_spell(spells['shield'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.ignite, 9)
+            common.swap_spell(spells.shield, 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['scourge'], 9)
-            common.swap_spell(spells['corruption'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.scourge, 9)
+            common.swap_spell(spells.corruption, 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['scourge'], 9)
-            common.swap_spell(spells['shield'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.scourge, 9)
+            common.swap_spell(spells.shield, 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['shield'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.shield, 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['scourge'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.scourge, 12)
         end
         if not OPTS.USEWOUNDS then
-            common.swap_spell(spells['pyrelong'], 10)
+            common.swap_spell(spells.pyrelong, 10)
         else
-            common.swap_spell(spells['wounds'], 10)
+            common.swap_spell(spells.wounds, 10)
         end
     elseif config.get_spell_set() == 'short' then
         if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['inspire'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.inspire, 12)
         elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['venin'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.venin, 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['ignite'], 9)
-            common.swap_spell(spells['venin'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.ignite, 9)
+            common.swap_spell(spells.venin, 12)
         elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
-            common.swap_spell(spells['manatap'], 8)
-            common.swap_spell(spells['ignite'], 9)
-            common.swap_spell(spells['inspire'], 12)
+            common.swap_spell(spells.manatap, 8)
+            common.swap_spell(spells.ignite, 9)
+            common.swap_spell(spells.inspire, 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['scourge'], 9)
-            common.swap_spell(spells['venin'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.scourge, 9)
+            common.swap_spell(spells.venin, 12)
         elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['scourge'], 9)
-            common.swap_spell(spells['inspire'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.scourge, 9)
+            common.swap_spell(spells.inspire, 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['inspire'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.inspire, 12)
         elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
-            common.swap_spell(spells['ignite'], 8)
-            common.swap_spell(spells['alliance'], 9)
-            common.swap_spell(spells['venin'], 12)
+            common.swap_spell(spells.ignite, 8)
+            common.swap_spell(spells.alliance, 9)
+            common.swap_spell(spells.venin, 12)
         end
     end
 end

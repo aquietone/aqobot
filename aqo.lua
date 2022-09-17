@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
@@ -53,7 +53,7 @@ local function get_or_set_opt(name, current_value, new_value, setter)
 end
 
 ---Process binding commands.
----@param ... vararg @The input given to the bind command.
+---@vararg string @The input given to the bind command.
 local function cmd_bind(...)
     local args = {...}
     if not args[1] then

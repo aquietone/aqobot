@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require('mq')
 --- @type ImGui
 require 'ImGui'

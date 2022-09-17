@@ -1,4 +1,4 @@
---- @type mq
+--- @type Mq
 local mq = require 'mq'
 local named = require('aqo.data.named')
 local logger = require('aqo.utils.logger')
@@ -13,10 +13,10 @@ common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
 common.FD_CLASSES = {nec=true}--{mnk=true,bst=true,shd=true,nec=true}
 common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
 common.BOOL = {
-    ['TRUE']={
+    TRUE={
         ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
     },
-    ['FALSE']={
+    FALSE={
         ['0']=1, ['false']=1,['off']=1,['FALSE']=1,['OFF']=1,
     },
 }
@@ -66,29 +66,39 @@ end
 
 ---Lookup the ID for a given spell.
 ---@param spell_name string @The name of the spell.
----@param option_name string @The name of the option which controls whether this spell should be used.
----@return table @Returns a table containing the spell name with rank, spell ID and the provided option name.
-common.get_spell = function(spell_name, option_name)
+---@return table|nil @Returns a table containing the spell name with rank, spell ID and the provided option name.
+common.get_spell = function(spell_name)
     local spell_rank = mq.TLO.Spell(spell_name).RankName()
     if not mq.TLO.Me.Book(spell_rank)() then return nil end
-    return {['id']=mq.TLO.Spell(spell_rank).ID(), ['name']=spell_rank, ['opt']=option_name}
+    return {id=mq.TLO.Spell(spell_rank).ID(), name=spell_rank}
 end
+
+common.get_best_spell = function(spells)
+    local spell = nil
+    for _, spell_name in ipairs(spells) do
+        spell = common.get_spell(spell_name)
+        if spell then break end
+    end
+    return spell
+end
+
 ---Lookup the ID for a given AA.
 ---@param aa_name string @The name of the AA.
----@param option_name string @The name of the option which controls whether this AA should be used.
----@return table @Returns a table containing the AA name, AA ID and the provided option name.
+---@param option_name string|nil @The name of the option which controls whether this AA should be used.
+---@return table|nil @Returns a table containing the AA name, AA ID and the provided option name.
 common.get_aa = function(aa_name, option_name)
     if not mq.TLO.Me.AltAbility(aa_name)() then return nil end
-    return {['id']=mq.TLO.Me.AltAbility(aa_name).ID(), ['name']=aa_name, ['opt']=option_name}
+    return {id=mq.TLO.Me.AltAbility(aa_name).ID(), name=aa_name, opt=option_name}
 end
+
 ---Lookup the ID for a given disc.
 ---@param disc_name string @The name of the disc.
----@param option_name string @The name of the option which controls whether this disc should be used.
----@return table @Returns a table containing the disc name with rank, disc ID and the provided option name.
+---@param option_name string|nil @The name of the option which controls whether this disc should be used.
+---@return table|nil @Returns a table containing the disc name with rank, disc ID and the provided option name.
 common.get_disc = function(disc_name, option_name)
     local disc_rank = mq.TLO.Spell(disc_name).RankName()
     if not disc_rank then return nil end
-    return {['id']=mq.TLO.Spell(disc_rank).ID(), ['name']=disc_rank, ['opt']=option_name}
+    return {id=mq.TLO.Spell(disc_rank).ID(), name=disc_rank, opt=option_name}
 end
 
 ---Check whether the specified dot is applied to the target.
@@ -112,7 +122,7 @@ end
 ---@return boolean @Returns true if at least 1 hostile auto hater spawn on XTarget, otherwise false.
 common.hostile_xtargets = function()
     if mq.TLO.Me.XTarget() == 0 then return false end
-    for i=1,13 do
+    for i=1,20 do
         if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
             return true
         end
@@ -164,9 +174,9 @@ end
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
 ---@return boolean @Returns true if not under any loss of control effects, false otherwise.
 common.in_control = function()
-    return not mq.TLO.Me.Dead() and not mq.TLO.Me.Ducking() and not mq.TLO.Me.Charmed() and
-            not mq.TLO.Me.Stunned() and not mq.TLO.Me.Silenced() and not mq.TLO.Me.Feigning() and
-            not mq.TLO.Me.Mezzed() and not mq.TLO.Me.Invulnerable() and not mq.TLO.Me.Hovering()
+    return not (mq.TLO.Me.Dead() or mq.TLO.Me.Ducking() or mq.TLO.Me.Charmed() or
+            mq.TLO.Me.Stunned() or mq.TLO.Me.Silenced() or mq.TLO.Me.Feigning() or
+            mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
 end
 
 common.blocking_window_open = function()
@@ -187,7 +197,7 @@ common.check_chase = function()
     local chase_y = chase_spawn.Y()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.get_chase_distance() then
-        if not mq.TLO.Nav.Active() and mq.TLO.Nav.PathExists(string.format('spawn pc =%s', config.get_chase_target()))() then
+        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.get_chase_target()))() then
             mq.cmdf('/nav spawn pc =%s | log=off', config.get_chase_target())
         end
     end
@@ -229,48 +239,34 @@ end
 -- Casting Functions
 
 common.is_dot_ready = function(spell)
-    if not spell or not spell['name'] then return false end
-    local spell_id = spell['id']
-    local spell_name = spell['name']
-
-    if not mq.TLO.Me.SpellReady(spell_name)() then return false end
-    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell_name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
-        return false
-    end
-    if mq.TLO.Spell(spell_name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell_name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
-        return false
-    end
-    if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
+    if not common.is_spell_ready(spell) then return false end
 
     local buff_duration = 0
     local remaining_cast_time = 0
-    buff_duration = mq.TLO.Target.MyBuffDuration(spell_name)()
-    if not common.is_target_dotted_with(spell_id, spell_name) then
+    buff_duration = mq.TLO.Target.MyBuffDuration(spell.name)()
+    if not common.is_target_dotted_with(spell.id, spell.name) then
         -- target does not have the dot, we are ready
         return true
     else
         if not buff_duration then
             return true
         end
-        remaining_cast_time = mq.TLO.Spell(spell_name).MyCastTime()
+        remaining_cast_time = mq.TLO.Spell(spell.name).MyCastTime()
         return buff_duration < remaining_cast_time + 3000
     end
-
-    return false
 end
 
 common.is_spell_ready = function(spell)
     if not spell or not spell['name'] then return false end
-    local spell_name = spell['name']
 
-    if not mq.TLO.Me.SpellReady(spell_name)() then return false end
-    if mq.TLO.Spell(spell_name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell_name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
+    if not mq.TLO.Me.SpellReady(spell.name)() then return false end
+    if mq.TLO.Spell(spell.name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell.name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
         return false
     end
-    if mq.TLO.Spell(spell_name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell_name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
+    if mq.TLO.Spell(spell.name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell.name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
         return false
     end
-    if mq.TLO.Spell(spell_name).TargetType() == 'Single' then
+    if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
         if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
     end
 
@@ -349,7 +345,7 @@ end
 
 ---Cast the spell specified by spell_name.
 ---@param spell_name string @The name of the spell to be cast.
----@param requires_target boolean @Indicate whether the spell requires a target.
+---@param requires_target boolean|nil @Indicate whether the spell requires a target.
 common.cast = function(spell_name, requires_target)
     local spell = mq.TLO.Spell(spell_name)
     if not spell_name or not common.can_use_spell(spell, 'spell') or not common.should_use_spell(spell) then return false end
@@ -389,7 +385,7 @@ local function item_ready(item)
 end
 
 ---Use the item specified by item.
----@param item Item @The MQ Item userdata object.
+---@param item item @The MQ Item userdata object.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 common.use_item = function(item)
     if item_ready(item) then
@@ -414,14 +410,14 @@ local function aa_ready(name)
 end
 
 ---Use the AA specified in the passed in table aa.
----@param aa table @A table containing the AA name and ID.
+---@param aa table|nil @A table containing the AA name and ID.
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 common.use_aa = function(aa)
-    if aa and aa_ready(aa['name']) then
-        logger.printf('Use AA: \ax\ar%s\ax', aa['name'])
-        mq.cmdf('/alt activate %d', aa['id'])
-        mq.delay(250+mq.TLO.Me.AltAbility(aa['name']).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-        mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(aa['name'])() end)
+    if aa and aa_ready(aa.name) then
+        logger.printf('Use AA: \ax\ar%s\ax', aa.name)
+        mq.cmdf('/alt activate %d', aa.id)
+        mq.delay(250+mq.TLO.Me.AltAbility(aa.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(aa.name)() end)
         return true
     end
     return false
@@ -451,27 +447,27 @@ local function disc_ready(name)
 end
 
 ---Use the disc specified in the passed in table disc.
----@param disc table @A table containing the disc name and ID.
----@param overwrite boolean @The name of a disc which should be stopped in order to run this disc.
+---@param disc table|nil @A table containing the disc name and ID.
+---@param overwrite string|nil @The name of a disc which should be stopped in order to run this disc.
 common.use_disc = function(disc, overwrite)
-    if disc and disc_ready(disc['name']) then
-        if not is_disc(disc['name']) or not mq.TLO.Me.ActiveDisc.ID() then
-            logger.printf('Use Disc: \ax\ar%s\ax', disc['name'])
-            if disc['name']:find('Composite') then
-                mq.cmdf('/disc %s', disc['id'])
+    if disc and disc_ready(disc.name) then
+        if not is_disc(disc.name) or not mq.TLO.Me.ActiveDisc.ID() then
+            logger.printf('Use Disc: \ax\ar%s\ax', disc.name)
+            if disc.name:find('Composite') then
+                mq.cmdf('/disc %s', disc.id)
             else
-                mq.cmdf('/disc %s', disc['name'])
+                mq.cmdf('/disc %s', disc.name)
             end
-            mq.delay(250+mq.TLO.Spell(disc['name']).CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+            mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
+            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
             return true
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
-            logger.printf('Use Disc: \ax\ar%s\ax', disc['name'])
-            mq.cmdf('/disc %s', disc['name'])
-            mq.delay(250+mq.TLO.Spell(disc['name']).CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc['name'])() end)
+            logger.printf('Use Disc: \ax\ar%s\ax', disc.name)
+            mq.cmdf('/disc %s', disc.name)
+            mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
+            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
             return true
         end
     end
@@ -481,7 +477,7 @@ end
 -- Burn Helper Functions
 
 ---Determine whether the conditions are met to engage burn routines.
----@param always_condition function @An extra function which can be provided to determine if the always burn condition should fire.
+---@param always_condition function|nil @An extra function which can be provided to determine if the always burn condition should fire.
 ---@return boolean @Returns true if any burn condition is satisfied, otherwise false.
 common.is_burn_condition_met = function(always_condition)
     -- activating a burn condition is good for 60 seconds, don't do check again if 60 seconds hasn't passed yet and burn is active.
@@ -531,33 +527,33 @@ end
 ---Determine whether the specified spell is memorized in the gem.
 ---@param spell_name string @The spell name to check is memorized.
 ---@param gem number @The spell gem index the spell should be memorized in.
----@return boolean @Returns true if the spell is memorized in the specified gem, otherwise false.
+---@return boolean|nil @Returns true if the spell is memorized in the specified gem, otherwise false.
 common.swap_gem_ready = function(spell_name, gem)
     return mq.TLO.Me.Gem(gem)() and mq.TLO.Me.Gem(gem).Name() == spell_name
 end
 
 ---Swap the specified spell into the specified gem slot.
----@param spell userdata @The MQ Spell to memorize.
+---@param spell table|nil @The MQ Spell to memorize.
 ---@param gem number @The gem index to memorize the spell into.
----@param other_names table @List of spell names to compare against, because of dissident,dichotomic,composite
+---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 common.swap_spell = function(spell, gem, other_names)
     if not spell or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
-    if mq.TLO.Me.Gem(gem)() == spell['name'] then return end
+    if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
-    mq.cmdf('/memspell %d "%s"', gem, spell['name'])
-    mq.delay(3000, common.swap_gem_ready(spell['name'], gem))
+    mq.cmdf('/memspell %d "%s"', gem, spell.name)
+    mq.delay(3000, function() return common.swap_gem_ready(spell.name, gem) end)
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
 
 common.swap_and_cast = function(spell, gem)
     if not spell then return false end
     local restore_gem = nil
-    if not mq.TLO.Me.Gem(spell['name'])() then
+    if not mq.TLO.Me.Gem(spell.name)() then
         restore_gem = {name=mq.TLO.Me.Gem(gem)()}
         common.swap_spell(spell, gem)
     end
-    mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell['name'])() end)
-    local did_cast = common.cast(spell['name'])
+    mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
+    local did_cast = common.cast(spell.name)
     if restore_gem then
         common.swap_spell(restore_gem, gem)
     end
@@ -615,7 +611,10 @@ local sit_timer = timer:new(10)
 common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sit_timer:timer_expired() then
-        if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
+        if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
+                ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and
+                not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
+                mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
             mq.cmd('/sit')
             sit_timer:reset()
         end
