@@ -277,14 +277,16 @@ end
 local function is_dot_ready(spellId, spellName)
     -- don't dot if i'm not attacking
     if not spellName or not mq.TLO.Me.Combat() then return false end
+    local actualSpellName = spellName
+    if state.get_subscription() ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
     local songDuration = 0
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() ~= 0  then
         return false
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
 
-    songDuration = mq.TLO.Target.MyBuffDuration(spellName)()
-    if not common.is_target_dotted_with(spellId, spellName) then
+    songDuration = mq.TLO.Target.MyBuffDuration(actualSpellName)()
+    if not common.is_target_dotted_with(spellId, actualSpellName) then
         -- target does not have the dot, we are ready
         logger.debug(state.get_debug(), 'song ready %s', spellName)
         return true
@@ -300,6 +302,8 @@ end
 
 local function is_song_ready(spellId, spellName)
     if not spellName then return false end
+    local actualSpellName = spellName
+    if state.get_subscription() ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
     if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
         return false
     end
@@ -313,12 +317,12 @@ local function is_song_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spells.crescendo and spellName == spells.crescendo.name and (mq.TLO.Me.Buff(spells.crescendo.name)() or not crescendo_timer:timer_expired()) then
+    if spells.crescendo and spellName == spells.crescendo.name and (mq.TLO.Me.Buff(actualSpellName)() or not crescendo_timer:timer_expired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
 
-    local songDuration = mq.TLO.Me.Song(spellName).Duration()
+    local songDuration = mq.TLO.Me.Song(actualSpellName).Duration()
     if not songDuration then
         logger.debug(state.get_debug(), 'song ready %s', spellName)
         return true
@@ -473,7 +477,9 @@ local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if not common.clear_to_buff() then return end
-    if spells.aura and not mq.TLO.Me.Aura(spells.aura.name)() then
+    local buffName = spells.aura.name
+    if state.get_subscription() ~= 'GOLD' then buffName = spells.aura.name:gsub(' Rk%..*', '') end
+    if spells.aura and not mq.TLO.Me.Aura(buffName)() then
         local restore_gem = nil
         if not mq.TLO.Me.Gem(spells.aura.name)() then
             restore_gem = {name=mq.TLO.Me.Gem(1)()}

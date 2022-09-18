@@ -43,6 +43,8 @@ local mez_target_name = nil
 
 local mez_target_id = 0
 
+local subscription = 'GOLD'
+
 function state.get_all()
     return {
         debug=debug,
@@ -63,7 +65,16 @@ function state.get_all()
         mez_ummunes=mez_immunes,
         mez_target_name=mez_target_name,
         mez_target_id=mez_target_id,
+        subscription=subscription,
     }
+end
+
+function state.get_subscription()
+    return subscription
+end
+
+function state.set_subscription(new_subscription)
+    subscription = new_subscription
 end
 
 function state.get_debug()

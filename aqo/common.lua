@@ -106,8 +106,9 @@ end
 ---@param spell_name string @The name of the spell to check.
 ---@return boolean @Returns true if the spell is applied to the target, false otherwise.
 common.is_target_dotted_with = function(spell_id, spell_name)
-    if not mq.TLO.Target.MyBuff(spell_name)() then return false end
-    return spell_id == mq.TLO.Target.MyBuff(spell_name).ID()
+    return mq.TLO.Target.MyBuff(spell_name)() ~= nil
+    --if not mq.TLO.Target.MyBuff(spell_name)() then return false end
+    --return spell_id == mq.TLO.Target.MyBuff(spell_name).ID()
 end
 
 ---Determine whether currently fighting a target.
@@ -376,6 +377,7 @@ common.use_ability = function(name)
 end
 
 local function item_ready(item)
+    if state.get_subscription() ~= 'GOLD' and item.Prestige() then return false end
     if item() and item.Clicky.Spell() and item.Timer() == '0' then
         local spell = item.Clicky.Spell
         return common.can_use_spell(spell, 'item') and common.should_use_spell(spell)

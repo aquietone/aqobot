@@ -17,6 +17,11 @@ local ui = require('aqo.ui')
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
+    if state.get_subscription() ~= 'GOLD' then
+        if mq.TLO.Me.Subscription() == 'GOLD' then
+            state.set_subscription('GOLD')
+        end
+    end
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
         logger.printf('Not in game, stopping aqo.')
         mq.exit()
@@ -174,6 +179,7 @@ class_funcs.load_settings()
 common.setup_events()
 class_funcs.setup_events()
 config.load_ignores()
+state.set_subscription(mq.TLO.Me.Subscription())
 
 ui.set_class_funcs(class_funcs)
 mq.imgui.init('AQO Bot 1.0', ui.main)
