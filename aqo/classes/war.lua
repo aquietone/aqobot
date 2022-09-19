@@ -157,15 +157,9 @@ local SETTINGS_FILE = ('%s/warbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQu
 war.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.war then return end
-    if settings.war.USEBATTLELEAP ~= nil then OPTS.USEBATTLELEAP = settings.war.USEBATTLELEAP end
-    if settings.war.USEFORTITUDE ~= nil then OPTS.USEFORTITUDE = settings.war.USEFORTITUDE end
-    if settings.war.USEGRAPPLE ~= nil then OPTS.USEGRAPPLE = settings.war.USEGRAPPLE end
-    if settings.war.USEGRASP ~= nil then OPTS.USEGRASP = settings.war.USEGRASP end
-    if settings.war.USEPHANTOM ~= nil then OPTS.USEPHANTOM = settings.war.USEPHANTOM end
-    if settings.war.USEPROJECTION ~= nil then OPTS.USEPROJECTION = settings.war.USEPROJECTION end
-    if settings.war.USEEXPANSE ~= nil then OPTS.USEEXPANSE = settings.war.USEEXPANSE end
-    if settings.war.USEPRECISION ~= nil then OPTS.USEPRECISION = settings.war.USEPRECISION end
-    if settings.war.USESNARE ~= nil then OPTS.USESNARE = settings.war.USESNARE end
+    for setting,value in pairs(settings.war) do
+        OPTS[setting] = value
+    end
 end
 
 war.save_settings = function()
@@ -179,7 +173,7 @@ end
 local aggro_nopet_count = 'xtarhater radius %d zradius 50 nopet'
 local function check_ae()
     if common.am_i_dead() then return end
-    local mobs_on_aggro = mq.TLO.SpawnCount(aggro_nopet_count:format(config.get_camp_radius()))()
+    local mobs_on_aggro = mq.TLO.SpawnCount(aggro_nopet_count:format(config.CAMPRADIUS))()
     if mobs_on_aggro >= 2 then
         -- Use Spire and Aegis when 2 or more mobs on aggro
         if spire and aegis and mq.TLO.Me.AltAbilityReady(spire.name)() and mq.TLO.Me.CombatAbilityReady(aegis.name)() then
@@ -228,7 +222,7 @@ local function mash()
             common.use_aa(leap)
             mq.delay(30)
         end
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             for _,aa in ipairs(mashAggroAAs) do
                 if not aa.opt or OPTS[aa.opt] then
                     common.use_aa(aa)
@@ -270,7 +264,7 @@ local function try_burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if common.is_burn_condition_met() then
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             local replace_disc = mash_defensive and mash_defensive.name or nil
             common.use_disc(defensive, replace_disc)
             common.use_disc(runes, replace_disc)
@@ -306,7 +300,7 @@ end
 local function oh_shit()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         common.use_aa(resurgence)
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if flash and mq.TLO.Me.CombatAbilityReady(flash.name)() then
                 common.use_disc(flash)
             elseif OPTS.USEFORTITUDE then
@@ -386,11 +380,11 @@ end
 
 war.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
-        state.set_tank_mob_id(0)
+        state.tank_mob_id = 0
     end
-    if not state.get_pull_in_progress() then
+    if not state.pull_in_progress then
         check_end()
-        if config.get_mode():is_tank_mode() then
+        if config.MODE:is_tank_mode() then
             -- get mobs in camp
             camp.mob_radar()
             -- pick mob to tank if not tanking
@@ -403,11 +397,11 @@ war.main_loop = function()
         common.check_chase()
         -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
         oh_shit()
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             check_ae()
         end
         -- if in an assist mode
-        if config.get_mode():is_assist_mode() then
+        if config.MODE:is_assist_mode() then
             assist.check_target(war.reset_class_timers)
             assist.attack()
         end
@@ -420,7 +414,7 @@ war.main_loop = function()
         check_buffs()
         common.rest()
     end
-    if config.get_mode():is_pull_mode() then
+    if config.MODE:is_pull_mode() then
         pull.pull_mob()
     end
 end
@@ -437,13 +431,6 @@ war.draw_skills_tab = function()
     OPTS.USEPRECISION = ui.draw_check_box('Use Precision', '##useprecision', OPTS.USEPRECISION, 'Use Concordant Precision for single target aggro')
     if OPTS.USEPRECISION then OPTS.USEEXPANSE = false end
     OPTS.USESNARE = ui.draw_check_box('Use Snare', '##usesnare', OPTS.USESNARE, 'Use Call of Challenge AA, which includes a snare')
-end
-
-war.draw_burn_tab = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
 end
 
 return war

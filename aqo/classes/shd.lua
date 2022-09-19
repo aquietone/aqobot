@@ -29,7 +29,7 @@ local OPTS = {
     USESWARM=true,
     USEDEFLECTION=false,
 }
-config.set_spell_set('standard')
+config.SPELLSET = 'standard'
 mq.cmd('/squelch /stick mod -2')
 mq.cmd('/squelch /stick set delaystrafe on')
 
@@ -205,18 +205,9 @@ local SETTINGS_FILE = ('%s/shdbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQu
 shd.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.shd then return end
-    if settings.shd.SUMMONPET ~= nil then OPTS.SUMMONPET = settings.shd.SUMMONPET end
-    if settings.shd.BUFFPET ~= nil then OPTS.BUFFPET = settings.shd.BUFFPET end
-    if settings.shd.USEHATESATTRACTION ~= nil then OPTS.USEHATESATTRACTION = settings.shd.USEHATESATTRACTION end
-    if settings.shd.USEPROJECTION ~= nil then OPTS.USEPROJECTION = settings.shd.USEPROJECTION end
-    if settings.shd.USEBEZA ~= nil then OPTS.USEBEZA = settings.shd.USEBEZA end
-    if settings.shd.USEDISRUPTION ~= nil then OPTS.USEDISRUPTION = settings.shd.USEDISRUPTION end
-    if settings.shd.USEINSIDIOUS ~= nil then OPTS.USEINSIDIOUS = settings.shd.USEINSIDIOUS end
-    if settings.shd.USELIFETAP ~= nil then OPTS.USELIFETAP = settings.shd.USELIFETAP end
-    if settings.shd.USEVOICEOFTHULE ~= nil then OPTS.USEVOICEOFTHULE = settings.shd.USEVOICEOFTHULE end
-    if settings.shd.USETORRENT ~= nil then OPTS.USETORRENT = settings.shd.USETORRENT end
-    if settings.shd.USESWARM ~= nil then OPTS.USESWARM = settings.shd.USESWARM end
-    if settings.shd.USEDEFLECTION ~= nil then OPTS.USEDEFLECTION = settings.shd.USEDEFLECTION end
+    for setting,value in pairs(settings.shd) do
+        OPTS[setting] = value
+    end
 end
 
 shd.save_settings = function()
@@ -230,8 +221,8 @@ end
 local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
     -- aggro
-    if config.get_mode():is_tank_mode() and config.get_spell_set() == 'standard' and myhp > 70 then
-        if state.get_mob_count() > 2 then
+    if config.MODE:is_tank_mode() and config.SPELLSET == 'standard' and myhp > 70 then
+        if state.mob_count > 2 then
             local xtar_aggro_count = 0
             for i=1,13 do
                 local xtar = mq.TLO.Me.XTarget(i)
@@ -258,7 +249,7 @@ local function find_next_spell()
     if common.is_dot_ready(spells['acdebuff']) then return spells['acdebuff'] end
     -- dps
     if common.is_spell_ready(spells['spear']) then return spells['spear'] end
-    if config.get_mode():is_assist_mode() and config.get_spell_set() == 'dps' then
+    if config.MODE:is_assist_mode() and config.SPELLSET == 'dps' then
         if common.is_dot_ready(spells['poison']) then return spells['poison'] end
         if common.is_dot_ready(spells['disease']) then return spells['disease'] end
         if common.is_dot_ready(spells['corruption']) then return spells['corruption'] end
@@ -269,7 +260,7 @@ end
 local function cycle_spells()
     if common.am_i_dead() then return end
     if not mq.TLO.Me.Invis() then
-        local cur_mode = config.get_mode()
+        local cur_mode = config.MODE
         if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
             local spell = find_next_spell()
             if spell then
@@ -338,7 +329,7 @@ local function mash()
             common.use_aa(attraction)
         end
 
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             for _,disc in ipairs(mashAggroDiscs) do
                 if not disc.opt or OPTS[disc.opt] then
                     common.use_disc(disc)
@@ -377,7 +368,7 @@ local function try_burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if common.is_burn_condition_met() then
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             -- , , 
             common.use_disc(mantle)
             common.use_disc(carapace)
@@ -413,7 +404,7 @@ end
 
 local function oh_shit()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if mq.TLO.Me.AltAbilityReady(flash.name)() then
                 common.use_aa(flash)
             elseif OPTS.USEDEFLECTION then
@@ -476,7 +467,7 @@ end
 local function check_pet()
     if not OPTS.SUMMONPET then return end
     if not spells.pet.name or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
     if mq.TLO.Spell(spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(spells.pet, 13)
 end
@@ -485,8 +476,8 @@ local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dicho
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
-        if config.get_spell_set() == 'standard' then
+    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
+        if config.SPELLSET == 'standard' then
             common.swap_spell(spells.tap1, 1)
             common.swap_spell(spells.tap2, 2)
             common.swap_spell(spells.largetap, 3)
@@ -500,7 +491,7 @@ local function check_spell_set()
             common.swap_spell(spells.stance, 11)
             common.swap_spell(spells.skin, 12)
             common.swap_spell(spells.acdebuff, 13)
-            state.set_spellset_loaded(config.get_spell_set())
+            state.spellset_loaded = config.SPELLSET
         elseif config.get_spell_set() == 'dps' then
             common.swap_spell(spells.tap1, 1)
             common.swap_spell(spells.tap2, 2)
@@ -515,18 +506,18 @@ local function check_spell_set()
             common.swap_spell(spells.stance, 11)
             common.swap_spell(spells.skin, 12)
             common.swap_spell(spells.acdebuff, 13)
-            state.set_spellset_loaded(config.get_spell_set())
+            state.spellset_loaded = config.SPELLSET
         end
         check_spell_timer:reset()
     end
 end
 
 shd.pull_func = function()
-    if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-        mq.delay(300)
-    end
     if spells.challenge then
+        if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
+            mq.cmd('/squelch /nav stop')
+            mq.delay(300)
+        end
         for _=1,3 do
             --if common.cast(spells['challenge']['name'], true) then return end
             if mq.TLO.Me.SpellReady(spells.challenge.name)() then
@@ -571,11 +562,11 @@ end
 
 shd.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
-        state.set_tank_mob_id(0)
+        state.tank_mob_id = 0
     end
-    if not state.get_pull_in_progress() then
+    if not state.pull_in_progress then
         check_spell_set()
-        if config.get_mode():is_tank_mode() then
+        if config.MODE:is_tank_mode() then
             -- get mobs in camp
             camp.mob_radar()
             -- pick mob to tank if not tanking
@@ -588,18 +579,18 @@ shd.main_loop = function()
         common.check_chase()
         -- ae aggro if multiples in camp -- do after return to camp to try to be in range when using
         oh_shit()
-        if config.get_mode():is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             check_ae()
         end
         -- if in an assist mode
-        if config.get_mode():is_assist_mode() then
+        if config.MODE:is_assist_mode() then
             assist.check_target(shd.reset_class_timers)
             assist.attack()
         end
         -- begin actual combat stuff, if mob is in radius
         local mob_x = mq.TLO.Target.X()
         local mob_y = mq.TLO.Target.Y()
-        if mob_x and mob_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < config.get_camp_radius() then
+        if mob_x and mob_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < config.CAMPRADIUS then
             assist.send_pet()
             cycle_spells()
             mash()
@@ -611,13 +602,13 @@ shd.main_loop = function()
         check_pet()
         common.rest()
     end
-    if config.get_mode():is_pull_mode() then
+    if config.MODE:is_pull_mode() then
         pull.pull_mob(shd.pull_func)
     end
 end
 
 shd.draw_skills_tab = function()
-    config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
+    config.SPELLSET = ui.draw_combo_box('Spell Set', config.SPELLSET, SPELLSETS, true)
     OPTS.SUMMONPET = ui.draw_check_box('Summon Pet', '##summonpet', OPTS.SUMMONPET, '')
     OPTS.BUFFPET = ui.draw_check_box('Buff Pet', '##buffpet', OPTS.BUFFPET, '')
     OPTS.USEHATESATTRACTION = ui.draw_check_box('Use Hate\'s Attraction', '##usehatesattr', OPTS.USEHATESATTRACTION, '')
@@ -630,13 +621,6 @@ shd.draw_skills_tab = function()
     OPTS.USETORRENT = ui.draw_check_box('Use Torrent', '##usetorrent', OPTS.USETORRENT, '')
     OPTS.USESWARM = ui.draw_check_box('Use Snare', '##useswarm', OPTS.USESWARM, '')
     OPTS.USEDEFLECTION = ui.draw_check_box('Use Deflection', '##usedeflect', OPTS.USEDEFLECTION, '')
-end
-
-shd.draw_burn_tab = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
 end
 
 return shd

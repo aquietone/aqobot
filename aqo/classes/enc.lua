@@ -40,7 +40,7 @@ local OPTS = {
     BUFFPET=true,
     USEERADICATE=true,
 }
-config.set_spell_set('standard')
+config.SPELLSET = 'standard'
 
 -- All spells ID + Rank name
 local spells = {
@@ -217,29 +217,9 @@ local SETTINGS_FILE = ('%s/encbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQu
 enc.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.enc then return end
-    if settings.enc.AURA1 ~= nil then OPTS.AURA1 = settings.enc.AURA1 end
-    if settings.enc.AURA2 ~= nil then OPTS.AURA2 = settings.enc.AURA2 end
-    if settings.enc.USEMEZ ~= nil then OPTS.USEMEZ = settings.enc.USEMEZ end
-    if settings.enc.TASHTHENMEZ ~= nil then OPTS.TASHTHENMEZ = settings.enc.TASHTHENMEZ end
-    if settings.enc.INTERRUPTFORMEZ ~= nil then OPTS.INTERRUPTFORMEZ = settings.enc.INTERRUPTFORMEZ end
-    if settings.enc.USECHAOTIC ~= nil then OPTS.USECHAOTIC = settings.enc.USECHAOTIC end
-    if settings.enc.USEDOT ~= nil then OPTS.USEDOT = settings.enc.USEDOT end
-    if settings.enc.USENUKE ~= nil then OPTS.USENUKE = settings.enc.USENUKE end
-    if settings.enc.USEERADICATE ~= nil then OPTS.USEERADICATE = settings.enc.USEERADICATE end
-    if settings.enc.USETASH ~= nil then OPTS.USETASH = settings.enc.USETASH end
-    if settings.enc.USETASHAOE ~= nil then OPTS.USETASHAOE = settings.enc.USETASHAOE end
-    if settings.enc.USESLOW ~= nil then OPTS.USESLOW = settings.enc.USESLOW end
-    if settings.enc.USESLOWAOE ~= nil then OPTS.USESLOWAOE = settings.enc.USESLOWAOE end
-    if settings.enc.USEPHANTASMAL ~= nil then OPTS.USEPHANTASMAL = settings.enc.USEPHANTASMAL end
-    if settings.enc.USEREPLICATION ~= nil then OPTS.USEREPLICATION = settings.enc.USEREPLICATION end
-    if settings.enc.USESHIELDOFFATE ~= nil then OPTS.USESHIELDOFFATE = settings.enc.USESHIELDOFFATE end
-    if settings.enc.USEMINDOVERMATTER ~= nil then OPTS.USEMINDOVERMATTER = settings.enc.USEMINDOVERMATTER end
-    if settings.enc.USESPELLGUARD ~= nil then OPTS.USESPELLGUARD = settings.enc.USESPELLGUARD end
-    if settings.enc.USENIGHTSTERROR ~= nil then OPTS.USENIGHTSTERROR = settings.enc.USENIGHTSTERROR end
-    if settings.enc.USEHASTE ~= nil then OPTS.USEHASTE = settings.enc.USEHASTE end
-    if settings.enc.SUMMONPET ~= nil then OPTS.SUMMONPET = settings.enc.SUMMONPET end
-    if settings.enc.BUFFPET ~= nil then OPTS.BUFFPET = settings.enc.BUFFPET end
-    if settings.enc.USECHARM ~= nil then OPTS.USECHARM = settings.enc.USECHARM end
+    for setting,value in pairs(settings.enc) do
+        OPTS[setting] = value
+    end
 end
 
 enc.save_settings = function()
@@ -290,7 +270,7 @@ local SLOW_IMMUNES = {}
 
 local function cycle_spells()
     if common.am_i_dead() then return false end
-    local cur_mode = config.get_mode()
+    local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
         if mq.TLO.Target.Beneficial() and OPTS.USEERADICATE and dispel then
             common.use_aa(dispel)
@@ -393,10 +373,10 @@ local function check_buffs()
 -- - spells.stunaerune (polyluminous rune - quick-refresh, damage absorption rune with a PB AE stun once consumed.)
 -- - rune (eldritch rune - AA rune, always pre-buffed.)
 -- - veil (Veil of the Mindshadow – AA rune, always pre-buffed.)
-    if spells.guard and not mq.TLO.Me.Buff(spells.guard.name)() then
+    if spells.guard.name and not mq.TLO.Me.Buff(spells.guard.name)() then
         if common.cast(spells.guard.name) then return end
     end
-    if spells.stunaerune and not mq.TLO.Me.Buff(spells.stunaerune.name)() then
+    if spells.stunaerune.name and not mq.TLO.Me.Buff(spells.stunaerune.name)() then
         if common.cast(spells.stunaerune.name) then return end
     end
     if rune and not mq.TLO.Me.Buff(rune.name)() then
@@ -422,12 +402,12 @@ local function check_buffs()
         if common.use_aa(azure) then return end
     end
 
-    if OPTS.AURA1 == 'twincast' and spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
+    if OPTS.AURA1 == 'twincast' and spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
         if common.swap_and_cast(spells[OPTS.AURA1], 13) then return end
     elseif OPTS.AURA1 ~= 'twincast' and spells[OPTS.AURA1] and not mq.TLO.Me.Aura(spells[OPTS.AURA1].name)() then
         if common.swap_and_cast(spells[OPTS.AURA1], 13) then return end
     end
-    if OPTS.AURA2 == 'twincast' and spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
+    if OPTS.AURA2 == 'twincast' and spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
         if common.swap_and_cast(spells[OPTS.AURA2], 13) then return end
     elseif OPTS.AURA2 ~= 'twincast' and spells[OPTS.AURA2] and not mq.TLO.Me.Aura(spells[OPTS.AURA2].name)() then
         if common.swap_and_cast(spells[OPTS.AURA2], 13) then return end
@@ -448,8 +428,8 @@ local function check_buffs()
 end
 
 local function check_pet()
-    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() or not spells.pet then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
+    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() or not spells.pet.name then return end
+    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
     if mq.TLO.Spell(spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(spells.pet, 13)
 end
@@ -458,8 +438,8 @@ local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcem
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
-        if config.get_spell_set() == 'standard' then
+    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
+        if config.SPELLSET == 'standard' then
             common.swap_spell(spells.tash, 1)
             common.swap_spell(spells.dotmiti, 2)
             common.swap_spell(spells.meznoblur, 3)
@@ -473,7 +453,7 @@ local function check_spell_set()
             common.swap_spell(spells.guard, 11)
             common.swap_spell(spells.nightsterror, 12)
             common.swap_spell(spells.combatinnate, 13)
-            state.set_spellset_loaded(config.get_spell_set())
+            state.spellset_loaded = config.SPELLSET
         end
         check_spell_timer:reset()
     end
@@ -568,6 +548,7 @@ enc.draw_skills_tab = function()
     OPTS.AURA1 = ui.draw_combo_box('Aura 1', OPTS.AURA1, AURAS, true)
     OPTS.AURA2 = ui.draw_combo_box('Aura 2', OPTS.AURA2, AURAS, true)
     OPTS.USEMEZ = ui.draw_check_box('Use Mez', '##userez', OPTS.USEMEZ, 'Use Convergence AA to rez group members')
+    config.AEMEZCOUNT = ui.draw_input_int('AE Mez Count', '##aemezcnt', config.AEMEZCOUNT, 'Threshold to use AE Mez ability')
     OPTS.TASHTHENMEZ = ui.draw_check_box('Tash Then Mez', '##tashmez', OPTS.TASHTHENMEZ, 'Use pet buff')
     OPTS.INTERRUPTFORMEZ = ui.draw_check_box('Interrupt for Mez', '##interrupt', OPTS.INTERRUPTFORMEZ, 'Summon pet')
     OPTS.USECHAOTIC = ui.draw_check_box('Use Chaotic', '##chaoticmez', OPTS.USECHAOTIC, 'Use Inspire Ally pet buff')
@@ -588,13 +569,6 @@ enc.draw_skills_tab = function()
     OPTS.SUMMONPET = ui.draw_check_box('Summon Pet', '##summonpet', OPTS.SUMMONPET, 'Use Convergence AA to rez group members')
     OPTS.BUFFPET = ui.draw_check_box('Buff Pet', '##buffpet', OPTS.BUFFPET, 'Use Convergence AA to rez group members')
     OPTS.USECHARM = ui.draw_check_box('Use Charm', '##usecharm', OPTS.USECHARM, 'Keep shield buff up. Replaces corruption DoT.')
-end
-
-enc.draw_burn_tab = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
 end
 
 return enc

@@ -27,27 +27,11 @@ local OPTS = {
     BYOS=false,
     USEINSULTS=true,
     USEBELLOW=true,
+    USESWARM=true,
 }
-config.set_spell_set('melee')
+config.SPELLSET = 'melee'
 mq.cmd('/squelch /stick mod 0')
 
---[[
-    - aria
-    - chant of flame
-    - chant of frost
-    - song of suffering
-    - yelinaks insult
-    - war march
-    - chant of disease
-    - sathir's insult
-    - ae mez
-    - chant of poison
-    - pulse
-    - composite
-    - dirge
-
-    general use AAs: bladed song, cacophony, boastful bellow, epic+fierce eye, lyrical prankster
-]]
 -- All spells ID + Rank name
 local spells = {
     aura = common.get_best_spell({'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}), -- spell dmg, overhaste, flurry, triple atk
@@ -168,15 +152,9 @@ local SETTINGS_FILE = ('%s/bardbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQ
 brd.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.brd then return end
-    if settings.brd.USESWARM ~= nil then OPTS.USESWARM = settings.brd.USESWARM end
-    if settings.brd.RALLYGROUP ~= nil then OPTS.RALLYGROUP = settings.brd.RALLYGROUP end
-    if settings.brd.USEFADE ~= nil then OPTS.USEFADE = settings.brd.USEFADE end
-    if settings.brd.MEZST ~= nil then OPTS.MEZST = settings.brd.MEZST end
-    if settings.brd.MEZAE ~= nil then OPTS.MEZAE = settings.brd.MEZAE end
-    if settings.brd.USEEPIC ~= nil then OPTS.USEEPIC = settings.brd.USEEPIC end
-    if settings.brd.BYOS ~= nil then OPTS.BYOS = settings.brd.BYOS end
-    if settings.brd.USEINSULTS ~= nil then OPTS.USEINSULTS = settings.brd.USEINSULTS end
-    if settings.brd.USEBELLOW ~= nil then OPTS.USEBELLOW = settings.brd.USEBELLOW end
+    for setting,value in pairs(settings.brd) do
+        OPTS[setting] = value
+    end
 end
 
 brd.save_settings = function()
@@ -193,7 +171,7 @@ end
 
 local function cast(spell_name, requires_target, requires_los)
     if not common.in_control() or (requires_los and not mq.TLO.Target.LineOfSight()) then return end
-    if requires_target and mq.TLO.Target.ID() ~= state.get_assist_mob_id() then return end
+    if requires_target and mq.TLO.Target.ID() ~= state.assist_mob_id then return end
     if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
@@ -203,15 +181,7 @@ local function cast(spell_name, requires_target, requires_los)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
     mq.delay(10)
     song_timer:reset()
-    --mq.delay(3200, function()
-    --    -- this caused client to lock up...
-    --    common.check_chase()
-    --    assist.check_target(brd.reset_class_timers)
-    --    assist.attack(true) -- don't attack unless already have los to the target to avoid delay in delay
-    --    return not mq.TLO.Me.Casting()
-    --end)
-    --mq.cmd('/stopcast')
-    if spells.crescendo and spell_name == spells.crescendo.name then crescendo_timer:reset() end
+    if spell_name == spells.crescendo.name then crescendo_timer:reset() end
 end
 
 local function cast_mez(spell_name)
@@ -236,18 +206,18 @@ end
 
 local function check_mez()
     -- don't try to mez in manual mode
-    if config.get_mode():get_name() == 'manual' then return end
-    if OPTS.MEZAE and spells.mezae then
+    if config.MODE:is_manual_mode() or config.MODE:is_tank_mode() then return end
+    if OPTS.MEZAE and spells.mezae.name then
         mez.do_ae(spells.mezae.name, cast)
     end
-    if OPTS.MEZST and spells.mezst then
-        mez.do_single(spells.mezst.name, cast_mez)
+    if OPTS.MEZST and spells.mezst.name then
+        mez.do_single(spells.mezst.name, cast)-- cast_mez)
     end
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    if config.get_use_alliance() and spells.alliance then
+    if config.USEALLIANCE and spells.alliance.name then
         if mq.TLO.Spell(spells.alliance.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
@@ -261,7 +231,7 @@ end
 
 local function cast_synergy()
     -- don't nuke if i'm not attacking
-    if OPTS.USEINSULTS and synergy_timer:timer_expired() and spells.insult and mq.TLO.Me.Combat() then
+    if OPTS.USEINSULTS and synergy_timer:timer_expired() and spells.insult.name and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(spells.insult.name)() and mq.TLO.Me.GemTimer(spells.insult.name)() == 0 then
             if mq.TLO.Spell(spells.insult.name).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
@@ -283,16 +253,16 @@ local function is_dot_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() ~= 0  then
         return false
     end
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or mq.TLO.Target.Type() == 'Corpse' then return false end
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.assist_mob_id or mq.TLO.Target.Type() == 'Corpse' then return false end
 
     songDuration = mq.TLO.Target.MyBuffDuration(actualSpellName)()
     if not common.is_target_dotted_with(spellId, actualSpellName) then
         -- target does not have the dot, we are ready
-        logger.debug(state.get_debug(), 'song ready %s', spellName)
+        logger.debug(state.debug, 'song ready %s', spellName)
         return true
     else
         if not songDuration then
-            logger.debug(state.get_debug(), 'song ready %s', spellName)
+            logger.debug(state.debug, 'song ready %s', spellName)
             return true
         end
     end
@@ -303,11 +273,11 @@ end
 local function is_song_ready(spellId, spellName)
     if not spellName then return false end
     local actualSpellName = spellName
-    if state.get_subscription() ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
+    if state.subscription ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
+    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
         return false
     end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
+    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
         return false
     end
     if mq.TLO.Spell(spellName).TargetType() == 'Single' then
@@ -317,19 +287,19 @@ local function is_song_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spells.crescendo and spellName == spells.crescendo.name and (mq.TLO.Me.Buff(actualSpellName)() or not crescendo_timer:timer_expired()) then
+    if spellName == spells.crescendo.name and (mq.TLO.Me.Buff(actualSpellName)() or not crescendo_timer:timer_expired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
 
     local songDuration = mq.TLO.Me.Song(actualSpellName).Duration()
     if not songDuration then
-        logger.debug(state.get_debug(), 'song ready %s', spellName)
+        logger.debug(state.debug, 'song ready %s', spellName)
         return true
     else
         local cast_time = mq.TLO.Spell(spellName).MyCastTime()
         if songDuration < cast_time + 3000 then
-            logger.debug(state.get_debug(), 'song ready %s', spellName)
+            logger.debug(state.debug, 'song ready %s', spellName)
         end
         return songDuration < cast_time + 3000
     end
@@ -338,9 +308,9 @@ end
 local function find_next_song()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
-    for _,song in ipairs(songs[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-        local song_id = song['id']
-        local song_name = song['name']
+    for _,song in ipairs(songs[config.SPELLSET]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+        local song_id = song.id
+        local song_name = song.name
         if is_song_ready(song_id, song_name) then
             if song_name ~= 'Composite Psalm' or mq.TLO.Target() then
                 return song
@@ -354,10 +324,10 @@ local function cycle_songs()
     if not mq.TLO.Me.Invis() then
         local spell = find_next_song() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
-            if mq.TLO.Spell(spell['name']).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
-                cast(spell['name'], true, true) -- then cast the dot
+            if mq.TLO.Spell(spell.name).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
+                cast(spell.name, true, true) -- then cast the dot
             else
-                cast(spell['name']) -- then cast the dot
+                cast(spell.name) -- then cast the dot
             end
             return true
         end
@@ -368,7 +338,7 @@ end
 local fierceeye = common.get_aa('Fierce Eye')
 local function use_epic()
     local epic = mq.TLO.FindItem('=Blade of Vesagran')
-    local fierceeye_rdy = fierceeye and mq.TLO.Me.AltAbilityReady(fierceeye['name'])() or true
+    local fierceeye_rdy = fierceeye and mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
     if epic.Timer() == '0' and fierceeye_rdy then
         common.use_aa(fierceeye)
         common.use_item(epic)
@@ -376,20 +346,18 @@ local function use_epic()
 end
 
 local function mash()
-    local cur_mode = config.get_mode()
+    local cur_mode = config.MODE
     -- try mash in manual mode only if auto attack is on
-    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then--and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if OPTS.USEEPIC == 'always' then
-            use_epic()
-        elseif OPTS.USEEPIC == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')() then
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
+        if OPTS.USEEPIC == 'always' or (OPTS.USEEPIC == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
             use_epic()
         end
         for _,aa in ipairs(mashAAs) do
-            if aa['name'] ~= 'Boastful Bellow' or (OPTS.USEBELLOW and boastful_timer:timer_expired()) then
+            if aa.name ~= 'Boastful Bellow' or (OPTS.USEBELLOW and boastful_timer:timer_expired()) then
                 if common.use_aa(aa) then
-                    if aa['name'] == 'Boastful Bellow' then
+                    if aa.name == 'Boastful Bellow' then
                         boastful_timer:reset()
-                    elseif aa['name'] == 'Song of Stone' or aa['name'] == 'Lyrical Prankster' then
+                    elseif aa.name == 'Song of Stone' or aa.name == 'Lyrical Prankster' then
                         mq.delay(1500)
                     end
                 end
@@ -458,12 +426,12 @@ end
 
 local check_aggro_timer = timer:new(5)
 local function check_aggro()
-    if common.am_i_dead() then return end
+    if common.am_i_dead() or config.MODE:is_tank_mode() then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
         common.use_aa(shieldofnotes)
         common.use_aa(hymn)
     end
-    if config.get_mode():get_name() ~= 'manual' and OPTS.USEFADE and state.get_mob_count() > 0 and check_aggro_timer:timer_expired() then
+    if config.MODE:get_name() ~= 'manual' and OPTS.USEFADE and state.mob_count > 0 and check_aggro_timer:timer_expired() then
         if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 50 then
             common.use_aa(fade)
             check_aggro_timer:reset()
@@ -477,18 +445,20 @@ local function check_buffs()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if not common.clear_to_buff() then return end
-    local buffName = spells.aura.name
-    if state.get_subscription() ~= 'GOLD' then buffName = spells.aura.name:gsub(' Rk%..*', '') end
-    if spells.aura and not mq.TLO.Me.Aura(buffName)() then
-        local restore_gem = nil
-        if not mq.TLO.Me.Gem(spells.aura.name)() then
-            restore_gem = {name=mq.TLO.Me.Gem(1)()}
-            common.swap_spell(spells.aura, 1)
-        end
-        mq.delay(3000, function() return mq.TLO.Me.Gem(spells.aura.name)() and mq.TLO.Me.GemTimer(spells.aura.name)() == 0  end)
-        cast(spells.aura.name)
-        if restore_gem then
-            common.swap_spell(restore_gem, 1)
+    if spells.aura.name then
+        local buffName = spells.aura.name
+        if state.subscription ~= 'GOLD' then buffName = spells.aura.name:gsub(' Rk%..*', '') end
+        if not mq.TLO.Me.Aura(buffName)() then
+            local restore_gem = nil
+            if not mq.TLO.Me.Gem(spells.aura.name)() then
+                restore_gem = {name=mq.TLO.Me.Gem(1)()}
+                common.swap_spell(spells.aura, 1)
+            end
+            mq.delay(3000, function() return mq.TLO.Me.Gem(spells.aura.name)() and mq.TLO.Me.GemTimer(spells.aura.name)() == 0  end)
+            cast(spells.aura.name)
+            if restore_gem then
+                common.swap_spell(restore_gem, 1)
+            end
         end
     end
 
@@ -501,8 +471,8 @@ local function check_buffs()
 end
 
 local function pause_for_rally()
-    if rallyingsolo and mq.TLO.Me.Song(rallyingsolo.name)() or mq.TLO.Me.Buff(rallyingsolo.name)() then
-        if state.get_mob_count() >= 3 then
+    if rallyingsolo and (mq.TLO.Me.Song(rallyingsolo.name)() or mq.TLO.Me.Buff(rallyingsolo.name)()) then
+        if state.mob_count >= 3 then
             return true
         elseif mq.TLO.Target() and mq.TLO.Target.Named() then
             return true
@@ -545,11 +515,11 @@ local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dic
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
-        --for i, song in ipairs(songs[config.get_spell_set()]) do
+    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
+        --for i, song in ipairs(songs[config.SPELLSET]) do
         --    common.swap_spell(song, i, i == 12 and composite_names or nil)
         --end
-        if config.get_spell_set() == 'melee' then
+        if config.SPELLSET == 'melee' then
             common.swap_spell(spells.aria, 1)
             common.swap_spell(spells.arcane, 2)
             common.swap_spell(spells.spiteful, 3)
@@ -563,8 +533,8 @@ local function check_spell_set()
             common.swap_spell(spells.pulse, 11)
             common.swap_spell(spells.composite, 12, composite_names)
             common.swap_spell(spells.dirge, 13)
-            state.set_spellset_loaded(config.get_spell_set())
-        elseif config.get_spell_set() == 'caster' then
+            state.spellset_loaded = config.SPELLSET
+        elseif config.SPELLSET == 'caster' then
             common.swap_spell(spells.aria, 1)
             common.swap_spell(spells.arcane, 2)
             common.swap_spell(spells.firenukebuff, 3)
@@ -578,8 +548,8 @@ local function check_spell_set()
             common.swap_spell(spells.pulse, 11)
             common.swap_spell(spells.composite, 12, composite_names)
             common.swap_spell(spells.dirge, 13)
-            state.set_spellset_loaded(config.get_spell_set())
-        elseif config.get_spell_set() == 'meleedot' then
+            state.spellset_loaded = config.SPELLSET
+        elseif config.SPELLSET == 'meleedot' then
             common.swap_spell(spells.aria, 1)
             common.swap_spell(spells.chantflame, 2)
             common.swap_spell(spells.chantfrost, 3)
@@ -593,7 +563,7 @@ local function check_spell_set()
             common.swap_spell(spells.pulse, 11)
             common.swap_spell(spells.composite, 12, composite_names)
             common.swap_spell(spells.dirge, 13)
-            state.set_spellset_loaded(config.get_spell_set())
+            state.spellset_loaded = config.SPELLSET
         end
         check_spell_timer:reset()
     end
@@ -622,7 +592,7 @@ brd.process_cmd = function(opt, new_value)
         elseif opt == 'SPELLSET' then
             if SPELLSETS[new_value] then
                 logger.printf('Setting %s to: %s', opt, new_value)
-                config.set_spell_set(new_value)
+                config.SPELLSET = new_value
             end
         elseif type(OPTS[opt]) == 'boolean' then
             if common.BOOL.FALSE[new_value] then
@@ -664,10 +634,10 @@ brd.main_loop = function()
         common.use_aa(selos)
         selos_timer:reset()
     end
-    if not state.get_pull_in_progress() then
+    if not state.pull_in_progress then
         -- ensure correct spells are loaded based on selected spell set
         if can_i_sing() then check_spell_set() end
-        if config.get_mode():is_tank_mode() then
+        if config.MODE:is_tank_mode() then
             -- get mobs in camp
             camp.mob_radar()
             -- pick mob to tank if not tanking
@@ -683,14 +653,14 @@ brd.main_loop = function()
         common.check_chase()
         if not pause_for_rally() then
             -- assist the MA if the target matches assist criteria
-            if config.get_mode():is_assist_mode() then
+            if config.MODE:is_assist_mode() then
                 assist.check_target(brd.reset_class_timers)
                 assist.attack()
             end
             -- check we have the correct target to attack
             check_mez()
             -- assist the MA if the target matches assist criteria
-            if config.get_mode():is_assist_mode() then
+            if config.MODE:is_assist_mode() then
                 assist.check_target(brd.reset_class_timers)
                 assist.attack()
             end
@@ -709,29 +679,24 @@ brd.main_loop = function()
         if can_i_sing() then check_buffs() end
         common.rest()
     end
-    if config.get_mode():is_pull_mode() and not pause_for_rally() then
+    if config.MODE:is_pull_mode() and not pause_for_rally() then
         pull.pull_mob(brd.pull_func)
     end
 end
 
+---Draw bard specific settings which can be toggled on the skills tab
 brd.draw_skills_tab = function()
-    config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
+    config.SPELLSET = ui.draw_combo_box('Spell Set', config.SPELLSET, SPELLSETS, true)
     OPTS.USEEPIC = ui.draw_combo_box('Epic', OPTS.USEEPIC, EPIC_OPTS, true)
-    config.set_use_alliance(ui.draw_check_box('Alliance', '##alliance', config.get_use_alliance(), 'Use alliance spell'))
+    config.USEALLIANCE = ui.draw_check_box('Alliance', '##alliance', config.USEALLIANCE, 'Use alliance spell')
     OPTS.MEZST = ui.draw_check_box('Mez ST', '##mezst', OPTS.MEZST, 'Mez single target')
     OPTS.MEZAE = ui.draw_check_box('Mez AE', '##mezae', OPTS.MEZAE, 'Mez AOE')
+    config.AEMEZCOUNT = ui.draw_input_int('AE Mez Count', '##aemezcnt', config.AEMEZCOUNT, 'Threshold to use AE Mez ability')
     OPTS.USEINSULTS = ui.draw_check_box('Use Insults', '##useinsults', OPTS.USEINSULTS, 'Use insult songs')
     OPTS.USEBELLOW = ui.draw_check_box('Use Bellow', '##usebellow', OPTS.USEBELLOW, 'Use Boastful Bellow AA')
     OPTS.USEFADE = ui.draw_check_box('Use Fade', '##usefade', OPTS.USEFADE, 'Fade when agro')
     OPTS.BYOS = ui.draw_check_box('BYOS', '##byos', OPTS.BYOS, 'Bring your own spells')
     OPTS.RALLYGROUP = ui.draw_check_box('Rallying Group', '##rallygroup', OPTS.RALLYGROUP, 'Use Rallying Group AA')
-end
-
-brd.draw_burn_tab = function()
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
 end
 
 return brd

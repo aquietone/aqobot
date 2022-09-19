@@ -30,11 +30,11 @@ common.DMZ = {
     [33506] = 1,
 }
 
-local familiar = mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
+local familiar = mq.TLO.Familiar and mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
 -- Familiar: Personal Hemic Source
-local illusion = mq.TLO.Illusion.Stat.Item.ID() or mq.TLO.FindItem('Jann\'s Veil').ID()
+local illusion = mq.TLO.Illusion and mq.TLO.Illusion.Stat.Item.ID() or mq.TLO.FindItem('Jann\'s Veil').ID()
 -- Illusion Benefit Greater Jann
-local mount = mq.TLO.Mount.Stat.Item.ID() or mq.TLO.FindItem('Golden Owlbear Saddle').ID()
+local mount = mq.TLO.Mount and mq.TLO.Mount.Stat.Item.ID() or mq.TLO.FindItem('Golden Owlbear Saddle').ID()
 -- Mount Blessing Meda
 
 -- Generic Helper Functions
@@ -79,7 +79,7 @@ common.get_best_spell = function(spells)
         spell = common.get_spell(spell_name)
         if spell then break end
     end
-    return spell
+    return spell or {}
 end
 
 ---Lookup the ID for a given AA.
@@ -136,7 +136,7 @@ common.clear_to_buff = function()
 end
 
 common.is_fighting_modebased = function()
-    local mode = config.get_mode()
+    local mode = config.MODE
     if mode:is_tank_mode() then
 
     elseif mode:is_assist_mode() then
@@ -163,13 +163,13 @@ end
 ---Determine whether currently alive or dead.
 ---@return boolean @Returns true if currently dead, false otherwise.
 common.am_i_dead = function()
-    if state.get_i_am_dead() and (mq.TLO.Me.Buff('Resurrection Sickness').ID() or mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName())() == 0) then
-        state.set_assist_mob_id(0)
-        state.set_tank_mob_id(0)
-        state.set_pull_mob_id(0)
-        state.set_i_am_dead(false)
+    if state.i_am_dead and (mq.TLO.Me.Buff('Resurrection Sickness').ID() or mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName())() == 0) then
+        state.assist_mob_id = 0
+        state.tank_mob_id = 0
+        state.pull_mob_id = 0
+        state.i_am_dead = false
     end
-    return state.get_i_am_dead()
+    return state.i_am_dead
 end
 
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
@@ -189,17 +189,17 @@ end
 
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
-    if config.get_mode():get_name() ~= 'chase' then return end
+    if config.MODE:get_name() ~= 'chase' then return end
     if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and mq.TLO.Me.Casting()) then return end
-    local chase_spawn = mq.TLO.Spawn('pc ='..config.get_chase_target())
+    local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
     local chase_x = chase_spawn.X()
     local chase_y = chase_spawn.Y()
     if not chase_x or not chase_y then return end
-    if common.check_distance(me_x, me_y, chase_x, chase_y) > config.get_chase_distance() then
-        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.get_chase_target()))() then
-            mq.cmdf('/nav spawn pc =%s | log=off', config.get_chase_target())
+    if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
+        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.CHASETARGET))() then
+            mq.cmdf('/nav spawn pc =%s | log=off', config.CHASETARGET)
         end
     end
 end
@@ -261,10 +261,10 @@ common.is_spell_ready = function(spell)
     if not spell or not spell['name'] then return false end
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
-    if mq.TLO.Spell(spell.name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell.name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.get_min_mana()) then
+    if mq.TLO.Spell(spell.name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell.name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
         return false
     end
-    if mq.TLO.Spell(spell.name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell.name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.get_min_end()) then
+    if mq.TLO.Spell(spell.name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell.name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
         return false
     end
     if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
@@ -317,7 +317,7 @@ common.should_use_spell = function(spell, skipselfstack)
             end
         end
     end
-    logger.debug(state.get_debug(), 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(state.debug, 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
     return result
 end
 
@@ -340,7 +340,7 @@ common.can_use_spell = function(spell, type)
             break
         end
     end
-    logger.debug(state.get_debug(), 'Can use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(state.debug, 'Can use spell: \ay%s\ax=%s', spell.Name(), result)
     return result
 end
 
@@ -377,7 +377,7 @@ common.use_ability = function(name)
 end
 
 local function item_ready(item)
-    if state.get_subscription() ~= 'GOLD' and item.Prestige() then return false end
+    if state.subscription ~= 'GOLD' and item.Prestige() then return false end
     if item() and item.Clicky.Spell() and item.Timer() == '0' then
         local spell = item.Clicky.Spell
         return common.can_use_spell(spell, 'item') and common.should_use_spell(spell)
@@ -483,44 +483,44 @@ end
 ---@return boolean @Returns true if any burn condition is satisfied, otherwise false.
 common.is_burn_condition_met = function(always_condition)
     -- activating a burn condition is good for 60 seconds, don't do check again if 60 seconds hasn't passed yet and burn is active.
-    if not state.get_burn_active_timer():timer_expired() and state.get_burn_active() then
+    if not state.burn_active_timer:timer_expired() and state.burn_active then
         return true
     else
-        state.set_burn_active(false)
+        state.burn_active = false
     end
-    if state.get_burn_now() then
+    if state.burn_now then
         logger.printf('\arActivating Burns (on demand)\ax')
-        state.get_burn_active_timer():reset()
-        state.set_burn_active(true)
-        state.set_burn_now(false)
+        state.burn_active_timer:reset()
+        state.burn_active = true
+        state.burn_now = false
         return true
     --elseif common.is_fighting() then
     elseif mq.TLO.Me.CombatState() == 'COMBAT' or common.hostile_xtargets() then
         local zone_sn = mq.TLO.Zone.ShortName():lower()
-        if config.get_burn_always() then
+        if config.BURNALWAYS then
             if always_condition and not always_condition() then
                 return false
             end
             return true
-        elseif config.get_burn_all_named() and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
+        elseif config.BURNALLNAMED and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
             logger.printf('\arActivating Burns (named)\ax')
-            state.get_burn_active_timer():reset()
-            state.set_burn_active(true)
+            state.burn_active_timer:reset()
+            state.burn_active = true
             return true
-        elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() >= config.get_burn_count() then
-            logger.printf('\arActivating Burns (mob count > %d)\ax', config.get_burn_count())
-            state.get_burn_active_timer():reset()
-            state.set_burn_active(true)
+        elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() >= config.BURNCOUNT then
+            logger.printf('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT)
+            state.burn_active_timer:reset()
+            state.burn_active = true
             return true
-        elseif config.get_burn_percent() ~= 0 and mq.TLO.Target.PctHPs() < config.get_burn_percent() then
+        elseif config.BURNPCT ~= 0 and mq.TLO.Target.PctHPs() < config.BURNPCT then
             logger.printf('\arActivating Burns (percent HP)\ax')
-            state.get_burn_active_timer():reset()
-            state.set_burn_active(true)
+            state.burn_active_timer:reset()
+            state.burn_active = true
             return true
         end
     end
-    state.get_burn_active_timer():reset(0)
-    state.set_burn_active(false)
+    state.burn_active_timer:reset(0)
+    state.burn_active = false
     return false
 end
 
@@ -616,7 +616,7 @@ common.rest = function()
         if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
                 ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and
                 not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
-                mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() == 0 then
+                mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() == 0 then
             mq.cmd('/sit')
             sit_timer:reset()
         end
@@ -636,7 +636,7 @@ common.check_cursor = function()
             autoinv_timer:reset(0)
         end
     elseif autoinv_timer.start_time ~= 0 then
-        logger.debug(state.get_debug(), 'Cursor is empty, resetting autoinv_timer')
+        logger.debug(state.debug, 'Cursor is empty, resetting autoinv_timer')
         autoinv_timer:reset(0)
     end
 end
@@ -652,7 +652,7 @@ end
 ---Set common.I_AM_DEAD flag to true in the event of death.
 local function event_dead()
     logger.printf('HP hit 0. what do!')
-    state.set_i_am_dead(true)
+    state.i_am_dead = true
     state.reset_combat_state()
     mq.cmd('/multiline ; /nav stop; /stick off;')
 end

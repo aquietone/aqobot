@@ -32,7 +32,7 @@ local OPTS = {
     USEGLYPH=false,
     USEINTENSITY=false,
 }
-config.set_spell_set('standard')
+config.SPELLSET = 'standard'
 
 -- All spells ID + Rank name
 local spells = {
@@ -122,9 +122,8 @@ local dots = {
     short=short,
 }
 
--- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
-local swap_gem = mq.TLO.Me.Gem(spells.wounds.name)() or mq.TLO.Me.Gem(spells.fireshadow.name)() or mq.TLO.Me.Gem(spells.pyrelong.name)()
-local swap_gem_dis = mq.TLO.Me.Gem(spells.decay.name)() or mq.TLO.Me.Gem(spells.grip.name)()
+local swap_gem = nil
+local swap_gem_dis = nil
 
 -- entries in the items table are MQ item datatypes
 local items = {}
@@ -204,25 +203,21 @@ local SETTINGS_FILE = ('%s/necrobot_%s_%s.lua'):format(mq.configDir, mq.TLO.Ever
 nec.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.nec then return end
-    if settings.nec.STOPPCT ~= nil then OPTS.STOPPCT = settings.nec.STOPPCT end
-    if settings.nec.DEBUFF ~= nil then OPTS.DEBUFF = settings.nec.DEBUFF end
-    if settings.nec.SUMMONPET ~= nil then OPTS.SUMMONPET = settings.nec.SUMMONPET end
-    if settings.nec.BUFFPET ~= nil then OPTS.BUFFPET = settings.nec.BUFFPET end
-    if settings.nec.USEBUFFSHIELD ~= nil then OPTS.USEBUFFSHIELD = settings.nec.USEBUFFSHIELD end
-    if settings.nec.USEMANATAP ~= nil then OPTS.USEMANATAP = settings.nec.USEMANATAP end
-    if settings.nec.USEFD ~= nil then OPTS.USEFD = settings.nec.USEFD end
-    if settings.nec.USEINSPIRE ~= nil then OPTS.USEINSPIRE = settings.nec.USEINSPIRE end
-    if settings.nec.USEREZ ~= nil then OPTS.USEREZ = settings.nec.USEREZ end
-    if settings.nec.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.nec.USEDISPEL end
-    if settings.nec.USEWOUNDS ~= nil then OPTS.USEWOUNDS = settings.nec.USEWOUNDS end
-    if settings.nec.MULTIDOT ~= nil then OPTS.MULTIDOT = settings.nec.MULTIDOT end
-    if settings.nec.MULTICOUNT ~= nil then OPTS.MULTICOUNT = settings.nec.MULTICOUNT end
-    if settings.nec.USEGLYPH ~= nil then OPTS.USEGLYPH = settings.nec.USEGLYPH end
-    if settings.nec.USEINTENSITY ~= nil then OPTS.USEINTENSITY = settings.nec.USEINTENSITY end
+    for setting,value in pairs(settings.nec) do
+        OPTS[setting] = value
+    end
 end
 
 nec.save_settings = function()
     persistence.store(SETTINGS_FILE, {common=config.get_all(), nec=OPTS})
+end
+
+-- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
+local function set_swap_gems()
+    swap_gem = mq.TLO.Me.Gem(spells.wounds and spells.wounds.name or 'unknown')() or
+            mq.TLO.Me.Gem(spells.fireshadow and spells.fireshadow.name or 'unknown')() or
+            mq.TLO.Me.Gem(spells.pyrelong and spells.pyrelong.name or 'unknown')() or 10
+    swap_gem_dis = mq.TLO.Me.Gem(spells.decay and spells.decay.name or 'unknown')() or mq.TLO.Me.Gem(spells.grip and spells.grip.name or 'unknown')() or 11
 end
 
 --[[
@@ -244,7 +239,7 @@ end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    if config.get_use_alliance() then
+    if config.USEALLIANCE then
         if mq.TLO.Spell(spells.alliance.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
@@ -283,12 +278,12 @@ local function find_next_dot_to_cast()
     if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(spells.manatap.name)() and mq.TLO.Spell(spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return spells.manatap
     end
-    if config.get_spell_set() == 'short' and mq.TLO.Me.SpellReady(spells.swarm.name)() and mq.TLO.Spell(spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if config.SPELLSET == 'short' and mq.TLO.Me.SpellReady(spells.swarm.name)() and mq.TLO.Spell(spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
         return spells.swarm
     end
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > OPTS.STOPPCT then
-        for _,dot in ipairs(dots[config.get_spell_set()]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+        for _,dot in ipairs(dots[config.SPELLSET]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
             -- if spell_id == spells.combodis.id then
             --     if (not is_target_dotted_with(spells.decay.id, spells.decay.name) or not is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodis.name)() then
@@ -303,7 +298,7 @@ local function find_next_dot_to_cast()
     if mq.TLO.Me.SpellReady(spells.manatap.name)() and mq.TLO.Spell(spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return spells.manatap
     end
-    if config.get_spell_set() == 'short' and mq.TLO.Me.SpellReady(spells.venin.name)() and mq.TLO.Spell(spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if config.SPELLSET == 'short' and mq.TLO.Me.SpellReady(spells.venin.name)() and mq.TLO.Spell(spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
         return spells.venin
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
@@ -311,7 +306,7 @@ end
 
 local function cycle_dots()
     if mq.TLO.Me.SpellInCooldown() then return false end
-    local cur_mode = config.get_mode()
+    local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
         if OPTS.USEDISPEL and mq.TLO.Target.Beneficial() then
             common.use_aa(dispel)
@@ -356,7 +351,7 @@ local function cycle_dots()
 end
 
 local function try_debuff_target()
-    local cur_mode = config.get_mode()
+    local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') and OPTS.DEBUFF then
     --if (common.is_fighting() or assist.should_assist()) and OPTS.DEBUFF then
         local targetID = mq.TLO.Target.ID()
@@ -396,8 +391,8 @@ end
 local function is_nec_burn_condition_met()
     if OPTS.BURNPROC and target_has_proliferation() then
         logger.printf('\arActivating Burns (proliferation proc)\ax')
-        state.get_burn_active_timer():reset()
-        state.set_burn_active(true)
+        state.burn_active_timer:reset()
+        state.burn_active = true
         return true
     end
 end
@@ -559,7 +554,7 @@ end
 
 local check_aggro_timer = timer:new(10)
 local function check_aggro()
-    if config.get_mode():is_manual_mode() then return end
+    if config.MODE:is_manual_mode() then return end
     --if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
     if OPTS.USEFD and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
@@ -593,7 +588,7 @@ end
 
 local rez_timer = timer:new(5)
 local function check_rez()
-    if not OPTS.USEREZ or common.am_i_dead() then return end
+    if not OPTS.USEREZ or not convergence or common.am_i_dead() then return end
     if not rez_timer:timer_expired() then return end
     if not mq.TLO.Me.AltAbilityReady(convergence.name)() then return end
     if mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
@@ -670,14 +665,14 @@ end
 local function check_pet()
     --if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if mq.TLO.Spell(spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
+    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
+    if mq.TLO.Spell(spells.pet.name).Mana() or 0 > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(spells.pet, 13)
 end
 
 local function should_swap_dots()
     -- Only swap spells in standard spell set
-    if state.get_spellset_loaded() ~= 'standard' or mq.TLO.Me.Moving() then return end
+    if state.spellset_loaded ~= 'standard' or mq.TLO.Me.Moving() then return end
 
     local woundsDuration = mq.TLO.Target.MyBuffDuration(spells.wounds.name)()
     local pyrelongDuration = mq.TLO.Target.MyBuffDuration(spells.pyrelong.name)()
@@ -736,8 +731,8 @@ local check_spell_timer = timer:new(30)
 local function check_spell_set()
     --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
-        if config.get_spell_set() == 'standard' then
+    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
+        if config.SPELLSET == 'standard' then
             common.swap_spell(spells.composite, 1, composite_names)
             common.swap_spell(spells.pyreshort, 2)
             common.swap_spell(spells.venom, 3)
@@ -748,8 +743,8 @@ local function check_spell_set()
             --common.swap_spell(spells.wounds, 10)
             common.swap_spell(spells.decay, 11)
             common.swap_spell(spells.synergy, 13)
-            state.set_spellset_loaded(config.get_spell_set())
-        elseif config.get_spell_set() == 'short' then
+            state.spellset_loaded = config.SPELLSET
+        elseif config.SPELLSET == 'short' then
             common.swap_spell(spells.composite, 1, composite_names)
             common.swap_spell(spells.pyreshort, 2)
             common.swap_spell(spells.venom, 3)
@@ -760,42 +755,41 @@ local function check_spell_set()
             common.swap_spell(spells.swarm, 10)
             common.swap_spell(spells.decay, 11)
             common.swap_spell(spells.synergy, 13)
-            state.set_spellset_loaded(config.get_spell_set())
+            state.spellset_loaded = config.SPELLSET
         end
         check_spell_timer:reset()
-        swap_gem = mq.TLO.Me.Gem(spells.wounds.name)() or mq.TLO.Me.Gem(spells.fireshadow.name)() or mq.TLO.Me.Gem(spells.pyrelong.name)() or 10
-        swap_gem_dis = mq.TLO.Me.Gem(spells.decay.name)() or mq.TLO.Me.Gem(spells.grip.name)() or 11
+        set_swap_gems()
     end
-    if config.get_spell_set() == 'standard' then
-        if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
+    if config.SPELLSET == 'standard' then
+        if OPTS.USEMANATAP and config.USEALLIANCE and OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.shield, 12)
-        elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
+        elseif OPTS.USEMANATAP and config.USEALLIANCE and not OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.ignite, 12)
-        elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
+        elseif OPTS.USEMANATAP and not config.USEALLIANCE and not OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.scourge, 9)
             common.swap_spell(spells.ignite, 12)
-        elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
+        elseif OPTS.USEMANATAP and not config.USEALLIANCE and OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.ignite, 9)
             common.swap_spell(spells.shield, 12)
-        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and not config.USEALLIANCE and not OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.scourge, 9)
             common.swap_spell(spells.corruption, 12)
-        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and not config.USEALLIANCE and OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.scourge, 9)
             common.swap_spell(spells.shield, 12)
-        elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and config.USEALLIANCE and OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.shield, 12)
-        elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEBUFFSHIELD then
+        elseif not OPTS.USEMANATAP and config.USEALLIANCE and not OPTS.USEBUFFSHIELD then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.scourge, 12)
@@ -805,36 +799,36 @@ local function check_spell_set()
         else
             common.swap_spell(spells.wounds, 10)
         end
-    elseif config.get_spell_set() == 'short' then
-        if OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
+    elseif config.SPELLSET == 'short' then
+        if OPTS.USEMANATAP and config.USEALLIANCE and OPTS.USEINSPIRE then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.inspire, 12)
-        elseif OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
+        elseif OPTS.USEMANATAP and config.USEALLIANCE and not OPTS.USEINSPIRE then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.venin, 12)
-        elseif OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
+        elseif OPTS.USEMANATAP and not config.USEALLIANCE and not OPTS.USEINSPIRE then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.ignite, 9)
             common.swap_spell(spells.venin, 12)
-        elseif OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
+        elseif OPTS.USEMANATAP and not config.USEALLIANCE and OPTS.USEINSPIRE then
             common.swap_spell(spells.manatap, 8)
             common.swap_spell(spells.ignite, 9)
             common.swap_spell(spells.inspire, 12)
-        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and not OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and not config.USEALLIANCE and not OPTS.USEINSPIRE then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.scourge, 9)
             common.swap_spell(spells.venin, 12)
-        elseif not OPTS.USEMANATAP and not config.get_use_alliance() and OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and not config.USEALLIANCE and OPTS.USEINSPIRE then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.scourge, 9)
             common.swap_spell(spells.inspire, 12)
-        elseif not OPTS.USEMANATAP and config.get_use_alliance() and OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and config.USEALLIANCE and OPTS.USEINSPIRE then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.inspire, 12)
-        elseif not OPTS.USEMANATAP and config.get_use_alliance() and not OPTS.USEINSPIRE then
+        elseif not OPTS.USEMANATAP and config.USEALLIANCE and not OPTS.USEINSPIRE then
             common.swap_spell(spells.ignite, 8)
             common.swap_spell(spells.alliance, 9)
             common.swap_spell(spells.venin, 12)
@@ -851,7 +845,7 @@ nec.process_cmd = function(opt, new_value)
         if opt == 'SPELLSET' then
             if SPELLSETS[new_value] then
                 logger.printf('Setting %s to: %s', opt, new_value)
-                config.set_spell_set(new_value)
+                config.SPELLSET = new_value
             end
         elseif type(OPTS[opt]) == 'boolean' then
             if common.BOOL.FALSE[new_value] then
@@ -883,7 +877,7 @@ end
 local nec_count_timer = timer:new(60)
 nec.main_loop = function()
     -- keep cursor clear for spell swaps and such
-    if config.get_use_alliance() and nec_count_timer:timer_expired() then
+    if config.USEALLIANCE and nec_count_timer:timer_expired() then
         get_necro_count()
         nec_count_timer:reset()
     end
@@ -917,8 +911,8 @@ nec.main_loop = function()
 end
 
 nec.draw_skills_tab = function()
-    config.set_spell_set(ui.draw_combo_box('Spell Set', config.get_spell_set(), SPELLSETS, true))
-    config.set_use_alliance(ui.draw_check_box('Alliance', '##alliance', config.get_use_alliance(), 'Use alliance spell'))
+    config.SPELLSET = ui.draw_combo_box('Spell Set', config.SPELLSET, SPELLSETS, true)
+    config.USEALLIANCE = ui.draw_check_box('Alliance', '##alliance', config.USEALLIANCE, 'Use alliance spell')
     OPTS.DEBUFF = ui.draw_check_box('Debuff', '##debuff', OPTS.DEBUFF, 'Debuff targets')
     OPTS.SUMMONPET = ui.draw_check_box('Summon Pet', '##summonpet', OPTS.SUMMONPET, 'Summon pet')
     OPTS.BUFFPET = ui.draw_check_box('Buff Pet', '##buffpet', OPTS.BUFFPET, 'Use pet buff')
@@ -934,13 +928,7 @@ nec.draw_skills_tab = function()
 end
 
 nec.draw_burn_tab = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
     OPTS.BURNPROC = ui.draw_check_box('Burn On Proc', '##burnproc', OPTS.BURNPROC, 'Burn when proliferation procs')
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
-    OPTS.USEGLYPH = ui.draw_check_box('Use Glyph', '##glyph', OPTS.USEGLYPH, 'Use Glyph of Destruction on Burn')
-    OPTS.USEINTENSITY = ui.draw_check_box('Use Intensity', '##intensity', OPTS.USEINTENSITY, 'Use Intensity of the Resolute on Burn')
 end
 
 return nec

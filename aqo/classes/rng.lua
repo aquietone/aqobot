@@ -28,7 +28,7 @@ local OPTS = {
     USEREGEN=false,
     USECOMPOSITE=true,
 }
-config.set_spell_set('standard')
+config.SPELLSET = 'standard'
 mq.cmd('/squelch /stick mod 0')
 
 -- All spells ID + Rank name
@@ -157,19 +157,9 @@ local SETTINGS_FILE = ('%s/rangerbot_%s_%s.lua'):format(mq.configDir, mq.TLO.Eve
 rng.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings.rng then return end
-    if settings.rng.USEUNITYAZIA ~= nil then OPTS.USEUNITYAZIA = settings.rng.USEUNITYAZIA end
-    if settings.rng.USEUNITYBEZA ~= nil then OPTS.USEUNITYBEZA = settings.rng.USEUNITYBEZA end
-    if settings.rng.USEMELEE ~= nil then OPTS.USEMELEE = settings.rng.USEMELEE end
-    if settings.rng.USERANGE ~= nil then OPTS.USERANGE = settings.rng.USERANGE end
-    if settings.rng.USEDOT ~= nil then OPTS.USEDOT = settings.rng.USEDOT end
-    if settings.rng.USEPOISONARROW ~= nil then OPTS.USEPOISONARROW = settings.rng.USEPOISONARROW end
-    if settings.rng.USEFIREARROW ~= nil then OPTS.USEFIREARROW = settings.rng.USEFIREARROW end
-    if settings.rng.BUFFGROUP ~= nil then OPTS.USEFIREARROW = settings.rng.BUFFGROUP end
-    if settings.rng.DSTANK ~= nil then OPTS.DSTANK = settings.rng.DSTANK end
-    if settings.rng.NUKE ~= nil then OPTS.NUKE = settings.rng.NUKE end
-    if settings.rng.USEDISPEL ~= nil then OPTS.USEDISPEL = settings.rng.USEDISPEL end
-    if settings.rng.USEREGEN ~= nil then OPTS.USEREGEN = settings.rng.USEREGEN end
-    if settings.rng.USECOMPOSITE ~= nil then OPTS.USECOMPOSITE = settings.rng.USECOMPOSITE end
+    for setting,value in pairs(settings.rng) do
+        OPTS[setting] = value
+    end
 end
 
 rng.save_settings = function()
@@ -184,7 +174,7 @@ end
 local function get_ranged_combat_position(radius)
     if not ranged_timer:timer_expired() then return false end
     ranged_timer:reset()
-    local assist_mob_id = state.get_assist_mob_id()
+    local assist_mob_id = state.assist_mob_id
     local mob_x = mq.TLO.Spawn('id '..assist_mob_id).X()
     local mob_y = mq.TLO.Spawn('id '..assist_mob_id).Y()
     local mob_z = mq.TLO.Spawn('id '..assist_mob_id).Z()
@@ -237,7 +227,7 @@ local function check_mob_angle()
 end
 
 local function attack_range()
-    if state.get_assist_mob_id() == 0 or mq.TLO.Target.ID() ~= state.get_assist_mob_id() or not assist.should_assist() then
+    if state.assist_mob_id == 0 or mq.TLO.Target.ID() ~= state.assist_mob_id or not assist.should_assist() then
         if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
         return
     end
@@ -263,7 +253,7 @@ end
 
 local function use_opener()
     if mq.TLO.Me.CombatState() == 'COMBAT' then return end
-    if assist.should_assist() and state.get_assist_mob_id() > 0 and spells.opener.name and mq.TLO.Me.SpellReady(spells.opener.name)() then
+    if assist.should_assist() and state.assist_mob_id > 0 and spells.opener.name and mq.TLO.Me.SpellReady(spells.opener.name)() then
         common.cast(spells.opener.name, true)
     end
 end
@@ -284,7 +274,7 @@ local function find_next_spell()
         end
     end
     for _,spell in ipairs(dot_spells) do
-        if spell.name ~= spells.dot.name or OPTS.USEDOT or (state.get_burn_active() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.get_burn_always() and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
+        if spell.name ~= spells.dot.name or OPTS.USEDOT or (state.burn_active and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if common.is_dot_ready(spell) then
                 return spell
             end
@@ -309,7 +299,7 @@ end
 
 local function cycle_spells()
     if not mq.TLO.Me.Invis() then
-        local cur_mode = config.get_mode()
+        local cur_mode = config.MODE
         if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
             local spell = find_next_spell()
             if spell then
@@ -325,7 +315,7 @@ local function cycle_spells()
 end
 
 local function mash()
-    local cur_mode = config.get_mode()
+    local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
     --if common.is_fighting() or assist.should_assist() then
         if OPTS.USEDISPEL and dispel and mq.TLO.Target.Beneficial() then
@@ -419,9 +409,8 @@ end
 local function check_aggro()
     if mq.TLO.Me.PctHPs() < 50 then
         common.use_aa(evasion)
-        if config.get_mode():return_to_camp() then
-            local my_camp = state.get_camp()
-            mq.cmdf('/nav locyxz %d %d %d log=off', my_camp.Y, my_camp.X, my_camp.Z)
+        if config.MODE:return_to_camp() then
+            mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
         end
     end
     --[[
@@ -571,8 +560,8 @@ local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=t
 local check_spell_timer = timer:new(30)
 local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or OPTS.BYOS then return end
-    if state.get_spellset_loaded() ~= config.get_spell_set() or check_spell_timer:timer_expired() then
-        if config.get_spell_set() == 'standard' then
+    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
+        if config.SPELLSET == 'standard' then
             common.swap_spell(spells.shots, 1)
             common.swap_spell(spells.focused, 2)
             common.swap_spell(spells.composite, 3, composite_names)
@@ -585,7 +574,7 @@ local function check_spell_set()
             common.swap_spell(spells.dotds, 10)
             common.swap_spell(spells.dmgbuff, 12)
             common.swap_spell(spells.buffs, 13)
-            state.set_spellset_loaded(config.get_spell_set())
+            state.spellset_loaded = config.SPELLSET
         end
         check_spell_timer:reset()
     end
@@ -673,14 +662,6 @@ rng.draw_skills_tab = function()
     OPTS.DSTANK = ui.draw_check_box('DS Tank', '##dstank', OPTS.DSTANK, 'DS Tank')
     OPTS.USEDISPEL = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEDISPEL, 'Dispel mobs with Entropy AA')
     OPTS.USEREGEN = ui.draw_check_box('Use Regen', '##regen', OPTS.USEREGEN, 'Buff regen on self')
-end
-
-rng.draw_burn_tab = function()
-    config.set_burn_always(ui.draw_check_box('Burn Always', '##burnalways', config.get_burn_always(), 'Always be burning'))
-    config.set_burn_all_named(ui.draw_check_box('Burn Named', '##burnnamed', config.get_burn_all_named(), 'Burn all named'))
-    config.set_burn_percent(ui.draw_input_int('Burn Percent', '##burnpct', config.get_burn_percent(), 'Percent health to begin burns'))
-    config.set_burn_count(ui.draw_input_int('Burn Count', '##burncnt', config.get_burn_count(), 'Trigger burns if this many mobs are on aggro'))
-
 end
 
 return rng

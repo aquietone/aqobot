@@ -17,9 +17,9 @@ local ui = require('aqo.ui')
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
-    if state.get_subscription() ~= 'GOLD' then
+    if state.subscription ~= 'GOLD' then
         if mq.TLO.Me.Subscription() == 'GOLD' then
-            state.set_subscription('GOLD')
+            state.subscription = 'GOLD'
         end
     end
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
@@ -38,19 +38,19 @@ end
 ---@param name string @The name of the setting.
 ---@param current_value any @The current value of the specified setting.
 ---@param new_value string @The new value for the setting.
----@param setter function @The function used to set the desired settings value.
-local function get_or_set_opt(name, current_value, new_value, setter)
+---@param key string @The configuration key to be set.
+local function get_or_set_opt(name, current_value, new_value, key)
     if new_value then
         if type(current_value) == 'number' then
-            setter(tonumber(new_value) or current_value)
+            config[key] = tonumber(new_value) or current_value
         elseif type(current_value) == 'boolean' then
             if common.BOOL.TRUE[new_value] then
-                setter(true)
+                config[key] = true
             elseif common.BOOL.FALSE[new_value] then
-                setter(false)
+                config[key] = false
             end
         else
-            setter(new_value)
+            config[key] = new_value
         end
     else
         logger.printf('%s: %s', name, current_value)
@@ -71,20 +71,20 @@ local function cmd_bind(...)
     if opt == 'help' then
         show_help()
     elseif opt == 'burnnow' then
-        state.set_burn_now(true)
+        state.burn_now = true
     elseif opt == 'pause' then
         if not new_value then
-            state.set_paused(not state.get_paused())
-            if state.get_paused() then
+            state.paused = not state.paused
+            if state.paused then
                 state.reset_combat_state()
             end
         else
             if common.BOOL.TRUE[new_value] then
-                state.set_paused(true)
+                state.paused = true
                 state.reset_combat_state()
             elseif common.BOOL.FALSE[new_value] then
                 camp.set_camp()
-                state.set_paused(false)
+                state.paused = false
             end
         end
     elseif opt == 'show' then
@@ -93,66 +93,66 @@ local function cmd_bind(...)
         ui.toggle_gui(false)
     elseif opt == 'mode' then
         if new_value then
-            config.set_mode(mode.from_string(new_value) or config.get_mode())
+            config.MODE = mode.from_string(new_value) or config.MODE
         else
-            logger.printf('Mode: %s', config:get_mode():get_name())
+            logger.printf('Mode: %s', config.MODE:get_name())
         end
         camp.set_camp()
     elseif opt == 'resetcamp' then
         camp.set_camp(true)
     elseif opt == 'campradius' then
-        get_or_set_opt(opt, config.get_camp_radius(), new_value, config.set_camp_radius)
+        get_or_set_opt(opt, config.CAMPRADIUS, new_value, 'CAMPRADIUS')
         camp.set_camp()
     elseif opt == 'radius' then
-        get_or_set_opt(opt, config.get_pull_radius(), new_value, config.set_pull_radius)
+        get_or_set_opt(opt, config.PULLRADIUS, new_value, 'PULLRADIUS')
         camp.set_camp()
     elseif opt == 'pullarc' then
-        get_or_set_opt(opt, config.get_pull_arc(), new_value, config.set_pull_arc)
+        get_or_set_opt(opt, config.PULLARC, new_value, 'PULLARC')
         camp.set_camp()
     elseif opt == 'levelmin' then
-        get_or_set_opt(opt, config.get_pull_min_level(), new_value, config.set_pull_min_level)
+        get_or_set_opt(opt, config.PULLMINLEVEL, new_value, 'PULLMINLEVEL')
     elseif opt == 'levelmax' then
-        get_or_set_opt(opt, config.get_pull_max_level(), new_value, config.set_pull_max_level)
+        get_or_set_opt(opt, config.PULLMAXLEVEL, new_value, 'PULLMAXLEVEL')
     elseif opt == 'zlow' then
-        get_or_set_opt(opt, config.get_pull_z_low(), new_value, config.set_pull_z_low)
+        get_or_set_opt(opt, config.PULLLOW, new_value, 'PULLLOW')
     elseif opt == 'zhigh' then
-        get_or_set_opt(opt, config.get_pull_z_high(), new_value, config.set_pull_z_high)
+        get_or_set_opt(opt, config.PULLHIGH, new_value, 'PULLHIGH')
     elseif opt == 'zradius' then
-        get_or_set_opt(opt, config.get_pull_z_low(), new_value, config.set_pull_z_low)
-        get_or_set_opt(opt, config.get_pull_z_high(), new_value, config.set_pull_z_high)
+        get_or_set_opt(opt, config.PULLLOW, new_value, 'PULLLOW')
+        get_or_set_opt(opt, config.PULLHIGH, new_value, 'PULLHIGH')
     elseif opt == 'groupwatch' then
         if common.GROUP_WATCH_OPTS[new_value] then
-            get_or_set_opt(opt, config.get_group_watch_who(), new_value, config.set_group_watch_who)
+            get_or_set_opt(opt, config.GROUPWATCHWHO, new_value, 'GROUPWATCHWHO')
         end
     elseif opt == 'medmanastart' then
-        get_or_set_opt(opt, config.get_med_mana_start(), new_value, config.set_med_mana_start)
+        get_or_set_opt(opt, config.MEDMANASTART, new_value, 'MEDMANASTART')
     elseif opt == 'medmanastop' then
-        get_or_set_opt(opt, config.get_med_mana_stop(), new_value, config.set_med_mana_stop)
+        get_or_set_opt(opt, config.MEDMANASTOP, new_value, 'MEDMANASTOP')
     elseif opt == 'medendstart' then
-        get_or_set_opt(opt, config.get_med_end_start(), new_value, config.set_med_end_start)
+        get_or_set_opt(opt, config.MEDENDSTART, new_value, 'MEDENDSTART')
     elseif opt == 'medendstop' then
-        get_or_set_opt(opt, config.get_med_end_stop(), new_value, config.set_med_end_stop)
+        get_or_set_opt(opt, config.MEDENDSTOP, new_value, 'MEDENDSTOP')
     elseif opt == 'usealliance' then
-        get_or_set_opt(opt, config.get_use_alliance(), new_value, config.set_use_alliance)
+        get_or_set_opt(opt, config.USEALLIANCE, new_value, 'USEALLIANCE')
     elseif opt == 'burnallnamed' then
-        get_or_set_opt(opt, config.get_burn_all_named(), new_value, config.set_burn_all_named)
+        get_or_set_opt(opt, config.BURNALLNAMED, new_value, 'BURNALLNAMED')
     elseif opt == 'burnalways' then
-        get_or_set_opt(opt, config.get_burn_always(), new_value, config.set_burn_always)
+        get_or_set_opt(opt, config.BURNALWAYS, new_value, 'BURNALWAYS')
     elseif opt == 'burncount' then
-        get_or_set_opt(opt, config.get_burn_count(), new_value, config.set_burn_count)
+        get_or_set_opt(opt, config.BURNCOUNT, new_value, 'BURNCOUNT')
     elseif opt == 'burnpercent' then
-        get_or_set_opt(opt, config.get_burn_percent(), new_value, config.set_burn_percent)
+        get_or_set_opt(opt, config.BURNPCT, new_value, 'BURNPCT')
     elseif opt == 'chasetarget' then
-        get_or_set_opt(opt, config.get_chase_target(), new_value, config.set_chase_target)
+        get_or_set_opt(opt, config.CHASETARGET, new_value, 'CHASETARGET')
     elseif opt == 'chasedistance' then
-        get_or_set_opt(opt, config.get_chase_distance(), new_value, config.set_chase_distance)
+        get_or_set_opt(opt, config.CHASEDISTANCE, new_value, 'CHASEDISTANCE')
     elseif opt == 'autoassistat' then
-        get_or_set_opt(opt, config.get_auto_assist_at(), new_value, config.set_auto_assist_at)
+        get_or_set_opt(opt, config.AUTOASSISTAT, new_value, 'AUTOASSISTAT')
     elseif opt == 'assist' then
         if new_value and common.ASSISTS[new_value] then
-            config.set_assist(new_value)
+            config.ASSIST = new_value
         end
-        logger.printf('assist: %s', config.get_assist())
+        logger.printf('assist: %s', config.ASSIST)
     elseif opt == 'ignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
@@ -179,7 +179,7 @@ class_funcs.load_settings()
 common.setup_events()
 class_funcs.setup_events()
 config.load_ignores()
-state.set_subscription(mq.TLO.Me.Subscription())
+state.subscription = mq.TLO.Me.Subscription()
 
 ui.set_class_funcs(class_funcs)
 mq.imgui.init('AQO Bot 1.0', ui.main)
@@ -191,9 +191,9 @@ local debug_timer = timer:new(3)
 -- Main Loop
 while true do
     check_game_state()
-    if state.get_debug() and debug_timer:timer_expired() then
-        logger.debug(state.get_debug(), 'main loop: PAUSED=%s, Me.Invis=%s', state.get_paused(), mq.TLO.Me.Invis())
-        logger.debug(state.get_debug(), '#TARGETS: %d, MOB_COUNT: %d', common.table_size(state.get_targets()), state.get_mob_count())
+    if state.debug and debug_timer:timer_expired() then
+        logger.debug(state.debug, 'main loop: PAUSED=%s, Me.Invis=%s', state.paused, mq.TLO.Me.Invis())
+        logger.debug(state.debug, '#TARGETS: %d, MOB_COUNT: %d', common.table_size(state.targets), state.mob_count)
         debug_timer:reset()
     end
 
@@ -202,14 +202,13 @@ while true do
         mq.cmd('/multiline ; /attack off; /autofire off;')
     end
 
-    local my_camp = state.get_camp()
-    if my_camp and my_camp.ZoneID ~= mq.TLO.Zone.ID() then
+    if camp.Active and camp.ZoneID ~= mq.TLO.Zone.ID() then
         state.reset_combat_state()
     end
 
     -- Process death events
     mq.doevents()
-    if not state.get_paused() then
+    if not state.paused then
         camp.clean_targets()
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
             common.ASSIST_TARGET_ID = 0
@@ -230,7 +229,7 @@ while true do
             local pet_target_id = mq.TLO.Pet.Target.ID() or 0
             if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
             camp.mob_radar()
-            if (mode:is_tank_mode() and state.get_mob_count() > 0) or (mode:is_assist_mode() and assist.should_assist()) then mq.cmd('/makemevis') end
+            if (mode:is_tank_mode() and state.mob_count > 0) or (mode:is_assist_mode() and assist.should_assist()) then mq.cmd('/makemevis') end
             camp.check_camp()
             common.check_chase()
             common.rest()
