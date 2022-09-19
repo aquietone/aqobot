@@ -370,7 +370,7 @@ end
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 ---@param name string @The name of the ability to use.
 common.use_ability = function(name)
-    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Target() then
+    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Me.Skill(name)() > 0 and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
     end

@@ -173,7 +173,6 @@ pull.pull_radar = function()
     if pull_id ~= 0 then
         state.pull_mob_id = pull_id
     end
-    print(pull_id)
     return pull_id
 end
 
@@ -266,9 +265,10 @@ local function pull_engage(pull_spawn, pull_func)
             mq.cmd('/attack off')
             mq.delay(100)
         end
+        local ranged_item = mq.TLO.InvSlot('ranged').Item
         if pull_func then
             pull_func()
-        else
+        elseif ranged_item() and ranged_item.Damage() > 0 then
             mq.cmd('/squelch /face fast')
             mq.cmd('/autofire on')
             mq.delay(1000)
@@ -279,7 +279,10 @@ local function pull_engage(pull_spawn, pull_func)
         end
     end
     --logger.printf('mob agrod or timed out')
-    mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
+    if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
+    if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
+    if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
+    --mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
     return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target()
 end
 
