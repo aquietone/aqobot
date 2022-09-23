@@ -316,7 +316,7 @@ local function check_ae()
 end
 
 local function mash()
-    local cur_mode = config.get_mode()
+    local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
     --if common.is_fighting() or assist.should_assist() then
         local target = mq.TLO.Target
@@ -358,6 +358,7 @@ local function mash()
         end
         if dist and maxdist and dist < maxdist then
             for _,ability in ipairs(mashDPSAbilities) do
+                --if ability == 'Bash' and not mq.TLO.InvSlot() bash requires a shield
                 common.use_ability(ability)
             end
         end
@@ -492,7 +493,7 @@ local function check_spell_set()
             common.swap_spell(spells.skin, 12)
             common.swap_spell(spells.acdebuff, 13)
             state.spellset_loaded = config.SPELLSET
-        elseif config.get_spell_set() == 'dps' then
+        elseif config.SPELLSET == 'dps' then
             common.swap_spell(spells.tap1, 1)
             common.swap_spell(spells.tap2, 2)
             common.swap_spell(spells.largetap, 3)
@@ -513,7 +514,7 @@ local function check_spell_set()
 end
 
 shd.pull_func = function()
-    if spells.challenge then
+    if spells.challenge.name then
         if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
             mq.cmd('/squelch /nav stop')
             mq.delay(300)

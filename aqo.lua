@@ -14,6 +14,7 @@ local config = require('aqo.configuration')
 local mode = require('aqo.mode')
 local state = require('aqo.state')
 local ui = require('aqo.ui')
+local loot = require('aqo.utils.lootutils')
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
@@ -222,6 +223,9 @@ while true do
                 mq.cmd('/stand')
             end
             common.check_cursor()
+            if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() then
+                loot.lootMobs()
+            end
             class_funcs.main_loop()
             mq.delay(50)
         else

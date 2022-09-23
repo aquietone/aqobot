@@ -355,7 +355,7 @@ local function try_debuff_target()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') and OPTS.DEBUFF then
     --if (common.is_fighting() or assist.should_assist()) and OPTS.DEBUFF then
         local targetID = mq.TLO.Target.ID()
-        if targetID and targetID > 0 and (not targets[targetID] or not targets[targetID][2]) then
+        if targetID and targetID > 0 and (not targets[targetID] or not targets[targetID][2]) and mq.TLO.Me.AltAbility('scent of terris')() then
             local isScentAAReady = mq.TLO.Me.AltAbilityReady('Scent of Thule')()
 
             local isDebuffedAlready = common.is_target_dotted_with(spells.scentterris.id, spells.scentterris.name)
