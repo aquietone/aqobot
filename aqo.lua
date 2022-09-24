@@ -133,8 +133,8 @@ local function cmd_bind(...)
         get_or_set_opt(opt, config.MEDENDSTART, new_value, 'MEDENDSTART')
     elseif opt == 'medendstop' then
         get_or_set_opt(opt, config.MEDENDSTOP, new_value, 'MEDENDSTOP')
-    elseif opt == 'usealliance' then
-        get_or_set_opt(opt, config.USEALLIANCE, new_value, 'USEALLIANCE')
+    --elseif opt == 'usealliance' then
+    --    get_or_set_opt(opt, config.USEALLIANCE, new_value, 'USEALLIANCE')
     elseif opt == 'burnallnamed' then
         get_or_set_opt(opt, config.BURNALLNAMED, new_value, 'BURNALLNAMED')
     elseif opt == 'burnalways' then
@@ -189,6 +189,7 @@ mq.cmd('/squelch /stick set verbflags 0')
 mq.cmd('/squelch /plugin melee unload noauto')
 
 local debug_timer = timer:new(3)
+--loot.logger.loglevel = 'debug'
 -- Main Loop
 while true do
     check_game_state()
@@ -223,9 +224,9 @@ while true do
                 mq.cmd('/stand')
             end
             common.check_cursor()
-            if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() then
-                loot.lootMobs()
-            end
+            --if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() then
+                --loot.lootMobs()
+            --end
             class_funcs.main_loop()
             mq.delay(50)
         else

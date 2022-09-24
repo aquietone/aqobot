@@ -70,7 +70,7 @@ end
 common.get_spell = function(spell_name)
     local spell_rank = mq.TLO.Spell(spell_name).RankName()
     if not mq.TLO.Me.Book(spell_rank)() then return nil end
-    return {id=mq.TLO.Spell(spell_rank).ID(), name=spell_rank}
+    return {id=mq.TLO.Spell(spell_rank).ID(), name=spell_rank, type='spell'}
 end
 
 common.get_best_spell = function(spells)
@@ -88,7 +88,7 @@ end
 ---@return table|nil @Returns a table containing the AA name, AA ID and the provided option name.
 common.get_aa = function(aa_name, option_name)
     if not mq.TLO.Me.AltAbility(aa_name)() then return nil end
-    return {id=mq.TLO.Me.AltAbility(aa_name).ID(), name=aa_name, opt=option_name}
+    return {id=mq.TLO.Me.AltAbility(aa_name).ID(), name=aa_name, opt=option_name, type='aa'}
 end
 
 ---Lookup the ID for a given disc.
@@ -98,7 +98,7 @@ end
 common.get_disc = function(disc_name, option_name)
     local disc_rank = mq.TLO.Spell(disc_name).RankName()
     if not disc_rank then return nil end
-    return {id=mq.TLO.Spell(disc_rank).ID(), name=disc_rank, opt=option_name}
+    return {id=mq.TLO.Spell(disc_rank).ID(), name=disc_rank, opt=option_name, type='disc'}
 end
 
 ---Check whether the specified dot is applied to the target.
@@ -348,8 +348,11 @@ end
 ---@param spell_name string @The name of the spell to be cast.
 ---@param requires_target boolean|nil @Indicate whether the spell requires a target.
 common.cast = function(spell_name, requires_target)
+    if type(spell_name) == 'table' then spell_name = spell_name.name end
     local spell = mq.TLO.Spell(spell_name)
     if not spell_name or not common.can_use_spell(spell, 'spell') or not common.should_use_spell(spell) then return false end
+    local class = mq.TLO.Me.Class.ShortName()
+    if class == 'BRD' then mq.cmd('/stopsong') end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -357,12 +360,14 @@ common.cast = function(spell_name, requires_target)
     mq.delay(10)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
     mq.delay(10)
-    while mq.TLO.Me.Casting() do
-        if requires_target and not mq.TLO.Target() then
-            mq.cmd('/stopcast')
-            break
+    if class ~= 'BRD' then
+        while mq.TLO.Me.Casting() do
+            if requires_target and not mq.TLO.Target() then
+                mq.cmd('/stopcast')
+                break
+            end
+            mq.delay(10)
         end
-        mq.delay(10)
     end
     return true
 end
@@ -370,6 +375,7 @@ end
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 ---@param name string @The name of the ability to use.
 common.use_ability = function(name)
+    if type(name) == 'table' then name = name.name end
     if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Me.Skill(name)() > 0 and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
@@ -390,6 +396,7 @@ end
 ---@param item item @The MQ Item userdata object.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 common.use_item = function(item)
+    if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if item_ready(item) then
         logger.printf('Use Item: \ax\ar%s\ax', item)
         mq.cmdf('/useitem "%s"', item)
@@ -475,6 +482,14 @@ common.use_disc = function(disc, overwrite)
     end
     return false
 end
+
+common.use = {
+    spell=common.cast,
+    aa=common.use_ability,
+    disc=common.use_disc,
+    ability=common.use_ability,
+    item=common.use_item,
+}
 
 -- Burn Helper Functions
 
@@ -591,6 +606,8 @@ common.check_mana = function()
     -- modrods
     local pct_mana = mq.TLO.Me.PctMana()
     local pct_end = mq.TLO.Me.PctEndurance()
+    local group_mana = mq.TLO.Group.LowMana(70)
+    local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 then
         local cursor = mq.TLO.Cursor.Name()
         if cursor and (cursor == 'Summoned: Dazzling Modulation Shard' or cursor == 'Sickle of Umbral Modulation' or cursor == 'Wand of Restless Modulation') then
@@ -604,8 +621,15 @@ common.check_mana = function()
         common.use_item(item_wand_modrod)
         local item_wand_old = mq.TLO.FindItem('Wand of Restless Modulation')
         common.use_item(item_wand_old)
+        -- use feather for self if not grouped (group.LowMana is null if not grouped)
+        if feather() and not group_mana and not mq.TLO.Me.Song(feather.Spell.Name())() then
+            common.use_item(feather)
+        end
     end
-    -- unified phoenix feather
+    -- use feather for group if > 2 members are below 70% mana
+    if feather() and group_mana and group_mana > 2 and not mq.TLO.Me.Song(feather.Spell.Name())() then
+        common.use_item(feather)
+    end
 end
 
 local sit_timer = timer:new(10)

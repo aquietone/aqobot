@@ -17,6 +17,7 @@ local camp = {
     PullArcRight=0,
 }
 
+local xtar_corpse_count = 'xtarhater npccorpse radius %d zradius 50'
 local xtar_count = 'xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_spawn = '%d, xtarhater npc radius %d zradius 50 loc %d %d %d'
 ---Determine the number of mobs within the camp radius.
@@ -31,6 +32,7 @@ camp.mob_radar = function()
     else
         x, y, z = camp.X, camp.Y, camp.Z
     end
+    --num_corpses = mq.TLO.SpawnCount(xtar_corpse_count:format(config.CAMPRADIUS))()
     logger.debug(state.debug, xtar_count:format(config.CAMPRADIUS or 0, x, y, z))
     local mob_count = mq.TLO.SpawnCount(xtar_count:format(config.CAMPRADIUS or 0, x, y, z))()-- - num_corpses
     if mob_count > 0 then
@@ -39,16 +41,18 @@ camp.mob_radar = function()
             logger.debug(state.debug, xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
             local mob = mq.TLO.NearestSpawn(xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
             local mob_id = mob.ID()
+            logger.debug(state.debug, string.format('mod id: %s', mob_id))
             if mob_id and mob_id > 0 then
                 if not mob() or mob.Type() == 'Corpse' then
                     targets[mob_id] = nil
+                    --num_corpses = num_corpses+1
                 elseif not targets[mob_id] then
                     logger.debug(state.debug, 'Adding mob_id %d', mob_id)
                     targets[mob_id] = {meztimer=timer:new(30)}
                 end
             end
         end
-        state.mob_count = mob_count
+        state.mob_count = mob_count-- - num_corpses
     else
         state.mob_count = 0
     end
