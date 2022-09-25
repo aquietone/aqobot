@@ -14,7 +14,7 @@ mq.cmd('/squelch /stick mod 0')
 local brd = baseclass
 
 brd.class = 'brd'
-brd.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'rest'}
+brd.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
 brd.SPELLSETS = {melee=1,caster=1,meleedot=1}
 brd.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}

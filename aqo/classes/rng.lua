@@ -14,7 +14,7 @@ mq.cmd('/squelch /stick mod 0')
 local rng = baseclass
 
 rng.class = 'rng'
-rng.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'rest'}
+rng.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
 rng.SPELLSETS = {standard=1}
 

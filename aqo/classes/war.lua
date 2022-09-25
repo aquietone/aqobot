@@ -12,7 +12,7 @@ mq.cmd('/squelch /stick set delaystrafe on')
 local war = baseclass
 
 war.class = 'war'
-war.classOrder = {'assist', 'mash', 'ae', 'burn', 'ohshit', 'recover', 'rest'}
+war.classOrder = {'assist', 'mash', 'ae', 'burn', 'ohshit', 'recover', 'buff', 'rest'}
 
 --if OPTS.USEEXPANSE then OPTS.USEPRECISION = false end
 --if OPTS.USEPRECISION then OPTS.USEEXPANSE = false end

@@ -13,7 +13,7 @@ mq.cmd('/squelch /stick set delaystrafe on')
 local shd = baseclass
 
 shd.class = 'shd'
-shd.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'rest', 'managepet'}
+shd.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'rest', 'buff', 'managepet'}
 
 shd.SPELLSETS = {standard=1,dps=1}
 

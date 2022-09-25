@@ -3,7 +3,7 @@ local baseclass = require('aqo.classes.base')
 local rog = baseclass
 
 rog.class = 'rog'
-rog.classOrder = {'assist', 'mash', 'burn', 'recover', 'rest'}
+rog.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 --rog.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 

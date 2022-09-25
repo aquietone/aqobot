@@ -14,7 +14,7 @@ local state = require('aqo.state')
 local ui = require('aqo.ui')
 local baseclass = {}
 
-baseclass.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,recover=1,managepet=1}
+baseclass.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,rez=1,recover=1,managepet=1}
 baseclass.OPTS = {}
 -- array of {id=#,name=string} covering all spells that may be used
 baseclass.spells = {}
@@ -264,6 +264,10 @@ baseclass.recover = function()
     if useAbility then
         common.use[useAbility.type](useAbility)
     end
+end
+
+baseclass.rez = function()
+
 end
 
 baseclass.managepet = function()

@@ -6,7 +6,7 @@ local common = require('aqo.common')
 local clr = baseclass
 
 clr.class = 'clr'
-clr.classOrder = {'heal', 'assist', 'mash', 'burn', 'recover', 'rest'}
+clr.classOrder = {'heal', 'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 --mnk.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
