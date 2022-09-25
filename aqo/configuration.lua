@@ -11,11 +11,7 @@ local config = {
     CAMPRADIUS = 60,
     ASSIST = 'group',
     AUTOASSISTAT = 98,
-    SPELLSET = '',
-    USEALLIANCE = false,
     SWITCHWITHMA = true,
-
-    AEMEZCOUNT = 3,
 
     BURNALWAYS = false,
     BURNPCT = 0,
@@ -47,11 +43,7 @@ function config.get_all()
         CAMPRADIUS = config.CAMPRADIUS,
         ASSIST = config.ASSIST,
         AUTOASSISTAT = config.AUTOASSISTAT,
-        SPELLSET = config.SPELLSET,
-        USEALLIANCE = config.USEALLIANCE,
         SWITCHWITHMA = config.SWITCHWITHMA,
-
-        AEMEZCOUNT = config.AEMEZCOUNT,
 
         BURNALWAYS = config.BURNALWAYS,
         BURNPCT = config.BURNPCT,

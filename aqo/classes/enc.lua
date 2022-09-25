@@ -204,10 +204,10 @@ local buffs={
 local targets = {}
 
 enc.mez = function()
-    if enc.OPTS.MEZ then
+    if enc.OPTS.MEZ.value then
         mez.do_ae(enc.spells.mezae.name, common.cast)
         if not mq.TLO.Me.SpellInCooldown() then
-            if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ and tash then
+            if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ.value and tash then
                 common.use_aa(tash)
             end
             mez.do_single(enc.spells.mezst.name, common.cast)
@@ -231,7 +231,7 @@ end
 -- nuke5
 -- dot2
 local function find_next_spell_to_cast()
-    if not mq.TLO.Target.Tashed() and enc.OPTS.USETASH and common.is_spell_ready(enc.spells.tash) then return enc.spells.tash end
+    if not mq.TLO.Target.Tashed() and enc.OPTS.USETASH.value and common.is_spell_ready(enc.spells.tash) then return enc.spells.tash end
     if common.is_spell_ready(enc.spells.composite) then return enc.spells.composite end
     if cast_synergy() then return nil end
     if common.is_spell_ready(enc.spells.nuke5) then return enc.spells.nuke5 end
@@ -245,16 +245,16 @@ enc.cast = function()
     if common.am_i_dead() then return false end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if mq.TLO.Target.Beneficial() and enc.OPTS.USEERADICATE and dispel then
+        if mq.TLO.Target.Beneficial() and enc.OPTS.USEERADICATE.value and dispel then
             common.use_aa(dispel)
         end
-        if not mq.TLO.Target.Tashed() and enc.OPTS.USETASHAOE and tash then
+        if not mq.TLO.Target.Tashed() and enc.OPTS.USETASHAOE.value and tash then
             common.use_aa(tash)
         end
         if not mq.TLO.Target.Slowed() and not SLOW_IMMUNES[mq.TLO.Target.CleanName()] then
-            if enc.OPTS.USESLOWAOE and aeslow then
+            if enc.OPTS.USESLOWAOE.value and aeslow then
                 common.use_aa(aeslow)
-            elseif enc.OPTS.USESLOW and slow then
+            elseif enc.OPTS.USESLOW.value and slow then
                 common.use_aa(slow)
             end
             mq.doevents('event_slowimmune')
@@ -357,15 +357,15 @@ enc.buff = function()
         end
     end
 
-    if enc.OPTS.AURA1 == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
-        if common.swap_and_cast(enc.spells[enc.OPTS.AURA1], 13) then return end
-    elseif enc.OPTS.AURA1 ~= 'twincast' and enc.spells[enc.OPTS.AURA1] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA1].name)() then
-        if common.swap_and_cast(enc.spells[enc.OPTS.AURA1], 13) then return end
+    if enc.OPTS.AURA1.value == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA1.value], 13) then return end
+    elseif enc.OPTS.AURA1.value ~= 'twincast' and enc.spells[enc.OPTS.AURA1.value] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA1.value].name)() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA1.value], 13) then return end
     end
-    if enc.OPTS.AURA2 == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
-        if common.swap_and_cast(enc.spells[enc.OPTS.AURA2], 13) then return end
-    elseif enc.OPTS.AURA2 ~= 'twincast' and enc.spells[enc.OPTS.AURA2] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA2].name)() then
-        if common.swap_and_cast(enc.spells[enc.OPTS.AURA2], 13) then return end
+    if enc.OPTS.AURA2.value == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA2.value], 13) then return end
+    elseif enc.OPTS.AURA2.value ~= 'twincast' and enc.spells[enc.OPTS.AURA2.value] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA2.value].name)() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA2.value], 13) then return end
     end
 
     -- kei
@@ -373,7 +373,7 @@ enc.buff = function()
 
     common.check_item_buffs()
 
-    if enc.OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
+    if enc.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 then
         --for _,buff in ipairs(buffs.pet) do
         --    if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
         --        common.swap_and_cast(buff.name, 13)
@@ -391,10 +391,10 @@ end
 
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 local check_spell_timer = timer:new(30)
-local function check_spell_set()
+enc.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
-    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
-        if config.SPELLSET == 'standard' then
+    if state.spellset_loaded ~= enc.OPTS.SPELLSET or check_spell_timer:timer_expired() then
+        if enc.OPTS.SPELLSET == 'standard' then
             common.swap_spell(enc.spells.tash, 1)
             common.swap_spell(enc.spells.dotmiti, 2)
             common.swap_spell(enc.spells.meznoblur, 3)
@@ -408,7 +408,7 @@ local function check_spell_set()
             common.swap_spell(enc.spells.guard, 11)
             common.swap_spell(enc.spells.nightsterror, 12)
             common.swap_spell(enc.spells.combatinnate, 13)
-            state.spellset_loaded = config.SPELLSET
+            state.spellset_loaded = enc.OPTS.SPELLSET
         end
         check_spell_timer:reset()
     end
@@ -433,43 +433,6 @@ end
 enc.setup_events = function()
     mez.setup_events()
     mq.event('event_slowimmune', 'Your target is immune to changes in its attack speed#*#', event_slowimmune)
-end
-
-enc.process_cmd_class = function(opt, new_value)
-    if new_value then
-        if opt == 'AURA1' then
-            if enc.AURAS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
-                enc.OPTS.AURA1 = new_value
-            end
-        elseif opt == 'AURA2' then
-            if enc.AURAS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
-                enc.OPTS.AURA2 = new_value
-            end
-        elseif type(enc.OPTS[opt]) == 'boolean' then
-            if common.BOOL.FALSE[new_value] then
-                logger.printf('Setting %s to: false', opt)
-                if enc.OPTS[opt] ~= nil then enc.OPTS[opt] = false end
-            elseif common.BOOL.TRUE[new_value] then
-                logger.printf('Setting %s to: true', opt)
-                if enc.OPTS[opt] ~= nil then enc.OPTS[opt] = true end
-            end
-        elseif type(enc.OPTS[opt]) == 'number' then
-            if tonumber(new_value) then
-                logger.printf('Setting %s to: %s', opt, tonumber(new_value))
-                if enc.OPTS[opt] ~= nil then enc.OPTS[opt] = tonumber(new_value) end
-            end
-        else
-            logger.printf('Unsupported command line option: %s %s', opt, new_value)
-        end
-    else
-        if enc.OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt:lower(), enc.OPTS[opt])
-        else
-            logger.printf('Unrecognized option: %s', opt)
-        end
-    end
 end
 
 return enc

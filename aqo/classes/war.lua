@@ -140,7 +140,7 @@ end
 
 war.mash_class = function()
     local dist = mq.TLO.Target.Distance3D() or 100
-    if war.OPTS.USEBATTLELEAP and leap and not mq.TLO.Me.Song(leap.name)() and dist < 30 then
+    if war.OPTS.USEBATTLELEAP.value and leap and not mq.TLO.Me.Song(leap.name)() and dist < 30 then
         common.use_aa(leap)
         mq.delay(30)
     end
@@ -172,7 +172,7 @@ war.ohshit_class = function()
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if flash and mq.TLO.Me.CombatAbilityReady(flash.name)() then
                 common.use_disc(flash)
-            elseif war.OPTS.USEFORTITUDE then
+            elseif war.OPTS.USEFORTITUDE.value then
                 common.use_disc(fortitude, mash_defensive and mash_defensive.name or nil)
             end
         end

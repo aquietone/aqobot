@@ -766,7 +766,7 @@ local nec_count_timer = timer:new(60)
 -- end
 
 nec.draw_burn_tab = function()
-    nec.OPTS.BURNPROC = ui.draw_check_box('Burn On Proc', '##burnproc', nec.OPTS.BURNPROC, 'Burn when proliferation procs')
+    nec.OPTS.BURNPROC.value = ui.draw_check_box('Burn On Proc', '##burnproc', nec.OPTS.BURNPROC.value, 'Burn when proliferation procs')
 end
 
 return nec

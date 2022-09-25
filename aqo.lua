@@ -135,8 +135,6 @@ local function cmd_bind(...)
         get_or_set_opt(opt, config.MEDENDSTART, new_value, 'MEDENDSTART')
     elseif opt == 'medendstop' then
         get_or_set_opt(opt, config.MEDENDSTOP, new_value, 'MEDENDSTOP')
-    --elseif opt == 'usealliance' then
-    --    get_or_set_opt(opt, config.USEALLIANCE, new_value, 'USEALLIANCE')
     elseif opt == 'burnallnamed' then
         get_or_set_opt(opt, config.BURNALLNAMED, new_value, 'BURNALLNAMED')
     elseif opt == 'burnalways' then

@@ -284,17 +284,17 @@ local function use_epic()
 end
 
 brd.mash_class = function()
-    if brd.OPTS.USEEPIC == 'always' or (brd.OPTS.USEEPIC == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
+    if brd.OPTS.USEEPIC.value == 'always' or (brd.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
         use_epic()
     end
 
-    if brd.OPTS.USEBELLOW and boastful_timer:timer_expired() and common.use_aa(bellow) then
+    if brd.OPTS.USEBELLOW.value and boastful_timer:timer_expired() and common.use_aa(bellow) then
         boastful_timer:reset()
     end
 end
 
 brd.burn_class = function()
-    if brd.OPTS.USEEPIC == 'burn' then
+    if brd.OPTS.USEEPIC.value == 'burn' then
         use_epic()
     end
 end
@@ -318,8 +318,8 @@ local check_spell_timer = timer:new(30)
 brd.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or brd.OPTS.BYOS.value then return end
     if not brd.can_i_sing() then return end
-    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
-        if config.SPELLSET == 'melee' then
+    if state.spellset_loaded ~= brd.OPTS.SPELLSET or check_spell_timer:timer_expired() then
+        if brd.OPTS.SPELLSET == 'melee' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.arcane, 2)
             common.swap_spell(brd.spells.spiteful, 3)
@@ -333,8 +333,8 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.pulse, 11)
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
-            state.spellset_loaded = config.SPELLSET
-        elseif config.SPELLSET == 'caster' then
+            state.spellset_loaded = brd.OPTS.SPELLSET
+        elseif brd.OPTS.SPELLSET == 'caster' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.arcane, 2)
             common.swap_spell(brd.spells.firenukebuff, 3)
@@ -348,8 +348,8 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.pulse, 11)
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
-            state.spellset_loaded = config.SPELLSET
-        elseif config.SPELLSET == 'meleedot' then
+            state.spellset_loaded = brd.OPTS.SPELLSET
+        elseif brd.OPTS.SPELLSET == 'meleedot' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.chantflame, 2)
             common.swap_spell(brd.spells.chantfrost, 3)
@@ -363,7 +363,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.pulse, 11)
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
-            state.spellset_loaded = config.SPELLSET
+            state.spellset_loaded = brd.OPTS.SPELLSET
         end
         check_spell_timer:reset()
     end

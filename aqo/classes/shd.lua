@@ -174,7 +174,7 @@ table.insert(shd.buffs, {id=mq.TLO.FindItem('Violet Conch of the Tempest').ID(),
 local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
     -- aggro
-    if config.MODE:is_tank_mode() and config.SPELLSET == 'standard' and myhp > 70 then
+    if config.MODE:is_tank_mode() and shd.OPTS.SPELLSET == 'standard' and myhp > 70 then
         if state.mob_count > 2 then
             local xtar_aggro_count = 0
             for i=1,13 do
@@ -202,7 +202,7 @@ local function find_next_spell()
     if common.is_dot_ready(shd.spells['acdebuff']) then return shd.spells['acdebuff'] end
     -- dps
     if common.is_spell_ready(shd.spells['spear']) then return shd.spells['spear'] end
-    if config.MODE:is_assist_mode() and config.SPELLSET == 'dps' then
+    if config.MODE:is_assist_mode() and shd.OPTS.SPELLSET == 'dps' then
         if common.is_dot_ready(shd.spells['poison']) then return shd.spells['poison'] end
         if common.is_dot_ready(shd.spells['disease']) then return shd.spells['disease'] end
         if common.is_dot_ready(shd.spells['corruption']) then return shd.spells['corruption'] end
@@ -274,7 +274,7 @@ shd.mash_class = function()
 
     if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         -- hate's attraction
-        if shd.OPTS.USEHATESATTRACTION and attraction and mobhp and mobhp > 95 then
+        if shd.OPTS.USEHATESATTRACTION.value and attraction and mobhp and mobhp > 95 then
             common.use_aa(attraction)
         end
     end
@@ -296,7 +296,7 @@ shd.ohshit = function()
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if mq.TLO.Me.AltAbilityReady(flash.name)() then
                 common.use_aa(flash)
-            elseif shd.OPTS.USEDEFLECTION then
+            elseif shd.OPTS.USEDEFLECTION.value then
                 common.use_disc(deflection)
             end
             common.use_aa(leechtouch)
@@ -322,18 +322,18 @@ shd.buff_class = function()
         if common.cast(shd.spells.skin.name) then return end
     end
 
-    if shd.OPTS.USEDISRUPTION and shd.spells.disruption and not mq.TLO.Me.Buff(shd.spells.disruption.name)() then
+    if shd.OPTS.USEDISRUPTION.value and shd.spells.disruption and not mq.TLO.Me.Buff(shd.spells.disruption.name)() then
         if common.swap_and_cast(shd.spells.disruption, 13) then return end
     end
 
-    if not shd.OPTS.USEBEZA and buffazia and missing_unity_buffs(buffazia.name) then
+    if not shd.OPTS.USEBEZA.value and buffazia and missing_unity_buffs(buffazia.name) then
         if common.use_aa(buffazia) then return end
     end
-    if shd.OPTS.USEBEZA and buffbeza and missing_unity_buffs(buffbeza.name) then
+    if shd.OPTS.USEBEZA.value and buffbeza and missing_unity_buffs(buffbeza.name) then
         if common.use_aa(buffbeza) then return end
     end
 
-    if shd.OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 and shd.spells.pethaste then
+    if shd.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 and shd.spells.pethaste then
         if not mq.TLO.Pet.Buff(shd.spells.pethaste.name)() and mq.TLO.Spell(shd.spells.pethaste.name).StacksPet() and mq.TLO.Spell(shd.spells.pethaste.name).Mana() < mq.TLO.Me.CurrentMana() then
             common.swap_and_cast(shd.spells.pethaste, 13)
         end
@@ -341,7 +341,7 @@ shd.buff_class = function()
 end
 
 shd.managepet = function()
-    if not shd.OPTS.SUMMONPET then return end
+    if not shd.OPTS.SUMMONPET.value then return end
     if not shd.spells.pet.name or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
     if mq.TLO.Spell(shd.spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
@@ -351,9 +351,9 @@ end
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 local check_spell_timer = timer:new(30)
 shd.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or shd.OPTS.BYOS then return end
-    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
-        if config.SPELLSET == 'standard' then
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or shd.OPTS.BYOS.value then return end
+    if state.spellset_loaded ~= shd.OPTS.SPELLSET or check_spell_timer:timer_expired() then
+        if shd.OPTS.SPELLSET == 'standard' then
             common.swap_spell(shd.spells.tap1, 1)
             common.swap_spell(shd.spells.tap2, 2)
             common.swap_spell(shd.spells.largetap, 3)
@@ -367,8 +367,8 @@ shd.check_spell_set = function()
             common.swap_spell(shd.spells.stance, 11)
             common.swap_spell(shd.spells.skin, 12)
             common.swap_spell(shd.spells.acdebuff, 13)
-            state.spellset_loaded = config.SPELLSET
-        elseif config.SPELLSET == 'dps' then
+            state.spellset_loaded = shd.OPTS.SPELLSET
+        elseif shd.OPTS.SPELLSET == 'dps' then
             common.swap_spell(shd.spells.tap1, 1)
             common.swap_spell(shd.spells.tap2, 2)
             common.swap_spell(shd.spells.largetap, 3)
@@ -382,7 +382,7 @@ shd.check_spell_set = function()
             common.swap_spell(shd.spells.stance, 11)
             common.swap_spell(shd.spells.skin, 12)
             common.swap_spell(shd.spells.acdebuff, 13)
-            state.spellset_loaded = config.SPELLSET
+            state.spellset_loaded = shd.OPTS.SPELLSET
         end
         check_spell_timer:reset()
     end

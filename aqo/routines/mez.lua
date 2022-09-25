@@ -4,6 +4,7 @@ local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
 local logger = require('aqo.utils.logger')
 local timer = require('aqo.utils.timer')
+local common = require('aqo.common')
 local state = require('aqo.state')
 local config = require('aqo.configuration')
 
@@ -28,12 +29,12 @@ end
 
 ---Cast AE mez spell if AE Mez condition (>=3 mobs) is met.
 ---@param mez_spell string @The name of the AE mez spell to cast.
----@param cast_func function @The function to use to cast, since bards are special.
-mez.do_ae = function(mez_spell, cast_func)
-    if state.mob_count >= config.AEMEZCOUNT then
+---@param ae_count number @The mob threshold for using AE mez.
+mez.do_ae = function(mez_spell, ae_count)
+    if state.mob_count >= ae_count then
         if mq.TLO.Me.Gem(mez_spell)() and mq.TLO.Me.GemTimer(mez_spell)() == 0 then
             logger.printf('AE Mezzing (MOB_COUNT=%d)', state.mob_count)
-            cast_func(mez_spell)
+            common.cast(mez_spell)
             mez.init_mez_timers()
         end
     end

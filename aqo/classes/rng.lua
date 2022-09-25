@@ -253,20 +253,20 @@ local function find_next_spell()
         end
     end
     for _,spell in ipairs(dot_spells) do
-        if spell.name ~= rng.spells.dot.name or rng.OPTS.USEDOT or (state.burn_active and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
+        if spell.name ~= rng.spells.dot.name or rng.OPTS.USEDOT.value or (state.burn_active and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if common.is_dot_ready(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(arrow_spells) do
-        if not rng.spells.composite.name or spell.name ~= rng.spells.composite.name or rng.OPTS.USECOMPOSITE then
+        if not rng.spells.composite.name or spell.name ~= rng.spells.composite.name or rng.OPTS.USECOMPOSITE.value then
             if common.is_spell_ready(spell) then
                 return spell
             end
         end
     end
-    if rng.OPTS.NUKE then
+    if rng.OPTS.NUKE.value then
         for _,spell in ipairs(dd_spells) do
             if common.is_spell_ready(spell) then
                 return spell
@@ -294,7 +294,7 @@ rng.cast = function()
 end
 
 rng.mash_class = function()
-    if rng.OPTS.USEDISPEL and dispel and mq.TLO.Target.Beneficial() then
+    if rng.OPTS.USEDISPEL.value and dispel and mq.TLO.Target.Beneficial() then
         common.use_aa(dispel)
     end
 end
@@ -403,11 +403,11 @@ rng.buffs = function()
     if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
-    if rng.OPTS.USEPOISONARROW then
+    if rng.OPTS.USEPOISONARROW.value then
         if poison and not mq.TLO.Me.Buff('Poison Arrows')() then
             if common.use_aa(poison) then return end
         end
-    elseif rng.OPTS.USEFIREARROW then
+    elseif rng.OPTS.USEFIREARROW.value then
         if fire and not mq.TLO.Me.Buff('Fire Arrows')() then
             if common.use_aa(fire) then return end
         end
@@ -416,11 +416,11 @@ rng.buffs = function()
     common.check_item_buffs()
 
     -- ranger unity aa
-    if unity_azia and rng.OPTS.USEUNITYAZIA then
+    if unity_azia and rng.OPTS.USEUNITYAZIA.value then
         if missing_unity_buffs(unity_azia.name) then
             if common.use_aa(unity_azia) then return end
         end
-    elseif unity_beza and rng.OPTS.USEUNITYBEZA then
+    elseif unity_beza and rng.OPTS.USEUNITYBEZA.value then
         if missing_unity_buffs(unity_beza.name) then
             if common.use_aa(unity_beza) then return end
         end
@@ -434,13 +434,13 @@ rng.buffs = function()
         if common.cast(rng.spells.rune.name) then return end
     end
 
-    if rng.OPTS.USEREGEN and rng.spells.regen.name and not mq.TLO.Me.Buff(rng.spells.regen.name)() then
+    if rng.OPTS.USEREGEN.value and rng.spells.regen.name and not mq.TLO.Me.Buff(rng.spells.regen.name)() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         mq.delay(500)
         if common.swap_and_cast(rng.spells.regen, 13) then return end
     end
 
-    if rng.OPTS.DSTANK then
+    if rng.OPTS.DSTANK.value then
         if mq.TLO.Group.MainTank() then
             local tank_spawn = mq.TLO.Group.MainTank.Spawn
             if tank_spawn() then
@@ -454,7 +454,7 @@ rng.buffs = function()
             end
         end
     end
-    if rng.OPTS.BUFFGROUP and group_buff_timer:timer_expired() then
+    if rng.OPTS.BUFFGROUP.value and group_buff_timer:timer_expired() then
         if mq.TLO.Group.Members() then
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
@@ -484,9 +484,9 @@ end
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 local check_spell_timer = timer:new(30)
 rng.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or rng.OPTS.BYOS then return end
-    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
-        if config.SPELLSET == 'standard' then
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or rng.OPTS.BYOS.value then return end
+    if state.spellset_loaded ~= rng.OPTS.SPELLSET or check_spell_timer:timer_expired() then
+        if rng.OPTS.SPELLSET == 'standard' then
             common.swap_spell(rng.spells.shots, 1)
             common.swap_spell(rng.spells.focused, 2)
             common.swap_spell(rng.spells.composite, 3, composite_names)
@@ -499,7 +499,7 @@ rng.check_spell_set = function()
             common.swap_spell(rng.spells.dotds, 10)
             common.swap_spell(rng.spells.dmgbuff, 12)
             common.swap_spell(rng.spells.buffs, 13)
-            state.spellset_loaded = config.SPELLSET
+            state.spellset_loaded = rng.OPTS.SPELLSET
         end
         check_spell_timer:reset()
     end
@@ -511,8 +511,8 @@ rng.assist = function()
     -- if we should be assisting but aren't in los, try to be?
     -- try to deal with ranger noobishness running out to ranged and dying
     if mq.TLO.Me.PctHPs() > 40 then
-        if not rng.OPTS.USERANGE or not attack_range() then
-            if rng.OPTS.USEMELEE then assist.attack() end
+        if not rng.OPTS.USERANGE.value or not attack_range() then
+            if rng.OPTS.USEMELEE.value then assist.attack() end
         end
     end
     assist.send_pet()

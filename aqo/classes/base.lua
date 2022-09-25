@@ -193,7 +193,7 @@ baseclass.buff = function()
                     common.swap_spell(restore_gem, 1)
                 end
             end
-        elseif buff.type == 'discaura' and disc.name then
+        elseif buff.type == 'discaura' and buff.name then
             if common.use_disc(buff) then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
         elseif buff.type == 'item' then
             local item = mq.TLO.FindItem(buff.id)
@@ -286,7 +286,17 @@ baseclass.process_cmd = function(opt, new_value)
         elseif opt == 'USEEPIC' and baseclass.OPTS.USEEPIC ~= nil then
             if baseclass.EPIC_OPTS[new_value] then
                 logger.printf('Setting %s to: %s', opt, new_value)
-                baseclass.OPTS[opt].value = new_value
+                baseclass.OPTS.USEEPIC.value = new_value
+            end
+        elseif opt == 'AURA1' and baseclass.OPTS.AURA1 ~= nil then
+            if baseclass.AURAS[new_value] then
+                logger.printf('Setting %s to: %s', opt, new_value)
+                baseclass.OPTS.AURA1.value = new_value
+            end
+        elseif opt == 'AURA2' and baseclass.OPTS.AURA2 ~= nil then
+            if baseclass.AURAS[new_value] then
+                logger.printf('Setting %s to: %s', opt, new_value)
+                baseclass.OPTS.AURA2.value = new_value
             end
         elseif type(baseclass.OPTS[opt].value) == 'boolean' then
             if common.BOOL.FALSE[new_value] then
