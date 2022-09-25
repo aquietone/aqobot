@@ -220,7 +220,7 @@ local function should_swap_dots()
     local pyrelongDuration = mq.TLO.Target.MyBuffDuration(nec.spells.pyrelong.name)()
     local fireshadowDuration = mq.TLO.Target.MyBuffDuration(nec.spells.fireshadow.name)()
     if mq.TLO.Me.Gem(nec.spells.wounds.name)() then
-        if not nec.OPTS.USEWOUNDS or (woundsDuration and woundsDuration > 20000) then
+        if not nec.OPTS.USEWOUNDS.value or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swap_spell(nec.spells.pyrelong, swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
@@ -229,7 +229,7 @@ local function should_swap_dots()
         end
     elseif mq.TLO.Me.Gem(nec.spells.pyrelong.name)() then
         if pyrelongDuration and pyrelongDuration > 20000 then
-            if nec.OPTS.USEWOUNDS and (not woundsDuration or woundsDuration < 20000) then
+            if nec.OPTS.USEWOUNDS.value and (not woundsDuration or woundsDuration < 20000) then
                 common.swap_spell(nec.spells.wounds, swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
                 common.swap_spell(nec.spells.fireshadow, swap_gem or 10)
@@ -237,7 +237,7 @@ local function should_swap_dots()
         end
     elseif mq.TLO.Me.Gem(nec.spells.fireshadow.name)() then
         if fireshadowDuration and fireshadowDuration > 20000 then
-            if nec.OPTS.USEWOUNDS and (not woundsDuration or woundsDuration < 20000) then
+            if nec.OPTS.USEWOUNDS.value and (not woundsDuration or woundsDuration < 20000) then
                 common.swap_spell(nec.spells.wounds, swap_gem or 10)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swap_spell(nec.spells.pyrelong, swap_gem or 10)
@@ -270,7 +270,7 @@ end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    if config.USEALLIANCE then
+    if nec.OPTS.USEALLIANCE.value then
         if mq.TLO.Spell(nec.spells.alliance.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
@@ -309,19 +309,19 @@ local function find_next_dot_to_cast()
     if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(nec.spells.manatap.name)() and mq.TLO.Spell(nec.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.manatap
     end
-    if config.SPELLSET == 'short' and mq.TLO.Me.SpellReady(nec.spells.swarm.name)() and mq.TLO.Spell(nec.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if nec.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(nec.spells.swarm.name)() and mq.TLO.Spell(nec.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.swarm
     end
     local pct_hp = mq.TLO.Target.PctHPs()
-    if pct_hp and pct_hp > nec.OPTS.STOPPCT then
-        for _,dot in ipairs(dots[config.SPELLSET]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+    if pct_hp and pct_hp > nec.OPTS.STOPPCT.value then
+        for _,dot in ipairs(dots[nec.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
             -- if spell_id == spells.combodis.id then
             --     if (not is_target_dotted_with(spells.decay.id, spells.decay.name) or not is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodis.name)() then
             --         return dot
             --     end
             -- else
-            if (nec.OPTS.USEWOUNDS or dot.id ~= nec.spells.wounds.id) and common.is_dot_ready(dot) then
+            if (nec.OPTS.USEWOUNDS.value or dot.id ~= nec.spells.wounds.id) and common.is_dot_ready(dot) then
                 return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
         end
@@ -329,7 +329,7 @@ local function find_next_dot_to_cast()
     if mq.TLO.Me.SpellReady(nec.spells.manatap.name)() and mq.TLO.Spell(nec.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.manatap
     end
-    if config.SPELLSET == 'short' and mq.TLO.Me.SpellReady(nec.spells.venin.name)() and mq.TLO.Spell(nec.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if nec.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(nec.spells.venin.name)() and mq.TLO.Spell(nec.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.venin
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
@@ -339,10 +339,10 @@ nec.cast = function()
     if mq.TLO.Me.SpellInCooldown() then return false end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if nec.OPTS.USEDISPEL and mq.TLO.Target.Beneficial() then
+        if nec.OPTS.USEDISPEL.value and mq.TLO.Target.Beneficial() then
             common.use_aa(dispel)
         end
-        if nec.OPTS.DEBUFF and not mq.TLO.Target.Buff(nec.spells.scentterris.name)() and mq.TLO.Spell(nec.spells.scentterris.name).StacksTarget() then
+        if nec.OPTS.DEBUFF.value and not mq.TLO.Target.Buff(nec.spells.scentterris.name)() and mq.TLO.Spell(nec.spells.scentterris.name).StacksTarget() then
             common.use_aa(scent)
             debuff_timer:reset()
         end
@@ -355,7 +355,7 @@ nec.cast = function()
             common.cast(spell.name, true) -- then cast the dot
         end
 
-        if nec.OPTS.MULTIDOT then
+        if nec.OPTS.MULTIDOT.value then
             local original_target_id = 0
             if mq.TLO.Target.Type() == 'NPC' then original_target_id = mq.TLO.Target.ID() end
             local dotted_count = 1
@@ -371,7 +371,7 @@ nec.cast = function()
                             --if not mq.TLO.Me.SpellReady(spell.name)() then break end
                             common.cast(spell.name, true)
                             dotted_count = dotted_count + 1
-                            if dotted_count >= nec.OPTS.MULTICOUNT then break end
+                            if dotted_count >= nec.OPTS.MULTICOUNT.value then break end
                         end
                     end
                 end
@@ -391,7 +391,7 @@ local function target_has_proliferation()
 end
 
 local function is_nec_burn_condition_met()
-    if nec.OPTS.BURNPROC and target_has_proliferation() then
+    if nec.OPTS.BURNPROC.value and target_has_proliferation() then
         logger.printf('\arActivating Burns (proliferation proc)\ax')
         state.burn_active_timer:reset()
         state.burn_active = true
@@ -440,12 +440,12 @@ nec.burn_class = function()
         mq.delay(1500)
     end
 
-    if nec.OPTS.USEGLYPH then
+    if nec.OPTS.USEGLYPH.value then
         if not mq.TLO.Me.Song(intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             common.use_aa(glyph)
         end
     end
-    if nec.OPTS.USEINTENSITY then
+    if nec.OPTS.USEINTENSITY.value then
         if not mq.TLO.Me.Buff(glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             common.use_aa(intensity)
         end
@@ -481,7 +481,7 @@ local function pre_pop_burns()
         common.use_aa(aa)
     end
 
-    if nec.OPTS.USEGLYPH then
+    if nec.OPTS.USEGLYPH.value then
         if not mq.TLO.Me.Song(intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             common.use_aa(glyph)
         end
@@ -528,7 +528,7 @@ local check_aggro_timer = timer:new(10)
 nec.aggro = function()
     if config.MODE:is_manual_mode() then return end
     --if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
-    if nec.OPTS.USEFD and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
+    if nec.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
                 if mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
@@ -560,7 +560,7 @@ end
 
 local rez_timer = timer:new(5)
 nec.rez = function()
-    if not nec.OPTS.USEREZ or not convergence or common.am_i_dead() then return end
+    if not nec.OPTS.USEREZ.value or not convergence or common.am_i_dead() then return end
     if not rez_timer:timer_expired() then return end
     if not mq.TLO.Me.AltAbilityReady(convergence.name)() then return end
     if mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
@@ -605,14 +605,14 @@ end
 
 nec.buff = function()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
-    if nec.OPTS.USEBUFFSHIELD then
+    if nec.OPTS.USEBUFFSHIELD.value then
         local tempName = nec.spells.shield.name
         if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
         if not mq.TLO.Me.Buff(tempName)() then
             common.cast(nec.spells.shield.name)
         end
     end
-    if nec.OPTS.USEINSPIRE then
+    if nec.OPTS.USEINSPIRE.value then
         local tempName = nec.spells.inspire.name
         if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
         if not mq.TLO.Pet.Buff(tempName)() then
@@ -629,7 +629,7 @@ nec.buff = function()
 
     common.check_item_buffs()
 
-    if nec.OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
+    if nec.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 then
         for _,buff in ipairs(buffs.pet) do
             local tempName = buff.name
             if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
@@ -653,8 +653,8 @@ local check_spell_timer = timer:new(30)
 nec.check_spell_set = function()
     --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
-    if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
-        if config.SPELLSET == 'standard' then
+    if state.spellset_loaded ~= nec.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+        if nec.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(nec.spells.composite, 1, composite_names)
             common.swap_spell(nec.spells.pyreshort, 2)
             common.swap_spell(nec.spells.venom, 3)
@@ -665,8 +665,8 @@ nec.check_spell_set = function()
             --common.swap_spell(spells.wounds, 10)
             common.swap_spell(nec.spells.decay, 11)
             common.swap_spell(nec.spells.synergy, 13)
-            state.spellset_loaded = config.SPELLSET
-        elseif config.SPELLSET == 'short' then
+            state.spellset_loaded = nec.OPTS.SPELLSET.value
+        elseif nec.OPTS.SPELLSET.value == 'short' then
             common.swap_spell(nec.spells.composite, 1, composite_names)
             common.swap_spell(nec.spells.pyreshort, 2)
             common.swap_spell(nec.spells.venom, 3)
@@ -677,41 +677,41 @@ nec.check_spell_set = function()
             common.swap_spell(nec.spells.swarm, 10)
             common.swap_spell(nec.spells.decay, 11)
             common.swap_spell(nec.spells.synergy, 13)
-            state.spellset_loaded = config.SPELLSET
+            state.spellset_loaded = nec.OPTS.SPELLSET.value
         end
         check_spell_timer:reset()
         set_swap_gems()
     end
-    if config.SPELLSET == 'standard' then
-        if nec.OPTS.USEMANATAP and config.USEALLIANCE and nec.OPTS.USEBUFFSHIELD then
+    if nec.OPTS.SPELLSET.value == 'standard' then
+        if nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.shield, 12)
-        elseif nec.OPTS.USEMANATAP and config.USEALLIANCE and not nec.OPTS.USEBUFFSHIELD then
+        elseif nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.ignite, 12)
-        elseif nec.OPTS.USEMANATAP and not config.USEALLIANCE and not nec.OPTS.USEBUFFSHIELD then
+        elseif nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.scourge, 9)
             common.swap_spell(nec.spells.ignite, 12)
-        elseif nec.OPTS.USEMANATAP and not config.USEALLIANCE and nec.OPTS.USEBUFFSHIELD then
+        elseif nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.ignite, 9)
             common.swap_spell(nec.spells.shield, 12)
-        elseif not nec.OPTS.USEMANATAP and not config.USEALLIANCE and not nec.OPTS.USEBUFFSHIELD then
+        elseif not nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.scourge, 9)
             common.swap_spell(nec.spells.corruption, 12)
-        elseif not nec.OPTS.USEMANATAP and not config.USEALLIANCE and nec.OPTS.USEBUFFSHIELD then
+        elseif not nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.scourge, 9)
             common.swap_spell(nec.spells.shield, 12)
-        elseif not nec.OPTS.USEMANATAP and config.USEALLIANCE and nec.OPTS.USEBUFFSHIELD then
+        elseif not nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.shield, 12)
-        elseif not nec.OPTS.USEMANATAP and config.USEALLIANCE and not nec.OPTS.USEBUFFSHIELD then
+        elseif not nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEBUFFSHIELD.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.scourge, 12)
@@ -721,36 +721,36 @@ nec.check_spell_set = function()
         else
             common.swap_spell(nec.spells.wounds, 10)
         end
-    elseif config.SPELLSET == 'short' then
-        if nec.OPTS.USEMANATAP and config.USEALLIANCE and nec.OPTS.USEINSPIRE then
+    elseif nec.OPTS.SPELLSET.value == 'short' then
+        if nec.OPTS.USEMANATAP.value.value and nec.OPTS.USEALLIANCE.value and nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.inspire, 12)
-        elseif nec.OPTS.USEMANATAP and config.USEALLIANCE and not nec.OPTS.USEINSPIRE then
+        elseif nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.venin, 12)
-        elseif nec.OPTS.USEMANATAP and not config.USEALLIANCE and not nec.OPTS.USEINSPIRE then
+        elseif nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.ignite, 9)
             common.swap_spell(nec.spells.venin, 12)
-        elseif nec.OPTS.USEMANATAP and not config.USEALLIANCE and nec.OPTS.USEINSPIRE then
+        elseif nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.ignite, 9)
             common.swap_spell(nec.spells.inspire, 12)
-        elseif not nec.OPTS.USEMANATAP and not config.USEALLIANCE and not nec.OPTS.USEINSPIRE then
+        elseif not nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.scourge, 9)
             common.swap_spell(nec.spells.venin, 12)
-        elseif not nec.OPTS.USEMANATAP and not config.USEALLIANCE and nec.OPTS.USEINSPIRE then
+        elseif not nec.OPTS.USEMANATAP.value and not nec.OPTS.USEALLIANCE.value and nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.scourge, 9)
             common.swap_spell(nec.spells.inspire, 12)
-        elseif not nec.OPTS.USEMANATAP and config.USEALLIANCE and nec.OPTS.USEINSPIRE then
+        elseif not nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.inspire, 12)
-        elseif not nec.OPTS.USEMANATAP and config.USEALLIANCE and not nec.OPTS.USEINSPIRE then
+        elseif not nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and not nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.ignite, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.venin, 12)
@@ -760,7 +760,7 @@ end
 
 local nec_count_timer = timer:new(60)
 
--- if config.USEALLIANCE and nec_count_timer:timer_expired() then
+-- if nec.OPTS.USEALLIANCE.value and nec_count_timer:timer_expired() then
 --    get_necro_count()
 --    nec_count_timer:reset()
 -- end

@@ -106,10 +106,10 @@ end
 
 local function doCombatLoop(list)
     local target = mq.TLO.Target
-    local dist = target.Distance3D()
-    local maxdist = target.MaxRangeTo()
+    local dist = target.Distance3D() or 0
+    local maxdist = target.MaxRangeTo() or 0
     for _,ability in ipairs(list) do
-        if (ability.opt == nil or baseclass.OPTS[ability.opt]) and
+        if (ability.name or ability.id) and (ability.opt == nil or baseclass.OPTS[ability.opt]) and
             (ability.threshold == nil or ability.threshold >= state.mob_count_nopet) and
             (ability.type ~= 'ability' or dist < maxdist) then
                 common.use[ability.type](ability)
@@ -337,6 +337,7 @@ baseclass.main_loop = function()
         end
     end
     if config.MODE:is_pull_mode() and not baseclass.hold() then
+        logger.debug(state.debug, 'call pull')
         pull.pull_mob(baseclass.pull_func)
     end
 end

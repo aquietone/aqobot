@@ -136,8 +136,10 @@ pull.pull_radar = function()
     local pull_radius = config.PULLRADIUS
     if camp.Active then
         pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(camp.X, camp.Y, pull_radius))()
+        logger.debug(state.debug, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
     else
         pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
+        logger.debug(state.debug, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(pull_radius)))
     end
     local shortest_path = pull_radius
     local pull_id = 0
@@ -147,7 +149,7 @@ pull.pull_radar = function()
             -- try not to iterate through the whole world if there's a pretty large pull radius
             if i > 100 then break end
             local mob
-            if camp.Active then
+            if camp.Active and config.MODE:get_name() ~= 'huntertank' then
                 mob = mq.TLO.NearestSpawn(pull_spawn_camp:format(i, camp.X, camp.Y, pull_radius))
             else
                 mob = mq.TLO.NearestSpawn(pull_spawn:format(i, pull_radius))
@@ -311,6 +313,7 @@ pull.pull_mob = function(pull_func)
             end
         end]]--
         --clear_pull_vars()
+        logger.debug(state.debug, 'returning at weird state')
         return
     end
 
@@ -321,10 +324,12 @@ pull.pull_mob = function(pull_func)
         return
     end
     if not pull_state then
+        logger.debug(state.debug, 'a pull search can start')
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
         if common.am_i_dead() or state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets() then return end
         if not pull.check_pull_conditions() then return end
         -- find a mob to pull
+        logger.debug(state.debug, 'searching for pulls')
         local pull_mob_id = pull.pull_radar()
         local pull_spawn = mq.TLO.Spawn(pull_mob_id)
         if pull_spawn.ID() == 0 then

@@ -187,7 +187,7 @@ mq.imgui.init('AQO Bot 1.0', ui.main)
 
 mq.cmd('/squelch /stick set verbflags 0')
 mq.cmd('/squelch /plugin melee unload noauto')
-
+mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), mq.TLO.Me.Class.ShortName())
 local debug_timer = timer:new(3)
 --loot.logger.loglevel = 'debug'
 -- Main Loop
@@ -224,8 +224,8 @@ while true do
                 mq.cmd('/stand')
             end
             common.check_cursor()
-            --if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() then
-                --loot.lootMobs()
+            --if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() and not mq.TLO.Me.CombatState() == 'COMBAT' then
+            --    loot.lootMobs()
             --end
             class_funcs.main_loop()
             mq.delay(50)
