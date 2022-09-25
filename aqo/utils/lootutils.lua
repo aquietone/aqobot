@@ -245,7 +245,7 @@ loot.lootMobs = function()
     if not shouldLootMobs then return end
     local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.radius))()
     loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
-    local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('npc', loot.radius))()
+    local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.radius))()
     -- options for combat looting or looting disabled
     if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() or mq.TLO.Me.FreeInventory() == 0 then return end
     local corpseList = {}

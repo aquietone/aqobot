@@ -71,6 +71,8 @@ local function cmd_bind(...)
     local new_value = args[2]
     if opt == 'help' then
         show_help()
+    elseif opt == 'sell' and not new_value then
+        loot.sellStuff()
     elseif opt == 'burnnow' then
         state.burn_now = true
     elseif opt == 'pause' then
@@ -224,9 +226,9 @@ while true do
                 mq.cmd('/stand')
             end
             common.check_cursor()
-            --if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() and not mq.TLO.Me.CombatState() == 'COMBAT' then
-            --    loot.lootMobs()
-            --end
+            if mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() and mq.TLO.Me.CombatState() ~= 'COMBAT' then
+                loot.lootMobs()
+            end
             class_funcs.main_loop()
             mq.delay(50)
         else

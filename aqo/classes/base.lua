@@ -110,10 +110,9 @@ local function doCombatLoop(list)
     local maxdist = target.MaxRangeTo() or 0
     for _,ability in ipairs(list) do
         if (ability.name or ability.id) and (ability.opt == nil or baseclass.OPTS[ability.opt]) and
-            (ability.threshold == nil or ability.threshold >= state.mob_count_nopet) and
-            (ability.type ~= 'ability' or dist < maxdist) then
-                common.use[ability.type](ability)
-                if ability.delay then mq.delay(ability.delay) end
+                (ability.threshold == nil or ability.threshold >= state.mob_count_nopet) and
+                (ability.type ~= 'ability' or dist < maxdist) then
+            if common.use[ability.type](ability) and ability.delay then mq.delay(ability.delay) end
         end
     end
 end
@@ -179,7 +178,7 @@ baseclass.buff = function()
     if not common.clear_to_buff() then return end
     if baseclass.buff_class then baseclass.buff_class() end
     for _,buff in ipairs(baseclass.buffs) do
-        if buff.type == 'spellaura' then
+        if buff.type == 'spellaura' and buff.name then
             local buffName = buff.name
             if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
             if not mq.TLO.Me.Aura(buffName)() then
@@ -194,9 +193,8 @@ baseclass.buff = function()
                     common.swap_spell(restore_gem, 1)
                 end
             end
-        elseif buff.type == 'discaura' then
-            common.use_disc(buff)
-            mq.delay(3000)
+        elseif buff.type == 'discaura' and disc.name then
+            if common.use_disc(buff) then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
         elseif buff.type == 'item' then
             local item = mq.TLO.FindItem(buff.id)
             if not mq.TLO.Me.Buff(item.Spell.Name())() then

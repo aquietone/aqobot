@@ -313,7 +313,7 @@ local function draw_header()
     ImGui.PushItemWidth(item_width)
     config.MODE = mode.from_string(ui.draw_combo_box('Mode', config.MODE:get_name(), mode.mode_names))
     ImGui.PopItemWidth()
-    if current_mode ~= config.MODE:get_name() then
+    if current_mode ~= config.MODE:get_name() and not state.paused then
         camp.set_camp()
     end
 end

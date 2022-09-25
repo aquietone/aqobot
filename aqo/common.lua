@@ -387,7 +387,7 @@ common.cast = function(spell_name, requires_target)
             mq.delay(10)
         end
     end
-    return true
+    return not mq.TLO.Me.SpellReady(spell_name)()
 end
 
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
@@ -397,6 +397,7 @@ common.use_ability = function(name)
     if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Me.Skill(name)() > 0 and mq.TLO.Target() then
         mq.cmdf('/doability %s', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
+        logger.debug(state.debug, "Delayed for use_ability "..name)
     end
 end
 
@@ -445,7 +446,8 @@ common.use_aa = function(aa)
         mq.cmdf('/alt activate %d', aa.id)
         mq.delay(250+mq.TLO.Me.AltAbility(aa.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(aa.name)() end)
-        return true
+        logger.debug(state.debug, "Delayed for use_aa "..aa.name)
+        return not mq.TLO.Me.AltAbilityReady(aa.name)()
     end
     return false
 end
@@ -487,7 +489,8 @@ common.use_disc = function(disc, overwrite)
             end
             mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
-            return true
+            logger.debug(state.debug, "Delayed for use_disc "..disc.name)
+            return not mq.TLO.Me.CombatAbilityReady(disc.name)()
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
@@ -495,7 +498,8 @@ common.use_disc = function(disc, overwrite)
             mq.cmdf('/disc %s', disc.name)
             mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
-            return true
+            logger.debug(state.debug, "Delayed for use_disc "..disc.name)
+            return not mq.TLO.Me.CombatAbilityReady(disc.name)()
         end
     end
     return false
@@ -572,22 +576,24 @@ end
 ---@param gem number @The gem index to memorize the spell into.
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 common.swap_spell = function(spell, gem, other_names)
-    if not spell or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if not spell.name or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
     mq.delay(3000, function() return common.swap_gem_ready(spell.name, gem) end)
+    logger.debug(state.debug, "Delayed for mem_spell "..spell.name)
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
 
 common.swap_and_cast = function(spell, gem)
-    if not spell then return false end
+    if not spell.name then return false end
     local restore_gem = nil
     if not mq.TLO.Me.Gem(spell.name)() then
         restore_gem = {name=mq.TLO.Me.Gem(gem)()}
         common.swap_spell(spell, gem)
     end
     mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
+    logger.debug(state.debug, "Delayed for spell swap "..spell.name)
     local did_cast = common.cast(spell.name)
     if restore_gem then
         common.swap_spell(restore_gem, gem)

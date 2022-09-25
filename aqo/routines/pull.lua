@@ -154,7 +154,7 @@ pull.pull_radar = function()
             else
                 mob = mq.TLO.NearestSpawn(pull_spawn:format(i, pull_radius))
             end
-            local path_len = mq.TLO.Navigation.PathLength('id '..mob.ID())()
+            local path_len = mq.TLO.Navigation.PathLength(string.format('id %s', mob.ID()))()
             if validate_pull(mob, path_len, zone_sn) then
                 -- TODO: check for people nearby, check level, check z radius if high/low differ
                 --local pc_near_count = mq.TLO.SpawnCount(pc_near:format(mob.X(), mob.Y()))
