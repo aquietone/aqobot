@@ -101,16 +101,8 @@ table.insert(brd.burnAbilities, common.get_disc('Thousand Blades'))
 
 table.insert(brd.DPSAbilities, common.get_aa('Cacophony'))
 -- Delay after using swarm pet AAs while pets are spawning
-local prankster = common.get_aa('Lyrical Prankster', 'USESWARM')
-if prankster then
-    prankster.delay = 1500
-    table.insert(brd.DPSAbilities, prankster)
-end
-local songofstone = common.get_aa('Song of Stone', 'USESWARM')
-if songofstone then
-    songofstone.delay = 1500
-    table.insert(brd.DPSAbilities, songofstone)
-end
+table.insert(brd.DPSAbilities, common.get_aa('Lyrical Prankster', {opt='USESWARM', delay=1500}))
+table.insert(brd.DPSAbilities, common.get_aa('Song of Stone', {opt='USESWARM', delay=1500}))
 
 table.insert(brd.DPSAbilities, common.get_disc('Reflexive Rebuttal'))
 
@@ -119,11 +111,7 @@ table.insert(brd.DPSAbilities, {name='Kick',            type='ability'})
 
 local bellow = common.get_aa('Boastful Bellow')
 
-local shout = common.get_aa('Vainglorious Shout')
-if shout then
-    shout.threshold = 4
-    table.insert(brd.AEDPSAbilities, shout)
-end
+table.insert(brd.AEDPSAbilities, common.get_aa('Vainglorious Shout', {threshold=4}))
 
 table.insert(baseclass.defensiveAbilities, common.get_aa('Shield of Notes'))
 table.insert(baseclass.defensiveAbilities, common.get_aa('Hymn of the Last Stand'))
@@ -141,14 +129,8 @@ table.insert(brd.buffs, {id=mq.TLO.FindItem('Songblade of the Eternal').ID() or 
 
 local selos = common.get_aa('Selo\'s Sonata')
 -- Mana Recovery AAs
-local rallyingsolo = common.get_aa('Rallying Solo')
-if rallyingsolo then
-    rallyingsolo.mana = true
-    rallyingsolo.endurance = true
-    rallyingsolo.threshold = 20
-    rallyingsolo.combat = false
-    table.insert(brd.recoverAbilities, rallyingsolo)
-end
+local rallyingsolo = common.get_aa('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false})
+table.insert(brd.recoverAbilities, rallyingsolo)
 local rallyingcall = common.get_aa('Rallying Call')
 
 -- aa mez
@@ -202,7 +184,7 @@ local function is_dot_ready(spellId, spellName)
     -- don't dot if i'm not attacking
     if not spellName or not mq.TLO.Me.Combat() then return false end
     local actualSpellName = spellName
-    if state.get_subscription() ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
+    if state.subscription ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
     local songDuration = 0
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() ~= 0  then
         return false

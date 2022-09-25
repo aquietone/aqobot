@@ -68,37 +68,55 @@ end
 ---@param spell_name string @The name of the spell.
 ---@return table|nil @Returns a table containing the spell name with rank, spell ID and the provided option name.
 common.get_spell = function(spell_name)
-    local spell_rank = mq.TLO.Spell(spell_name).RankName()
-    if not mq.TLO.Me.Book(spell_rank)() then return nil end
-    return {id=mq.TLO.Spell(spell_rank).ID(), name=spell_rank, type='spell'}
+    local spell = mq.TLO.Spell(spell_name)
+    local rankname = spell.RankName()
+    if not mq.TLO.Me.Book(rankname)() then return nil end
+    return {id=spell.ID(), name=rankname, type='spell'}
 end
 
-common.get_best_spell = function(spells)
-    local spell = nil
-    for _, spell_name in ipairs(spells) do
-        spell = common.get_spell(spell_name)
-        if spell then break end
+common.get_best_spell = function(spells, options)
+    for _,spell_name in ipairs(spells) do
+        local spell = common.get_spell(spell_name)
+        if spell then
+            if options then
+                options.name = spell.name
+                options.id = spell.id
+                options.type = 'spell'
+                return options
+            end
+            return spell
+        end
     end
-    return spell or {}
+    return {}
 end
 
 ---Lookup the ID for a given AA.
 ---@param aa_name string @The name of the AA.
----@param option_name string|nil @The name of the option which controls whether this AA should be used.
+---@param options table|nil @A table of options relating to the AA, such as the setting name controlling use of the AA
 ---@return table|nil @Returns a table containing the AA name, AA ID and the provided option name.
-common.get_aa = function(aa_name, option_name)
-    if not mq.TLO.Me.AltAbility(aa_name)() then return nil end
-    return {id=mq.TLO.Me.AltAbility(aa_name).ID(), name=aa_name, opt=option_name, type='aa'}
+common.get_aa = function(aa_name, options)
+    local aa = mq.TLO.Me.AltAbility(aa_name)
+    if not aa() then return nil end
+    if not options then options = {} end
+    options.id = aa.ID()
+    options.name = aa_name
+    options.type = 'aa'
+    return options
 end
 
 ---Lookup the ID for a given disc.
 ---@param disc_name string @The name of the disc.
----@param option_name string|nil @The name of the option which controls whether this disc should be used.
+---@param options table|nil @A table of options relating to the disc, such as the setting name controlling use of the disc
 ---@return table|nil @Returns a table containing the disc name with rank, disc ID and the provided option name.
-common.get_disc = function(disc_name, option_name)
-    local disc_rank = mq.TLO.Spell(disc_name).RankName()
-    if not disc_rank then return nil end
-    return {id=mq.TLO.Spell(disc_rank).ID(), name=disc_rank, opt=option_name, type='disc'}
+common.get_disc = function(disc_name, options)
+    local disc = mq.TLO.Spell(disc_name)
+    local rankname = disc.RankName()
+    if not rankname then return nil end
+    if not options then options = {} end
+    options.id = disc.ID()
+    options.type = 'disc'
+    options.name = rankname
+    return options
 end
 
 ---Check whether the specified dot is applied to the target.
@@ -606,7 +624,7 @@ common.check_mana = function()
     -- modrods
     local pct_mana = mq.TLO.Me.PctMana()
     local pct_end = mq.TLO.Me.PctEndurance()
-    local group_mana = mq.TLO.Group.LowMana(70)
+    local group_mana = mq.TLO.Group.LowMana(70)()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 then
         local cursor = mq.TLO.Cursor.Name()

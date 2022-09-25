@@ -20,23 +20,22 @@ local camp = {
 local xtar_corpse_count = 'xtarhater npccorpse radius %d zradius 50'
 local xtar_count = 'xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_spawn = '%d, xtarhater npc radius %d zradius 50 loc %d %d %d'
+local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
 ---Determine the number of mobs within the camp radius.
 ---Sets common.MOB_COUNT to the total number of mobs on xtarget within the camp radius.
 ---Adds the mob ID of each mob found to the common.TARGETS table.
 camp.mob_radar = function()
-    --local num_corpses = 0
-    local targets = state.targets
     local x, y, z
     if config.MODE:get_name() == 'huntertank' then
         x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     else
         x, y, z = camp.X, camp.Y, camp.Z
     end
-    --num_corpses = mq.TLO.SpawnCount(xtar_corpse_count:format(config.CAMPRADIUS))()
     logger.debug(state.debug, xtar_count:format(config.CAMPRADIUS or 0, x, y, z))
-    local mob_count = mq.TLO.SpawnCount(xtar_count:format(config.CAMPRADIUS or 0, x, y, z))()-- - num_corpses
-    if mob_count > 0 then
-        for i=1,mob_count do
+    state.mob_count = mq.TLO.SpawnCount(xtar_count:format(config.CAMPRADIUS or 0, x, y, z))()
+    state.mob_count_nopet = mq.TLO.SpawnCount(xtar_nopet_count:format(config.CAMPRADIUS or 0, x, y, z))()
+    if state.mob_count > 0 then
+        for i=1,state.mob_count do
             if i > 13 then break end
             logger.debug(state.debug, xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
             local mob = mq.TLO.NearestSpawn(xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
@@ -44,31 +43,24 @@ camp.mob_radar = function()
             logger.debug(state.debug, string.format('mod id: %s', mob_id))
             if mob_id and mob_id > 0 then
                 if not mob() or mob.Type() == 'Corpse' then
-                    targets[mob_id] = nil
-                    --num_corpses = num_corpses+1
-                elseif not targets[mob_id] then
+                    state.targets[mob_id] = nil
+                elseif not state.targets[mob_id] then
                     logger.debug(state.debug, 'Adding mob_id %d', mob_id)
-                    targets[mob_id] = {meztimer=timer:new(30)}
+                    state.targets[mob_id] = {meztimer=timer:new(30)}
                 end
             end
         end
-        state.mob_count = mob_count-- - num_corpses
-    else
-        state.mob_count = 0
     end
-    state.targets = targets -- is this necessary if targets is by ref
 end
 
 ---Checks for any mobs in common.TARGETS which are no longer valid and removes them from the table.
 camp.clean_targets = function()
-    local targets = state.targets
-    for mobid,_ in pairs(targets) do
+    for mobid,_ in pairs(state.targets) do
         local spawn = mq.TLO.Spawn(string.format('id %s', mobid))
         if not spawn() or spawn.Type() == 'Corpse' then
-            targets[mobid] = nil
+            state.targets[mobid] = nil
         end
     end
-    state.targets = targets -- is this necessary if targets is by ref
 end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.

@@ -634,12 +634,16 @@ end
 local function check_buffs()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
     if OPTS.USEBUFFSHIELD then
-        if not mq.TLO.Me.Buff(spells.shield.name)() then
+        local tempName = spells.shield.name
+        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+        if not mq.TLO.Me.Buff(tempName)() then
             common.cast(spells.shield.name)
         end
     end
     if OPTS.USEINSPIRE then
-        if not mq.TLO.Pet.Buff(spells.inspire.name)() then
+        local tempName = spells.inspire.name
+        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+        if not mq.TLO.Pet.Buff(tempName)() then
             common.cast(spells.inspire.name)
         end
     end
@@ -655,7 +659,9 @@ local function check_buffs()
 
     if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
         for _,buff in ipairs(buffs.pet) do
-            if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
+            local tempName = buff.name
+            if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+            if not mq.TLO.Pet.Buff(tempName)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
                 common.swap_and_cast(buff, 13)
             end
         end

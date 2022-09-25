@@ -1,4 +1,3 @@
---- @type Mq
 local baseclass = require('aqo.classes.base')
 
 local mnk = baseclass

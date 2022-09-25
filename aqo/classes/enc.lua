@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
+local baseclass = require('aqo.classes.base')
 local assist = require('aqo.routines.assist')
 local camp = require('aqo.routines.camp')
 local mez = require('aqo.routines.mez')
@@ -11,156 +12,145 @@ local config = require('aqo.configuration')
 local state = require('aqo.state')
 local ui = require('aqo.ui')
 
-local enc = {}
+local enc = baseclass
 
-local SPELLSETS = {standard=1}
-local AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
-local OPTS = {
-    AURA1='twincast',
-    AURA2='combatinnate',
-    INTERRUPTFORMEZ=false,
-    TASHTHENMEZ=true,
-    USECHAOTIC=true,
-    USECHARM=false,
-    USEDOT=true,
-    USEHASTE=true,
-    USEMEZ=true,
-    USEMINDOVERMATTER=true,
-    USENIGHTSTERROR=true,
-    USENUKE=true,
-    USEPHANTASMAL=true,
-    USEREPLICATION=true,
-    USESHIELDOFFATE=true,
-    USESLOW=false,
-    USESLOWAOE=true,
-    USESPELLGUARD=true,
-    USETASH=false,
-    USETASHAOE=true,
-    SUMMONPET=false,
-    BUFFPET=true,
-    USEERADICATE=true,
-}
-config.SPELLSET = 'standard'
+enc.class = 'enc'
+enc.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
--- All spells ID + Rank name
-local spells = {
-    composite=common.get_best_spell({'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}), -- restore mana, add dmg proc, inc dmg
-    alliance=common.get_best_spell({'Chromatic Coalition', 'Chromatic Covenant'}),
+enc.SPELLSETS = {standard=1}
+enc.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
 
-    mezst=common.get_best_spell({'Addle'}), -- 9 ticks
-    mezst2=common.get_best_spell({'Addling Flash'}), -- 6 ticks
-    mezae=common.get_best_spell({'Bewildering Wave', 'Neutralizing Wave'}), -- targeted AE mez
-    mezaehate=common.get_best_spell({'Confounding Glance'}), -- targeted AE mez + 100% hate reduction
-    mezpbae=common.get_best_spell({'Bewilderment'}),
-    mezpbae2=common.get_best_spell({'Perilous Bewilderment'}), -- lvl 120
-    meznoblur=common.get_best_spell({'Chaotic Puzzlement', 'Chaotic Deception'}),
-    mezaeprocblur=common.get_best_spell({'Mesmeric Stare'}), -- targeted AE mez
-    mezshield=common.get_best_spell({'Ward of the Beguiler', 'Ward of the Deviser'}), -- mez proc on being hit
+enc.addOption('SPELLSET', 'Spell Set', 'standard', enc.SPELLSETS, nil, 'combobox')
+enc.addOption('AURA1', 'Aura 1', 'twincast', enc.AURAS, nil, 'combobox')
+enc.addOption('AURA2', 'Aura 2', 'combatinnate', enc.AURAS, nil, 'combobox')
+enc.addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, '', 'checkbox')
+enc.addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, '', 'checkbox')
+enc.addOption('USECHAOTIC', 'Use Chaotic', true, nil, '', 'checkbox')
+enc.addOption('USECHARM', 'Use Charm', false, nil, '', 'checkbox')
+enc.addOption('USEDOT', 'Use DoT', true, nil, '', 'checkbox')
+enc.addOption('USEHASTE', 'Buff Haste', true, nil, '', 'checkbox')
+enc.addOption('USEMEZ', 'Use Mez', true, nil, '', 'checkbox')
+enc.addOption('AEMEZCOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
+enc.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, '', 'checkbox')
+enc.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, '', 'checkbox')
+enc.addOption('USENUKE', 'Use Nuke', true, nil, '', 'checkbox')
+enc.addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, '', 'checkbox')
+enc.addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, '', 'checkbox')
+enc.addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, '', 'checkbox')
+enc.addOption('USESLOW', 'Use Slow', false, nil, '', 'checkbox')
+enc.addOption('USESLOWAOE', 'Use Slow AOE', true, nil, '', 'checkbox')
+enc.addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, '', 'checkbox')
+enc.addOption('USETASH', 'Use Tash', false, nil, '', 'checkbox')
+enc.addOption('USETASHAOE', 'Use Tash AOE', true, nil, '', 'checkbox')
+enc.addOption('SUMMONPET', 'Summon Pet', false, nil, '', 'checkbox')
+enc.addOption('BUFFPET', 'Buff Pet', true, nil, '', 'checkbox')
+enc.addOption('USEERADICATE', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
 
-    rune=common.get_best_spell({'Marvel\'s Rune'}), -- 160k rune, self
-    rune2=common.get_best_spell({'Rune of Tearc'}), -- 90k rune, single target
-    dotrune=common.get_best_spell({'Aegis of Xetheg'}), -- absorb DoT dmg
-    guard=common.get_best_spell({'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}), -- spell + melee guard
-    dotmiti=common.get_best_spell({'Deviser\'s Auspice', 'Transfixer\'s Auspice'}), -- DoT guard
-    meleemiti=common.get_best_spell({'Eclipsed Auspice'}), -- melee guard
-    spellmiti=common.get_best_spell({'Aegis of Sefra'}), -- 20% spell mitigation
-    absorbbuff=common.get_best_spell({'Brimstone Endurance'}), -- increase absorb dmg
+enc.addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
+enc.addSpell('alliance', {'Chromatic Coalition', 'Chromatic Covenant'})
 
-    aggrorune=common.get_best_spell({'Ghastly Rune'}), -- single target rune + hate increase
+enc.addSpell('mezst', {'Addle'}) -- 9 ticks
+enc.addSpell('mezst2', {'Addling Flash'}) -- 6 ticks
+enc.addSpell('mezae', {'Bewildering Wave', 'Neutralizing Wave'}) -- targeted AE mez
+enc.addSpell('mezaehate', {'Confounding Glance'}) -- targeted AE mez + 100% hate reduction
+enc.addSpell('mezpbae', {'Bewilderment'})
+enc.addSpell('mezpbae2', {'Perilous Bewilderment'}) -- lvl 120
+enc.addSpell('meznoblur', {'Chaotic Puzzlement', 'Chaotic Deception'})
+enc.addSpell('mezaeprocblur', {'Mesmeric Stare'}) -- targeted AE mez
+enc.addSpell('mezshield', {'Ward of the Beguiler', 'Ward of the Deviser'}) -- mez proc on being hit
 
-    groupdotrune=common.get_best_spell({'Legion of Xetheg', 'Legion of Cekenar'}),
-    groupspellrune=common.get_best_spell({'Legion of Liako', 'Legion of Kildrukaun'}),
-    groupaggrorune=common.get_best_spell({'Eclipsed Rune'}), -- group rune + aggro reduction proc
+enc.addSpell('rune', {'Marvel\'s Rune'}) -- 160k rune, self
+enc.addSpell('rune2', {'Rune of Tearc'}) -- 90k rune, single target
+enc.addSpell('dotrune', {'Aegis of Xetheg'}) -- absorb DoT dmg
+enc.addSpell('guard', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}) -- spell + melee guard
+enc.addSpell('dotmiti', {'Deviser\'s Auspice', 'Transfixer\'s Auspice'}) -- DoT guard
+enc.addSpell('meleemiti', {'Eclipsed Auspice'}) -- melee guard
+enc.addSpell('spellmiti', {'Aegis of Sefra'}) -- 20% spell mitigation
+enc.addSpell('absorbbuff', {'Brimstone Endurance'}) -- increase absorb dmg
 
-    dot=common.get_best_spell({'Mind Vortex', 'Mind Coil'}), -- big dot
-    dot2=common.get_best_spell({'Throttling Grip', 'Pulmonary Grip'}), -- decent dot
-    debuffdot=common.get_best_spell({'Perplexing Constriction'}), -- debuff + nuke + dot
-    manadot=common.get_best_spell({'Tears of Xenacious'}), -- hp + mana DoT
-    nukerune=common.get_best_spell({'Chromatic Flare'}), -- 15k nuke + self rune
-    nuke=common.get_best_spell({'Psychological Appropriation'}), -- 20k
-    nuke2=common.get_best_spell({'Chromashear'}), -- 23k
-    nuke3=common.get_best_spell({'Polyluminous Assault'}), -- 27k nuke
-    nuke4=common.get_best_spell({'Obscuring Eclipse'}), -- 27k nuke
-    aenuke=common.get_best_spell({'Gravity Roil'}), -- 23k targeted ae nuke
+enc.addSpell('aggrorune', {'Ghastly Rune'}) -- single target rune + hate increase
 
-    calm=common.get_best_spell({'Still Mind'}),
-    tash=common.get_best_spell({'Edict of Tashan', 'Proclamation of Tashan'}),
-    stunst=common.get_best_spell({'Dizzying Vortex'}), -- single target stun
-    stunae=common.get_best_spell({'Remote Color Conflagration'}),
-    stunpbae=common.get_best_spell({'Color Conflagration'}),
-    stunaerune=common.get_best_spell({'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune'}), -- self rune, proc ae stun on fade
+enc.addSpell('groupdotrune', {'Legion of Xetheg', 'Legion of Cekenar'})
+enc.addSpell('groupspellrune', {'Legion of Liako', 'Legion of Kildrukaun'})
+enc.addSpell('groupaggrorune', {'Eclipsed Rune'}) -- group rune + aggro reduction proc
 
-    pet=common.get_best_spell({'Constance\'s Animation'}),
-    pethaste=common.get_best_spell({'Invigorated Minion'}),
-    charm=common.get_best_spell({'Marvel\'s Command'}),
-    -- buffs
-    unity=common.get_best_spell({'Marvel\'s Unity', 'Deviser\'s Unity'}), -- mez proc on being hit
-    procbuff=common.get_best_spell({'Mana Rebirth'}), -- single target dmg proc buff
-    kei=common.get_best_spell({'Scrying Visions', 'Sagacity'}),
-    keigroup=common.get_best_spell({'Voice of Perception', 'Voice of Sagacity'}),
-    haste=common.get_best_spell({'Speed of Itzal', 'Speed of Cekenar'}), -- single target buff
-    grouphaste=common.get_best_spell({'Hastening of Jharin', 'Hastening of Cekenar'}), -- group haste
-    nightsterror=common.get_best_spell({'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}), -- melee attack proc
-    -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
-    twincast=common.get_best_spell({'Twincast Aura'}),
-    regen=common.get_best_spell({'Marvel\'s Aura', 'Deviser\'s Aura'}), -- mana + end regen aura
-    spellfocus=common.get_best_spell({'Enhancing Aura', 'Fortifying Aura'}), -- increase dmg of DDs
-    combatinnate=common.get_best_spell({'Mana Radix Aura', 'Mana Replication Aura'}), -- dmg proc on spells, Issuance of Mana Radix == place aura at location
-    disempower=common.get_best_spell({'Arcane Disjunction Aura'}),
-    -- unity buffs
-    shield=common.get_best_spell({'Shield of Shadow', 'Shield of Restless Ice'}),
-    ward=common.get_best_spell({'Ward of the Beguiler', 'Ward of the Transfixer'}),
-}
-spells.synergy = common.get_best_spell({'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
-if spells.synergy then
-    if spells.synergy.name:find('reap') then
-        spells.nuke5 = common.get_best_spell({'Mindrift', 'Mindslash'})
-    elseif spells.synergy.name:find('rift') then
-        spells.nuke5 = common.get_best_spell({'Mindslash'})
-    end
-end
+enc.addSpell('dot', {'Mind Vortex', 'Mind Coil'}) -- big dot
+enc.addSpell('dot2', {'Throttling Grip', 'Pulmonary Grip'}) -- decent dot
+enc.addSpell('debuffdot', {'Perplexing Constriction'}) -- debuff + nuke + dot
+enc.addSpell('manadot', {'Tears of Xenacious'}) -- hp + mana DoT
+enc.addSpell('nukerune', {'Chromatic Flare'}) -- 15k nuke + self rune
+enc.addSpell('nuke', {'Psychological Appropriation'}) -- 20k
+enc.addSpell('nuke2', {'Chromashear'}) -- 23k
+enc.addSpell('nuke3', {'Polyluminous Assault'}) -- 27k nuke
+enc.addSpell('nuke4', {'Obscuring Eclipse'}) -- 27k nuke
+enc.addSpell('aenuke', {'Gravity Roil'}) -- 23k targeted ae nuke
 
-for name,spell in pairs(spells) do
-    if spell.name then
-        logger.printf('[%s] Found spell: %s (%s)', name, spell.name, spell.id)
-    else
-        logger.printf('[%s] Could not find spell!', name)
+enc.addSpell('calm', {'Still Mind'})
+enc.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan'})
+enc.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
+enc.addSpell('stunae', {'Remote Color Conflagration'})
+enc.addSpell('stunpbae', {'Color Conflagration'})
+enc.addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune'}) -- self rune, proc ae stun on fade
+
+enc.addSpell('pet', {'Constance\'s Animation'})
+enc.addSpell('pethaste', {'Invigorated Minion'})
+enc.addSpell('charm', {'Marvel\'s Command'})
+-- buffs
+enc.addSpell('unity', {'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
+enc.addSpell('procbuff', {'Mana Rebirth'}) -- single target dmg proc buff
+enc.addSpell('kei', {'Scrying Visions', 'Sagacity'})
+enc.addSpell('keigroup', {'Voice of Perception', 'Voice of Sagacity'})
+enc.addSpell('haste', {'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
+enc.addSpell('grouphaste', {'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
+enc.addSpell('nightsterror', {'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}) -- melee attack proc
+-- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
+enc.addSpell('twincast', {'Twincast Aura'})
+enc.addSpell('regen', {'Marvel\'s Aura', 'Deviser\'s Aura'}) -- mana + end regen aura
+enc.addSpell('spellfocus', {'Enhancing Aura', 'Fortifying Aura'}) -- increase dmg of DDs
+enc.addSpell('combatinnate', {'Mana Radix Aura', 'Mana Replication Aura'}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
+enc.addSpell('disempower', {'Arcane Disjunction Aura'})
+-- unity buffs
+enc.addSpell('shield', {'Shield of Shadow', 'Shield of Restless Ice'})
+enc.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
+
+enc.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
+if enc.spells.synergy then
+    if enc.spells.synergy.name:find('reap') then
+        enc.spells.nuke5 = common.get_best_spell({'Mindrift', 'Mindslash'})
+    elseif enc.spells.synergy.name:find('rift') then
+        enc.spells.nuke5 = common.get_best_spell({'Mindslash'})
     end
 end
 
 -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local standard = {}
-table.insert(standard, spells.tash)
-table.insert(standard, spells.dotmiti)
-table.insert(standard, spells.meznoblur)
-table.insert(standard, spells.mezae)
-table.insert(standard, spells.dot)
-table.insert(standard, spells.dot2)
-table.insert(standard, spells.synergy)
-table.insert(standard, spells.nuke5)
-table.insert(standard, spells.composite)
-table.insert(standard, spells.stunaerune)
-table.insert(standard, spells.guard)
-table.insert(standard, spells.nightsterror)
-table.insert(standard, spells.combatinnate)
+table.insert(standard, enc.spells.tash)
+table.insert(standard, enc.spells.dotmiti)
+table.insert(standard, enc.spells.meznoblur)
+table.insert(standard, enc.spells.mezae)
+table.insert(standard, enc.spells.dot)
+table.insert(standard, enc.spells.dot2)
+table.insert(standard, enc.spells.synergy)
+table.insert(standard, enc.spells.nuke5)
+table.insert(standard, enc.spells.composite)
+table.insert(standard, enc.spells.stunaerune)
+table.insert(standard, enc.spells.guard)
+table.insert(standard, enc.spells.nightsterror)
+table.insert(standard, enc.spells.combatinnate)
 
--- entries in the items table are MQ item datatypes
-local items = {}
-table.insert(items, mq.TLO.InvSlot('Chest').Item.ID()) -- buff, Consuming Magic, 10 minute CD
-table.insert(items, mq.TLO.FindItem('Rage of Rolfron').ID()) -- song, 30 minute CD
+table.insert(enc.burnAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(), type='item'}) -- buff, Consuming Magic, 10 minute CD
+table.insert(enc.burnAbilities, {id=mq.TLO.FindItem('Rage of Rolfron').ID(), type='item'}) -- song, 30 minute CD
 
--- entries in the AAs table are pairs of {aa name, aa id}
-local AAs = {}
-table.insert(AAs, common.get_aa('Silent Casting')) -- song, 12 minute CD
-table.insert(AAs, common.get_aa('Focus of Arcanum')) -- buff, 10 minute CD
-table.insert(AAs, common.get_aa('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
-table.insert(AAs, common.get_aa('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
-table.insert(AAs, common.get_aa('Spire of Enchantment')) -- buff, 7:30 minute CD
-table.insert(AAs, common.get_aa('Improved Twincast')) -- 15min CD
-table.insert(AAs, common.get_aa('Chromatic Haze')) -- 15min CD
-table.insert(AAs, common.get_aa('Companion\'s Fury')) -- 10 minute CD
-table.insert(AAs, common.get_aa('Companion\'s Fortification')) -- 15 minute CD
+table.insert(enc.burnAbilities, common.get_aa('Silent Casting')) -- song, 12 minute CD
+table.insert(enc.burnAbilities, common.get_aa('Focus of Arcanum')) -- buff, 10 minute CD
+table.insert(enc.burnAbilities, common.get_aa('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
+table.insert(enc.burnAbilities, common.get_aa('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
+table.insert(enc.burnAbilities, common.get_aa('Spire of Enchantment')) -- buff, 7:30 minute CD
+table.insert(enc.burnAbilities, common.get_aa('Improved Twincast')) -- 15min CD
+table.insert(enc.burnAbilities, common.get_aa('Chromatic Haze')) -- 15min CD
+table.insert(enc.burnAbilities, common.get_aa('Companion\'s Fury')) -- 10 minute CD
+table.insert(enc.burnAbilities, common.get_aa('Companion\'s Fortification')) -- 15 minute CD
 
 --table.insert(AAs, get_aaid_and_name('Glyph of Destruction (115+)'))
 --table.insert(AAs, get_aaid_and_name('Intensity of the Resolute'))
@@ -203,7 +193,7 @@ local dispel = common.get_aa('Eradicate Magic')
 local buffs={
     self={},
     pet={
-        spells.pethaste,
+        enc.spells.pethaste,
     },
 }
 --[[
@@ -213,41 +203,24 @@ local buffs={
 ]]--
 local targets = {}
 
-local SETTINGS_FILE = ('%s/encbot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
-enc.load_settings = function()
-    local settings = config.load_settings(SETTINGS_FILE)
-    if not settings or not settings.enc then return end
-    for setting,value in pairs(settings.enc) do
-        OPTS[setting] = value
-    end
-end
-
-enc.save_settings = function()
-    persistence.store(SETTINGS_FILE, {common=config.get_all(), enc=OPTS})
-end
-
-enc.reset_class_timers = function()
-    -- no-op
-end
-
-local function check_mez()
-    if OPTS.MEZ then
-        mez.do_ae(spells.mezae.name, common.cast)
+enc.mez = function()
+    if enc.OPTS.MEZ then
+        mez.do_ae(enc.spells.mezae.name, common.cast)
         if not mq.TLO.Me.SpellInCooldown() then
-            if not mq.TLO.Target.Tashed() and OPTS.TASHTHENMEZ and tash then
+            if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ and tash then
                 common.use_aa(tash)
             end
-            mez.do_single(spells.mezst.name, common.cast)
+            mez.do_single(enc.spells.mezst.name, common.cast)
         end
     end
 end
 
 local function cast_synergy()
-    if spells.synergy and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(spells.synergy.name)() then
-        if mq.TLO.Spell(spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
+    if enc.spells.synergy and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(enc.spells.synergy.name)() then
+        if mq.TLO.Spell(enc.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
-        common.cast(spells.synergy.name, true)
+        common.cast(enc.spells.synergy.name, true)
         return true
     end
     return false
@@ -258,30 +231,30 @@ end
 -- nuke5
 -- dot2
 local function find_next_spell_to_cast()
-    if not mq.TLO.Target.Tashed() and OPTS.USETASH and common.is_spell_ready(spells.tash) then return spells.tash end
-    if common.is_spell_ready(spells.composite) then return spells.composite end
+    if not mq.TLO.Target.Tashed() and enc.OPTS.USETASH and common.is_spell_ready(enc.spells.tash) then return enc.spells.tash end
+    if common.is_spell_ready(enc.spells.composite) then return enc.spells.composite end
     if cast_synergy() then return nil end
-    if common.is_spell_ready(spells.nuke5) then return spells.nuke5 end
-    if common.is_dot_ready(spells.dot2) then return spells.dot2 end
+    if common.is_spell_ready(enc.spells.nuke5) then return enc.spells.nuke5 end
+    if common.is_dot_ready(enc.spells.dot2) then return enc.spells.dot2 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 
 local SLOW_IMMUNES = {}
 
-local function cycle_spells()
+enc.cast = function()
     if common.am_i_dead() then return false end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if mq.TLO.Target.Beneficial() and OPTS.USEERADICATE and dispel then
+        if mq.TLO.Target.Beneficial() and enc.OPTS.USEERADICATE and dispel then
             common.use_aa(dispel)
         end
-        if not mq.TLO.Target.Tashed() and OPTS.USETASHAOE and tash then
+        if not mq.TLO.Target.Tashed() and enc.OPTS.USETASHAOE and tash then
             common.use_aa(tash)
         end
         if not mq.TLO.Target.Slowed() and not SLOW_IMMUNES[mq.TLO.Target.CleanName()] then
-            if OPTS.USESLOWAOE and aeslow then
+            if enc.OPTS.USESLOWAOE and aeslow then
                 common.use_aa(aeslow)
-            elseif OPTS.USESLOW and slow then
+            elseif enc.OPTS.USESLOW and slow then
                 common.use_aa(slow)
             end
             mq.doevents('event_slowimmune')
@@ -295,35 +268,7 @@ local function cycle_spells()
     return false
 end
 
-local function try_burn()
-    -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
-    -- Test them both for each item, and see which one(s) actually work.
-    if common.is_burn_condition_met() then
-        --[[
-        |===========================================================================================
-        |Item Burn
-        |===========================================================================================
-        ]]--
-
-        for _,item_id in ipairs(items) do
-            local item = mq.TLO.FindItem(item_id)
-            common.use_item(item)
-        end
-
-        --[[
-        |===========================================================================================
-        |Spell Burn
-        |===========================================================================================
-        ]]--
-
-        for _,aa in ipairs(AAs) do
-            common.use_aa(aa)
-        end
-
-    end
-end
-
-local function check_mana()
+enc.recover = function()
     -- modrods
     common.check_mana()
     local pct_mana = mq.TLO.Me.PctMana()
@@ -340,7 +285,7 @@ local function check_mana()
 end
 
 local check_aggro_timer = timer:new(10)
-local function check_aggro()
+enc.aggro = function()
     if mq.TLO.Me.PctHPs() < 40 then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(sanguine.name) then mq.cmd('/autoinventory') end
@@ -366,18 +311,22 @@ local function missing_unity_buffs(name)
 end
 
 -- group guards - legion of liako / xetheg
-local function check_buffs()
+enc.buff = function()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
 -- now buffs:
--- - spells.guard (shield of inevitability - quick-refresh, strong direct damage spell guard and melee-strike rune combined into one.)
--- - spells.stunaerune (polyluminous rune - quick-refresh, damage absorption rune with a PB AE stun once consumed.)
+-- - enc.spells.guard (shield of inevitability - quick-refresh, strong direct damage spell guard and melee-strike rune combined into one.)
+-- - enc.spells.stunaerune (polyluminous rune - quick-refresh, damage absorption rune with a PB AE stun once consumed.)
 -- - rune (eldritch rune - AA rune, always pre-buffed.)
 -- - veil (Veil of the Mindshadow – AA rune, always pre-buffed.)
-    if spells.guard.name and not mq.TLO.Me.Buff(spells.guard.name)() then
-        if common.cast(spells.guard.name) then return end
+    local tempName = enc.spells.guard.name
+    if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+    if enc.spells.guard.name and not mq.TLO.Me.Buff(tempName)() then
+        if common.cast(enc.spells.guard.name) then return end
     end
-    if spells.stunaerune.name and not mq.TLO.Me.Buff(spells.stunaerune.name)() then
-        if common.cast(spells.stunaerune.name) then return end
+    tempName = enc.spells.stunaerune.name
+    if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+    if enc.spells.stunaerune.name and not mq.TLO.Me.Buff(tempName)() then
+        if common.cast(enc.spells.stunaerune.name) then return end
     end
     if rune and not mq.TLO.Me.Buff(rune.name)() then
         if common.use_aa(rune.name) then return end
@@ -393,24 +342,30 @@ local function check_buffs()
         if common.use_aa(unity) then return end
     end
 
-    local hpcrystal = mq.TLO.FindItem(sanguine.name)
-    local manacrystal = mq.TLO.FindItem(azure.name)
-    if sanguine and not hpcrystal() then
-        if common.use_aa(sanguine) then return end
+    local hpcrystal = sanguine and mq.TLO.FindItem(sanguine.name)
+    local manacrystal = azure and mq.TLO.FindItem(azure.name)
+    if hpcrystal and not hpcrystal() then
+        if common.use_aa(sanguine) then
+            mq.cmd('/autoinv')
+            return
+        end
     end
-    if azure and not manacrystal() then
-        if common.use_aa(azure) then return end
+    if manacrystal and not manacrystal() then
+        if common.use_aa(azure) then
+            mq.cmd('/autoinv')
+            return
+        end
     end
 
-    if OPTS.AURA1 == 'twincast' and spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
-        if common.swap_and_cast(spells[OPTS.AURA1], 13) then return end
-    elseif OPTS.AURA1 ~= 'twincast' and spells[OPTS.AURA1] and not mq.TLO.Me.Aura(spells[OPTS.AURA1].name)() then
-        if common.swap_and_cast(spells[OPTS.AURA1], 13) then return end
+    if enc.OPTS.AURA1 == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA1], 13) then return end
+    elseif enc.OPTS.AURA1 ~= 'twincast' and enc.spells[enc.OPTS.AURA1] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA1].name)() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA1], 13) then return end
     end
-    if OPTS.AURA2 == 'twincast' and spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
-        if common.swap_and_cast(spells[OPTS.AURA2], 13) then return end
-    elseif OPTS.AURA2 ~= 'twincast' and spells[OPTS.AURA2] and not mq.TLO.Me.Aura(spells[OPTS.AURA2].name)() then
-        if common.swap_and_cast(spells[OPTS.AURA2], 13) then return end
+    if enc.OPTS.AURA2 == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA2], 13) then return end
+    elseif enc.OPTS.AURA2 ~= 'twincast' and enc.spells[enc.OPTS.AURA2] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA2].name)() then
+        if common.swap_and_cast(enc.spells[enc.OPTS.AURA2], 13) then return end
     end
 
     -- kei
@@ -418,7 +373,7 @@ local function check_buffs()
 
     common.check_item_buffs()
 
-    if OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
+    if enc.OPTS.BUFFPET and mq.TLO.Pet.ID() > 0 then
         --for _,buff in ipairs(buffs.pet) do
         --    if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
         --        common.swap_and_cast(buff.name, 13)
@@ -427,11 +382,11 @@ local function check_buffs()
     end
 end
 
-local function check_pet()
-    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() or not spells.pet.name then return end
+enc.managepet = function()
+    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() or not enc.spells.pet.name then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
-    if mq.TLO.Spell(spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(spells.pet, 13)
+    if mq.TLO.Spell(enc.spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
+    common.swap_and_cast(enc.spells.pet, 13)
 end
 
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
@@ -440,19 +395,19 @@ local function check_spell_set()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if state.spellset_loaded ~= config.SPELLSET or check_spell_timer:timer_expired() then
         if config.SPELLSET == 'standard' then
-            common.swap_spell(spells.tash, 1)
-            common.swap_spell(spells.dotmiti, 2)
-            common.swap_spell(spells.meznoblur, 3)
-            common.swap_spell(spells.mezae, 4)
-            common.swap_spell(spells.dot, 5)
-            common.swap_spell(spells.dot2, 6)
-            common.swap_spell(spells.synergy, 7)
-            common.swap_spell(spells.nuke5, 8)
-            common.swap_spell(spells.composite, 9, composite_names)
-            common.swap_spell(spells.stunaerune, 10)
-            common.swap_spell(spells.guard, 11)
-            common.swap_spell(spells.nightsterror, 12)
-            common.swap_spell(spells.combatinnate, 13)
+            common.swap_spell(enc.spells.tash, 1)
+            common.swap_spell(enc.spells.dotmiti, 2)
+            common.swap_spell(enc.spells.meznoblur, 3)
+            common.swap_spell(enc.spells.mezae, 4)
+            common.swap_spell(enc.spells.dot, 5)
+            common.swap_spell(enc.spells.dot2, 6)
+            common.swap_spell(enc.spells.synergy, 7)
+            common.swap_spell(enc.spells.nuke5, 8)
+            common.swap_spell(enc.spells.composite, 9, composite_names)
+            common.swap_spell(enc.spells.stunaerune, 10)
+            common.swap_spell(enc.spells.guard, 11)
+            common.swap_spell(enc.spells.nightsterror, 12)
+            common.swap_spell(enc.spells.combatinnate, 13)
             state.spellset_loaded = config.SPELLSET
         end
         check_spell_timer:reset()
@@ -480,95 +435,41 @@ enc.setup_events = function()
     mq.event('event_slowimmune', 'Your target is immune to changes in its attack speed#*#', event_slowimmune)
 end
 
-enc.process_cmd = function(opt, new_value)
+enc.process_cmd_class = function(opt, new_value)
     if new_value then
         if opt == 'AURA1' then
-            if AURAS[new_value] then
+            if enc.AURAS[new_value] then
                 logger.printf('Setting %s to: %s', opt, new_value)
-                OPTS.AURA1 = new_value
+                enc.OPTS.AURA1 = new_value
             end
         elseif opt == 'AURA2' then
-            if AURAS[new_value] then
+            if enc.AURAS[new_value] then
                 logger.printf('Setting %s to: %s', opt, new_value)
-                OPTS.AURA2 = new_value
+                enc.OPTS.AURA2 = new_value
             end
-        elseif type(OPTS[opt]) == 'boolean' then
+        elseif type(enc.OPTS[opt]) == 'boolean' then
             if common.BOOL.FALSE[new_value] then
                 logger.printf('Setting %s to: false', opt)
-                if OPTS[opt] ~= nil then OPTS[opt] = false end
+                if enc.OPTS[opt] ~= nil then enc.OPTS[opt] = false end
             elseif common.BOOL.TRUE[new_value] then
                 logger.printf('Setting %s to: true', opt)
-                if OPTS[opt] ~= nil then OPTS[opt] = true end
+                if enc.OPTS[opt] ~= nil then enc.OPTS[opt] = true end
             end
-        elseif type(OPTS[opt]) == 'number' then
+        elseif type(enc.OPTS[opt]) == 'number' then
             if tonumber(new_value) then
                 logger.printf('Setting %s to: %s', opt, tonumber(new_value))
-                if OPTS[opt] ~= nil then OPTS[opt] = tonumber(new_value) end
+                if enc.OPTS[opt] ~= nil then enc.OPTS[opt] = tonumber(new_value) end
             end
         else
             logger.printf('Unsupported command line option: %s %s', opt, new_value)
         end
     else
-        if OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt:lower(), OPTS[opt])
+        if enc.OPTS[opt] ~= nil then
+            logger.printf('%s: %s', opt:lower(), enc.OPTS[opt])
         else
             logger.printf('Unrecognized option: %s', opt)
         end
     end
-end
-
-enc.main_loop = function()
-    -- ensure correct spells are loaded based on selected spell set
-    -- currently only checks at startup or when selection changes
-    check_spell_set()
-    -- check whether we need to return to camp
-    camp.check_camp()
-    -- check whether we need to go chasing after the chase target
-    common.check_chase()
-    camp.mob_radar()
-    -- check we have the correct target to attack
-    assist.check_target()
-    check_mez()
-    -- if we should be assisting but aren't in los, try to be?
-    assist.check_los()
-    -- begin actual combat stuff
-    assist.send_pet()
-    cycle_spells()
-    -- pop a bunch of burn stuff if burn conditions are met
-    try_burn()
-    -- try not to run OOM
-    check_aggro()
-    check_mana()
-    check_buffs()
-    check_pet()
-    common.rest()
-end
-
-enc.draw_skills_tab = function()
-    OPTS.AURA1 = ui.draw_combo_box('Aura 1', OPTS.AURA1, AURAS, true)
-    OPTS.AURA2 = ui.draw_combo_box('Aura 2', OPTS.AURA2, AURAS, true)
-    OPTS.USEMEZ = ui.draw_check_box('Use Mez', '##userez', OPTS.USEMEZ, 'Use Convergence AA to rez group members')
-    config.AEMEZCOUNT = ui.draw_input_int('AE Mez Count', '##aemezcnt', config.AEMEZCOUNT, 'Threshold to use AE Mez ability')
-    OPTS.TASHTHENMEZ = ui.draw_check_box('Tash Then Mez', '##tashmez', OPTS.TASHTHENMEZ, 'Use pet buff')
-    OPTS.INTERRUPTFORMEZ = ui.draw_check_box('Interrupt for Mez', '##interrupt', OPTS.INTERRUPTFORMEZ, 'Summon pet')
-    OPTS.USECHAOTIC = ui.draw_check_box('Use Chaotic', '##chaoticmez', OPTS.USECHAOTIC, 'Use Inspire Ally pet buff')
-    OPTS.USEDOT = ui.draw_check_box('Use DoT', '##usedot', OPTS.USEDOT, 'Use group mana drain dot. Replaces Ignite DoT.')
-    OPTS.USENUKE = ui.draw_check_box('Use Nuke', '##usenuke', OPTS.USENUKE, 'Use Convergence AA to rez group members')
-    OPTS.USEERADICATE = ui.draw_check_box('Use Dispel', '##dispel', OPTS.USEERADICATE, 'Dispel mobs with Eradicate Magic AA')
-    OPTS.USETASH = ui.draw_check_box('Use Tash', '##usetash', OPTS.USETASH, 'Use Convergence AA to rez group members')
-    OPTS.USETASHAOE = ui.draw_check_box('Use Tash AOE', '##usetashaoe', OPTS.USETASHAOE, 'Use Convergence AA to rez group members')
-    OPTS.USESLOW = ui.draw_check_box('Use Slow', '##useslow', OPTS.USESLOW, 'Use Convergence AA to rez group members')
-    OPTS.USESLOWAOE = ui.draw_check_box('Use Slow AOE', '##useslowaoe', OPTS.USESLOWAOE, 'Use Convergence AA to rez group members')
-    OPTS.USESPELLGUARD = ui.draw_check_box('Use Spell Guard', '##usespellguard', OPTS.USESPELLGUARD, 'Use Convergence AA to rez group members')
-    OPTS.USEMINDOVERMATTER = ui.draw_check_box('Use Mind Over Matter', '##usemom', OPTS.USEMINDOVERMATTER, 'Use Convergence AA to rez group members')
-    OPTS.USEPHANTASMAL = ui.draw_check_box('Use Phantasmal', '##usephant', OPTS.USEPHANTASMAL, 'Use Convergence AA to rez group members')
-    OPTS.USESHIELDOFFATE = ui.draw_check_box('Use Shield of Fate', '##useshield', OPTS.USESHIELDOFFATE, 'Use Convergence AA to rez group members')
-    OPTS.USEREPLICATION = ui.draw_check_box('Buff Mana Proc', '##userepl', OPTS.USEREPLICATION, 'Use Convergence AA to rez group members')
-    OPTS.USENIGHTSTERROR = ui.draw_check_box('Buff Nights Terror', '##useterror', OPTS.USENIGHTSTERROR, 'Debuff targets')
-    OPTS.USEHASTE = ui.draw_check_box('Buff Haste', '##usehaste', OPTS.USEHASTE, 'Use FD AA\'s to reduce aggro')
-    OPTS.SUMMONPET = ui.draw_check_box('Summon Pet', '##summonpet', OPTS.SUMMONPET, 'Use Convergence AA to rez group members')
-    OPTS.BUFFPET = ui.draw_check_box('Buff Pet', '##buffpet', OPTS.BUFFPET, 'Use Convergence AA to rez group members')
-    OPTS.USECHARM = ui.draw_check_box('Use Charm', '##usecharm', OPTS.USECHARM, 'Keep shield buff up. Replaces corruption DoT.')
 end
 
 return enc

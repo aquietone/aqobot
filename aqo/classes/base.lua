@@ -14,7 +14,7 @@ local state = require('aqo.state')
 local ui = require('aqo.ui')
 local baseclass = {}
 
-baseclass.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,recover=1}
+baseclass.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,recover=1,managepet=1}
 baseclass.OPTS = {}
 -- array of {id=#,name=string} covering all spells that may be used
 baseclass.spells = {}
@@ -24,6 +24,8 @@ baseclass.DPSAbilities = {}
 baseclass.tankAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
 baseclass.burnAbilities = {}
+-- array of {id=#,name=string,type=AA|item|spell|disc}
+baseclass.tankBurnAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
 baseclass.healAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc,threshold=#}
@@ -50,8 +52,8 @@ baseclass.addOption = function(key, label, value, options, tip, type)
     table.insert(baseclass.OPTS, key)
 end
 
-baseclass.addSpell = function(spellGroup, spellList)
-    local foundSpell = common.get_best_spell(spellList)
+baseclass.addSpell = function(spellGroup, spellList, options)
+    local foundSpell = common.get_best_spell(spellList, options)
     baseclass.spells[spellGroup] = foundSpell
     if foundSpell.name then
         logger.printf('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id)
@@ -80,8 +82,13 @@ baseclass.setup_events = function()
 end
 
 baseclass.assist = function()
+    local mob_x = mq.TLO.Target.X()
+    local mob_y = mq.TLO.Target.Y()
+    if mob_x and mob_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > config.CAMPRADIUS then return end
     if config.MODE:is_assist_mode() then
         assist.check_target(baseclass.reset_class_timers)
+        -- if we should be assisting but aren't in los, try to be?
+        assist.check_los()
         assist.attack()
         assist.send_pet()
     end
@@ -98,34 +105,52 @@ baseclass.heal = function()
 end
 
 local function doCombatLoop(list)
-    local cur_mode = config.MODE
-    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
-        for _,ability in ipairs(list) do
-            if ability.opt == nil or baseclass.OPTS[ability.opt] then
+    local target = mq.TLO.Target
+    local dist = target.Distance3D()
+    local maxdist = target.MaxRangeTo()
+    for _,ability in ipairs(list) do
+        if (ability.opt == nil or baseclass.OPTS[ability.opt]) and
+            (ability.threshold == nil or ability.threshold >= state.mob_count_nopet) and
+            (ability.type ~= 'ability' or dist < maxdist) then
                 common.use[ability.type](ability)
                 if ability.delay then mq.delay(ability.delay) end
-            end
         end
     end
 end
 
 baseclass.mash = function()
-    baseclass.mash_class()
-    doCombatLoop(baseclass.DPSAbilities)
+    local cur_mode = config.MODE
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
+        if baseclass.mash_class then baseclass.mash_class() end
+        if config.MODE:is_tank_mode() then
+            doCombatLoop(baseclass.tankAbilities)
+        end
+        doCombatLoop(baseclass.DPSAbilities)
+    end
 end
 
-baseclass.ae = function() doCombatLoop(baseclass.AEDPSAbilities) end
+baseclass.ae = function()
+    local cur_mode = config.MODE
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
+        if config.MODE:is_tank_mode() then
+            if baseclass.ae_class then baseclass.ae_class() end
+            doCombatLoop(baseclass.AETankAbilities)
+        end
+        doCombatLoop(baseclass.AEDPSAbilities)
+    end
+end
 
 baseclass.burn = function()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
-    if baseclass.can_i_sing ~= nil and not baseclass.can_i_sing() then return end
+    if baseclass.can_i_sing and not baseclass.can_i_sing() then return end
     if common.is_burn_condition_met() then
-        baseclass.burn_class()
+        if baseclass.burn_class then baseclass.burn_class() end
 
-        for _,ability in ipairs(baseclass.burnAbilities) do
-            common.use[ability.type](ability)
+        if config.MODE:is_tank_mode() then
+            doCombatLoop(baseclass.tankBurnAbilities)
         end
+        doCombatLoop(baseclass.burnAbilities)
     end
 end
 
@@ -135,10 +160,24 @@ end
 
 baseclass.buff = function()
     if common.am_i_dead() then return end
-    if baseclass.can_i_sing ~= nil and not baseclass.can_i_sing() then return end
+    if baseclass.can_i_sing and not baseclass.can_i_sing() then return end
     common.check_combat_buffs()
+    for _,buff in ipairs(baseclass.buffs) do
+        if buff.type == 'disc' or buff.type == 'aa' then
+            common.use[buff.type](buff)
+        elseif buff.type == 'summonitem' then
+            if mq.TLO.FindItemCount(buff.summons)() < 30 and not mq.TLO.Me.Moving() then
+                local item = mq.TLO.FindItem(buff)
+                common.use_item(item)
+                if item() then
+                    mq.delay(50)
+                    mq.cmd('/autoinv')
+                end
+            end
+        end
+    end
     if not common.clear_to_buff() then return end
-
+    if baseclass.buff_class then baseclass.buff_class() end
     for _,buff in ipairs(baseclass.buffs) do
         if buff.type == 'spellaura' then
             local buffName = buff.name
@@ -149,12 +188,15 @@ baseclass.buff = function()
                     restore_gem = {name=mq.TLO.Me.Gem(1)()}
                     common.swap_spell(buff, 1)
                 end
-                mq.delay(3000, function() return mq.TLO.Me.Gem(buff.name)() and mq.TLO.Me.GemTimer(buff.name)() == 0  end)
+                mq.delay(3000, function() return mq.TLO.Me.Gem(buff.name)() and mq.TLO.Me.GemTimer(buff.name)() == 0 end)
                 common.cast(buff.name)
                 if restore_gem then
                     common.swap_spell(restore_gem, 1)
                 end
             end
+        elseif buff.type == 'discaura' then
+            common.use_disc(buff)
+            mq.delay(3000)
         elseif buff.type == 'item' then
             local item = mq.TLO.FindItem(buff.id)
             if not mq.TLO.Me.Buff(item.Spell.Name())() then
@@ -200,7 +242,7 @@ baseclass.aggro = function()
 end
 
 baseclass.ohshit = function()
-
+    if baseclass.ohshitclass then baseclass.ohshit_class() end
 end
 
 baseclass.recover = function()
@@ -222,6 +264,10 @@ baseclass.recover = function()
     if useAbility then
         common.use[useAbility.type](useAbility)
     end
+end
+
+baseclass.managepet = function()
+
 end
 
 baseclass.hold = function()

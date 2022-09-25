@@ -17,6 +17,7 @@ local state = {
     pull_in_progress = nil,
     targets = {},
     mob_count = 0,
+    mob_count_nopet = 0,
     mez_immunes = {},
     mez_target_name = nil,
     mez_target_id = 0,
@@ -32,6 +33,7 @@ function state.reset_combat_state()
     state.pull_in_progress = nil
     state.targets = {}
     state.mob_count = 0
+    state.mob_count_nopet = 0
     state.mez_target_name = nil
     state.mez_target_id = 0
 end
