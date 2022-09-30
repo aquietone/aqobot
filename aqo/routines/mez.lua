@@ -20,7 +20,7 @@ mez.init_mez_timers = function(mez_spell)
             mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
             mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
             if mq.TLO.Target() and mq.TLO.Target.Buff(mez_spell)() then
-                logger.debug(state.debug, 'AEMEZ setting meztimer mob_id %d', id)
+                logger.debug(logger.log_flags.routines.mez, 'AEMEZ setting meztimer mob_id %d', id)
                 state.targets[id].meztimer:reset()
             end
         end
@@ -42,12 +42,11 @@ end
 
 ---Cast single target mez spell if adds in camp.
 ---@param mez_spell string @The name of the single target mez spell to cast.
----@param cast_func function @The function to use to cast, since bards are special.
-mez.do_single = function(mez_spell, cast_func)
+mez.do_single = function(mez_spell)
     if state.mob_count <= 1 or not mq.TLO.Me.Gem(mez_spell)() then return end
     for id,mobdata in pairs(state.targets) do
         if state.debug then
-            logger.debug(state.debug, '[%s] meztimer: %s, current_time: %s, timer_expired: %s', id, mobdata['meztimer'].start_time, timer.current_time(), mobdata['meztimer']:timer_expired())
+            logger.debug(logger.log_flags.routines.mez, '[%s] meztimer: %s, current_time: %s, timer_expired: %s', id, mobdata['meztimer'].start_time, timer.current_time(), mobdata['meztimer']:timer_expired())
         end
         if id ~= state.assist_mob_id and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timer_expired()) then
             local mob = mq.TLO.Spawn('id '..id)
@@ -67,8 +66,8 @@ mez.do_single = function(mez_spell, cast_func)
                             state.mez_target_name = mob.CleanName()
                             state.mez_target_id = id
                             logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
-                            cast_func(mez_spell)
-                            logger.debug(state.debug, 'STMEZ setting meztimer mob_id %d', id)
+                            common.cast(mez_spell)
+                            logger.debug(logger.log_flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
                             state.targets[id].meztimer:reset()
                             mq.doevents('event_mezimmune')
                             mq.doevents('event_mezresist')

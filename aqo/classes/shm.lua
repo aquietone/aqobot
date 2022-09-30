@@ -3,28 +3,30 @@ local mq = require 'mq'
 local baseclass = require('aqo.classes.base')
 local common = require('aqo.common')
 
-local clr = baseclass
+local shm = baseclass
 
-clr.class = 'clr'
-clr.classOrder = {'heal', 'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+shm.class = 'shm'
+shm.classOrder = {'heal', 'assist', 'cast', 'burn', 'recover', 'buff', 'rest', 'managepet'}
 
-clr.SPELLSETS = {standard=1}
+shm.SPELLSETS = {standard=1}
 
-clr.addOption('SPELLSET', 'Spell Set', 'standard', clr.SPELLSETS, nil, 'combobox')
-clr.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
+shm.addOption('SPELLSET', 'Spell Set', 'standard', shm.SPELLSETS, nil, 'combobox')
+shm.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
 
-clr.addSpell('heal', {'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
+shm.addSpell('heal', {'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {me=80, mt=70, other=70})
+shm.addSpell('canni', {'Cannibalize II'}, {mana=true, threshold=70, combat=true, endurance=false, minhp=50, ooc=false})
 
 local standard = {}
 
-clr.spellRotations = {
+shm.spellRotations = {
     standard=standard
 }
 
-table.insert(clr.healAbilities, clr.spells.heal)
+table.insert(shm.healAbilities, shm.spells.heal)
+table.insert(shm.recoverAbilities, shm.spells.canni)
 
-clr.heal = function()
-    for _,heal in ipairs(clr.healAbilities) do
+shm.heal = function()
+    for _,heal in ipairs(shm.healAbilities) do
         if common.is_spell_ready(heal) then
             if mq.TLO.Me.PctHPs() < heal.me then
                 mq.cmdf('/mqt myself')
@@ -51,4 +53,4 @@ clr.heal = function()
     end
 end
 
-return clr
+return shm

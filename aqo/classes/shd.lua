@@ -30,37 +30,38 @@ shd.addOption('USEVOICEOFTHULE', 'Use Voice of Thule', false, nil, '', 'checkbox
 shd.addOption('USETORRENT', 'Use Torrent', true, nil, '', 'checkbox')
 shd.addOption('USESWARM', 'Use Snare', true, nil, '', 'checkbox')
 shd.addOption('USEDEFLECTION', 'Use Deflection', false, nil, '', 'checkbox')
+shd.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
 
 shd.addSpell('composite', {'Composite Fang'}) -- big lifetap
 shd.addSpell('alliance', {'Bloodletting Coalition'}) -- alliance
 -- Aggro
-shd.addSpell('challenge', {'Parlay for Power'}) -- main hate spell
-shd.addSpell('terror', {'Terror of Ander'}) -- ST increase hate by 1
+shd.addSpell('challenge', {'Parlay for Power', 'Shroud of Hate'}) -- main hate spell
+shd.addSpell('terror', {'Terror of Ander', 'Terror of Darkness'}) -- ST increase hate by 1
 shd.addSpell('aeterror', {'Antipathy'}, {threshold=2}) -- ST increase hate by 1
 --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 -- Lifetaps
 shd.addSpell('largetap', {'Dire Censure'}) -- large lifetap
-shd.addSpell('tap1', {'Touch of Txiki'}) -- lifetap
+shd.addSpell('tap1', {'Touch of Txiki'})--, 'Lifedraw'}) -- lifetap
 shd.addSpell('tap2', {'Touch of Namdrows'}) -- lifetap + temp hp buff Gift of Namdrows
 shd.addSpell('dottap', {'Bond of Bynn'}) -- lifetap dot
 shd.addSpell('bitetap', {'Cruor\'s Bite'}) -- lifetap with hp/mana recourse
 -- AE lifetap + aggro
 shd.addSpell('aetap', {'Insidious Renunciation'}) -- large hate + lifetap
 -- DPS
-shd.addSpell('spear', {'Spear of Bloodwretch'}) -- poison nuke
-shd.addSpell('poison', {'Blood of Tearc'}) -- poison dot
+shd.addSpell('spear', {'Spear of Bloodwretch', 'Spear of Disease'}) -- poison nuke
+shd.addSpell('poison', {'Blood of Tearc', 'Blood of Pain'}) -- poison dot
 shd.addSpell('disease', {'Plague of Fleshrot'}) -- disease dot
 shd.addSpell('corruption', {'Unscrupulous Blight'}) -- corruption dot
 shd.addSpell('acdis', {'Dire Seizure'}) -- disease + ac dot
 shd.addSpell('acdebuff', {'Torrent of Melancholy'}) -- ac debuff
 --['']={'Despicable Bargain'}), -- nuke, does this get used?
 -- Short Term Buffs
-shd.addSpell('stance', {'Adamant Stance'}) -- temp HP buff, 2.5min
+shd.addSpell('stance', {'Adamant Stance', 'Vampiric Embrace'}) -- temp HP buff, 2.5min
 shd.addSpell('skin', {'Xenacious\' Skin'}) -- Xenacious' Skin proc, 5min buff
-shd.addSpell('disruption', {'Confluent Disruption'}) -- lifetap proc on heal
+shd.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
 --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
 -- Pet
-shd.addSpell('pet', {'Minion of Itzal'}) -- pet
+shd.addSpell('pet', {'Minion of Itzal', 'Animate Dead'}) -- pet
 shd.addSpell('pethaste', {'Gift of Itzal'}) -- pet haste
 -- Unity Buffs
 shd.addSpell('shroud', {'Shroud of Zelinstein'}) -- Shroud of Zelinstein Strike proc
@@ -135,7 +136,7 @@ table.insert(shd.tankBurnAbilities, common.get_aa('Veil of Darkness')) -- large 
 table.insert(shd.tankBurnAbilities, common.get_aa('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
 
 -- DPS
-table.insert(shd.DPSAbilities, {name='Bash', type='ability'})
+--table.insert(shd.DPSAbilities, {name='Bash', type='ability'})
 table.insert(shd.DPSAbilities, common.get_disc('Reflexive Resentment')) -- 3x 2hs attack + heal
 table.insert(shd.DPSAbilities, common.get_aa('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
 table.insert(shd.DPSAbilities, common.get_aa('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
@@ -193,7 +194,7 @@ local function find_next_spell()
     if myhp < 80 then
         if common.is_spell_ready(shd.spells['largetap']) then return shd.spells['largetap'] end
     end
-    if myhp < 95 then
+    if myhp < 85 then
         if common.is_spell_ready(shd.spells['tap1']) then return shd.spells['tap1'] end
     end
     if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(shd.spells['tap2']) then return shd.spells['tap2'] end

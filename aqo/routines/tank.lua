@@ -23,7 +23,7 @@ tank.find_mob_to_tank = function()
     else
         state.tank_mob_id = 0
     end
-    logger.debug(state.debug, 'Find mob to tank')
+    logger.debug(logger.log_flags.routines.tank, 'Find mob to tank')
     local highestlvl = 0
     local highestlvlid = 0
     local lowesthp = 100
@@ -35,7 +35,7 @@ tank.find_mob_to_tank = function()
         if mob() then
             if firstid == 0 then firstid = mob.ID() end
             if mob.Named() then
-                logger.debug(state.debug, 'Selecting Named mob to tank next (%s)', mob.ID())
+                logger.debug(logger.log_flags.routines.tank, 'Selecting Named mob to tank next (%s)', mob.ID())
                 state.tank_mob_id = mob.ID()
                 return
             else--if not mob.Mezzed() then -- TODO: mez check requires targeting
@@ -51,17 +51,17 @@ tank.find_mob_to_tank = function()
         end
     end
     if lowesthpid ~= 0 and lowesthp < 100 then
-        logger.debug(state.debug, 'Selecting lowest HP mob to tank next (%s)', lowesthpid)
+        logger.debug(logger.log_flags.routines.tank, 'Selecting lowest HP mob to tank next (%s)', lowesthpid)
         state.tank_mob_id = lowesthpid
         return
     elseif highestlvlid ~= 0 then
-        logger.debug(state.debug, 'Selecting highest level mob to tank next (%s)', highestlvlid)
+        logger.debug(logger.log_flags.routines.tank, 'Selecting highest level mob to tank next (%s)', highestlvlid)
         state.tank_mob_id = highestlvlid
         return
     end
     -- no named or unmezzed mobs, break a mez
     if firstid ~= 0 then
-        logger.debug(state.debug, 'Selecting first available mob to tank next (%s)', firstid)
+        logger.debug(logger.log_flags.routines.tank, 'Selecting first available mob to tank next (%s)', firstid)
         state.tank_mob_id = firstid
         return
     end

@@ -30,7 +30,7 @@ local function check_mob_angle(pull_spawn)
     if not direction_to_mob then return false end
     -- switching from non-puller mode to puller mode, the camp may not be updated yet
     if not camp.PullArcLeft or not camp.PullArcRight then return false end
-    logger.debug(state.debug, 'arcleft: %s, arcright: %s, dirtomob: %s', camp.PullArcLeft, camp.PullArcRight, direction_to_mob)
+    logger.debug(logger.log_flags.routines.pull, 'arcleft: %s, arcright: %s, dirtomob: %s', camp.PullArcLeft, camp.PullArcRight, direction_to_mob)
     if camp.PullArcLeft >= camp.PullArcRight then
         if direction_to_mob < camp.PullArcLeft and direction_to_mob > camp.PullArcRight then return false end
     else
@@ -136,10 +136,10 @@ pull.pull_radar = function()
     local pull_radius = config.PULLRADIUS
     if camp.Active then
         pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(camp.X, camp.Y, pull_radius))()
-        logger.debug(state.debug, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
+        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
     else
         pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
-        logger.debug(state.debug, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(pull_radius)))
+        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(pull_radius)))
     end
     local shortest_path = pull_radius
     local pull_id = 0
@@ -149,7 +149,7 @@ pull.pull_radar = function()
             -- try not to iterate through the whole world if there's a pretty large pull radius
             if i > 100 then break end
             local mob
-            if camp.Active and config.MODE:get_name() ~= 'huntertank' then
+            if camp.Active then
                 mob = mq.TLO.NearestSpawn(pull_spawn_camp:format(i, camp.X, camp.Y, pull_radius))
             else
                 mob = mq.TLO.NearestSpawn(pull_spawn:format(i, pull_radius))
@@ -166,6 +166,7 @@ pull.pull_radar = function()
                     state.pull_mob_id = mob.ID()
                     return mob.ID()
                 elseif path_len < shortest_path then
+                    logger.debug(logger.log_flags.routines.pull, ("Found closer pull, %s < %s"):format(path_len, shortest_path))
                     shortest_path = path_len
                     pull_id = mob.ID()
                 end
@@ -197,7 +198,7 @@ local function pull_nav_to(pull_spawn)
     end
     logger.printf('Pulling \ay%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID())
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
-        logger.debug(state.debug, 'Moving to pull target (%s)', state.pull_mob_id)
+        logger.debug(logger.log_flags.routines.pull, 'Moving to pull target (%s)', state.pull_mob_id)
         --if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
         if mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
             mq.cmdf('/nav spawn id %d | dist=15 log=off', state.pull_mob_id)
@@ -313,7 +314,7 @@ pull.pull_mob = function(pull_func)
             end
         end]]--
         --clear_pull_vars()
-        logger.debug(state.debug, 'returning at weird state')
+        logger.debug(logger.log_flags.routines.pull, 'returning at weird state')
         return
     end
 
@@ -324,12 +325,12 @@ pull.pull_mob = function(pull_func)
         return
     end
     if not pull_state then
-        logger.debug(state.debug, 'a pull search can start')
+        logger.debug(logger.log_flags.routines.pull, 'a pull search can start')
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
         if common.am_i_dead() or state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets() then return end
         if not pull.check_pull_conditions() then return end
         -- find a mob to pull
-        logger.debug(state.debug, 'searching for pulls')
+        logger.debug(logger.log_flags.routines.pull, 'searching for pulls')
         local pull_mob_id = pull.pull_radar()
         local pull_spawn = mq.TLO.Spawn(pull_mob_id)
         if pull_spawn.ID() == 0 then

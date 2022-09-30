@@ -36,11 +36,11 @@ brd.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox
 brd.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
 brd.addSpell('composite', {'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}) -- DD+melee dmg bonus + small heal
 brd.addSpell('aria', {'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
-brd.addSpell('warmarch', {'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}) -- haste, atk, ds
+brd.addSpell('warmarch', {'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'Vilia\'s Verses of Celerity'}) -- haste, atk, ds
 brd.addSpell('arcane', {'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad'}) -- spell dmg proc
 brd.addSpell('suffering', {'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering'}) -- melee dmg proc
-brd.addSpell('spiteful', {'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}) -- AC
-brd.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn'}) -- heal focus + regen
+brd.addSpell('spiteful', {'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric', 'Psalm of Purity'}) -- AC
+brd.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Soothing'}) -- heal focus + regen
 brd.addSpell('sonata', {'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}) -- spell shield, AC, dmg mitigation
 brd.addSpell('dirge', {'Dirge of the Restless', 'Dirge of Lost Horizons'}) -- spell+melee dmg mitigation
 brd.addSpell('firenukebuff', {'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria'}) -- inc fire DD
@@ -129,7 +129,7 @@ table.insert(brd.buffs, {id=mq.TLO.FindItem('Songblade of the Eternal').ID() or 
 
 local selos = common.get_aa('Selo\'s Sonata')
 -- Mana Recovery AAs
-local rallyingsolo = common.get_aa('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false})
+local rallyingsolo = common.get_aa('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
 table.insert(brd.recoverAbilities, rallyingsolo)
 local rallyingcall = common.get_aa('Rallying Call')
 
@@ -194,11 +194,11 @@ local function is_dot_ready(spellId, spellName)
     songDuration = mq.TLO.Target.MyBuffDuration(actualSpellName)()
     if not common.is_target_dotted_with(spellId, actualSpellName) then
         -- target does not have the dot, we are ready
-        logger.debug(state.debug, 'song ready %s', spellName)
+        logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
         return true
     else
         if not songDuration then
-            logger.debug(state.debug, 'song ready %s', spellName)
+            logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
             return true
         end
     end
@@ -230,12 +230,12 @@ local function is_song_ready(spellId, spellName)
 
     local songDuration = mq.TLO.Me.Song(actualSpellName).Duration()
     if not songDuration then
-        logger.debug(state.debug, 'song ready %s', spellName)
+        logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
         return true
     else
         local cast_time = mq.TLO.Spell(spellName).MyCastTime()
         if songDuration < cast_time + 3000 then
-            logger.debug(state.debug, 'song ready %s', spellName)
+            logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
         end
         return songDuration < cast_time + 3000
     end

@@ -26,6 +26,7 @@ enc.addOption('AURA2', 'Aura 2', 'combatinnate', enc.AURAS, nil, 'combobox')
 enc.addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, '', 'checkbox')
 enc.addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, '', 'checkbox')
 enc.addOption('USECHAOTIC', 'Use Chaotic', true, nil, '', 'checkbox')
+enc.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
 enc.addOption('USECHARM', 'Use Charm', false, nil, '', 'checkbox')
 enc.addOption('USEDOT', 'Use DoT', true, nil, '', 'checkbox')
 enc.addOption('USEHASTE', 'Buff Haste', true, nil, '', 'checkbox')
@@ -205,12 +206,12 @@ local targets = {}
 
 enc.mez = function()
     if enc.OPTS.MEZ.value then
-        mez.do_ae(enc.spells.mezae.name, common.cast)
+        mez.do_ae(enc.spells.mezae.name)
         if not mq.TLO.Me.SpellInCooldown() then
             if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ.value and tash then
                 common.use_aa(tash)
             end
-            mez.do_single(enc.spells.mezst.name, common.cast)
+            mez.do_single(enc.spells.mezst.name)
         end
     end
 end

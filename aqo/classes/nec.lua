@@ -28,6 +28,7 @@ nec.addOption('USEREZ', 'Use Rez', true, nil, 'Use Convergence AA to rez group m
 nec.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox')
 nec.addOption('USEINSPIRE', 'Inspire Ally', true, nil, 'Use Inspire Ally pet buff', 'checkbox')
 nec.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
+nec.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
 nec.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spell set', 'checkbox')
 nec.addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbox')
 nec.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox')
@@ -40,7 +41,7 @@ nec.addSpell('wounds', {'Infected Wounds', 'Septic Wounds'})
 nec.addSpell('fireshadow', {'Scalding Shadow', 'Broiling Shadow'})
 nec.addSpell('pyreshort', {'Pyre of Va Xakra', 'Pyre of Klraggek'})
 nec.addSpell('pyrelong', {'Pyre of the Neglected', 'Pyre of the Wretched'})
-nec.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom'})
+nec.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Poison Bolt'})
 nec.addSpell('magic', {'Extinction', 'Oblivion'})
 nec.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay'})
 nec.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim'})
@@ -58,7 +59,7 @@ nec.addSpell('proliferation', {'Infected Proliferation', 'Septic Proliferation'}
 nec.addSpell('alliance', {'Malevolent Coalition', 'Malevolent Covenant'})
 -- Nukes
 nec.addSpell('synergy', {'Proclamation for Blood', 'Assert for Blood'})
-nec.addSpell('venin', {'Embalming Venin', 'Searing Venin'})
+nec.addSpell('venin', {'Embalming Venin', 'Searing Venin', 'Lifespike'})
 -- Debuffs
 nec.addSpell('scentterris', {'Scent of Terris'})
 nec.addSpell('scentmortality', {'Scent of The Grave', 'Scent of Mortality'})
@@ -108,7 +109,7 @@ table.insert(short, nec.spells.grip)
 table.insert(short, nec.spells.pyrelong)
 table.insert(short, nec.spells.ignite)
 
-local dots = {
+nec.spellRotations = {
     standard=standard,
     short=short,
 }
@@ -314,7 +315,7 @@ local function find_next_dot_to_cast()
     end
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > nec.OPTS.STOPPCT.value then
-        for _,dot in ipairs(dots[nec.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+        for _,dot in ipairs(nec.spellRotations[nec.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
             -- if spell_id == spells.combodis.id then
             --     if (not is_target_dotted_with(spells.decay.id, spells.decay.name) or not is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodis.name)() then
@@ -722,7 +723,7 @@ nec.check_spell_set = function()
             common.swap_spell(nec.spells.wounds, 10)
         end
     elseif nec.OPTS.SPELLSET.value == 'short' then
-        if nec.OPTS.USEMANATAP.value.value and nec.OPTS.USEALLIANCE.value and nec.OPTS.USEINSPIRE.value then
+        if nec.OPTS.USEMANATAP.value and nec.OPTS.USEALLIANCE.value and nec.OPTS.USEINSPIRE.value then
             common.swap_spell(nec.spells.manatap, 8)
             common.swap_spell(nec.spells.alliance, 9)
             common.swap_spell(nec.spells.inspire, 12)

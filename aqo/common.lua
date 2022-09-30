@@ -208,7 +208,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.MODE:get_name() ~= 'chase' then return end
-    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and mq.TLO.Me.Casting()) then return end
+    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
@@ -216,6 +216,7 @@ common.check_chase = function()
     local chase_y = chase_spawn.Y()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
+        if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
         if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.CHASETARGET))() then
             mq.cmdf('/nav spawn pc =%s | log=off', config.CHASETARGET)
         end
@@ -335,7 +336,7 @@ common.should_use_spell = function(spell, skipselfstack)
             end
         end
     end
-    logger.debug(state.debug, 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(logger.log_flags.common.cast, 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
     return result
 end
 
@@ -344,21 +345,24 @@ common.can_use_spell = function(spell, type)
     if not spell() then return false end
     local result = true
     if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
-    if not common.in_control() or (mq.TLO.Me.Class.ShortName() ~= 'BRD' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
+    if not common.in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
     if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then result = false end
-    for i=1,3 do
-        local reagentid = spell.ReagentID(i)()
-        if reagentid ~= -1 then
-            local reagent_count = spell.ReagentCount(i)()
-            if mq.TLO.FindItemCount(reagentid)() < reagent_count then
-                --logger.debug(state.get_debug(), 'Missing Reagent (%s)', reagentid)
-                result = false
+    -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
+    if state.class ~= 'brd' then
+        for i=1,3 do
+            local reagentid = spell.ReagentID(i)()
+            if reagentid ~= -1 then
+                local reagent_count = spell.ReagentCount(i)()
+                if mq.TLO.FindItemCount(reagentid)() < reagent_count then
+                    logger.debug(logger.log_flags.common.cast, 'Missing Reagent (%s)', reagentid)
+                    result = false
+                end
+            else
+                break
             end
-        else
-            break
         end
     end
-    logger.debug(state.debug, 'Can use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(logger.log_flags.common.cast, 'Can use spell: \ay%s\ax=%s', spell.Name(), result)
     return result
 end
 
@@ -369,8 +373,7 @@ common.cast = function(spell_name, requires_target)
     if type(spell_name) == 'table' then spell_name = spell_name.name end
     local spell = mq.TLO.Spell(spell_name)
     if not spell_name or not common.can_use_spell(spell, 'spell') or not common.should_use_spell(spell) then return false end
-    local class = mq.TLO.Me.Class.ShortName()
-    if class == 'BRD' then mq.cmd('/stopsong') end
+    if state.class == 'brd' then mq.cmd('/stopsong') end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
     mq.delay(10)
@@ -378,7 +381,7 @@ common.cast = function(spell_name, requires_target)
     mq.delay(10)
     if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
     mq.delay(10)
-    if class ~= 'BRD' then
+    if state.class ~= 'brd' then
         while mq.TLO.Me.Casting() do
             if requires_target and not mq.TLO.Target() then
                 mq.cmd('/stopcast')
@@ -395,9 +398,9 @@ end
 common.use_ability = function(name)
     if type(name) == 'table' then name = name.name end
     if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Me.Skill(name)() > 0 and mq.TLO.Target() then
-        mq.cmdf('/doability %s', name)
+        mq.cmdf('/doability "%s"', name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
-        logger.debug(state.debug, "Delayed for use_ability "..name)
+        logger.debug(logger.log_flags.common.cast, "Delayed for use_ability "..name)
     end
 end
 
@@ -446,7 +449,7 @@ common.use_aa = function(aa)
         mq.cmdf('/alt activate %d', aa.id)
         mq.delay(250+mq.TLO.Me.AltAbility(aa.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(aa.name)() end)
-        logger.debug(state.debug, "Delayed for use_aa "..aa.name)
+        logger.debug(logger.log_flags.common.cast, "Delayed for use_aa "..aa.name)
         return not mq.TLO.Me.AltAbilityReady(aa.name)()
     end
     return false
@@ -489,7 +492,7 @@ common.use_disc = function(disc, overwrite)
             end
             mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
-            logger.debug(state.debug, "Delayed for use_disc "..disc.name)
+            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..disc.name)
             return not mq.TLO.Me.CombatAbilityReady(disc.name)()
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
@@ -498,7 +501,7 @@ common.use_disc = function(disc, overwrite)
             mq.cmdf('/disc %s', disc.name)
             mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
-            logger.debug(state.debug, "Delayed for use_disc "..disc.name)
+            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..disc.name)
             return not mq.TLO.Me.CombatAbilityReady(disc.name)()
         end
     end
@@ -572,7 +575,7 @@ common.swap_gem_ready = function(spell_name, gem)
 end
 
 ---Swap the specified spell into the specified gem slot.
----@param spell table|nil @The MQ Spell to memorize.
+---@param spell table @The MQ Spell to memorize.
 ---@param gem number @The gem index to memorize the spell into.
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 common.swap_spell = function(spell, gem, other_names)
@@ -581,7 +584,7 @@ common.swap_spell = function(spell, gem, other_names)
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
     mq.delay(3000, function() return common.swap_gem_ready(spell.name, gem) end)
-    logger.debug(state.debug, "Delayed for mem_spell "..spell.name)
+    logger.debug(logger.log_flags.common.memspell, "Delayed for mem_spell "..spell.name)
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
 
@@ -593,7 +596,7 @@ common.swap_and_cast = function(spell, gem)
         common.swap_spell(spell, gem)
     end
     mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
-    logger.debug(state.debug, "Delayed for spell swap "..spell.name)
+    logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
     local did_cast = common.cast(spell.name)
     if restore_gem then
         common.swap_spell(restore_gem, gem)
@@ -684,7 +687,7 @@ common.check_cursor = function()
             autoinv_timer:reset(0)
         end
     elseif autoinv_timer.start_time ~= 0 then
-        logger.debug(state.debug, 'Cursor is empty, resetting autoinv_timer')
+        logger.debug(logger.log_flags.common.misc, 'Cursor is empty, resetting autoinv_timer')
         autoinv_timer:reset(0)
     end
 end

@@ -18,23 +18,33 @@ baseclass.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,buff=1,rest=1,ae=1,me
 baseclass.OPTS = {}
 -- array of {id=#,name=string} covering all spells that may be used
 baseclass.spells = {}
+-- map of spellsetname={spell1,spell2,...}
+baseclass.spellRotations = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: opt=string, delay=number
 baseclass.DPSAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: opt=string, delay=number
 baseclass.tankAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: opt=string, delay=number
 baseclass.burnAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: opt=string, delay=number
 baseclass.tankBurnAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: me=number, mt=number, other=number
 baseclass.healAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc,threshold=#}
 baseclass.AEDPSAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc,threshold=#}
+-- Options: opt=string, delay=number, threshold=number
 baseclass.AETankAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: opt=string, delay=number, threshold=number
 baseclass.defensiveAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc}
+-- Options: mana=boolean, endurance=boolean, combat=boolean, ooc=boolean, threshold=number, minhp=number
 baseclass.recoverAbilities = {}
 -- array of {id=#,name=string,type=AA|item|spell|disc,target=self|group|classlist}
 baseclass.buffs = {}
@@ -82,14 +92,16 @@ baseclass.setup_events = function()
 end
 
 baseclass.assist = function()
-    local mob_x = mq.TLO.Target.X()
-    local mob_y = mq.TLO.Target.Y()
-    if mob_x and mob_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > config.CAMPRADIUS then return end
+    --local mob_x = mq.TLO.Target.X()
+    --local mob_y = mq.TLO.Target.Y()
+    --if mob_x and mob_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > config.CAMPRADIUS then return end
+    if mq.TLO.Navigation.Active() then return end
     if config.MODE:is_assist_mode() then
         assist.check_target(baseclass.reset_class_timers)
-        -- if we should be assisting but aren't in los, try to be?
-        assist.check_los()
-        assist.attack()
+        logger.debug(logger.log_flags.class.assist, "after check target "..tostring(state.assist_mob_id))
+        if not baseclass.OPTS.USEMELEE or baseclass.OPTS.USEMELEE.value then
+            assist.attack()
+        end
         assist.send_pet()
     end
 end
@@ -121,7 +133,7 @@ baseclass.mash = function()
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
         if baseclass.mash_class then baseclass.mash_class() end
-        if config.MODE:is_tank_mode() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then
             doCombatLoop(baseclass.tankAbilities)
         end
         doCombatLoop(baseclass.DPSAbilities)
@@ -131,7 +143,7 @@ end
 baseclass.ae = function()
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
-        if config.MODE:is_tank_mode() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then
             if baseclass.ae_class then baseclass.ae_class() end
             doCombatLoop(baseclass.AETankAbilities)
         end
@@ -146,15 +158,39 @@ baseclass.burn = function()
     if common.is_burn_condition_met() then
         if baseclass.burn_class then baseclass.burn_class() end
 
-        if config.MODE:is_tank_mode() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then
             doCombatLoop(baseclass.tankBurnAbilities)
         end
         doCombatLoop(baseclass.burnAbilities)
     end
 end
 
-baseclass.cast = function()
+baseclass.find_next_spell = function()
+    -- alliance
+    -- synergy
+    for _,spell in ipairs(baseclass.spellRotations[baseclass.OPTS.SPELLSET.value]) do
+        if common.is_spell_ready(spell) and (not spell.opt or baseclass.OPTS[spell.opt].value) then return spell end
+    end
+end
 
+baseclass.cast = function()
+    if mq.TLO.Me.SpellInCooldown() then return false end
+    local cur_mode = config.MODE
+    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+        -- OPTS.USEDISPEL
+        -- OPTS.DEBUFF
+        local spell = baseclass.find_next_spell()
+        if spell then -- if a dot was found
+            -- spell.precast
+            --if spell.name == nec.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+            --    local tc_item = mq.TLO.FindItem(tcclick)
+            --    common.use_item(tc_item)
+            --end
+            common.cast(spell.name, true) -- then cast the dot
+        end
+
+        -- nec multi dot stuff
+    end
 end
 
 baseclass.buff = function()
@@ -212,9 +248,9 @@ end
 
 baseclass.mez = function()
     -- don't try to mez in manual mode
-    if config.MODE:is_manual_mode() or config.MODE:is_tank_mode() then return end
+    if config.MODE:is_manual_mode() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then return end
     if baseclass.OPTS.MEZAE.value and baseclass.spells.mezae.name then
-        mez.do_ae(baseclass.spells.mezae.name)
+        mez.do_ae(baseclass.spells.mezae.name, baseclass.OPTS.MEZAECOUNT.value)
     end
     if baseclass.OPTS.MEZST.value and baseclass.spells.mezst.name then
         mez.do_single(baseclass.spells.mezst.name)
@@ -223,7 +259,7 @@ end
 
 local check_aggro_timer = timer:new(5)
 baseclass.aggro = function()
-    if common.am_i_dead() or config.MODE:is_tank_mode() then return end
+    if common.am_i_dead() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
         for _,ability in ipairs(baseclass.defensiveAbilities) do
             common.use(ability)
@@ -251,7 +287,7 @@ baseclass.recover = function()
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     for _,ability in ipairs(baseclass.recoverAbilities) do
-        if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') then
+        if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
             useAbility = ability
             break
         elseif ability.endurance and pct_end < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') then
@@ -326,6 +362,7 @@ end
 baseclass.main_loop = function()
     if not mq.TLO.Target() and not mq.TLO.Me.Combat() then
         state.tank_mob_id = 0
+        state.assist_mob_id = 0
     end
     if not state.pull_in_progress then
         -- get mobs in camp
@@ -345,7 +382,6 @@ baseclass.main_loop = function()
         end
     end
     if config.MODE:is_pull_mode() and not baseclass.hold() then
-        logger.debug(state.debug, 'call pull')
         pull.pull_mob(baseclass.pull_func)
     end
 end

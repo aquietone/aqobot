@@ -1,5 +1,5 @@
 --[[
-lootutils.lua v0.1 - aquietone
+lootutils.lua v0.2 - aquietone
 This is a port of the RedGuides copy of ninjadvloot.inc
 I may have glossed over some of the events or edge cases so it may have some issues
 around things like:
@@ -10,30 +10,65 @@ around things like:
 Or those things might just work, I just haven't tested it very much using lvl 1 toons
 on project lazarus.
 
-Usage: Include this somewhere in your automation with:
-    local lootutils = require 'lootutils'
-    ...
-    lootutils.lootMobs()
+This script can be used in two ways:
+    1. Included within a larger script using require:
+        To loot mobs, call lootutils.lootMobs():
 
-This script also exports a function, sellStuff, which can be called from your main automation:
-    lootutils.sellStuff()
+            local mq = require 'mq'
+            local lootutils = require 'lootutils'
+            while true do
+                lootutils.lootMobs()
+                mq.delay(1000)
+            end
 
-    To use this, one way may be to setup a bind which sets some flag, like doSell=true, which then
-    triggers your main loop to call lootutils.sellStuff().
+        To sell to a vendor, call lootutils.sellStuff():
 
-    The sellStuff routine can take some time and is best not to be called directly from a bind callback.
+            local mq = require 'mq'
+            local lootutils = require 'lootutils'
+            local doSell = false
+            local function binds(...)
+                local args = {...}
+                if args[1] == 'sell' then doSell = true end
+            end
+            mq.bind('/myscript', binds)
+            while true do
+                lootutils.lootMobs()
+                if doSell then lootutils.sellStuff() doSell = false end
+                mq.delay(1000)
+            end
 
-Optionally, configure settings using:
-    Set the radius within which corpses should be looted (radius from you, not a camp location)
-        lootutils.radius = number
-    Set whether loot.ini should be updated based off of sell item events to add manually sold items.
-        lootutils.addNewSales = boolean
-    Set your own instance of Write.lua to configure a different prefix, log level, etc.
-        lootutils.logger = Write
+        Note that in the above example, loot.sellStuff() isn't being called directly from the bind callback.
+        Selling may take some time and includes delays, so it is best to be called from your main loop.
 
-Similar binds are included to ninjadvloot:
-    /lootutils [action] "${Cursor.Name}" - Set the loot rule for an item. Options:
-                                            Keep, Sell, Ignore, Destroy, Quest|#
+        Optionally, configure settings using:
+            Set the radius within which corpses should be looted (radius from you, not a camp location)
+                lootutils.CorpseRadius = number
+            Set whether loot.ini should be updated based off of sell item events to add manually sold items.
+                lootutils.AddNewSales = boolean
+            Set your own instance of Write.lua to configure a different prefix, log level, etc.
+                lootutils.logger = Write
+            Several other settings can be found in the "loot" table defined in the code.
+
+    2. Run as a standalone script:
+        /lua run lootutils standalone
+            Will keep the script running, checking for corpses once per second.
+        /lua run lootutils once
+            Will run one iteration of lootMobs().
+        /lua run lootutils sell
+            Will run one iteration of sellStuff().
+
+The script will setup a bind for "/lootutils":
+    /lootutils <action> "${Cursor.Name}"
+        Set the loot rule for an item. "action" may be one of:
+            - Keep
+            - Sell
+            - Ignore
+            - Destroy
+            - Quest|#
+
+If running in standalone mode, the bind also supports:
+    /lootutils sell
+        Runs lootutils.sellStuff() one time
 
 This script depends on having LIP.lua and Write.lua in your lua/lib folder.
     https://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
@@ -44,32 +79,76 @@ but lootly sell routines seem more robust than the code that was in ninjadvloot.
 The forage event handling also does not handle fishing events like ninjadvloot did.
 There is also no flag for combat looting. It will only loot if no mobs are within the radius.
 ]]
+
 ---@type Mq
 local mq = require 'mq'
-local LIP = require 'lib.LIP'
+local _, LIP = pcall(require, 'lib.LIP')
+if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
+local _, Write = pcall(require, 'lib.Write')
+if not Write then print('\arERROR: Write.lua could not be loaded\ax') return end
 
+-- Public default settings, also read in from Loot.ini [Settings] section
 local loot = {
-    logger = require 'lib.Write',
-    radius = 60,
-    addNewSales = true,
+    logger = Write,
+    Version = "0.2",
+    LootFile = mq.configDir .. '/Loot.ini',
+    AddNewSales = true,
+    LootForage = true,
+    LootMobs = true,
+    CorpseRadius = 100,
+    MobsTooClose = 40,
+    ReportLoot = true,
+    LootChannel = "dgt",
+    SpamLootInfo = false,
+    LootForageSpam = false,
+    GlobalLootOn = true,
+    CombatLooting = true,
+    GMLSelect = true,
+    ExcludeBag1 = "Extraplanar Trade Satchel",
+    QuestKeep = 10,
+    StackPlatValue = 0,
+    NoDropDefaults = "Quest|Keep|Ignore",
+    LootLagDelay = 0,
+    SaveBagSlots = 3,
+    CorpseRotTime = "440s",
+    Terminate = true,
 }
 loot.logger.prefix = 'lootutils'
 
-local lootFile = mq.configDir .. '/Loot.ini'
-local lootData = LIP.load(lootFile)
-
+-- Internal settings
+local lootData = nil
 local shouldLootMobs = true
+local doSell = false
+local cantLootList = {}
+local cantLootID = 0
 
+-- Constants
+local spawnSearch = '%s radius %d zradius 50'
 local keepActions = {Keep=true, Sell=true}
 local destroyActions = {Destroy=true, Ignore=true}
 local vendorTypes = {NPC=true,PET=true}
 local validActions = {keep='Keep',sell='Sell',ignore='Ignore',destroy='Destroy'}
+local saveOptionTypes = {string=1,number=1,boolean=1}
 
 -- FORWARD DECLARATIONS
 
 local eventForage, eventSell, eventCantLoot
 
 -- UTILITIES
+
+local function fileExists(fileName)
+    local f = io.open(fileName, 'r')
+    if f ~= nil then io.close(f) return true else return false end
+end
+
+local function writeSettings()
+    for option,value in pairs(loot) do
+        local optionType = type(option)
+        if saveOptionTypes[optionType] then
+            mq.cmdf('/ini "%s" "%s" "%s" "%s"', loot.LootFile, 'Settings', option, value)
+        end
+    end
+end
 
 local function split(input, sep)
     if sep == nil then
@@ -98,7 +177,7 @@ local function checkCursor()
 end
 
 local function navToID(spawnID)
-    mq.cmdf('/nav id %d', spawnID)
+    mq.cmdf('/nav id %d log=off', spawnID)
     mq.delay(50)
     if mq.TLO.Navigation.Active() then
         local startTime = os.time()
@@ -116,7 +195,7 @@ local function addRule(itemName, section, rule)
         lootData[section] = {}
     end
     lootData[section][itemName] = rule
-    LIP.save(lootFile, lootData)
+    mq.cmdf('/ini "%s" "%s" "%s" "%s"', loot.LootFile, section, itemName, rule)
 end
 
 local function getRule(itemName)
@@ -157,17 +236,25 @@ end
 
 local function commandHandler(...)
     local args = {...}
-    --if #args == 1 then
-    --    if args[1] == 'sell' then
-    --        loot.sellStuff()
-    --    end
-    if #args == 2 then
+    if #args == 1 then
+        if args[1] == 'sell' and not loot.Terminate then
+            doSell = true
+        elseif args[1] == 'reload' then
+            lootData = LIP.load(loot.LootFile)
+            --for option, value in pairs(lootData.Settings) do
+            --    loot[option] = value
+            --end
+            loot.logger.Info("Reloaded Loot File")
+        end
+    elseif #args == 2 then
         if validActions[args[1]] then
             addRule(args[2], args[2]:sub(1,1), validActions[args[1]])
+            loot.logger.Info(string.format("Setting \ay%s\ax to \ay%s\ax", args[2], validActions[args[1]]))
         end
     elseif #args == 3 then
         if args[1] == 'quest' then
             addRule(args[2], args[2]:sub(1,1), 'Quest|'..args[3])
+            loot.logger.Info(string.format("Setting \ay%s\ax to \ayQuest|%s\ax", args[2], args[3]))
         end
     end
 end
@@ -178,8 +265,6 @@ end
 
 -- LOOTING
 
-local cantLootList = {}
-local cantLootID = 0
 eventCantLoot = function()
     cantLootID = mq.TLO.Target.ID()
 end
@@ -188,11 +273,13 @@ local function lootItem(index, doWhat, button)
     loot.logger.Debug('Enter lootItem')
     if destroyActions[doWhat] then return end
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
+    local itemName = mq.TLO.Corpse.Item(index).Name()
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
     mq.delay(5000, function() return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop() end)
     if mq.TLO.Window('ConfirmationDialogBox').Open() then mq.cmd('/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup') end
     mq.delay(5000, function() return mq.TLO.Cursor() end)
     mq.delay(500)
+    if loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax %sing \ay%s\ax', loot.LootChannel, doWhat, itemName) end
     if doWhat == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
 end
@@ -209,15 +296,17 @@ local function lootCorpse(corpseID)
         cantLootList[corpseID] = os.time()
         return
     end
-    mq.delay(3000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
-    loot.logger.Debug(('Loot window open. Items: %d'):format(mq.TLO.Corpse.Items()))
+    mq.delay(1000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
+    loot.logger.Debug(('Loot window open. Items: %s'):format(mq.TLO.Corpse.Items()))
     if mq.TLO.Window('LootWnd').Open() and mq.TLO.Corpse.Items() > 0 then
         for i=1,mq.TLO.Corpse.Items() do
             local corpseItem = mq.TLO.Corpse.Item(i)
-            if corpseItem.Lore() and mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))() then
-                loot.logger.Warn('Cannot loot lore item')
-            else
-                lootItem(i, getRule(corpseItem.Name()), 'leftmouseup')
+            if corpseItem() then
+                if corpseItem.Lore() and mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))() then
+                    loot.logger.Warn('Cannot loot lore item')
+                else
+                    lootItem(i, getRule(corpseItem.Name()), 'leftmouseup')
+                end
             end
         end
     end
@@ -239,21 +328,22 @@ local function corpseLocked(corpseID)
     return true
 end
 
-local spawnSearch = '%s radius %d zradius 50'
-loot.lootMobs = function()
+loot.lootMobs = function(limit)
     loot.logger.Debug('Enter lootMobs')
-    if not shouldLootMobs then return end
-    local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.radius))()
+    if mq.TLO.Me.FreeInventory() > 0 then shouldLootMobs = true end
+    if not shouldLootMobs then return false end
+    local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.CorpseRadius))()
     loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
-    local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.radius))()
+    local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.MobsTooClose))()
     -- options for combat looting or looting disabled
-    if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() or mq.TLO.Me.FreeInventory() == 0 then return end
+    if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() or mq.TLO.Me.FreeInventory() == 0 then return false end
     local corpseList = {}
-    for i=1,deadCount do
-        local corpse = mq.TLO.NearestSpawn(('%d,'..spawnSearch):format(i, 'npccorpse', loot.radius))
+    for i=1,math.max(deadCount, limit or 0) do
+        local corpse = mq.TLO.NearestSpawn(('%d,'..spawnSearch):format(i, 'npccorpse', loot.CorpseRadius))
         table.insert(corpseList, corpse)
         -- why is there a deity check?
     end
+    local didLoot = false
     loot.logger.Debug(string.format('Trying to loot %d corpses.', #corpseList))
     for i=1,#corpseList do
         local corpse = corpseList[i]
@@ -264,11 +354,13 @@ loot.lootMobs = function()
             corpse.DoTarget()
             mq.delay(100, function() return mq.TLO.Target.ID() == corpseID end)
             lootCorpse(corpseID)
+            didLoot = true
             mq.doevents()
             if not shouldLootMobs then break end
         end
     end
     loot.logger.Debug('Done with corpse list.')
+    return didLoot
 end
 
 -- SELLING
@@ -276,11 +368,11 @@ end
 eventSell = function(line, itemName)
     local firstLetter = itemName:sub(1,1):upper()
     if lootData[firstLetter] and lootData[firstLetter][itemName] == 'Sell' then return end
-    if loot.addNewSales then
+    if loot.AddNewSales then
         loot.logger.Info(string.format('Setting %s to Sell', itemName))
         if not lootData[firstLetter] then lootData[firstLetter] = {} end
         lootData[firstLetter][itemName] = 'Sell'
-        LIP.save(lootFile, lootData)
+        mq.cmdf('/ini "%s" "%s" "%s" "%s"', loot.LootFile, firstLetter, itemName, 'Sell')
     end
 end
 
@@ -393,7 +485,38 @@ end
 
 --
 
-setupEvents()
-setupBinds()
+local function processArgs(args)
+    if #args == 1 then
+        if args[1] == 'sell' then
+            loot.sellStuff()
+        elseif args[1] == 'once' then
+            loot.lootMobs()
+        elseif args[1] == 'standalone' then
+            loot.Terminate = false
+        end
+    end
+end
+
+local function init(args)
+    if not fileExists(loot.LootFile) then
+        writeSettings()
+    end
+    lootData = LIP.load(loot.LootFile)
+    for option, value in pairs(lootData.Settings) do
+        loot[option] = value
+    end
+
+    setupEvents()
+    setupBinds()
+    processArgs(args)
+end
+
+init({...})
+
+while not loot.Terminate do
+    loot.lootMobs()
+    if doSell then loot.sellStuff() doSell = false end
+    mq.delay(1000)
+end
 
 return loot

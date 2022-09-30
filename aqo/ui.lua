@@ -8,6 +8,7 @@ local common = require('aqo.common')
 local config = require('aqo.configuration')
 local mode = require('aqo.mode')
 local state = require('aqo.state')
+local logger = require('aqo.utils.logger')
 
 -- GUI Control variables
 local open_gui = true
@@ -164,16 +165,19 @@ local function draw_pull_tab()
     end
 end
 
-local function draw_debug_tab()
-    if state.debug then
-        if ImGui.Button('Disable Debug', 303, 22) then
-            state.debug = false
+local function draw_debug_combo_box()
+    if ImGui.BeginCombo('##debugoptions', 'debug options') then
+        for category, subcategories in pairs(logger.log_flags) do
+            for subcategory, enabled in pairs(subcategories) do
+                logger.log_flags[category][subcategory] = ImGui.Checkbox(category..' - '..subcategory, enabled)
+            end
         end
-    else
-        if ImGui.Button('Enable Debug', 303, 22) then
-            state.debug = true
-        end
+        ImGui.EndCombo()
     end
+end
+
+local function draw_debug_tab()
+    draw_debug_combo_box()
     ImGui.TextColored(1, 1, 0, 1, 'Mode:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
@@ -210,6 +214,12 @@ local function draw_debug_tab()
     x,_ = ImGui.GetCursorPos()
     ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.burn_active))
+
+    ImGui.TextColored(1, 1, 0, 1, 'assist_mob_id:')
+    ImGui.SameLine()
+    x,_ = ImGui.GetCursorPos()
+    ImGui.SetCursorPosX(100)
+    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.assist_mob_id))
 
     ImGui.TextColored(1, 1, 0, 1, 'tank_mob_id:')
     ImGui.SameLine()
@@ -347,8 +357,7 @@ end
 ui.main = function()
     if not open_gui then return end
     push_styles()
-    local classname = mq.TLO.Me.Class.ShortName()
-    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI', classname), open_gui, ImGuiWindowFlags.AlwaysAutoResize)
+    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI', state.class), open_gui, ImGuiWindowFlags.AlwaysAutoResize)
     if should_draw_gui then
         draw_header()
         draw_body()

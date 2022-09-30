@@ -37,6 +37,7 @@ rng.addOption('NUKE', 'Buff Group', false, nil, 'Cast nukes on all mobs', 'check
 rng.addOption('USEDISPEL', 'DS Tank', true, nil, 'Dispel mobs with Entropy AA', 'checkbox')
 rng.addOption('USEREGEN', 'Use Dispel', false, nil, 'Buff regen on self', 'checkbox')
 rng.addOption('USECOMPOSITE', 'Use Regen', true, nil, 'Cast composite as its available', 'checkbox')
+rng.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
 
 rng.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
 rng.addSpell('focused', {'Focused Whirlwind of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
@@ -93,7 +94,7 @@ table.insert(combat_heal_spells, rng.spells.healtot)
 table.insert(rng.burnAbilities, {id=mq.TLO.FindItem('Rage of Rolfron').ID(), type='item'})
 table.insert(rng.burnAbilities, {id=mq.TLO.FindItem('Miniature Horn of Unity').ID(), type='item'})
 
-table.insert(rng.dpsAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(), type='item'})
+table.insert(rng.DPSAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(), type='item'})
 
 -- entries in the AAs table are pairs of {aa name, aa id}
 table.insert(rng.burnAbilities, common.get_aa('Spire of the Pathfinders')) -- 7.5min CD
@@ -113,15 +114,15 @@ local rangedBurnDiscs = {}
 table.insert(rangedBurnDiscs, common.get_disc('Pureshot Discipline')) -- bow dmg buff, 1hr7min CD, timer 2
 
 local mashAAs = {}
-table.insert(rng.dpsAbilities, common.get_aa('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
+table.insert(rng.DPSAbilities, common.get_aa('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
 
 local mashDiscs = {}
-table.insert(rng.dpsAbilities, common.get_disc('Jolting Roundhouse Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
-table.insert(rng.dpsAbilities, common.get_disc('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
-table.insert(rng.dpsAbilities, common.get_disc('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
+table.insert(rng.DPSAbilities, common.get_disc('Jolting Roundhouse Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+table.insert(rng.DPSAbilities, common.get_disc('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
+table.insert(rng.DPSAbilities, common.get_disc('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
 -- table.insert(mashDiscs, common.get_aa('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
 
-table.insert(rng.dpsAbilities, {name='Kick', type='ability'})
+table.insert(rng.DPSAbilities, {name='Kick', type='ability'})
 
 local dispel = common.get_aa('Entropy of Nature') -- dispel 9 slots
 local snare = common.get_aa('Entrap')
@@ -205,15 +206,21 @@ local function check_mob_angle()
     return true
 end
 
+local need_distance = true
+if mq.TLO.EverQuest.Server() == 'Project Lazarus' then
+    need_distance = false
+end
 local function attack_range()
     if state.assist_mob_id == 0 or mq.TLO.Target.ID() ~= state.assist_mob_id or not assist.should_assist() then
         if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
         return
     end
     local dist3d = mq.TLO.Target.Distance3D()
-    if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
-        if not get_ranged_combat_position(40) then
-            return false
+    if need_distance then
+        if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
+            if not get_ranged_combat_position(40) then
+                return false
+            end
         end
     end
     if mq.TLO.Navigation.Active() then
@@ -389,7 +396,7 @@ local function target_missing_buff(name)
 end
 
 local group_buff_timer = timer:new(60)
-rng.buffs = function()
+rng.buff = function()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if brownies and not mq.TLO.Me.Buff(brownies.name)() then
@@ -506,16 +513,19 @@ rng.check_spell_set = function()
 end
 
 rng.assist = function()
-    assist.check_target(rng.reset_class_timers)
-    use_opener()
-    -- if we should be assisting but aren't in los, try to be?
-    -- try to deal with ranger noobishness running out to ranged and dying
-    if mq.TLO.Me.PctHPs() > 40 then
-        if not rng.OPTS.USERANGE.value or not attack_range() then
-            if rng.OPTS.USEMELEE.value then assist.attack() end
+    if mq.TLO.Navigation.Active() then return end
+    if config.MODE:is_assist_mode() then
+        assist.check_target(rng.reset_class_timers)
+        use_opener()
+        -- if we should be assisting but aren't in los, try to be?
+        -- try to deal with ranger noobishness running out to ranged and dying
+        if mq.TLO.Me.PctHPs() > 40 then
+            if not rng.OPTS.USERANGE.value or not attack_range() then
+                if rng.OPTS.USEMELEE.value then assist.attack() end
+            end
         end
+        assist.send_pet()
     end
-    assist.send_pet()
 end
 
 return rng

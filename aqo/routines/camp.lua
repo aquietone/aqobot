@@ -17,7 +17,6 @@ local camp = {
     PullArcRight=0,
 }
 
-local xtar_corpse_count = 'xtarhater npccorpse radius %d zradius 50'
 local xtar_count = 'xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_spawn = '%d, xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
@@ -26,26 +25,25 @@ local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
 ---Adds the mob ID of each mob found to the common.TARGETS table.
 camp.mob_radar = function()
     local x, y, z
-    if config.MODE:get_name() == 'huntertank' then
+    if not camp.Active or config.MODE:get_name() == 'huntertank' then
         x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     else
         x, y, z = camp.X, camp.Y, camp.Z
     end
-    logger.debug(state.debug, xtar_count:format(config.CAMPRADIUS or 0, x, y, z))
+    logger.debug(logger.log_flags.routines.camp, xtar_count:format(config.CAMPRADIUS or 0, x, y, z))
     state.mob_count = mq.TLO.SpawnCount(xtar_count:format(config.CAMPRADIUS or 0, x, y, z))()
     state.mob_count_nopet = mq.TLO.SpawnCount(xtar_nopet_count:format(config.CAMPRADIUS or 0, x, y, z))()
     if state.mob_count > 0 then
         for i=1,state.mob_count do
             if i > 13 then break end
-            logger.debug(state.debug, xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
+            logger.debug(logger.log_flags.routines.camp, xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
             local mob = mq.TLO.NearestSpawn(xtar_spawn:format(i, config.CAMPRADIUS or 0, x, y, z))
             local mob_id = mob.ID()
-            logger.debug(state.debug, string.format('mod id: %s', mob_id))
             if mob_id and mob_id > 0 then
                 if not mob() or mob.Type() == 'Corpse' then
                     state.targets[mob_id] = nil
                 elseif not state.targets[mob_id] then
-                    logger.debug(state.debug, 'Adding mob_id %d', mob_id)
+                    logger.debug(logger.log_flags.routines.camp, 'Adding mob_id %d', mob_id)
                     state.targets[mob_id] = {meztimer=timer:new(30)}
                 end
             end
@@ -124,7 +122,7 @@ local function set_pull_angles()
     else
         camp.PullArcRight = (pull_arc*.5)+camp.Heading
     end
-    logger.debug(state.debug, 'arcleft: %s, arcright: %s', camp.PullArcLeft, camp.PullArcRight)
+    logger.debug(logger.log_flags.routines.camp, 'arcleft: %s, arcright: %s', camp.PullArcLeft, camp.PullArcRight)
 end
 
 ---Set, update or clear the CAMP values depending on whether currently in a camp mode or not.

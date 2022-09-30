@@ -1,30 +1,33 @@
---- @type Mq
+---@type Mq
 local mq = require 'mq'
 local baseclass = require('aqo.classes.base')
 local common = require('aqo.common')
 
-local clr = baseclass
+local dru = baseclass
 
-clr.class = 'clr'
-clr.classOrder = {'heal', 'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+dru.class = 'dru'
+dru.classOrder = {'heal', 'assist', 'cast', 'burn', 'recover', 'buff', 'rest'}
 
-clr.SPELLSETS = {standard=1}
+dru.SPELLSETS = {standard=1}
 
-clr.addOption('SPELLSET', 'Spell Set', 'standard', clr.SPELLSETS, nil, 'combobox')
-clr.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
+dru.addOption('SPELLSET', 'Spell Set', 'standard', dru.SPELLSETS, nil, 'combobox')
+dru.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
+dru.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
 
-clr.addSpell('heal', {'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
+dru.addSpell('heal', {'Superior Healing', 'Nature\'s Renewal', 'Minor Healing'}, {me=70, mt=70, other=50})
+dru.addSpell('firenuke', {'Firestrike'}, {opt='USENUKES'})
 
 local standard = {}
+table.insert(standard, dru.spells.firenuke)
 
-clr.spellRotations = {
+dru.spellRotations = {
     standard=standard
 }
 
-table.insert(clr.healAbilities, clr.spells.heal)
+table.insert(dru.healAbilities, dru.spells.heal)
 
-clr.heal = function()
-    for _,heal in ipairs(clr.healAbilities) do
+dru.heal = function()
+    for _,heal in ipairs(dru.healAbilities) do
         if common.is_spell_ready(heal) then
             if mq.TLO.Me.PctHPs() < heal.me then
                 mq.cmdf('/mqt myself')
@@ -51,4 +54,4 @@ clr.heal = function()
     end
 end
 
-return clr
+return dru
