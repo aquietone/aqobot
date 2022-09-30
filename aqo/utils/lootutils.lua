@@ -61,6 +61,7 @@ The script will setup a bind for "/lootutils":
     /lootutils <action> "${Cursor.Name}"
         Set the loot rule for an item. "action" may be one of:
             - Keep
+            - Bank
             - Sell
             - Ignore
             - Destroy
@@ -110,6 +111,8 @@ local loot = {
     NoDropDefaults = "Quest|Keep|Ignore",
     LootLagDelay = 0,
     SaveBagSlots = 3,
+    MinSellPrice = -1,
+    StackableOnly = false,
     CorpseRotTime = "440s",
     Terminate = true,
 }
@@ -124,10 +127,10 @@ local cantLootID = 0
 
 -- Constants
 local spawnSearch = '%s radius %d zradius 50'
-local keepActions = {Keep=true, Sell=true}
+local keepActions = {Keep=true, Bank=true, Sell=true}
 local destroyActions = {Destroy=true, Ignore=true}
 local vendorTypes = {NPC=true,PET=true}
-local validActions = {keep='Keep',sell='Sell',ignore='Ignore',destroy='Destroy'}
+local validActions = {keep='Keep',bank='Bank',sell='Sell',ignore='Ignore',destroy='Destroy'}
 local saveOptionTypes = {string=1,number=1,boolean=1}
 
 -- FORWARD DECLARATIONS
@@ -198,8 +201,12 @@ local function addRule(itemName, section, rule)
     mq.cmdf('/ini "%s" "%s" "%s" "%s"', loot.LootFile, section, itemName, rule)
 end
 
-local function getRule(itemName)
+local function getRule(item)
+    local itemName = item.Name()
     local lootDecision = 'Keep'
+    local tradeskill = item.Tradeskills()
+    local sellPrice = item.SellPrice() or 0
+    local stackable = item.Stackable()
     if not lootData then return lootDecision end
     local firstLetter = itemName:sub(1,1):upper()
     if lootData['Global'] then
@@ -211,6 +218,9 @@ local function getRule(itemName)
         end
     end
     if not lootData[firstLetter] or not lootData[firstLetter][itemName] then
+        if tradeskill then lootDecision = 'Bank' end
+        if sellPrice < loot.MinSellPrice then lootDecision = 'Ignore' end
+        if not stackable and loot.StackableOnly then lootDecision = 'Ignore' end
         addRule(itemName, firstLetter, lootDecision)
     end
     return lootData[firstLetter][itemName]
@@ -245,6 +255,8 @@ local function commandHandler(...)
             --    loot[option] = value
             --end
             loot.logger.Info("Reloaded Loot File")
+        elseif args[1] == 'bank' then
+            loot.bankStuff()
         end
     elseif #args == 2 then
         if validActions[args[1]] then
@@ -305,7 +317,7 @@ local function lootCorpse(corpseID)
                 if corpseItem.Lore() and mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))() then
                     loot.logger.Warn('Cannot loot lore item')
                 else
-                    lootItem(i, getRule(corpseItem.Name()), 'leftmouseup')
+                    lootItem(i, getRule(corpseItem), 'leftmouseup')
                 end
             end
         end
@@ -426,7 +438,7 @@ loot.sellStuff = function()
         if bagSlot.Container() == 0 then
             if bagSlot.ID() then
                 local itemToSell = bagSlot.Name()
-                local sellRule = getRule(itemToSell)
+                local sellRule = getRule(bagSlot)
                 if sellRule == 'Sell' then sellToVendor(itemToSell) end
             end
         end
@@ -439,7 +451,7 @@ loot.sellStuff = function()
             for j=1,containerSize do
                 local itemToSell = bagSlot.Item(j).Name()
                 if itemToSell then
-                    local sellRule = getRule(itemToSell)
+                    local sellRule = getRule(bagSlot.Item(j))
                     if sellRule == 'Sell' then sellToVendor(itemToSell) end
                 end
             end
@@ -447,6 +459,46 @@ loot.sellStuff = function()
     end
     mq.flushevents('Sell')
     if mq.TLO.Window('MerchantWnd').Open() then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
+end
+
+-- BANKING
+
+local function bankItem(itemName)
+    mq.cmdf('/nomodkey /shiftkey /itemnotify "%s" leftmouseup', itemName)
+    mq.delay(100, function() return mq.TLO.Cursor() end)
+    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+    mq.delay(100, function() return not mq.TLO.Cursor() end)
+end
+
+loot.bankStuff = function()
+    if not mq.TLO.Window('BigBankWnd').Open() then
+        loot.logger.Warn('Bank window must be open!')
+        return
+    end
+    for i=1,10 do
+        local bagSlot = mq.TLO.InvSlot('pack'..i).Item
+        if bagSlot.Container() == 0 then
+            if bagSlot.ID() then
+                local itemToBank = bagSlot.Name()
+                local bankRule = getRule(bagSlot)
+                if bankRule == 'Bank' then bankItem(itemToBank) end
+            end
+        end
+    end
+    -- sell any items in bags which are marked as sell
+    for i=1,10 do
+        local bagSlot = mq.TLO.InvSlot('pack'..i).Item
+        local containerSize = bagSlot.Container()
+        if containerSize and containerSize > 0 then
+            for j=1,containerSize do
+                local itemToBank = bagSlot.Item(j).Name()
+                if itemToBank then
+                    local bankRule = getRule(bagSlot.Item(j))
+                    if bankRule == 'Bank' then bankItem(itemToBank) end
+                end
+            end
+        end
+    end
 end
 
 -- FORAGING
@@ -459,7 +511,7 @@ eventForage = function()
     while mq.TLO.Cursor() do
         local cursorItem = mq.TLO.Cursor
         local foragedItem = cursorItem.Name()
-        local forageRule = split(getRule(foragedItem))
+        local forageRule = split(getRule(cursorItem))
         local ruleAction = forageRule[1] -- what to do with the item
         local ruleAmount = forageRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('='..foragedItem)()

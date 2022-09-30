@@ -13,7 +13,7 @@ clr.SPELLSETS = {standard=1}
 clr.addOption('SPELLSET', 'Spell Set', 'standard', clr.SPELLSETS, nil, 'combobox')
 clr.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
 
-clr.addSpell('heal', {'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
+clr.addSpell('heal', {'Superior Healing', 'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
 
 local standard = {}
 

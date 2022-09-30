@@ -31,6 +31,7 @@ brd.addOption('USEFADE', 'Use Fade', false, nil, 'Fade when aggro', 'checkbox')
 brd.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
 brd.addOption('RALLYGROUP', 'Rallying Group', false, nil, 'Use Rallying Group AA', 'checkbox')
 brd.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox')
+brd.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
 
 -- All spells ID + Rank name
 brd.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
@@ -55,6 +56,7 @@ brd.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poi
 brd.addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
 brd.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'})
 brd.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
+brd.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local melee = {
@@ -244,6 +246,9 @@ end
 local function find_next_song()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
+    if not mq.TLO.Target.Snared() and brd.OPTS.USESNARE.value and ((mq.TLO.Target.PctHPs() or 100) < 30) then
+        return brd.spells.snare
+    end
     for _,song in ipairs(songs[brd.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.id
         local song_name = song.name

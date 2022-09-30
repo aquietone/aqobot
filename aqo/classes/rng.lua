@@ -26,8 +26,8 @@ rng.SPELLSETS = {standard=1}
 rng.addOption('SPELLSET', 'Spell Set', 'standard', rng.SPELLSETS, nil, 'combobox')
 rng.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox')
 rng.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox')
-rng.addOption('USERANGE', 'Use Melee', true, nil, 'Ranged DPS if possible', 'checkbox')
-rng.addOption('USEMELEE', 'Use Ranged', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox')
+rng.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
+rng.addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox')
 rng.addOption('USEDOT', 'Use Nukes', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
 rng.addOption('USEPOISONARROW', 'Use DoT', true, nil, 'Use Poison Arrows AA', 'checkbox')
 rng.addOption('USEFIREARROW', 'Use Composite', false, nil, 'Use Fire Arrows AA', 'checkbox')
@@ -38,6 +38,7 @@ rng.addOption('USEDISPEL', 'DS Tank', true, nil, 'Dispel mobs with Entropy AA', 
 rng.addOption('USEREGEN', 'Use Dispel', false, nil, 'Buff regen on self', 'checkbox')
 rng.addOption('USECOMPOSITE', 'Use Regen', true, nil, 'Cast composite as its available', 'checkbox')
 rng.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
+rng.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
 rng.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
 rng.addSpell('focused', {'Focused Whirlwind of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
@@ -69,6 +70,7 @@ rng.addSpell('blades', {'Vociferous Blades'}) -- Howling Blades
 rng.addSpell('ds', {'Shield of Shadethorns'}) -- DS
 rng.addSpell('rune', {'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
 rng.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
+rng.addSpell('snare', {'Snare'})
 
 -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
 local arrow_spells = {}
@@ -283,10 +285,16 @@ local function find_next_spell()
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 
+local snared_id = 0
 rng.cast = function()
     if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
         local cur_mode = config.MODE
         if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+            if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and rng.OPTS.USESNARE.value then
+                common.cast(rng.spells.snare.name)
+                snared_id = mq.TLO.Target.ID()
+                return true
+            end
             local spell = find_next_spell()
             if spell then
                 if mq.TLO.Spell(spell.name).TargetType() == 'Single' then

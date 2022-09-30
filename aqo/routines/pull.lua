@@ -19,7 +19,7 @@ local PULL_TARGET_SKIP = {}
 
 -- false invalid, true valid
 ---Determine whether the pull spawn is within the configured pull arc, if there is one.
----@param pull_spawn spawn @The MQ Spawn to check.
+---@param pull_spawn MQSpawn @The MQ Spawn to check.
 ---@return boolean @Returns true if the spawn is within the pull arc, otherwise false.
 local function check_mob_angle(pull_spawn)
     local pull_arc = config.PULLARC
@@ -41,7 +41,7 @@ end
 
 -- z check done separately so that high and low values can be different
 ---Determine whether the pull spawn is within the configured Z high and Z low values.
----@param pull_spawn spawn @The MQ Spawn to check.
+---@param pull_spawn MQSpawn @The MQ Spawn to check.
 ---@return boolean @Returns true if the spawn is within the Z high and Z low, otherwise false.
 local function check_z_rad(pull_spawn)
     local mob_z = pull_spawn.Z()
@@ -55,7 +55,7 @@ local function check_z_rad(pull_spawn)
 end
 
 ---Determine whether the pull spawn is within the configured pull level range.
----@param pull_spawn spawn @The MQ Spawn to check.
+---@param pull_spawn MQSpawn @The MQ Spawn to check.
 ---@return boolean @Returns true if the spawn is within the configured level range, otherwise false.
 local function check_level(pull_spawn)
     if config.PULLMINLEVEL == 0 and config.PULLMAXLEVEL == 0 then return true end
@@ -66,7 +66,7 @@ local function check_level(pull_spawn)
 end
 
 ---Validate that the spawn is good for pulling
----@param pull_spawn spawn @The MQ Spawn to validate.
+---@param pull_spawn MQSpawn @The MQ Spawn to validate.
 ---@param path_len number @The navigation path length to the spawn.
 ---@param zone_sn string @The current zone short name.
 ---@return boolean @Returns true if the spawn meets all the criteria for pulling, otherwise false.
@@ -186,7 +186,7 @@ local function clear_pull_vars()
 end
 
 ---Navigate to the pull spawn. Stop when it is within bow distance and line of sight, or when within melee distance.
----@param pull_spawn spawn @The MQ Spawn to navigate to.
+---@param pull_spawn MQSpawn @The MQ Spawn to navigate to.
 ---@return boolean @Returns false if the pull spawn became invalid during navigation, otherwise true.
 local function pull_nav_to(pull_spawn)
     local mob_x = pull_spawn.X()
@@ -220,7 +220,7 @@ local function pull_approaching(pull_spawn)
 end
 
 ---Aggro the specified target to be pulled. Attempts to use bow and moves closer to melee pull if necessary.
----@param pull_spawn spawn @The MQ Spawn to be pulled.
+---@param pull_spawn MQSpawn @The MQ Spawn to be pulled.
 ---@param pull_func function @The function to use to ranged pull.
 local function pull_engage(pull_spawn, pull_func)
     -- pull  mob

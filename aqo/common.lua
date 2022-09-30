@@ -415,7 +415,7 @@ local function item_ready(item)
 end
 
 ---Use the item specified by item.
----@param item item @The MQ Item userdata object.
+---@param item MQItem @The MQ Item userdata object.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 common.use_item = function(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
