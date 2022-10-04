@@ -1,4 +1,5 @@
 local baseclass = require('aqo.classes.base')
+local common = require('aqo.common')
 
 local mnk = baseclass
 
@@ -9,5 +10,10 @@ mnk.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 table.insert(mnk.DPSAbilities, {name='Flying Kick',            type='ability'})
 table.insert(mnk.DPSAbilities, {name='Tiger Claw',            type='ability'})
+
+mnk.aura = common.get_disc('Disciple\'s Aura')
+mnk.aura.type = 'discaura'
+mnk.aura.checkfor = 'Disciples Aura'
+table.insert(mnk.buffs, mnk.aura)
 
 return mnk

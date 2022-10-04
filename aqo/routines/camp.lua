@@ -17,6 +17,17 @@ local camp = {
     PullArcRight=0,
 }
 
+local function campPredicate(spawn)
+    if spawn.Type() ~= 'NPC' then return false end
+    local x, y, z
+    if not camp.Active or config.MODE:get_name() == 'huntertank' then
+        x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
+    else
+        x, y, z = camp.X, camp.Y, camp.Z
+    end
+end
+-- mq.getFilteredSpawns(campPredicate)
+
 local xtar_count = 'xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_spawn = '%d, xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
@@ -65,8 +76,6 @@ end
 camp.check_camp = function()
     if not config.MODE:return_to_camp() or not camp.Active then return end
     if common.am_i_dead() or mq.TLO.Me.Casting() or not common.clear_to_buff() then return end
-    --if common.is_fighting() or not state.camp then return end
-    --if mq.TLO.Me.XTarget() > 0 then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
         logger.printf('Clearing camp due to zoning.')
         camp.Active = false

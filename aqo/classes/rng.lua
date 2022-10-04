@@ -24,13 +24,13 @@ rng.SPELLSETS = {standard=1}
 --    if OPTS.USEFIREARROW then OPTS.USEPOISONARROW = false end
 
 rng.addOption('SPELLSET', 'Spell Set', 'standard', rng.SPELLSETS, nil, 'combobox')
-rng.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox')
-rng.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox')
+rng.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
+rng.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
 rng.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
 rng.addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox')
 rng.addOption('USEDOT', 'Use Nukes', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
-rng.addOption('USEPOISONARROW', 'Use DoT', true, nil, 'Use Poison Arrows AA', 'checkbox')
-rng.addOption('USEFIREARROW', 'Use Composite', false, nil, 'Use Fire Arrows AA', 'checkbox')
+rng.addOption('USEPOISONARROW', 'Use DoT', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW')
+rng.addOption('USEFIREARROW', 'Use Composite', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW')
 rng.addOption('BUFFGROUP', 'Use Poison Arrow', false, nil, 'Buff group members', 'checkbox')
 rng.addOption('DSTANK', 'Use Fire Arrow', false, nil, 'DS Tank', 'checkbox')
 rng.addOption('NUKE', 'Buff Group', false, nil, 'Cast nukes on all mobs', 'checkbox')
@@ -242,7 +242,7 @@ end
 local function use_opener()
     if mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if assist.should_assist() and state.assist_mob_id > 0 and rng.spells.opener.name and mq.TLO.Me.SpellReady(rng.spells.opener.name)() then
-        common.cast(rng.spells.opener.name, true)
+        common.cast(rng.spells.opener, true)
     end
 end
 
@@ -288,19 +288,18 @@ end
 local snared_id = 0
 rng.cast = function()
     if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
-        local cur_mode = config.MODE
-        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+        if assist.is_fighting() then
             if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and rng.OPTS.USESNARE.value then
-                common.cast(rng.spells.snare.name)
+                common.cast(rng.spells.snare)
                 snared_id = mq.TLO.Target.ID()
                 return true
             end
             local spell = find_next_spell()
             if spell then
                 if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
-                    common.cast(spell.name, true)
+                    common.cast(spell, true)
                 else
-                    common.cast(spell.name)
+                    common.cast(spell)
                 end
                 return true
             end
@@ -442,11 +441,11 @@ rng.buff = function()
     end
 
     if rng.spells.dmgbuff.name and not mq.TLO.Me.Buff(rng.spells.dmgbuff.name)() then
-        if common.cast(rng.spells.dmgbuff.name) then return end
+        if common.cast(rng.spells.dmgbuff) then return end
     end
 
     if rng.spells.rune.name and not mq.TLO.Me.Buff(rng.spells.rune.name)() then
-        if common.cast(rng.spells.rune.name) then return end
+        if common.cast(rng.spells.rune) then return end
     end
 
     if rng.OPTS.USEREGEN.value and rng.spells.regen.name and not mq.TLO.Me.Buff(rng.spells.regen.name)() then
@@ -479,14 +478,14 @@ rng.buff = function()
                         mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(rng.spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            if common.cast(rng.spells.buffs.name) then return end
+                            if common.cast(rng.spells.buffs) then return end
                         end
                     end
                     if rng.spells.dmgbuff.name and spawn_missing_cachedbuff(group_member, rng.spells.dmgbuff.name) then
                         group_member.DoTarget()
                         mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(rng.spells.dmgbuff.name) then
-                            if common.cast(rng.spells.dmgbuff.name) then return end
+                            if common.cast(rng.spells.dmgbuff) then return end
                         end
                     end
                 end

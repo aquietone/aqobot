@@ -1,16 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
 local baseclass = require('aqo.classes.base')
-local assist = require('aqo.routines.assist')
-local camp = require('aqo.routines.camp')
 local mez = require('aqo.routines.mez')
-local logger = require('aqo.utils.logger')
-local persistence = require('aqo.utils.persistence')
 local timer = require('aqo.utils.timer')
 local common = require('aqo.common')
 local config = require('aqo.configuration')
 local state = require('aqo.state')
-local ui = require('aqo.ui')
 
 local enc = baseclass
 
@@ -30,7 +25,8 @@ enc.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with m
 enc.addOption('USECHARM', 'Use Charm', false, nil, '', 'checkbox')
 enc.addOption('USEDOT', 'Use DoT', true, nil, '', 'checkbox')
 enc.addOption('USEHASTE', 'Buff Haste', true, nil, '', 'checkbox')
-enc.addOption('USEMEZ', 'Use Mez', true, nil, '', 'checkbox')
+enc.addOption('MEZST', 'Use Mez', true, nil, '', 'checkbox')
+enc.addOption('MEZAE', 'Use AE Mez', true, nil, '', 'checkbox')
 enc.addOption('AEMEZCOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
 enc.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, '', 'checkbox')
 enc.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, '', 'checkbox')
@@ -41,11 +37,11 @@ enc.addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, '', 'checkbox'
 enc.addOption('USESLOW', 'Use Slow', false, nil, '', 'checkbox')
 enc.addOption('USESLOWAOE', 'Use Slow AOE', true, nil, '', 'checkbox')
 enc.addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, '', 'checkbox')
-enc.addOption('USETASH', 'Use Tash', false, nil, '', 'checkbox')
-enc.addOption('USETASHAOE', 'Use Tash AOE', true, nil, '', 'checkbox')
+enc.addOption('USEDEBUFF', 'Use Tash', false, nil, '', 'checkbox')
+enc.addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, '', 'checkbox')
 enc.addOption('SUMMONPET', 'Summon Pet', false, nil, '', 'checkbox')
 enc.addOption('BUFFPET', 'Buff Pet', true, nil, '', 'checkbox')
-enc.addOption('USEERADICATE', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
+enc.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
 
 enc.addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
 enc.addSpell('alliance', {'Chromatic Coalition', 'Chromatic Covenant'})
@@ -115,7 +111,7 @@ enc.addSpell('shield', {'Shield of Shadow', 'Shield of Restless Ice'})
 enc.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
 
 enc.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
-if enc.spells.synergy then
+if enc.spells.synergy.name then
     if enc.spells.synergy.name:find('reap') then
         enc.spells.nuke5 = common.get_best_spell({'Mindrift', 'Mindslash'})
     elseif enc.spells.synergy.name:find('rift') then
@@ -156,12 +152,16 @@ table.insert(enc.burnAbilities, common.get_aa('Companion\'s Fortification')) -- 
 --table.insert(AAs, get_aaid_and_name('Glyph of Destruction (115+)'))
 --table.insert(AAs, get_aaid_and_name('Intensity of the Resolute'))
 
+enc.debuff = common.get_aa('Bite of Tashani')
+enc.slow = common.get_aa('Slowing Helix') -- single target slow
+enc.aeslow = common.get_aa('Enveloping Helix') -- AE slow on 8 targets
+enc.dispel = common.get_aa('Eradicate Magic')
+
 local mezbeam = common.get_aa('Beam of Slumber')
 local longmez = common.get_aa('Noctambulate') -- 3min single target mez
 
 local aekbblur = common.get_aa('Beguiler\'s Banishment')
 local kbblur = common.get_aa('Beguiler\'s Directed Banishment')
-local tash = common.get_aa('Bite of Tashani')
 local aeblur = common.get_aa('Blanket of Forgetfulness')
 
 local haze = common.get_aa('Chromatic Haze') -- 10min CD, buff 2 nukes for group
@@ -173,8 +173,6 @@ local reactiverune = common.get_aa('Reactive Rune') -- group buff, melee/spell s
 local manarune = common.get_aa('Mind over Matter') -- absorb dmg using mana
 local veil = common.get_aa('Veil of Mindshadow') -- 5min CD, another rune?
 
-local slow = common.get_aa('Slowing Helix') -- single target slow
-local aeslow = common.get_aa('Enveloping Helix') -- AE slow on 8 targets
 local debuffdot = common.get_aa('Mental Corruption') -- decrease melee dmg + DoT
 
 -- Buffs
@@ -188,8 +186,6 @@ local sanguine = common.get_aa('Sanguine Mind Crystal') -- summon clicky hp heal
 --local item_horn = mq.TLO.FindItem('Miniature Horn of Unity') -- 10 minute CD
 -- Agro
 local stasis = common.get_aa('Self Stasis')
-
-local dispel = common.get_aa('Eradicate Magic')
 
 local buffs={
     self={},
@@ -205,14 +201,14 @@ local buffs={
 local targets = {}
 
 enc.mez = function()
-    if enc.OPTS.MEZ.value then
-        mez.do_ae(enc.spells.mezae.name)
-        if not mq.TLO.Me.SpellInCooldown() then
-            if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ.value and tash then
-                common.use_aa(tash)
-            end
-            mez.do_single(enc.spells.mezst.name)
+    if enc.OPTS.MEZAE.value then
+        mez.do_ae(enc.spells.mezae, enc.OPTS.AEMEZCOUNT.value)
+    end
+    if enc.OPTS.MEZST.value and not mq.TLO.Me.SpellInCooldown() then
+        if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ.value and enc.tash then
+            common.use_aa(enc.tash)
         end
+        mez.do_single(enc.spells.mezst)
     end
 end
 
@@ -221,7 +217,7 @@ local function cast_synergy()
         if mq.TLO.Spell(enc.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
-        common.cast(enc.spells.synergy.name, true)
+        common.cast(enc.spells.synergy, true)
         return true
     end
     return false
@@ -231,42 +227,13 @@ end
 -- synergy
 -- nuke5
 -- dot2
-local function find_next_spell_to_cast()
-    if not mq.TLO.Target.Tashed() and enc.OPTS.USETASH.value and common.is_spell_ready(enc.spells.tash) then return enc.spells.tash end
+enc.find_next_spell = function()
+    if not mq.TLO.Target.Tashed() and enc.OPTS.USEDEBUFF.value and common.is_spell_ready(enc.spells.tash) then return enc.spells.tash end
     if common.is_spell_ready(enc.spells.composite) then return enc.spells.composite end
     if cast_synergy() then return nil end
     if common.is_spell_ready(enc.spells.nuke5) then return enc.spells.nuke5 end
     if common.is_dot_ready(enc.spells.dot2) then return enc.spells.dot2 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
-end
-
-local SLOW_IMMUNES = {}
-
-enc.cast = function()
-    if common.am_i_dead() then return false end
-    local cur_mode = config.MODE
-    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        if mq.TLO.Target.Beneficial() and enc.OPTS.USEERADICATE.value and dispel then
-            common.use_aa(dispel)
-        end
-        if not mq.TLO.Target.Tashed() and enc.OPTS.USETASHAOE.value and tash then
-            common.use_aa(tash)
-        end
-        if not mq.TLO.Target.Slowed() and not SLOW_IMMUNES[mq.TLO.Target.CleanName()] then
-            if enc.OPTS.USESLOWAOE.value and aeslow then
-                common.use_aa(aeslow)
-            elseif enc.OPTS.USESLOW.value and slow then
-                common.use_aa(slow)
-            end
-            mq.doevents('event_slowimmune')
-        end
-        local spell = find_next_spell_to_cast() -- find the first available dot to cast that is missing from the target
-        if spell then -- if a dot was found
-            common.cast(spell.name, true) -- then cast the dot
-            return true
-        end
-    end
-    return false
 end
 
 enc.recover = function()
@@ -277,7 +244,7 @@ enc.recover = function()
         -- death bloom at some %
         common.use_aa(gathermana)
     end
-    if pct_mana < 75 then
+    if pct_mana < 75 and azure then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(azure.name) then mq.cmd('/autoinventory') end
         local manacrystal = mq.TLO.FindItem(azure.name)
@@ -287,7 +254,7 @@ end
 
 local check_aggro_timer = timer:new(10)
 enc.aggro = function()
-    if mq.TLO.Me.PctHPs() < 40 then
+    if mq.TLO.Me.PctHPs() < 40 and sanguine then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(sanguine.name) then mq.cmd('/autoinventory') end
         local hpcrystal = mq.TLO.FindItem('='..sanguine.name)
@@ -322,12 +289,12 @@ enc.buff = function()
     local tempName = enc.spells.guard.name
     if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
     if enc.spells.guard.name and not mq.TLO.Me.Buff(tempName)() then
-        if common.cast(enc.spells.guard.name) then return end
+        if common.cast(enc.spells.guard) then return end
     end
     tempName = enc.spells.stunaerune.name
     if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
     if enc.spells.stunaerune.name and not mq.TLO.Me.Buff(tempName)() then
-        if common.cast(enc.spells.stunaerune.name) then return end
+        if common.cast(enc.spells.stunaerune) then return end
     end
     if rune and not mq.TLO.Me.Buff(rune.name)() then
         if common.use_aa(rune.name) then return end
@@ -336,7 +303,6 @@ enc.buff = function()
         if common.use_aa(veil.name) then return end
     end
     common.check_combat_buffs()
-    --if common.is_fighting() then return end
     if not common.clear_to_buff() then return end
 
     if unity and missing_unity_buffs(unity.name) then
@@ -415,25 +381,12 @@ enc.check_spell_set = function()
     end
 end
 
-local function event_slowimmune(line)
-    local target_name = mq.TLO.Target.CleanName()
-    if target_name and not SLOW_IMMUNES[target_name] then
-        SLOW_IMMUNES[target_name] = 1
-    end
-end
-
 --[[
 #Event CAST_IMMUNE                 "Your target has no mana to affect#*#"
-#Event CAST_IMMUNE                 "Your target is immune to changes in its attack speed#*#"
 #Event CAST_IMMUNE                 "Your target is immune to changes in its run speed#*#"
 #Event CAST_IMMUNE                 "Your target is immune to snare spells#*#"
 #Event CAST_IMMUNE                 "Your target is immune to the stun portion of this effect#*#"
-#Event CAST_IMMUNE                 "Your target cannot be mesmerized#*#"
 #Event CAST_IMMUNE                 "Your target looks unaffected#*#"
 ]]--
-enc.setup_events = function()
-    mez.setup_events()
-    mq.event('event_slowimmune', 'Your target is immune to changes in its attack speed#*#', event_slowimmune)
-end
 
 return enc

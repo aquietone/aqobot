@@ -16,7 +16,7 @@ local brd = baseclass
 brd.class = 'brd'
 brd.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
-brd.SPELLSETS = {melee=1,caster=1,meleedot=1}
+brd.SPELLSETS = {melee=1,caster=1,meleedot=1,emuaura=1,emunoaura=1}
 brd.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
 
 brd.addOption('SPELLSET', 'Spell Set', 'melee', brd.SPELLSETS, nil, 'combobox')
@@ -26,22 +26,24 @@ brd.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
 brd.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
 brd.addOption('MEZAECOUNT', 'Mez AE Count', 3, nil, 'Threshold to use AE Mez ability', 'checkbox')
 brd.addOption('USEINSULTS', 'Use Insults', true, nil, 'Use insult songs', 'checkbox')
+brd.addOption('USEINTIMIDATE', 'Use Intimidate', false, nil, 'Use Intimidate (It may fear mobs without the appropriate AA\'s', 'checkbox')
 brd.addOption('USEBELLOW', 'Use Bellow', true, nil, 'Use Boastful Bellow AA', 'checkbox')
 brd.addOption('USEFADE', 'Use Fade', false, nil, 'Fade when aggro', 'checkbox')
 brd.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
 brd.addOption('RALLYGROUP', 'Rallying Group', false, nil, 'Use Rallying Group AA', 'checkbox')
 brd.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox')
 brd.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
+brd.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox')
 
 -- All spells ID + Rank name
 brd.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
 brd.addSpell('composite', {'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}) -- DD+melee dmg bonus + small heal
-brd.addSpell('aria', {'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
-brd.addSpell('warmarch', {'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'Vilia\'s Verses of Celerity'}) -- haste, atk, ds
+brd.addSpell('aria', {'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru', }) -- spell dmg, overhaste, flurry, triple atk
+brd.addSpell('warmarch', {'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}) -- haste, atk, ds
 brd.addSpell('arcane', {'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad'}) -- spell dmg proc
 brd.addSpell('suffering', {'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering'}) -- melee dmg proc
-brd.addSpell('spiteful', {'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric', 'Psalm of Purity'}) -- AC
-brd.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Soothing'}) -- heal focus + regen
+brd.addSpell('spiteful', {'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}) -- AC
+brd.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn'}) -- heal focus + regen
 brd.addSpell('sonata', {'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}) -- spell shield, AC, dmg mitigation
 brd.addSpell('dirge', {'Dirge of the Restless', 'Dirge of Lost Horizons'}) -- spell+melee dmg mitigation
 brd.addSpell('firenukebuff', {'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria'}) -- inc fire DD
@@ -56,7 +58,18 @@ brd.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poi
 brd.addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
 brd.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'})
 brd.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
+
+-- haste song doesn't stack with enc haste?
+brd.addSpell('emuaura', {'Aura of Insight'})
+brd.addSpell('emuhaste', {'Composition of Ervaj', 'Verses of Victory', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Vilia\'s Verses of Celerity', 'Jonthan\'s Whistling Warsong', 'Anthem de Arms'})
+brd.addSpell('emuds', {'Psalm of Purity', 'Psalm of Warmth'})
+brd.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
+brd.addSpell('emuregen', {'Chorus of Replenishment', 'Cantata of Soothing'})
+brd.addSpell('emuac', {'Nillipus\' March of the Wee'})
+brd.addSpell('overhaste', {'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
 brd.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
+brd.addSpell('selos', {'Selo\'s Accelerating Chorus'})
+table.insert(brd.buffs, {name=brd.spells.emuaura.name, id=brd.spells.emuaura.id, type="spellaura"})
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local melee = {
@@ -82,10 +95,19 @@ local meleedot = {
 }
 -- synergy, mezst, mezae
 
+local emu = {
+    brd.spells.emuregen, brd.spells.emuhaste, brd.spells.selos
+}
+local emunoaura = {
+    brd.spells.emuregen, brd.spells.overhaste, brd.spells.emunukebuff, brd.spells.selos
+}
+
 local songs = {
     melee=melee,
     caster=caster,
     meleedot=meleedot,
+    emuaura=emu,
+    emunoaura=emunoaura,
 }
 
 table.insert(brd.burnAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(),          type='item'})
@@ -108,7 +130,7 @@ table.insert(brd.DPSAbilities, common.get_aa('Song of Stone', {opt='USESWARM', d
 
 table.insert(brd.DPSAbilities, common.get_disc('Reflexive Rebuttal'))
 
-table.insert(brd.DPSAbilities, {name='Intimidation',    type='ability'})
+table.insert(brd.DPSAbilities, {name='Intimidation',    type='ability', opt='USEINTIMIDATE'})
 table.insert(brd.DPSAbilities, {name='Kick',            type='ability'})
 
 local bellow = common.get_aa('Boastful Bellow')
@@ -159,7 +181,8 @@ local function try_alliance()
             return false
         end
         if mq.TLO.Me.Gem(alliance)() and mq.TLO.Me.GemTimer(alliance)() == 0  and not mq.TLO.Target.Buff(alliance)() and mq.TLO.Spell(alliance).StacksTarget() then
-            common.cast(alliance, true)
+            common.cast(brd.spells.alliance, true)
+            song_timer:reset()
             return true
         end
     end
@@ -174,7 +197,8 @@ local function cast_synergy()
             if mq.TLO.Spell(synergy).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
             end
-            common.cast(synergy, true)
+            common.cast(brd.spells.insult, true)
+            song_timer:reset()
             synergy_timer:reset()
             return true
         end
@@ -230,16 +254,16 @@ local function is_song_ready(spellId, spellName)
         return false
     end
 
-    local songDuration = mq.TLO.Me.Song(actualSpellName).Duration()
+    local songDuration = mq.TLO.Me.Song(actualSpellName).Duration() or mq.TLO.Me.Buff(actualSpellName).Duration()
     if not songDuration then
         logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
         return true
     else
         local cast_time = mq.TLO.Spell(spellName).MyCastTime()
-        if songDuration < cast_time + 3000 then
+        if songDuration < cast_time + 2500 then
             logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
         end
-        return songDuration < cast_time + 3000
+        return songDuration < cast_time + 2500
     end
 end
 
@@ -262,15 +286,17 @@ local function find_next_song()
 end
 
 brd.cast = function()
+    if brd.OPTS.USETWIST.value then return false end
     if not mq.TLO.Me.Invis() and brd.can_i_sing() then
         local spell = find_next_song() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
+            local did_cast = false
             if mq.TLO.Spell(spell.name).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
-                common.cast(spell.name, true) -- then cast the dot
+                did_cast = common.cast(spell, true) -- then cast the dot
             else
-                common.cast(spell.name) -- then cast the dot
+                did_cast = common.cast(spell) -- then cast the dot
             end
-            song_timer:reset()
+            if did_cast and spell.name ~= brd.spells.selos.name then song_timer:reset() end
             if spell.name == brd.spells.crescendo.name then crescendo_timer:reset() end
             return true
         end
@@ -324,7 +350,7 @@ brd.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or brd.OPTS.BYOS.value then return end
     if not brd.can_i_sing() then return end
     if state.spellset_loaded ~= brd.OPTS.SPELLSET or check_spell_timer:timer_expired() then
-        if brd.OPTS.SPELLSET == 'melee' then
+        if brd.OPTS.SPELLSET.value == 'melee' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.arcane, 2)
             common.swap_spell(brd.spells.spiteful, 3)
@@ -339,7 +365,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
             state.spellset_loaded = brd.OPTS.SPELLSET
-        elseif brd.OPTS.SPELLSET == 'caster' then
+        elseif brd.OPTS.SPELLSET.value == 'caster' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.arcane, 2)
             common.swap_spell(brd.spells.firenukebuff, 3)
@@ -354,7 +380,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
             state.spellset_loaded = brd.OPTS.SPELLSET
-        elseif brd.OPTS.SPELLSET == 'meleedot' then
+        elseif brd.OPTS.SPELLSET.value == 'meleedot' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.chantflame, 2)
             common.swap_spell(brd.spells.chantfrost, 3)
@@ -369,6 +395,15 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
             state.spellset_loaded = brd.OPTS.SPELLSET
+        elseif brd.OPTS.SPELLSET.value == 'emuaura' or brd.OPTS.SPELLSET.value == 'emunoaura' then
+            common.swap_spell(brd.spells.emuaura, 1)
+            common.swap_spell(brd.spells.emuregen, 2)
+            common.swap_spell(brd.spells.emuhaste, 3)
+            common.swap_spell(brd.spells.selos, 4)
+            common.swap_spell(brd.spells.emunukebuff, 5)
+            common.swap_spell(brd.spells.emuac, 6)
+            common.swap_spell(brd.spells.overhaste, 7)
+            common.swap_spell(brd.spells.snare, 8)
         end
         check_spell_timer:reset()
     end
@@ -383,11 +418,8 @@ brd.pull_func = function()
     end
 end
 
-brd.setup_events = function()
-    mez.setup_events()
-end
-
 brd.can_i_sing = function()
+    if brd.OPTS.USETWIST.value then return true end
     if song_timer:timer_expired() then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
         return true

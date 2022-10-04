@@ -136,10 +136,11 @@ pull.pull_radar = function()
     local pull_radius = config.PULLRADIUS
     if camp.Active then
         pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(camp.X, camp.Y, pull_radius))()
-        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
+        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
     else
         pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
-        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count, pull_count_camp:format(pull_radius)))
+        -- error here
+        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count_camp:format(pull_radius)))
     end
     local shortest_path = pull_radius
     local pull_id = 0
@@ -303,17 +304,9 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    -- if dead or currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
-    if not pull_state and (common.am_i_dead() or state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
-        --[[if state.pull_in_progress then
-            local camp = state.camp
-            if common.check_distance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.CAMPRADIUS then
-                clear_pull_vars()
-            else
-                pull_return()
-            end
-        end]]--
-        --clear_pull_vars()
+    if common.am_i_dead() then return end
+    -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
+    if not pull_state and (state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
         logger.debug(logger.log_flags.routines.pull, 'returning at weird state')
         return
     end

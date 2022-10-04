@@ -278,7 +278,7 @@ local function try_alliance()
         if mq.TLO.Me.SpellReady(nec.spells.alliance.name)() and neccount > 1 and not mq.TLO.Target.Buff(nec.spells.alliance.name)() and mq.TLO.Spell(nec.spells.alliance.name).StacksTarget() then
             -- pick the first 3 dots in the rotation as they will hopefully always be up given their priority
             if mq.TLO.Target.MyBuff(nec.spells.pyreshort.name)() and mq.TLO.Target.MyBuff(nec.spells.venom.name)() and mq.TLO.Target.MyBuff(nec.spells.magic.name)() then
-                common.cast(nec.spells.alliance.name, true)
+                common.cast(nec.spells.alliance, true)
                 return true
             end
         end
@@ -293,7 +293,7 @@ local function cast_synergy()
         end
         -- don't bother with proc'ing synergy until we've got most dots applied
         if mq.TLO.Target.MyBuff(nec.spells.pyreshort.name)() and mq.TLO.Target.MyBuff(nec.spells.venom.name)() and mq.TLO.Target.MyBuff(nec.spells.magic.name)() then
-            common.cast(nec.spells.synergy.name, true)
+            common.cast(nec.spells.synergy, true)
             return true
         end
     end
@@ -338,8 +338,7 @@ end
 
 nec.cast = function()
     if mq.TLO.Me.SpellInCooldown() then return false end
-    local cur_mode = config.MODE
-    if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+    if assist.is_fighting() then
         if nec.OPTS.USEDISPEL.value and mq.TLO.Target.Beneficial() then
             common.use_aa(dispel)
         end
@@ -353,7 +352,7 @@ nec.cast = function()
                 local tc_item = mq.TLO.FindItem(tcclick)
                 common.use_item(tc_item)
             end
-            common.cast(spell.name, true) -- then cast the dot
+            common.cast(spell, true) -- then cast the dot
         end
 
         if nec.OPTS.MULTIDOT.value then
@@ -370,7 +369,7 @@ nec.cast = function()
                         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
                             --if not mq.TLO.Me.SpellReady(spell.name)() then break end
-                            common.cast(spell.name, true)
+                            common.cast(spell, true)
                             dotted_count = dotted_count + 1
                             if dotted_count >= nec.OPTS.MULTICOUNT.value then break end
                         end
@@ -497,7 +496,6 @@ nec.recover = function()
         -- death bloom at some %
         common.use_aa(deathbloom)
     end
-    --if common.is_fighting() then
     if mq.TLO.Me.CombatState() == 'COMBAT' then
         if pct_mana < 40 then
             -- blood magic at some %
@@ -528,7 +526,6 @@ end
 local check_aggro_timer = timer:new(10)
 nec.aggro = function()
     if config.MODE:is_manual_mode() then return end
-    --if OPTS.USEFD and common.is_fighting() and mq.TLO.Target() then
     if nec.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
@@ -610,18 +607,17 @@ nec.buff = function()
         local tempName = nec.spells.shield.name
         if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
         if not mq.TLO.Me.Buff(tempName)() then
-            common.cast(nec.spells.shield.name)
+            common.cast(nec.spells.shield)
         end
     end
     if nec.OPTS.USEINSPIRE.value then
         local tempName = nec.spells.inspire.name
         if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
         if not mq.TLO.Pet.Buff(tempName)() then
-            common.cast(nec.spells.inspire.name)
+            common.cast(nec.spells.inspire)
         end
     end
     common.check_combat_buffs()
-    --if common.is_fighting() then return end
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
     if not mq.TLO.Me.Buff(nec.spells.lich.name)() or not mq.TLO.Me.Buff(nec.spells.flesh.name)() then
@@ -641,18 +637,9 @@ nec.buff = function()
     end
 end
 
-nec.managepet = function()
-    --if common.is_fighting() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
-    if mq.TLO.Spell(nec.spells.pet.name).Mana() or 0 > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(nec.spells.pet, 13)
-end
-
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local check_spell_timer = timer:new(30)
 nec.check_spell_set = function()
-    --if common.is_fighting() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
     if state.spellset_loaded ~= nec.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if nec.OPTS.SPELLSET.value == 'standard' then

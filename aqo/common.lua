@@ -119,6 +119,12 @@ common.get_disc = function(disc_name, options)
     return options
 end
 
+common.set_swap_gem = function()
+    if not mq.TLO.Me.Class.CanCast() then return end
+    local aaRank = mq.TLO.Me.AltAbility('Mnemonic Retention').Rank() or 0
+    state.swapGem = 8 + aaRank
+end
+
 ---Check whether the specified dot is applied to the target.
 ---@param spell_id number @The ID of the spell to check.
 ---@param spell_name string @The name of the spell to check.
@@ -367,21 +373,21 @@ common.can_use_spell = function(spell, type)
 end
 
 ---Cast the spell specified by spell_name.
----@param spell_name string @The name of the spell to be cast.
+---@param spell table @Table containing the name of the spell to be cast and other related options.
 ---@param requires_target boolean|nil @Indicate whether the spell requires a target.
-common.cast = function(spell_name, requires_target)
-    if type(spell_name) == 'table' then spell_name = spell_name.name end
+common.cast = function(spell, requires_target)
+    local spell_name = spell.name
     local spell = mq.TLO.Spell(spell_name)
     if not spell_name or not common.can_use_spell(spell, 'spell') or not common.should_use_spell(spell) then return false end
     if state.class == 'brd' then mq.cmd('/stopsong') end
     logger.printf('Casting \ar%s\ax', spell_name)
     mq.cmdf('/cast "%s"', spell_name)
-    mq.delay(10)
-    if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
-    mq.delay(10)
-    if not mq.TLO.Me.Casting() then mq.cmdf('/cast %s', spell_name) end
-    mq.delay(10)
     if state.class ~= 'brd' then
+        mq.delay(20)
+        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', spell_name) end
+        mq.delay(20)
+        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', spell_name) end
+        mq.delay(20)
         while mq.TLO.Me.Casting() do
             if requires_target and not mq.TLO.Target() then
                 mq.cmd('/stopcast')
@@ -389,6 +395,8 @@ common.cast = function(spell_name, requires_target)
             end
             mq.delay(10)
         end
+    else
+        mq.delay(1000)
     end
     return not mq.TLO.Me.SpellReady(spell_name)()
 end
@@ -510,7 +518,7 @@ end
 
 common.use = {
     spell=common.cast,
-    aa=common.use_ability,
+    aa=common.use_aa,
     disc=common.use_disc,
     ability=common.use_ability,
     item=common.use_item,
@@ -534,7 +542,6 @@ common.is_burn_condition_met = function(always_condition)
         state.burn_active = true
         state.burn_now = false
         return true
-    --elseif common.is_fighting() then
     elseif mq.TLO.Me.CombatState() == 'COMBAT' or common.hostile_xtargets() then
         local zone_sn = mq.TLO.Zone.ShortName():lower()
         if config.BURNALWAYS then
@@ -583,7 +590,7 @@ common.swap_spell = function(spell, gem, other_names)
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
-    mq.delay(3000, function() return common.swap_gem_ready(spell.name, gem) end)
+    mq.delay(6000, function() return common.swap_gem_ready(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
     logger.debug(logger.log_flags.common.memspell, "Delayed for mem_spell "..spell.name)
     mq.TLO.Window('SpellBookWnd').DoClose()
 end
@@ -597,7 +604,7 @@ common.swap_and_cast = function(spell, gem)
     end
     mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
     logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
-    local did_cast = common.cast(spell.name)
+    local did_cast = common.cast(spell)
     if restore_gem then
         common.swap_spell(restore_gem, gem)
     end

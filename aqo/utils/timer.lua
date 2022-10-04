@@ -23,7 +23,7 @@ function Timer.current_time()
 end
 
 ---Reset the start time value to the current time.
----@param to_value number @The value to reset the timer to.
+---@param to_value? number @The value to reset the timer to.
 function Timer:reset(to_value)
     self.start_time = to_value or Timer.current_time()
 end

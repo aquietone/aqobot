@@ -214,14 +214,13 @@ end
 shd.cast = function()
     if common.am_i_dead() then return end
     if not mq.TLO.Me.Invis() then
-        local cur_mode = config.MODE
-        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
+        if assist.is_fighting() then
             local spell = find_next_spell()
             if spell then
-                if mq.TLO.Spell(spell['name']).TargetType() == 'Single' then
-                    common.cast(spell['name'], true)
+                if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
+                    common.cast(spell, true)
                 else
-                    common.cast(spell['name'])
+                    common.cast(spell)
                 end
                 return true
             end
@@ -314,13 +313,13 @@ local function missing_unity_buffs(name)
     return false
 end
 
-shd.buff_class = function()
+--[[shd.buff_class = function()
     -- stance, disruption, skin
     if shd.spells.stance and not mq.TLO.Me.Buff(shd.spells.stance.name)() then
-        if common.cast(shd.spells.stance.name) then return end
+        if common.cast(shd.spells.stance) then return end
     end
     if shd.spells.skin and not mq.TLO.Me.Buff(shd.spells.skin.name)() then
-        if common.cast(shd.spells.skin.name) then return end
+        if common.cast(shd.spells.skin) then return end
     end
 
     if shd.OPTS.USEDISRUPTION.value and shd.spells.disruption and not mq.TLO.Me.Buff(shd.spells.disruption.name)() then
@@ -339,15 +338,7 @@ shd.buff_class = function()
             common.swap_and_cast(shd.spells.pethaste, 13)
         end
     end
-end
-
-shd.managepet = function()
-    if not shd.OPTS.SUMMONPET.value then return end
-    if not shd.spells.pet.name or not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
-    if mq.TLO.Spell(shd.spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(shd.spells.pet, 13)
-end
+end]]
 
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 local check_spell_timer = timer:new(30)
@@ -396,18 +387,13 @@ shd.pull_func = function()
             mq.delay(300)
         end
         for _=1,3 do
-            --if common.cast(spells['challenge']['name'], true) then return end
-            if mq.TLO.Me.SpellReady(shd.spells.challenge.name)() then
-                mq.cmdf('/cast %s', shd.spells.challenge.name)
+            if mq.TLO.Me.SpellReady(shd.spells.terror.name)() then
+                mq.cmdf('/cast %s', shd.spells.terror.name)
                 break
             end
             mq.delay(100)
         end
     end
-end
-
-shd.setup_events = function()
-    -- no-op
 end
 
 return shd

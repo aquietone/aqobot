@@ -183,6 +183,7 @@ end
 local function init()
     state.class = mq.TLO.Me.Class.ShortName():lower()
     state.subscription = mq.TLO.Me.Subscription()
+    common.set_swap_gem()
 
     aqoclass = require('aqo.classes.'..state.class)
     mq.bind(('/%s'):format(state.class), cmd_bind)
@@ -240,7 +241,7 @@ local function main()
                 end
                 common.check_cursor()
                 local looted = false
-                if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or mq.TLO.Group.MasterLooter() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
+                if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
                     looted = loot.lootMobs(5)
                 end
                 if not looted then

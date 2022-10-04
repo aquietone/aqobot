@@ -178,13 +178,16 @@ assist.attack = function(skip_no_los)
     end
 end
 
+assist.is_fighting = function()
+    local cur_mode = config.MODE
+    return (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT')
+end
+
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 assist.send_pet = function()
     local targethp = mq.TLO.Target.PctHPs()
     if send_pet_timer:timer_expired() and targethp and targethp <= config.AUTOASSISTAT then
-        local cur_mode = config.MODE
-        if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.CombatState() == 'COMBAT') then
-        --if send_pet_timer:timer_expired() and (common.is_fighting() or assist.should_assist()) then
+        if assist.is_fighting() then
             if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() then
                 mq.cmd('/multiline ; /pet attack ; /pet swarm')
             else
