@@ -175,7 +175,7 @@ table.insert(shd.buffs, common.getItem('Violet Conch of the Tempest'))
 local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
     -- aggro
-    if config.MODE:is_tank_mode() and shd.OPTS.SPELLSET == 'standard' and myhp > 70 then
+    if config.MODE:is_tank_mode() and shd.OPTS.SPELLSET.value == 'standard' and myhp > 70 then
         if state.mob_count > 2 then
             local xtar_aggro_count = 0
             for i=1,13 do
@@ -203,7 +203,7 @@ local function find_next_spell()
     if common.is_dot_ready(shd.spells['acdebuff']) then return shd.spells['acdebuff'] end
     -- dps
     if common.is_spell_ready(shd.spells['spear']) then return shd.spells['spear'] end
-    if config.MODE:is_assist_mode() and shd.OPTS.SPELLSET == 'dps' then
+    if config.MODE:is_assist_mode() and shd.OPTS.SPELLSET.value == 'dps' then
         if common.is_dot_ready(shd.spells['poison']) then return shd.spells['poison'] end
         if common.is_dot_ready(shd.spells['disease']) then return shd.spells['disease'] end
         if common.is_dot_ready(shd.spells['corruption']) then return shd.spells['corruption'] end
@@ -357,7 +357,7 @@ shd.check_spell_set = function()
             common.swap_spell(shd.spells.stance, 11)
             common.swap_spell(shd.spells.skin, 12)
             common.swap_spell(shd.spells.acdebuff, 13)
-            state.spellset_loaded = shd.OPTS.SPELLSET
+            state.spellset_loaded = shd.OPTS.SPELLSET.value
         elseif shd.OPTS.SPELLSET.value == 'dps' then
             common.swap_spell(shd.spells.tap1, 1)
             common.swap_spell(shd.spells.tap2, 2)

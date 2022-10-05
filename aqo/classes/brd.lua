@@ -93,10 +93,10 @@ local meleedot = {
 -- synergy, mezst, mezae
 
 local emu = {
-    brd.spells.emuregen, brd.spells.overhaste, brd.spells.bardhaste, brd.spells.emuhaste, brd.spells.selos
+    brd.spells.selos, brd.spells.emuregen, brd.spells.overhaste, brd.spells.bardhaste, brd.spells.emuhaste
 }
 local emunoaura = {
-    brd.spells.emuregen, brd.spells.overhaste, brd.spells.emuhaste, brd.spells.emunukebuff, brd.spells.selos
+    brd.spells.selos, brd.spells.emuregen, brd.spells.overhaste, brd.spells.emuhaste, brd.spells.emunukebuff
 }
 
 local songs = {
@@ -305,7 +305,7 @@ local fierceeye = common.getAA('Fierce Eye')
 local epic = common.getItem('Blade of Vesagran')
 local function use_epic()
     local fierceeye_rdy = fierceeye and mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
-    if epic and epic.Timer() == '0' and fierceeye_rdy then
+    if epic and mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy then
         if fierceeye then fierceeye:use() end
         epic:use()
     end
@@ -346,7 +346,7 @@ local check_spell_timer = timer:new(30)
 brd.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or brd.OPTS.BYOS.value then return end
     if not brd.can_i_sing() then return end
-    if state.spellset_loaded ~= brd.OPTS.SPELLSET or check_spell_timer:timer_expired() then
+    if state.spellset_loaded ~= brd.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if brd.OPTS.SPELLSET.value == 'melee' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.arcane, 2)
@@ -361,7 +361,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.pulse, 11)
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
-            state.spellset_loaded = brd.OPTS.SPELLSET
+            state.spellset_loaded = brd.OPTS.SPELLSET.value
         elseif brd.OPTS.SPELLSET.value == 'caster' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.arcane, 2)
@@ -376,7 +376,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.pulse, 11)
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
-            state.spellset_loaded = brd.OPTS.SPELLSET
+            state.spellset_loaded = brd.OPTS.SPELLSET.value
         elseif brd.OPTS.SPELLSET.value == 'meleedot' then
             common.swap_spell(brd.spells.aria, 1)
             common.swap_spell(brd.spells.chantflame, 2)
@@ -391,7 +391,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.pulse, 11)
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
-            state.spellset_loaded = brd.OPTS.SPELLSET
+            state.spellset_loaded = brd.OPTS.SPELLSET.value
         elseif brd.OPTS.SPELLSET.value == 'emuaura' or brd.OPTS.SPELLSET.value == 'emunoaura' then
             common.swap_spell(brd.spells.emuaura, 1)
             common.swap_spell(brd.spells.emuregen, 2)

@@ -12,9 +12,6 @@ table.insert(mnk.DPSAbilities, common.getSkill('Flying Kick'))
 table.insert(mnk.DPSAbilities, common.getSkill('Tiger Claw'))
 table.insert(mnk.DPSAbilities, common.getBestDisc({'Leopard Claw'}))
 
-mnk.aura = common.getBestDisc({'Disciple\'s Aura'})
-mnk.aura.type = 'discaura'
-mnk.aura.checkfor = 'Disciples Aura'
-table.insert(mnk.buffs, mnk.aura)
+table.insert(mnk.buffs, common.getBestDisc({'Disciple\'s Aura'}, {combat=false, checkfor='Disciples Aura'}))
 
 return mnk

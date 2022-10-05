@@ -13,8 +13,10 @@ mag.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with m
 mag.addOption('SUMMONPET', 'Summon Pet', true, nil, 'Toggle summoning of pet', 'checkbox')
 mag.addOption('BUFFPET', 'Buff Pet', true, nil, 'Toggle buffing of pet', 'checkbox')
 
-mag.addSpell('bolt', {'Char', 'Bolt of Flame'})
-mag.addSpell('pet', {'Vocarate: Water', 'Conjuration: Water', 'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water', 'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
+mag.addSpell('bolt', {'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'})
+mag.addSpell('pet', {'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water', 
+                    'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water', 
+                    'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
 mag.addSpell('petbuff', {'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
 mag.addSpell('petstrbuff', {'Earthen Strength'})
 

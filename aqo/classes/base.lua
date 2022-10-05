@@ -384,7 +384,7 @@ local function buff_combat()
     common.check_combat_buffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
     for _,buff in ipairs(base.buffs) do
-        if buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.Disc then
+        if (buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.AA) and buff.combat then
             buff:use()
         elseif buff.summons then
             if mq.TLO.FindItemCount(buff.summons)() < 30 and not mq.TLO.Me.Moving() then

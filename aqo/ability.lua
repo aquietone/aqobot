@@ -113,7 +113,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
                 result = true
             end
         else
-            if spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' then
+            if spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' or spell.TargetType() == 'Line of Sight' then
                 result = (dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight()) == true
                 requireTarget = true
             else

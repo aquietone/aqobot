@@ -350,8 +350,8 @@ local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcem
 local check_spell_timer = timer:new(30)
 enc.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
-    if state.spellset_loaded ~= enc.OPTS.SPELLSET or check_spell_timer:timer_expired() then
-        if enc.OPTS.SPELLSET == 'standard' then
+    if state.spellset_loaded ~= enc.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+        if enc.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(enc.spells.tash, 1)
             common.swap_spell(enc.spells.dotmiti, 2)
             common.swap_spell(enc.spells.meznoblur, 3)
@@ -365,7 +365,7 @@ enc.check_spell_set = function()
             common.swap_spell(enc.spells.guard, 11)
             common.swap_spell(enc.spells.nightsterror, 12)
             common.swap_spell(enc.spells.combatinnate, 13)
-            state.spellset_loaded = enc.OPTS.SPELLSET
+            state.spellset_loaded = enc.OPTS.SPELLSET.value
         end
         check_spell_timer:reset()
     end

@@ -115,10 +115,8 @@ local exploitive = common.getBestDisc({'Exploitive Strike'}) -- 35s cd, timer 9,
 
 table.insert(war.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20}))
 
-local leap = common.getAA('Battle Leap', {opt='USEBATTLELEAP'})
-local aura = common.getBestDisc({'Champion\'s Aura'})
-aura.type = 'discaura'
-table.insert(war.buffs, aura)
+local leap = common.getAA('Battle Leap', {opt='USEBATTLELEAP'}, {combat=false})
+table.insert(war.buffs, common.getBestDisc({'Champion\'s Aura'}))
 table.insert(war.buffs, common.getBestDisc({'Full Moon\'s Champion'}))
 table.insert(war.buffs, common.getBestDisc({'Commanding Voice'}))
 table.insert(war.buffs, common.getAA('Imperator\'s Command'))

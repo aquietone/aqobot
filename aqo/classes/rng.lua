@@ -493,7 +493,7 @@ local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=t
 local check_spell_timer = timer:new(30)
 rng.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or rng.OPTS.BYOS.value then return end
-    if state.spellset_loaded ~= rng.OPTS.SPELLSET or check_spell_timer:timer_expired() then
+    if state.spellset_loaded ~= rng.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if rng.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(rng.spells.shots, 1)
             common.swap_spell(rng.spells.focused, 2)
@@ -507,7 +507,7 @@ rng.check_spell_set = function()
             common.swap_spell(rng.spells.dotds, 10)
             common.swap_spell(rng.spells.dmgbuff, 12)
             common.swap_spell(rng.spells.buffs, 13)
-            state.spellset_loaded = rng.OPTS.SPELLSET
+            state.spellset_loaded = rng.OPTS.SPELLSET.value
         end
         check_spell_timer:reset()
     end
