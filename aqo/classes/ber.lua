@@ -10,27 +10,27 @@ ber.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 --ber.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
-table.insert(ber.DPSAbilities, {name='Kick',            type='ability'})
-table.insert(ber.DPSAbilities, {name='Frenzy',          type='ability'})
-table.insert(ber.DPSAbilities, common.get_disc('Rage Volley'))
---table.insert(ber.DPSAbilities, common.get_disc('Head Pummel'))
---table.insert(ber.DPSAbilities, common.get_disc('Leg Cut'))
+table.insert(ber.DPSAbilities, common.getSkill('Kick'))
+table.insert(ber.DPSAbilities, common.getSkill('Frenzy'))
+table.insert(ber.DPSAbilities, common.getBestDisc({'Rage Volley'}))
+--table.insert(ber.DPSAbilities, common.getBestDisc({'Head Pummel'}))
+--table.insert(ber.DPSAbilities, common.getBestDisc({'Leg Cut'}))
 
-local aura = common.get_disc('Aura of Rage')
+local aura = common.getBestDisc({'Aura of Rage'})
 aura.type = 'discaura'
 table.insert(ber.buffs, aura)
 -- Aura of Rage, Aura of Rage Effect
 
 local axes = mq.TLO.FindItem('Bonesplicer Axe').ID()
 local components = mq.TLO.FindItem('Axe Components').ID()
-local summonaxes = common.get_disc('Bonesplicer Axe')
+local summonaxes = common.getBestDisc({'Bonesplicer Axe'})
 
 ber.buff_class = function()
     local numAxes = mq.TLO.FindItemCount(axes)()
     if numAxes <= 25 and summonaxes then
         local numComponents = mq.TLO.FindItemCount(components)()
         if numComponents > 0 then
-            common.use[summonaxes.type](summonaxes)
+            summonaxes:use()
         end
     end
 end

@@ -1,9 +1,10 @@
+---@type Mq
 local mq = require('mq')
 local logger = require(AQO..'.utils.logger')
 local state = require(AQO..'.state')
 
 ---@class Ability
----@field ID number|nil #
+---@field id number|nil #
 ---@field name string #
 ---@field type Ability.Type #
 ---@field opt string|nil #
@@ -18,7 +19,7 @@ local state = require(AQO..'.state')
 ---@field mt number|nil #
 ---@field other number|nil #
 local Ability = {
-    ID=0,
+    id=0,
     name = '',
     type = 1,
     opt = nil,
@@ -39,6 +40,9 @@ local Ability = {
     me = nil,
     mt = nil,
     other = nil,
+
+    -- name of summoned item like Ethereal Arrows
+    summons = nil,
 }
 
 ---@enum Ability.Type
@@ -60,7 +64,7 @@ function Ability:new(ID, name, type, options)
     local ability = {}
     setmetatable(ability, self)
     self.__index = self
-    ability.ID = ID
+    ability.id = ID
     ability.name = name
     ability.type = type
     if options then
@@ -72,7 +76,7 @@ function Ability:new(ID, name, type, options)
 end
 
 -- what was skipSelfStack
-function Ability:shouldUseSpell(spell, skipSelfStack)
+function Ability.shouldUseSpell(spell, skipSelfStack)
     local result = false
     local requireTarget = false
     local dist = mq.TLO.Target.Distance3D()
@@ -130,20 +134,8 @@ local function in_control()
             mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
 end
 
-local Spell = {}
-
----Initialize a new spell instance
----@param options table|nil #
-function Spell:new(ID, name, options)
-    local spell = Ability:new(ID, name, Ability.Types.Spell, options)
-    setmetatable(spell, self)
-    self.__index = self
-    return spell
-end
-
-function Spell:isReady()
-    local spell = mq.TLO.Spell(self.name)
-    if self.type == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then return false end
+function Ability.canUseSpell(spell, abilityType)
+    if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then return false end
     if not in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then return false end
     if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return false end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
@@ -165,20 +157,31 @@ function Spell:isReady()
     return true
 end
 
+local Spell = {}
+
+---Initialize a new spell instance
+---@param options table|nil #
+function Spell:new(ID, name, options)
+    local spell = Ability:new(ID, name, Ability.Types.Spell, options)
+    setmetatable(spell, self)
+    self.__index = self
+    return spell
+end
+
 function Spell:use()
-    if self:isReady() then
-        local spell = mq.TLO.Spell(self.name)
-        local result, requiresTarget =  self:shouldUseSpell(spell)
+    local spell = mq.TLO.Spell(self.name)
+    if Ability.canUseSpell(spell, self.type) then
+        local result, requiresTarget =  Ability.shouldUseSpell(spell)
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
         logger.printf('Casting \ar%s\ax', self.name)
         mq.cmdf('/cast "%s"', self.name)
-        mq.delay(20)
-        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
-        mq.delay(20)
-        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
-        mq.delay(20)
         if state.class ~= 'brd' then
+            mq.delay(20)
+            if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
+            mq.delay(20)
+            if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
+            mq.delay(20)
             while mq.TLO.Me.Casting() do
                 if requiresTarget and not mq.TLO.Target() then
                     mq.cmd('/stopcast')
@@ -186,6 +189,8 @@ function Spell:use()
                 end
                 mq.delay(10)
             end
+        else
+            mq.delay(1000)
         end
         return not mq.TLO.Me.SpellReady(self.name)()
     end
@@ -205,7 +210,8 @@ end
 ---Determine whether the disc specified by name is an "active" disc that appears in ${Me.ActiveDisc}.
 ---@return boolean @Returns true if the disc is an active disc, otherwise false.
 function Disc:isActive()
-    return self.spell.IsSkill() and (tonumber(self.spell.Duration()) or 0) > 0 and self.spell.TargetType() == 'Self' and not self.spell.StacksWithDiscs()
+    local spell = mq.TLO.Spell(self.name)
+    return spell.IsSkill() and (tonumber(spell.Duration()) or 0) > 0 and spell.TargetType() == 'Self' and not spell.StacksWithDiscs()
 end
 
 ---Determine whether an disc is ready, including checking whether the character is currently capable.
@@ -213,7 +219,7 @@ end
 function Disc:isReady()
     if mq.TLO.Me.CombatAbility(self.name)() and mq.TLO.Me.CombatAbilityTimer(self.name)() == '0' and mq.TLO.Me.CombatAbilityReady(self.name)() then
         local spell = mq.TLO.Spell(self.name)
-        return self:canUseSpell() and self:shouldUseSpell(spell, true)
+        return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)--true
     else
         return false
     end
@@ -222,6 +228,7 @@ end
 ---Use the disc specified in the passed in table disc.
 ---@param overwrite string|nil @The name of a disc which should be stopped in order to run this disc.
 function Disc:use(overwrite)
+    local spell = mq.TLO.Spell(self.name)
     if self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
             logger.printf('Use Disc: \ax\ar%s\ax', self.name)
@@ -230,7 +237,7 @@ function Disc:use(overwrite)
             else
                 mq.cmdf('/disc %s', self.name)
             end
-            mq.delay(250+self.spell.CastTime())
+            mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
@@ -239,7 +246,7 @@ function Disc:use(overwrite)
             mq.delay(50)
             logger.printf('Use Disc: \ax\ar%s\ax', self.name)
             mq.cmdf('/disc %s', self.name)
-            mq.delay(250+self.spell.CastTime())
+            mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
@@ -264,7 +271,7 @@ end
 function AA:isReady()
     if mq.TLO.Me.AltAbilityReady(self.name)() then
         local spell = mq.TLO.AltAbility(self.name).Spell
-        return self:canUseSpell('aa') and self:shouldUseSpell(spell)
+        return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)
     else
         return false
     end
@@ -298,7 +305,7 @@ function Item:isReady(item)
     if state.subscription ~= 'GOLD' and item.Prestige() then return false end
     local spell = item.Clicky.Spell
     if spell() and item.Timer() == '0' then
-        return self:canUseSpell() and self:shouldUseSpell(spell)
+        return Ability.canUseSpell(spell) and Ability.shouldUseSpell(spell)
     else
         return false
     end
@@ -343,6 +350,7 @@ function Skill:use()
 end
 
 return {
+    Types=Ability.Types,
     Spell=Spell,
     Disc=Disc,
     AA=AA,

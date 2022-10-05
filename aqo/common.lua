@@ -66,59 +66,74 @@ end
 -- MQ Helper Functions
 
 ---Lookup the ID for a given spell.
----@param spell_name string @The name of the spell.
+---@param spellName string @The name of the spell.
 ---@return table|nil @Returns a table containing the spell name with rank, spell ID and the provided option name.
-common.get_spell = function(spell_name)
-    local spell = mq.TLO.Spell(spell_name)
+local function getSpell(spellName)
+    local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
     if not mq.TLO.Me.Book(rankname)() then return nil end
-    return {id=spell.ID(), name=rankname, type='spell'}
+    return {id=spell.ID(), name=rankname}
 end
 
-common.get_best_spell = function(spells, options)
-    for _,spell_name in ipairs(spells) do
-        local spell = common.get_spell(spell_name)
-        if spell then
-            local s = ability.Spell:new(spell.id, spell.name, options)
-            if options then
-                options.name = spell.name
-                options.id = spell.id
-                options.type = 'spell'
-                return options
-            end
+common.getBestSpell = function(spells, options)
+    for _,spellName in ipairs(spells) do
+        local bestSpell = getSpell(spellName)
+        if bestSpell then
+            local spell = ability.Spell:new(bestSpell.id, bestSpell.name, options)
             return spell
         end
     end
-    return {}
+    return nil
 end
 
 ---Lookup the ID for a given AA.
----@param aa_name string @The name of the AA.
+---@param aaName string @The name of the AA.
 ---@param options table|nil @A table of options relating to the AA, such as the setting name controlling use of the AA
 ---@return table|nil @Returns a table containing the AA name, AA ID and the provided option name.
-common.get_aa = function(aa_name, options)
-    local aa = mq.TLO.Me.AltAbility(aa_name)
-    if not aa() then return nil end
-    if not options then options = {} end
-    options.id = aa.ID()
-    options.name = aa_name
-    options.type = 'aa'
-    return options
+common.getAA = function(aaName, options)
+    local aaData = mq.TLO.Me.AltAbility(aaName)
+    if aaData() then
+        local aa = ability.AA:new(aaData.ID(), aaData.Name(), options)
+        return aa
+    end
+    return nil
+end
+
+local function getDisc(discName)
+    local disc = mq.TLO.Spell(discName)
+    local rankName = disc.RankName()
+    if not rankName then return nil end
+    return {name=rankName, id=disc.ID()}
 end
 
 ---Lookup the ID for a given disc.
----@param disc_name string @The name of the disc.
+---@param discs table @An ordered list of discs from best to worst
 ---@param options table|nil @A table of options relating to the disc, such as the setting name controlling use of the disc
 ---@return table|nil @Returns a table containing the disc name with rank, disc ID and the provided option name.
-common.get_disc = function(disc_name, options)
-    local disc = mq.TLO.Spell(disc_name)
-    local rankname = disc.RankName()
-    if not rankname then return nil end
-    if not options then options = {} end
-    options.id = disc.ID()
-    options.type = 'disc'
-    options.name = rankname
-    return options
+common.getBestDisc = function(discs, options)
+    for _,discName in ipairs(discs) do
+        local bestDisc = getDisc(discName)
+        if bestDisc then
+            local disc = ability.Disc:new(bestDisc.id, bestDisc.name, options)
+            return disc
+        end
+    end
+    return nil
+end
+
+common.getItem = function(itemName, options)
+    local itemRef = mq.TLO.FindItem('='..itemName)
+    if itemRef() then
+        local item = ability.Item:new(itemRef.ID(), itemRef.Name(), options)
+        return item
+    end
+    return nil
+end
+
+common.getSkill = function(name, options)
+    if not mq.TLO.Me.Ability(name) or not mq.TLO.Me.Skill(name)() or mq.TLO.Me.Skill(name)() == 0 then return nil end
+    local skill = ability.Skill:new(name, options)
+    return skill
 end
 
 common.set_swap_gem = function()
@@ -285,7 +300,7 @@ common.is_dot_ready = function(spell)
 end
 
 common.is_spell_ready = function(spell)
-    if not spell or not spell['name'] then return false end
+    if not spell then return false end
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
     if mq.TLO.Spell(spell.name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell.name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
@@ -374,46 +389,6 @@ common.can_use_spell = function(spell, type)
     return result
 end
 
----Cast the spell specified by spell_name.
----@param spell table @Table containing the name of the spell to be cast and other related options.
----@param requires_target boolean|nil @Indicate whether the spell requires a target.
-common.cast = function(spell, requires_target)
-    local spell_name = spell.name
-    local spell = mq.TLO.Spell(spell_name)
-    if not spell_name or not common.can_use_spell(spell, 'spell') or not common.should_use_spell(spell) then return false end
-    if state.class == 'brd' then mq.cmd('/stopsong') end
-    logger.printf('Casting \ar%s\ax', spell_name)
-    mq.cmdf('/cast "%s"', spell_name)
-    if state.class ~= 'brd' then
-        mq.delay(20)
-        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', spell_name) end
-        mq.delay(20)
-        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', spell_name) end
-        mq.delay(20)
-        while mq.TLO.Me.Casting() do
-            if requires_target and not mq.TLO.Target() then
-                mq.cmd('/stopcast')
-                break
-            end
-            mq.delay(10)
-        end
-    else
-        mq.delay(1000)
-    end
-    return not mq.TLO.Me.SpellReady(spell_name)()
-end
-
----Use the ability specified by name. These are basic abilities like taunt or kick.
----@param name string @The name of the ability to use.
-common.use_ability = function(name)
-    if type(name) == 'table' then name = name.name end
-    if mq.TLO.Me.AbilityReady(name)() and mq.TLO.Me.Skill(name)() > 0 and mq.TLO.Target() then
-        mq.cmdf('/doability "%s"', name)
-        mq.delay(500, function() return not mq.TLO.Me.AbilityReady(name)() end)
-        logger.debug(logger.log_flags.common.cast, "Delayed for use_ability "..name)
-    end
-end
-
 local function item_ready(item)
     if state.subscription ~= 'GOLD' and item.Prestige() then return false end
     if item() and item.Clicky.Spell() and item.Timer() == '0' then
@@ -437,94 +412,6 @@ common.use_item = function(item)
     end
     return false
 end
-
----Determine whether an AA is ready, including checking whether the character is currently capable.
----@param name string @The name of the AA to be used.
----@return boolean @Returns true if the AA is ready to be used, otherwise false.
-local function aa_ready(name)
-    if mq.TLO.Me.AltAbilityReady(name)() then
-        local spell = mq.TLO.Me.AltAbility(name).Spell
-        return common.can_use_spell(spell, 'aa') and common.should_use_spell(spell)
-    else
-        return false
-    end
-end
-
----Use the AA specified in the passed in table aa.
----@param aa table|nil @A table containing the AA name and ID.
----@return boolean @Returns true if the ability was fired, otherwise false.
-common.use_aa = function(aa)
-    if aa and aa_ready(aa.name) then
-        logger.printf('Use AA: \ax\ar%s\ax', aa.name)
-        mq.cmdf('/alt activate %d', aa.id)
-        mq.delay(250+mq.TLO.Me.AltAbility(aa.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-        mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(aa.name)() end)
-        logger.debug(logger.log_flags.common.cast, "Delayed for use_aa "..aa.name)
-        return not mq.TLO.Me.AltAbilityReady(aa.name)()
-    end
-    return false
-end
-
----Determine whether the disc specified by name is an "active" disc that appears in ${Me.ActiveDisc}.
----@param name string @The name of the disc to check.
----@return boolean @Returns true if the disc is an active disc, otherwise false.
-local function is_disc(name)
-    if mq.TLO.Spell(name).IsSkill() and (tonumber(mq.TLO.Spell(name).Duration()) and tonumber(mq.TLO.Spell(name).Duration()) > 0) and mq.TLO.Spell(name).TargetType() == 'Self' and not mq.TLO.Spell(name).StacksWithDiscs() then
-        return true
-    else
-        return false
-    end
-end
-
----Determine whether an disc is ready, including checking whether the character is currently capable.
----@param name string @The name of the disc to be used.
----@return boolean @Returns true if the disc is ready to be used, otherwise false.
-local function disc_ready(name)
-    if mq.TLO.Me.CombatAbility(name)() and mq.TLO.Me.CombatAbilityTimer(name)() == '0' and mq.TLO.Me.CombatAbilityReady(name)() then
-        local spell = mq.TLO.Spell(name)
-        return common.can_use_spell(spell, 'disc') and common.should_use_spell(spell, true)
-    else
-        return false
-    end
-end
-
----Use the disc specified in the passed in table disc.
----@param disc table|nil @A table containing the disc name and ID.
----@param overwrite string|nil @The name of a disc which should be stopped in order to run this disc.
-common.use_disc = function(disc, overwrite)
-    if disc and disc_ready(disc.name) then
-        if not is_disc(disc.name) or not mq.TLO.Me.ActiveDisc.ID() then
-            logger.printf('Use Disc: \ax\ar%s\ax', disc.name)
-            if disc.name:find('Composite') then
-                mq.cmdf('/disc %s', disc.id)
-            else
-                mq.cmdf('/disc %s', disc.name)
-            end
-            mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
-            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..disc.name)
-            return not mq.TLO.Me.CombatAbilityReady(disc.name)()
-        elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
-            mq.cmd('/stopdisc')
-            mq.delay(50)
-            logger.printf('Use Disc: \ax\ar%s\ax', disc.name)
-            mq.cmdf('/disc %s', disc.name)
-            mq.delay(250+mq.TLO.Spell(disc.name).CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(disc.name)() end)
-            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..disc.name)
-            return not mq.TLO.Me.CombatAbilityReady(disc.name)()
-        end
-    end
-    return false
-end
-
-common.use = {
-    spell=common.cast,
-    aa=common.use_aa,
-    disc=common.use_disc,
-    ability=common.use_ability,
-    item=common.use_item,
-}
 
 -- Burn Helper Functions
 
@@ -588,7 +475,7 @@ end
 ---@param gem number @The gem index to memorize the spell into.
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 common.swap_spell = function(spell, gem, other_names)
-    if not spell.name or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if not spell or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
@@ -598,7 +485,7 @@ common.swap_spell = function(spell, gem, other_names)
 end
 
 common.swap_and_cast = function(spell, gem)
-    if not spell.name then return false end
+    if not spell then return false end
     local restore_gem = nil
     if not mq.TLO.Me.Gem(spell.name)() then
         restore_gem = {name=mq.TLO.Me.Gem(gem)()}
@@ -606,7 +493,7 @@ common.swap_and_cast = function(spell, gem)
     end
     mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
     logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
-    local did_cast = common.cast(spell)
+    local did_cast = spell:use()
     if restore_gem then
         common.swap_spell(restore_gem, gem)
     end

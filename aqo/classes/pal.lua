@@ -1,4 +1,5 @@
 local baseclass = require(AQO..'.classes.base')
+local common = require(AQO..'.common')
 
 local pal = baseclass
 
@@ -15,6 +16,6 @@ pal.spellRotations = {
     standard=standard
 }
 
-table.insert(pal.DPSAbilities, {name='Kick',            type='ability'})
+table.insert(pal.DPSAbilities, common.getSkill('Kick'))
 
 return pal

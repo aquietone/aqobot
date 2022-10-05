@@ -8,6 +8,7 @@ local tank = require(AQO..'.routines.tank')
 local logger = require(AQO..'.utils.logger')
 local persistence = require(AQO..'.utils.persistence')
 local timer = require(AQO..'.utils.timer')
+local Abilities = require(AQO..'.ability')
 local common = require(AQO..'.common')
 local config = require(AQO..'.configuration')
 local state = require(AQO..'.state')
@@ -107,9 +108,9 @@ base.isAbilityEnabled = function(key)
 end
 
 base.addSpell = function(spellGroup, spellList, options)
-    local foundSpell = common.get_best_spell(spellList, options)
+    local foundSpell = common.getBestSpell(spellList, options)
     base.spells[spellGroup] = foundSpell
-    if foundSpell.name then
+    if foundSpell then
         logger.printf('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id)
     else
         logger.printf('[%s] Could not find spell!', spellGroup)
@@ -243,12 +244,12 @@ base.heal = function()
             if mq.TLO.Me.PctHPs() < heal.me then
                 mq.cmdf('/mqt myself')
                 mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
-                common.cast(heal)
+                heal:use()
                 return
             elseif (mq.TLO.Group.MainTank.PctHPs() or 100) < heal.mt then
                 mq.cmdf('/mqt id %d', mq.TLO.Group.MainTank.ID())
                 mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Group.MainTank.ID() end)
-                common.cast(heal)
+                heal:use()
                 return
             elseif groupSize then
                 for i=1,groupSize-1 do
@@ -256,7 +257,7 @@ base.heal = function()
                     if (member.PctHPs() or 100) < heal.other then
                         member.DoTarget()
                         mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
-                        common.cast(heal)
+                        heal:use()
                         return
                     end
                 end
@@ -277,7 +278,7 @@ local function doCombatLoop(list)
         if (ability.name or ability.id) and (base.isAbilityEnabled(ability.opt)) and
                 (ability.threshold == nil or ability.threshold >= state.mob_count_nopet) and
                 (ability.type ~= 'ability' or dist < maxdist) then
-            if common.use[ability.type](ability) and ability.delay then mq.delay(ability.delay) end
+            if ability:use() and ability.delay then mq.delay(ability.delay) end
         end
     end
 end
@@ -328,32 +329,32 @@ end
 
 local function castDebuffs()
     if base.isEnabled('USEDISPEL') and mq.TLO.Target.Beneficial() and base.dispel then
-        common.use[base.dispel.type](base.dispel)
-        if base.dispel.type == 'Spell' then return true end
+        base.dispel:use()
+        if base.dispel.type == Abilities.Types.Spell then return true end
     end
     -- debuff too generic to be checking Tashed TLO...
     if base.isEnabled('USEDEBUFFAOE') and (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and base.debuff then
-        common.use[base.debuff.type](base.debuff)
-        if base.debuff.type == 'Spell' then return true end
+        base.debuff:use()
+        if base.dispel.type == Abilities.Types.Spell then return true end
     end
     if base.isEnabled('USESNARE') and not mq.TLO.Target.Snared() and not SNARE_IMMUNES[mq.TLO.Target.CleanName()] and (mq.TLO.Target.PctHPs() or 100) < 40 then
-        common.use[base.snare.type](base.snare)
+        base.snare:use()
         mq.doevents('event_snareimmune')
-        if base.snare.type == 'Spell'  then return true end
+        if base.dispel.type == Abilities.Types.Spell then return true end
     end
     if base.isEnabled('USESLOW') or base.isEnabled('USESLOWAOE') then
         local target = mq.TLO.Target
         if target.Named() and not target.Slowed() and not SLOW_IMMUNES[target.CleanName()] then
             local abilityType
             if base.isEnabled('USESLOWAOE') and base.aeslow then
-                common.use[base.aeslow.type](base.aeslow)
+                base.aeslow:use()
                 abilityType = base.aeslow.type
             elseif base.slow then
-                common.use[base.slow.type](base.slow)
+                base.slow:use()
                 abilityType = base.slow.type
             end
             mq.doevents('event_slowimmune')
-            if abilityType == 'Spell' then return true end
+            if abilityType == Abilities.Types.Spell then return true end
         end
     end
 end
@@ -368,10 +369,9 @@ base.cast = function()
             if spell then -- if a dot was found
                 -- spell.precast
                 --if spell.name == nec.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
-                --    local tc_item = mq.TLO.FindItem(tcclick)
-                --    common.use_item(tc_item)
+                --    tcclick:use()
                 --end
-                common.cast(spell, true) -- then cast the dot
+                spell:use() -- then cast the dot
                 base.nuketimer:reset()
             end
         end
@@ -384,13 +384,12 @@ local function buff_combat()
     common.check_combat_buffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
     for _,buff in ipairs(base.buffs) do
-        if buff.type == 'disc' or buff.type == 'aa' then
-            common.use[buff.type](buff)
-        elseif buff.type == 'summonitem' then
+        if buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.Disc then
+            buff:use()
+        elseif buff.summons then
             if mq.TLO.FindItemCount(buff.summons)() < 30 and not mq.TLO.Me.Moving() then
-                local item = mq.TLO.FindItem(buff)
-                common.use_item(item)
-                if item() then
+                buff:use()
+                if mq.TLO.Cursor() then
                     mq.delay(50)
                     mq.cmd('/autoinv')
                 end
@@ -404,7 +403,7 @@ local function buff_ooc()
     if base.buff_class then base.buff_class() end
     -- find an actual buff spell that takes time to cast
     for _,buff in ipairs(base.buffs) do
-        if buff.type == 'spellaura' and buff.name then
+        if buff.type == Abilities.Types.Spell then
             local buffName = buff.name
             if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
             if not mq.TLO.Me.Aura(buffName)() then
@@ -414,21 +413,21 @@ local function buff_ooc()
                     common.swap_spell(buff, 1)
                 end
                 mq.delay(3000, function() return mq.TLO.Me.Gem(buff.name)() and mq.TLO.Me.GemTimer(buff.name)() == 0 end)
-                common.cast(buff)
+                buff:use()
                 -- project lazarus super long cast time special bard aura stupidity
                 if state.class == 'brd' then mq.delay(100) mq.delay(6000, function() return not mq.TLO.Window('CastingWindow').Open() end) end
                 if restore_gem then
                     common.swap_spell(restore_gem, 1)
                 end
             end
-        elseif buff.type == 'discaura' and buff.name then
+        elseif buff.type == Abilities.Types.Disc and buff then
             if not mq.TLO.Me.Aura(buff.checkfor or buff.name)() then
-                if common.use_disc(buff) then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
+                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
             end
-        elseif buff.type == 'item' then
+        elseif buff.type == Abilities.Types.Item then
             local item = mq.TLO.FindItem(buff.id)
             if not mq.TLO.Me.Buff(item.Spell.Name())() then
-                common.use_item(item)
+                buff:use()
             end
         end
     end
@@ -468,10 +467,10 @@ end
 base.mez = function()
     -- don't try to mez in manual mode
     if config.MODE:is_manual_mode() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then return end
-    if base.OPTS.MEZAE.value and base.spells.mezae.name then
+    if base.OPTS.MEZAE.value and base.spells.mezae then
         mez.do_ae(base.spells.mezae, base.OPTS.MEZAECOUNT.value)
     end
-    if base.OPTS.MEZST.value and base.spells.mezst.name then
+    if base.OPTS.MEZST.value and base.spells.mezst then
         mez.do_single(base.spells.mezst)
     end
 end
@@ -481,12 +480,12 @@ base.aggro = function()
     if common.am_i_dead() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
         for _,ability in ipairs(base.defensiveAbilities) do
-            common.use(ability)
+            ability:use()
         end
     end
     if base.drop_aggro and config.MODE:get_name() ~= 'manual' and base.OPTS.USEFADE.value and state.mob_count > 0 and check_aggro_timer:timer_expired() then
         if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 50 then
-            common.use_aa(base.drop_aggro)
+            base.drop_aggro:use()
             check_aggro_timer:reset()
             mq.delay(1000)
             mq.cmd('/makemevis')
@@ -515,7 +514,7 @@ base.recover = function()
         end
     end
     if useAbility then
-        common.use[useAbility.type](useAbility)
+        useAbility:use()
     end
 end
 
@@ -524,7 +523,7 @@ base.rez = function()
 end
 
 base.managepet = function()
-    if not base.isEnabled('SUMMONPET') then return end
+    if not base.isEnabled('SUMMONPET') or not base.spells.pet then return end
     if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
     if mq.TLO.Spell(base.spells.pet.name).Mana() or 0 > mq.TLO.Me.CurrentMana() then return end

@@ -36,7 +36,7 @@ table.insert(shm.healAbilities, shm.spells.heal)
 table.insert(shm.cures, shm.spells.cure)
 
 shm.slow = common.get_best_spell({'Turgur\'s Insects', 'Togor\'s Insects'})
-shm.canni = common.get_aa('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
+shm.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
 table.insert(shm.recoverAbilities, shm.canni)
 table.insert(shm.recoverAbilities, shm.spells.canni)
 
@@ -59,7 +59,7 @@ local melees = {'MNK','BER','ROG','BST','WAR','PAL','SHD'}
 shm.buff = function()
     if common.am_i_dead() then return end
 
-    if shm.spells.proc.name and mq.TLO.Me.SpellReady(shm.spells.proc.name)() and mq.TLO.Group.GroupSize() then
+    if shm.spells.proc and mq.TLO.Me.SpellReady(shm.spells.proc.name)() and mq.TLO.Group.GroupSize() then
         for i=1,mq.TLO.Group.GroupSize()-1 do
             local member = mq.TLO.Group.Member(i)
             if melees[member.Class.ShortName()] and not member.Buff(shm.spells.proc.name)() then
@@ -67,7 +67,7 @@ shm.buff = function()
                 mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                 if not mq.TLO.Target.Buff(shm.spells.proc.name)() then
-                    if common.cast(shm.spells.proc) then return end
+                    if shm.spells.proc:use() then return end
                 end
             end
         end

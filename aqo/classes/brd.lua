@@ -1,11 +1,9 @@
 --- @type Mq
 local mq = require 'mq'
 local baseclass = require(AQO..'.classes.base')
-local mez = require(AQO..'.routines.mez')
 local logger = require(AQO..'.utils.logger')
 local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
 local state = require(AQO..'.state')
 
 -- what was this again?
@@ -61,15 +59,14 @@ brd.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'}
 
 -- haste song doesn't stack with enc haste?
 brd.addSpell('emuaura', {'Aura of Insight'})
-brd.addSpell('emuhaste', {'Composition of Ervaj', 'Verses of Victory', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Vilia\'s Verses of Celerity', 'Jonthan\'s Whistling Warsong', 'Anthem de Arms'})
-brd.addSpell('emuds', {'Psalm of Purity', 'Psalm of Warmth'})
-brd.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
-brd.addSpell('emuregen', {'Chorus of Replenishment', 'Cantata of Soothing'})
-brd.addSpell('emuac', {'Nillipus\' March of the Wee'})
 brd.addSpell('overhaste', {'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
+brd.addSpell('bardhaste', {'Composition of Ervaj'})
+brd.addSpell('emuhaste', {'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
+brd.addSpell('emuregen', {'Chorus of Replenishment', 'Cantata of Soothing'})
+brd.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
 brd.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
 brd.addSpell('selos', {'Selo\'s Accelerating Chorus'})
-table.insert(brd.buffs, {name=brd.spells.emuaura.name, id=brd.spells.emuaura.id, type="spellaura"})
+table.insert(brd.buffs, brd.spells.emuaura)
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local melee = {
@@ -96,10 +93,10 @@ local meleedot = {
 -- synergy, mezst, mezae
 
 local emu = {
-    brd.spells.emuregen, brd.spells.emuhaste, brd.spells.selos
+    brd.spells.emuregen, brd.spells.overhaste, brd.spells.bardhaste, brd.spells.emuhaste, brd.spells.selos
 }
 local emunoaura = {
-    brd.spells.emuregen, brd.spells.overhaste, brd.spells.emunukebuff, brd.spells.selos
+    brd.spells.emuregen, brd.spells.overhaste, brd.spells.emuhaste, brd.spells.emunukebuff, brd.spells.selos
 }
 
 local songs = {
@@ -110,57 +107,57 @@ local songs = {
     emunoaura=emunoaura,
 }
 
-table.insert(brd.burnAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(),          type='item'})
-table.insert(brd.burnAbilities, {id=mq.TLO.FindItem('Rage of Rolfron').ID(),    type='item'})
+table.insert(brd.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
+table.insert(brd.burnAbilities, common.getItem('Rage of Rolfron'))
 
-table.insert(brd.burnAbilities, common.get_aa('Quick Time'))
-table.insert(brd.burnAbilities, common.get_aa('Funeral Dirge'))
-table.insert(brd.burnAbilities, common.get_aa('Spire of the Minstrels'))
-table.insert(brd.burnAbilities, common.get_aa('Bladed Song'))
-table.insert(brd.burnAbilities, common.get_aa('Dance of Blades'))
-table.insert(brd.burnAbilities, common.get_aa('Flurry of Notes'))
-table.insert(brd.burnAbilities, common.get_aa('Frenzied Kicks'))
+table.insert(brd.burnAbilities, common.getAA('Quick Time'))
+table.insert(brd.burnAbilities, common.getAA('Funeral Dirge'))
+table.insert(brd.burnAbilities, common.getAA('Spire of the Minstrels'))
+table.insert(brd.burnAbilities, common.getAA('Bladed Song'))
+table.insert(brd.burnAbilities, common.getAA('Dance of Blades'))
+table.insert(brd.burnAbilities, common.getAA('Flurry of Notes'))
+table.insert(brd.burnAbilities, common.getAA('Frenzied Kicks'))
 
-table.insert(brd.burnAbilities, common.get_disc('Thousand Blades'))
+table.insert(brd.burnAbilities, common.getBestDisc({'Thousand Blades'}))
 
-table.insert(brd.DPSAbilities, common.get_aa('Cacophony'))
+table.insert(brd.DPSAbilities, common.getAA('Cacophony'))
 -- Delay after using swarm pet AAs while pets are spawning
-table.insert(brd.DPSAbilities, common.get_aa('Lyrical Prankster', {opt='USESWARM', delay=1500}))
-table.insert(brd.DPSAbilities, common.get_aa('Song of Stone', {opt='USESWARM', delay=1500}))
+table.insert(brd.DPSAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
+table.insert(brd.DPSAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
 
-table.insert(brd.DPSAbilities, common.get_disc('Reflexive Rebuttal'))
+table.insert(brd.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
 
-table.insert(brd.DPSAbilities, {name='Intimidation',    type='ability', opt='USEINTIMIDATE'})
-table.insert(brd.DPSAbilities, {name='Kick',            type='ability'})
+table.insert(brd.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
+table.insert(brd.DPSAbilities, common.getSkill('Kick'))
 
-local bellow = common.get_aa('Boastful Bellow')
+local bellow = common.getAA('Boastful Bellow')
 
-table.insert(brd.AEDPSAbilities, common.get_aa('Vainglorious Shout', {threshold=4}))
+table.insert(brd.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=4}))
 
-table.insert(baseclass.defensiveAbilities, common.get_aa('Shield of Notes'))
-table.insert(baseclass.defensiveAbilities, common.get_aa('Hymn of the Last Stand'))
+table.insert(baseclass.defensiveAbilities, common.getAA('Shield of Notes'))
+table.insert(baseclass.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
 
 -- Aggro
-brd.drop_aggro = common.get_aa('Fading Memories')
+brd.drop_aggro = common.getAA('Fading Memories')
 
-table.insert(brd.buffs, {name=brd.spells.aura.name, id=brd.spells.aura.id, type='spellaura'})
-table.insert(brd.buffs, {id=mq.TLO.FindItem('Songblade of the Eternal').ID() or mq.TLO.FindItem('Rapier of Somber Notes').ID(), type='item'})
+table.insert(brd.buffs, brd.spells.aura)
+table.insert(brd.buffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
 
---table.insert(burnAAs, common.get_aa('Glyph of Destruction (115+)'))
---table.insert(burnAAs, common.get_aa('Intensity of the Resolute'))
+--table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
+--table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
 
 -- deftdance discipline
 
-local selos = common.get_aa('Selo\'s Sonata')
+local selos = common.getAA('Selo\'s Sonata')
 -- Mana Recovery AAs
-local rallyingsolo = common.get_aa('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
+local rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
 table.insert(brd.recoverAbilities, rallyingsolo)
-local rallyingcall = common.get_aa('Rallying Call')
+local rallyingcall = common.getAA('Rallying Call')
 
 -- aa mez
-local dirge = common.get_aa('Dirge of the Sleepwalker')
-local sonic = common.get_aa('Sonic Disturbance')
-local fluxstaff = mq.TLO.FindItem('Staff of Viral Flux').ID()
+local dirge = common.getAA('Dirge of the Sleepwalker')
+local sonic = common.getAA('Sonic Disturbance')
+local fluxstaff = common.getItem('Staff of Viral Flux')
 
 local song_timer = timer:new(3)
 local selos_timer = timer:new(30)
@@ -175,13 +172,13 @@ end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    local alliance = brd.spells.alliance.name
+    local alliance = brd.spells.alliance and brd.spells.alliance.name
     if brd.OPTS.USEALLIANCE.value and alliance then
         if mq.TLO.Spell(alliance).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
         if mq.TLO.Me.Gem(alliance)() and mq.TLO.Me.GemTimer(alliance)() == 0  and not mq.TLO.Target.Buff(alliance)() and mq.TLO.Spell(alliance).StacksTarget() then
-            common.cast(brd.spells.alliance, true)
+            brd.spells.alliance:use()
             song_timer:reset()
             return true
         end
@@ -191,13 +188,13 @@ end
 
 local function cast_synergy()
     -- don't nuke if i'm not attacking
-    local synergy = brd.spells.insult.name
+    local synergy = brd.spells.insult and brd.spells.insult.name
     if brd.OPTS.USEINSULTS.value and synergy_timer:timer_expired() and synergy and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(synergy)() and mq.TLO.Me.GemTimer(synergy)() == 0 then
             if mq.TLO.Spell(synergy).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
             end
-            common.cast(brd.spells.insult, true)
+            brd.spells.insult:use()
             song_timer:reset()
             synergy_timer:reset()
             return true
@@ -249,7 +246,7 @@ local function is_song_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spellName == brd.spells.crescendo.name and (mq.TLO.Me.Buff(actualSpellName)() or not crescendo_timer:timer_expired()) then
+    if spellName == (brd.spells.crescendo and brd.spells.crescendo.name) and (mq.TLO.Me.Buff(actualSpellName)() or not crescendo_timer:timer_expired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
@@ -277,7 +274,7 @@ local function find_next_song()
         local song_id = song.id
         local song_name = song.name
         if is_song_ready(song_id, song_name) then
-            if song_name ~= brd.spells.composite.name or mq.TLO.Target() then
+            if song_name ~= (brd.spells.composite and brd.spells.composite.name) or mq.TLO.Target() then
                 return song
             end
         end
@@ -292,25 +289,25 @@ brd.cast = function()
         if spell then -- if a dot was found
             local did_cast = false
             if mq.TLO.Spell(spell.name).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
-                did_cast = common.cast(spell, true) -- then cast the dot
+                did_cast = spell:use() -- then cast the dot
             else
-                did_cast = common.cast(spell) -- then cast the dot
+                did_cast = spell:use() -- then cast the dot
             end
-            if did_cast and spell.name ~= brd.spells.selos.name then song_timer:reset() end
-            if spell.name == brd.spells.crescendo.name then crescendo_timer:reset() end
+            if did_cast and spell.name ~= (brd.spells.selos and brd.spells.selos.name) then song_timer:reset() end
+            if spell.name == (brd.spells.crescendo and brd.spells.crescendo.name) then crescendo_timer:reset() end
             return true
         end
     end
     return false
 end
 
-local fierceeye = common.get_aa('Fierce Eye')
+local fierceeye = common.getAA('Fierce Eye')
+local epic = common.getItem('Blade of Vesagran')
 local function use_epic()
-    local epic = mq.TLO.FindItem('=Blade of Vesagran')
     local fierceeye_rdy = fierceeye and mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
-    if epic.Timer() == '0' and fierceeye_rdy then
-        common.use_aa(fierceeye)
-        common.use_item(epic)
+    if epic and epic.Timer() == '0' and fierceeye_rdy then
+        if fierceeye then fierceeye:use() end
+        epic:use()
     end
 end
 
@@ -319,7 +316,7 @@ brd.mash_class = function()
         use_epic()
     end
 
-    if brd.OPTS.USEBELLOW.value and boastful_timer:timer_expired() and common.use_aa(bellow) then
+    if brd.OPTS.USEBELLOW.value and bellow and boastful_timer:timer_expired() and bellow:use() then
         boastful_timer:reset()
     end
 end
@@ -401,7 +398,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.emuhaste, 3)
             common.swap_spell(brd.spells.selos, 4)
             common.swap_spell(brd.spells.emunukebuff, 5)
-            common.swap_spell(brd.spells.emuac, 6)
+            common.swap_spell(brd.spells.bardhaste, 6)
             common.swap_spell(brd.spells.overhaste, 7)
             common.swap_spell(brd.spells.snare, 8)
         end
@@ -411,10 +408,9 @@ end
 
 brd.pull_func = function()
     if fluxstaff then
-        local item = mq.TLO.FindItem(fluxstaff)
-        common.use_item(item)
+        fluxstaff:use()
     elseif sonic then
-        common.use_aa(sonic)
+        sonic:use()
     end
 end
 
@@ -430,7 +426,7 @@ end
 brd.main_loop_old = function()
     -- keep cursor clear for spell swaps and such
     if selos_timer:timer_expired() then
-        common.use_aa(selos)
+        selos:use()
         selos_timer:reset()
     end
 end

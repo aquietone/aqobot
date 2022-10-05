@@ -31,10 +31,10 @@ end
 ---@param mez_spell table @The name of the AE mez spell to cast.
 ---@param ae_count number @The mob threshold for using AE mez.
 mez.do_ae = function(mez_spell, ae_count)
-    if state.mob_count >= ae_count then
+    if state.mob_count >= ae_count and mez_spell then
         if mq.TLO.Me.Gem(mez_spell.name)() and mq.TLO.Me.GemTimer(mez_spell.name)() == 0 then
             logger.printf('AE Mezzing (MOB_COUNT=%d)', state.mob_count)
-            common.cast(mez_spell)
+            mez_spell:use()
             mez.init_mez_timers()
         end
     end
@@ -43,7 +43,7 @@ end
 ---Cast single target mez spell if adds in camp.
 ---@param mez_spell table @The name of the single target mez spell to cast.
 mez.do_single = function(mez_spell)
-    if state.mob_count <= 1 or not mq.TLO.Me.Gem(mez_spell.name)() then return end
+    if state.mob_count <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.name)() then return end
     for id,mobdata in pairs(state.targets) do
         if state.debug then
             logger.debug(logger.log_flags.routines.mez, '[%s] meztimer: %s, current_time: %s, timer_expired: %s', id, mobdata['meztimer'].start_time, timer.current_time(), mobdata['meztimer']:timer_expired())
@@ -66,7 +66,7 @@ mez.do_single = function(mez_spell)
                             state.mez_target_name = mob.CleanName()
                             state.mez_target_id = id
                             logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
-                            common.cast(mez_spell)
+                            mez_spell:use()
                             logger.debug(logger.log_flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
                             state.targets[id].meztimer:reset()
                             mq.doevents('event_mezimmune')

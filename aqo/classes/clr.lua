@@ -31,12 +31,12 @@ clr.heal = function()
             if mq.TLO.Me.PctHPs() < heal.me then
                 mq.cmdf('/mqt myself')
                 mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
-                common.cast(heal)
+                heal:use()
                 return
             elseif (mq.TLO.Group.MainTank.PctHPs() or 100) < heal.mt then
                 mq.cmdf('/mqt id %d', mq.TLO.Group.MainTank.ID())
                 mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Group.MainTank.ID() end)
-                common.cast(heal)
+                heal:use()
                 return
             elseif mq.TLO.Group.GroupSize() then
                 for i=1,mq.TLO.Group.GroupSize()-1 do
@@ -44,7 +44,7 @@ clr.heal = function()
                     if (member.PctHPs() or 100) < heal.other then
                         member.DoTarget()
                         mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
-                        common.cast(heal)
+                        heal:use()
                         return
                     end
                 end

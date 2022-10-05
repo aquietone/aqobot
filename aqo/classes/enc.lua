@@ -4,7 +4,6 @@ local baseclass = require(AQO..'.classes.base')
 local mez = require(AQO..'.routines.mez')
 local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
 local state = require(AQO..'.state')
 
 local enc = baseclass
@@ -111,7 +110,7 @@ enc.addSpell('shield', {'Shield of Shadow', 'Shield of Restless Ice'})
 enc.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
 
 enc.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
-if enc.spells.synergy.name then
+if enc.spells.synergy then
     if enc.spells.synergy.name:find('reap') then
         enc.spells.nuke5 = common.get_best_spell({'Mindrift', 'Mindslash'})
     elseif enc.spells.synergy.name:find('rift') then
@@ -136,56 +135,53 @@ table.insert(standard, enc.spells.guard)
 table.insert(standard, enc.spells.nightsterror)
 table.insert(standard, enc.spells.combatinnate)
 
-table.insert(enc.burnAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(), type='item'}) -- buff, Consuming Magic, 10 minute CD
-table.insert(enc.burnAbilities, {id=mq.TLO.FindItem('Rage of Rolfron').ID(), type='item'}) -- song, 30 minute CD
+table.insert(enc.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
+table.insert(enc.burnAbilities, common.getItem('Rage of Rolfron'))
 
-table.insert(enc.burnAbilities, common.get_aa('Silent Casting')) -- song, 12 minute CD
-table.insert(enc.burnAbilities, common.get_aa('Focus of Arcanum')) -- buff, 10 minute CD
-table.insert(enc.burnAbilities, common.get_aa('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
-table.insert(enc.burnAbilities, common.get_aa('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
-table.insert(enc.burnAbilities, common.get_aa('Spire of Enchantment')) -- buff, 7:30 minute CD
-table.insert(enc.burnAbilities, common.get_aa('Improved Twincast')) -- 15min CD
-table.insert(enc.burnAbilities, common.get_aa('Chromatic Haze')) -- 15min CD
-table.insert(enc.burnAbilities, common.get_aa('Companion\'s Fury')) -- 10 minute CD
-table.insert(enc.burnAbilities, common.get_aa('Companion\'s Fortification')) -- 15 minute CD
+table.insert(enc.burnAbilities, common.getAA('Silent Casting')) -- song, 12 minute CD
+table.insert(enc.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
+table.insert(enc.burnAbilities, common.getAA('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
+table.insert(enc.burnAbilities, common.getAA('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
+table.insert(enc.burnAbilities, common.getAA('Spire of Enchantment')) -- buff, 7:30 minute CD
+table.insert(enc.burnAbilities, common.getAA('Improved Twincast')) -- 15min CD
+table.insert(enc.burnAbilities, common.getAA('Chromatic Haze')) -- 15min CD
+table.insert(enc.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
+table.insert(enc.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
 
---table.insert(AAs, get_aaid_and_name('Glyph of Destruction (115+)'))
---table.insert(AAs, get_aaid_and_name('Intensity of the Resolute'))
+--table.insert(AAs, getAAid_and_name('Glyph of Destruction (115+)'))
+--table.insert(AAs, getAAid_and_name('Intensity of the Resolute'))
 
-enc.debuff = common.get_aa('Bite of Tashani')
-enc.slow = common.get_aa('Slowing Helix') -- single target slow
-enc.aeslow = common.get_aa('Enveloping Helix') -- AE slow on 8 targets
-enc.dispel = common.get_aa('Eradicate Magic')
+enc.debuff = common.getAA('Bite of Tashani')
+enc.slow = common.getAA('Slowing Helix') -- single target slow
+enc.aeslow = common.getAA('Enveloping Helix') -- AE slow on 8 targets
+enc.dispel = common.getAA('Eradicate Magic')
 
-local mezbeam = common.get_aa('Beam of Slumber')
-local longmez = common.get_aa('Noctambulate') -- 3min single target mez
+local mezbeam = common.getAA('Beam of Slumber')
+local longmez = common.getAA('Noctambulate') -- 3min single target mez
 
-local aekbblur = common.get_aa('Beguiler\'s Banishment')
-local kbblur = common.get_aa('Beguiler\'s Directed Banishment')
-local aeblur = common.get_aa('Blanket of Forgetfulness')
+local aekbblur = common.getAA('Beguiler\'s Banishment')
+local kbblur = common.getAA('Beguiler\'s Directed Banishment')
+local aeblur = common.getAA('Blanket of Forgetfulness')
 
-local haze = common.get_aa('Chromatic Haze') -- 10min CD, buff 2 nukes for group
+local haze = common.getAA('Chromatic Haze') -- 10min CD, buff 2 nukes for group
 
-local shield = common.get_aa('Dimensional Shield')
-local rune = common.get_aa('Eldritch Rune')
-local grouprune = common.get_aa('Glyph Spray')
-local reactiverune = common.get_aa('Reactive Rune') -- group buff, melee/spell shield that procs rune
-local manarune = common.get_aa('Mind over Matter') -- absorb dmg using mana
-local veil = common.get_aa('Veil of Mindshadow') -- 5min CD, another rune?
+local shield = common.getAA('Dimensional Shield')
+local rune = common.getAA('Eldritch Rune')
+local grouprune = common.getAA('Glyph Spray')
+local reactiverune = common.getAA('Reactive Rune') -- group buff, melee/spell shield that procs rune
+local manarune = common.getAA('Mind over Matter') -- absorb dmg using mana
+local veil = common.getAA('Veil of Mindshadow') -- 5min CD, another rune?
 
-local debuffdot = common.get_aa('Mental Corruption') -- decrease melee dmg + DoT
+local debuffdot = common.getAA('Mental Corruption') -- decrease melee dmg + DoT
 
 -- Buffs
-local unity = common.get_aa('Orator\'s Unity')
+local unity = common.getAA('Orator\'s Unity')
 -- Mana Recovery AAs
-local azure = common.get_aa('Azure Mind Crystal') -- summon clicky mana heal
-local gathermana = common.get_aa('Gather Mana')
-local sanguine = common.get_aa('Sanguine Mind Crystal') -- summon clicky hp heal
--- Mana Recovery items
---local item_feather = mq.TLO.FindItem('Unified Phoenix Feather')
---local item_horn = mq.TLO.FindItem('Miniature Horn of Unity') -- 10 minute CD
+local azure = common.getAA('Azure Mind Crystal') -- summon clicky mana heal
+local gathermana = common.getAA('Gather Mana')
+local sanguine = common.getAA('Sanguine Mind Crystal') -- summon clicky hp heal
 -- Agro
-local stasis = common.get_aa('Self Stasis')
+local stasis = common.getAA('Self Stasis')
 
 local buffs={
     self={},
@@ -206,7 +202,7 @@ enc.mez = function()
     end
     if enc.OPTS.MEZST.value and not mq.TLO.Me.SpellInCooldown() then
         if not mq.TLO.Target.Tashed() and enc.OPTS.TASHTHENMEZ.value and enc.tash then
-            common.use_aa(enc.tash)
+            enc.tash:use()
         end
         mez.do_single(enc.spells.mezst)
     end
@@ -217,7 +213,7 @@ local function cast_synergy()
         if mq.TLO.Spell(enc.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
-        common.cast(enc.spells.synergy, true)
+        enc.spells.synergy:use()
         return true
     end
     return false
@@ -242,7 +238,7 @@ enc.recover = function()
     local pct_mana = mq.TLO.Me.PctMana()
     if gathermana and pct_mana < 50 then
         -- death bloom at some %
-        common.use_aa(gathermana)
+        gathermana:use()
     end
     if pct_mana < 75 and azure then
         local cursor = mq.TLO.Cursor()
@@ -286,50 +282,51 @@ enc.buff = function()
 -- - enc.spells.stunaerune (polyluminous rune - quick-refresh, damage absorption rune with a PB AE stun once consumed.)
 -- - rune (eldritch rune - AA rune, always pre-buffed.)
 -- - veil (Veil of the Mindshadow – AA rune, always pre-buffed.)
-    local tempName = enc.spells.guard.name
-    if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-    if enc.spells.guard.name and not mq.TLO.Me.Buff(tempName)() then
-        if common.cast(enc.spells.guard) then return end
+    local tempName
+    if enc.spells.guard and not mq.TLO.Me.Buff(tempName)() then
+        tempName = enc.spells.guard.name
+        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+        if enc.spells.guard:use() then return end
     end
-    tempName = enc.spells.stunaerune.name
-    if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-    if enc.spells.stunaerune.name and not mq.TLO.Me.Buff(tempName)() then
-        if common.cast(enc.spells.stunaerune) then return end
+    if enc.spells.stunaerune and not mq.TLO.Me.Buff(tempName)() then
+        tempName = enc.spells.stunaerune.name
+        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
+        if enc.spells.stunaerune:use() then return end
     end
     if rune and not mq.TLO.Me.Buff(rune.name)() then
-        if common.use_aa(rune.name) then return end
+        if rune:use() then return end
     end
     if veil and not mq.TLO.Me.Buff(veil.name)() then
-        if common.use_aa(veil.name) then return end
+        if veil:use() then return end
     end
     common.check_combat_buffs()
     if not common.clear_to_buff() then return end
 
     if unity and missing_unity_buffs(unity.name) then
-        if common.use_aa(unity) then return end
+        if unity:use() then return end
     end
 
     local hpcrystal = sanguine and mq.TLO.FindItem(sanguine.name)
     local manacrystal = azure and mq.TLO.FindItem(azure.name)
     if hpcrystal and not hpcrystal() then
-        if common.use_aa(sanguine) then
+        if sanguine:use() then
             mq.cmd('/autoinv')
             return
         end
     end
     if manacrystal and not manacrystal() then
-        if common.use_aa(azure) then
+        if azure:use() then
             mq.cmd('/autoinv')
             return
         end
     end
 
-    if enc.OPTS.AURA1.value == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
+    if enc.OPTS.AURA1.value == 'twincast' and enc.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
         if common.swap_and_cast(enc.spells[enc.OPTS.AURA1.value], 13) then return end
     elseif enc.OPTS.AURA1.value ~= 'twincast' and enc.spells[enc.OPTS.AURA1.value] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA1.value].name)() then
         if common.swap_and_cast(enc.spells[enc.OPTS.AURA1.value], 13) then return end
     end
-    if enc.OPTS.AURA2.value == 'twincast' and enc.spells.twincast.name and not mq.TLO.Me.Aura('Twincast Aura')() then
+    if enc.OPTS.AURA2.value == 'twincast' and enc.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
         if common.swap_and_cast(enc.spells[enc.OPTS.AURA2.value], 13) then return end
     elseif enc.OPTS.AURA2.value ~= 'twincast' and enc.spells[enc.OPTS.AURA2.value] and not mq.TLO.Me.Aura(enc.spells[enc.OPTS.AURA2.value].name)() then
         if common.swap_and_cast(enc.spells[enc.OPTS.AURA2.value], 13) then return end
@@ -347,13 +344,6 @@ enc.buff = function()
         --    end
         --end
     end
-end
-
-enc.managepet = function()
-    if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() or not enc.spells.pet.name then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
-    if mq.TLO.Spell(enc.spells.pet.name).Mana() > mq.TLO.Me.CurrentMana() then return end
-    common.swap_and_cast(enc.spells.pet, 13)
 end
 
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}

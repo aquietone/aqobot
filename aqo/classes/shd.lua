@@ -110,67 +110,67 @@ local spellsets = {
 
 -- TANK
 -- defensives
-local flash = common.get_aa('Shield Flash') -- 4min CD, short deflection
-local mantle = common.get_disc('Fyrthek Mantle') -- 15min CD, 35% melee dmg mitigation, heal on fade
-local carapace = common.get_disc('Xetheg\'s Carapace') -- 7m30s CD, ac buff, 20% dmg mitigation, lifetap proc
-local guardian = common.get_disc('Corrupted Guardian Discipline') -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
-local deflection = common.get_disc('Deflection Discipline', {opt='USEDEFLECTION'})
+local flash = common.getAA('Shield Flash') -- 4min CD, short deflection
+local mantle = common.getBestDisc({'Fyrthek Mantle'}) -- 15min CD, 35% melee dmg mitigation, heal on fade
+local carapace = common.getBestDisc({'Xetheg\'s Carapace'}) -- 7m30s CD, ac buff, 20% dmg mitigation, lifetap proc
+local guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
+local deflection = common.getBestDisc({'Deflection Discipline'}, {opt='USEDEFLECTION'})
 
-table.insert(shd.tankAbilities, {name='Taunt', type='ability'})
+table.insert(shd.tankAbilities, common.getSkill('Taunt'))
 table.insert(shd.tankAbilities, shd.spells.challenge)
 table.insert(shd.tankAbilities, shd.spells.terror)
-table.insert(shd.tankAbilities, common.get_disc('Repudiate')) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
-table.insert(shd.tankAbilities, common.get_aa('Projection of Doom', {opt='USEPROJECTION'})) -- aggro swarm pet
+table.insert(shd.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
+table.insert(shd.tankAbilities, common.getAA('Projection of Doom', {opt='USEPROJECTION'})) -- aggro swarm pet
 
-local attraction = common.get_aa('Hate\'s Attraction', {opt='USEHATESATTRACTION'}) -- aggro swarm pet
+local attraction = common.getAA('Hate\'s Attraction', {opt='USEHATESATTRACTION'}) -- aggro swarm pet
 
 -- mash AE aggro
 table.insert(shd.AETankAbilities, shd.spells.aeterror)
-table.insert(shd.AETankAbilities, common.get_aa('Explosion of Spite', {threshold=2})) -- 45sec CD
-table.insert(shd.AETankAbilities, common.get_aa('Explosion of Hatred', {threshold=4})) -- 45sec CD
---table.insert(mashAEAggroAAs4, common.get_aa('Stream of Hatred')) -- large frontal cone ae aggro
+table.insert(shd.AETankAbilities, common.getAA('Explosion of Spite', {threshold=2})) -- 45sec CD
+table.insert(shd.AETankAbilities, common.getAA('Explosion of Hatred', {threshold=4})) -- 45sec CD
+--table.insert(mashAEAggroAAs4, common.getAA('Stream of Hatred')) -- large frontal cone ae aggro
 
-table.insert(shd.tankBurnAbilities, common.get_disc('Unrelenting Acrimony')) -- instant aggro
-table.insert(shd.tankBurnAbilities, common.get_aa('Ageless Enmity')) -- big taunt
-table.insert(shd.tankBurnAbilities, common.get_aa('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
-table.insert(shd.tankBurnAbilities, common.get_aa('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
+table.insert(shd.tankBurnAbilities, common.getBestDisc({'Unrelenting Acrimony'})) -- instant aggro
+table.insert(shd.tankBurnAbilities, common.getAA('Ageless Enmity')) -- big taunt
+table.insert(shd.tankBurnAbilities, common.getAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
+table.insert(shd.tankBurnAbilities, common.getAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
 
 -- DPS
---table.insert(shd.DPSAbilities, {name='Bash', type='ability'})
-table.insert(shd.DPSAbilities, common.get_disc('Reflexive Resentment')) -- 3x 2hs attack + heal
-table.insert(shd.DPSAbilities, common.get_aa('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
-table.insert(shd.DPSAbilities, common.get_aa('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
+table.insert(shd.DPSAbilities, common.getSkill('Bash'))
+table.insert(shd.DPSAbilities, common.getBestDisc({'Reflexive Resentment'})) -- 3x 2hs attack + heal
+table.insert(shd.DPSAbilities, common.getAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
+table.insert(shd.DPSAbilities, common.getAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
 
-table.insert(shd.burnAbilities, common.get_disc('Grisly Blade')) -- 2hs attack
-table.insert(shd.burnAbilities, common.get_disc('Sanguine Blade')) -- 3 strikes
-table.insert(shd.burnAbilities, common.get_aa('Gift of the Quick Spear')) -- 10min CD, twincast
-table.insert(shd.burnAbilities, common.get_aa('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
-table.insert(shd.burnAbilities, common.get_aa('Harm Touch')) -- 20min CD, giant nuke + dot
-table.insert(shd.burnAbilities, common.get_aa('Leech Touch')) -- 9min CD, giant lifetap
-table.insert(shd.burnAbilities, common.get_aa('Thought Leech')) -- 18min CD, nuke + mana/end tap
-table.insert(shd.burnAbilities, common.get_aa('Scourge Skin')) -- 15min CD, large DS
-table.insert(shd.burnAbilities, common.get_aa('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
-table.insert(shd.burnAbilities, common.get_aa('Visage of Death')) -- 12min CD, melee dmg burn
-table.insert(shd.burnAbilities, common.get_aa('Visage of Decay')) -- 12min CD, dot dmg burn
+table.insert(shd.burnAbilities, common.getBestDisc({'Grisly Blade'})) -- 2hs attack
+table.insert(shd.burnAbilities, common.getBestDisc({'Sanguine Blade'})) -- 3 strikes
+table.insert(shd.burnAbilities, common.getAA('Gift of the Quick Spear')) -- 10min CD, twincast
+table.insert(shd.burnAbilities, common.getAA('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
+table.insert(shd.burnAbilities, common.getAA('Harm Touch')) -- 20min CD, giant nuke + dot
+table.insert(shd.burnAbilities, common.getAA('Leech Touch')) -- 9min CD, giant lifetap
+table.insert(shd.burnAbilities, common.getAA('Thought Leech')) -- 18min CD, nuke + mana/end tap
+table.insert(shd.burnAbilities, common.getAA('Scourge Skin')) -- 15min CD, large DS
+table.insert(shd.burnAbilities, common.getAA('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
+table.insert(shd.burnAbilities, common.getAA('Visage of Death')) -- 12min CD, melee dmg burn
+table.insert(shd.burnAbilities, common.getAA('Visage of Decay')) -- 12min CD, dot dmg burn
 
-local leechtouch = common.get_aa('Leech Touch') -- 9min CD, giant lifetap
+local leechtouch = common.getAA('Leech Touch') -- 9min CD, giant lifetap
 
 -- Buffs
 -- dark lord's unity azia X -- shroud of zelinstein, brightfield's horror, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
-local buffazia = common.get_aa('Dark Lord\'s Unity (Azia)')
+local buffazia = common.getAA('Dark Lord\'s Unity (Azia)')
 -- dark lord's unity beza X -- shroud of zelinstein, mental anguish, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
-local buffbeza = common.get_aa('Dark Lord\'s Unity (Beza)', {opt='USEBEZA'})
-local voice = common.get_aa('Voice of Thule', {opt='USEVOICEOFTHULE'}) -- aggro mod buff
+local buffbeza = common.getAA('Dark Lord\'s Unity (Beza)', {opt='USEBEZA'})
+local voice = common.getAA('Voice of Thule', {opt='USEVOICEOFTHULE'}) -- aggro mod buff
 
 -- entries in the items table are MQ item datatypes
-table.insert(shd.burnAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(), type='item'})
-table.insert(shd.burnAbilities, {id=mq.TLO.FindItem('Rage of Rolfron').ID(), type='item'})
-table.insert(shd.burnAbilities, {id=mq.TLO.FindItem('Blood Drinker\'s Coating').ID(), type='item'})
+table.insert(shd.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
+table.insert(shd.burnAbilities, common.getItem('Rage of Rolfron'))
+table.insert(shd.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 
-local epic = mq.TLO.FindItem('=Innoruuk\'s Dark Blessing').ID()
+local epic = common.getItem('Innoruuk\'s Dark Blessing')
 
-table.insert(shd.buffs, {id=mq.TLO.FindItem('Chestplate of the Dark Flame').ID(), type='item'})
-table.insert(shd.buffs, {id=mq.TLO.FindItem('Violet Conch of the Tempest').ID(), type='item'})
+table.insert(shd.buffs, common.getItem('Chestplate of the Dark Flame'))
+table.insert(shd.buffs, common.getItem('Violet Conch of the Tempest'))
 
 local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()
@@ -218,9 +218,9 @@ shd.cast = function()
             local spell = find_next_spell()
             if spell then
                 if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
-                    common.cast(spell, true)
+                    spell:use()
                 else
-                    common.cast(spell)
+                    spell:use()
                 end
                 return true
             end
@@ -246,22 +246,21 @@ local function check_ae()
     -- now see how many xtarhater spawns are actually in range of ae
     local mobs_in_range = mq.TLO.SpawnCount(aggro_nopet_count)()
     if mobs_in_range >= 3 then
-        local epicitem = mq.TLO.FindItem(epic)
-        common.use_item(epicitem)
-        common.use_disc(carapace)
+        epic:use()
+        carapace:use()
     end
     if mobs_in_range >= 2 then
         -- Discs to use when 2 or more mobs on aggro
         for _,aa in ipairs(mashAEAggroAAs2) do
             if not aa.opt or OPTS[aa.opt] then
-                if common.use_aa(aa) then return end
+                if aa:use() then return end
             end
         end
         if mobs_in_range >= 3 then
             -- Discs to use when 4 or more mobs on aggro
             for _,aa in ipairs(mashAEAggroAAs4) do
                 if not aa.opt or OPTS[aa.opt] then
-                    if common.use_aa(aa) then return end
+                    if aa:use() then return end
                 end
             end
         end
@@ -275,31 +274,30 @@ shd.mash_class = function()
     if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         -- hate's attraction
         if shd.OPTS.USEHATESATTRACTION.value and attraction and mobhp and mobhp > 95 then
-            common.use_aa(attraction)
+            attraction:use()
         end
     end
 end
 
 shd.burn_class = function()
     if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-        common.use_disc(mantle)
-        common.use_disc(carapace)
-        common.use_disc(guardian)
+        mantle:use()
+        carapace:use()
+        guardian:use()
     end
 
-    local epicitem = mq.TLO.FindItem(epic)
-    common.use_item(epicitem)
+    epic:use()
 end
 
 shd.ohshit = function()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-            if mq.TLO.Me.AltAbilityReady(flash.name)() then
-                common.use_aa(flash)
+            if flash and mq.TLO.Me.AltAbilityReady(flash.name)() then
+                flash:use()
             elseif shd.OPTS.USEDEFLECTION.value then
-                common.use_disc(deflection)
+                deflection:use()
             end
-            common.use_aa(leechtouch)
+            leechtouch:use()
         end
     end
 end
@@ -316,10 +314,10 @@ end
 --[[shd.buff_class = function()
     -- stance, disruption, skin
     if shd.spells.stance and not mq.TLO.Me.Buff(shd.spells.stance.name)() then
-        if common.cast(shd.spells.stance) then return end
+        if shd.spells.stance:use() then return end
     end
     if shd.spells.skin and not mq.TLO.Me.Buff(shd.spells.skin.name)() then
-        if common.cast(shd.spells.skin) then return end
+        if shd.spells.skin:use() then return end
     end
 
     if shd.OPTS.USEDISRUPTION.value and shd.spells.disruption and not mq.TLO.Me.Buff(shd.spells.disruption.name)() then
@@ -327,10 +325,10 @@ end
     end
 
     if not shd.OPTS.USEBEZA.value and buffazia and missing_unity_buffs(buffazia.name) then
-        if common.use_aa(buffazia) then return end
+        if buffazia:use() then return end
     end
     if shd.OPTS.USEBEZA.value and buffbeza and missing_unity_buffs(buffbeza.name) then
-        if common.use_aa(buffbeza) then return end
+        if buffbeza:use() then return end
     end
 
     if shd.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 and shd.spells.pethaste then
@@ -344,8 +342,8 @@ local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dicho
 local check_spell_timer = timer:new(30)
 shd.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or shd.OPTS.BYOS.value then return end
-    if state.spellset_loaded ~= shd.OPTS.SPELLSET or check_spell_timer:timer_expired() then
-        if shd.OPTS.SPELLSET == 'standard' then
+    if state.spellset_loaded ~= shd.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+        if shd.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(shd.spells.tap1, 1)
             common.swap_spell(shd.spells.tap2, 2)
             common.swap_spell(shd.spells.largetap, 3)
@@ -360,7 +358,7 @@ shd.check_spell_set = function()
             common.swap_spell(shd.spells.skin, 12)
             common.swap_spell(shd.spells.acdebuff, 13)
             state.spellset_loaded = shd.OPTS.SPELLSET
-        elseif shd.OPTS.SPELLSET == 'dps' then
+        elseif shd.OPTS.SPELLSET.value == 'dps' then
             common.swap_spell(shd.spells.tap1, 1)
             common.swap_spell(shd.spells.tap2, 2)
             common.swap_spell(shd.spells.largetap, 3)
@@ -374,14 +372,14 @@ shd.check_spell_set = function()
             common.swap_spell(shd.spells.stance, 11)
             common.swap_spell(shd.spells.skin, 12)
             common.swap_spell(shd.spells.acdebuff, 13)
-            state.spellset_loaded = shd.OPTS.SPELLSET
+            state.spellset_loaded = shd.OPTS.SPELLSET.value
         end
         check_spell_timer:reset()
     end
 end
 
 shd.pull_func = function()
-    if shd.spells.challenge.name then
+    if shd.spells.challenge then
         if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
             mq.cmd('/squelch /nav stop')
             mq.delay(300)

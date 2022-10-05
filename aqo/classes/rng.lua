@@ -88,60 +88,59 @@ table.insert(combat_heal_spells, rng.spells.healtot)
 --table.insert(combat_heal_spells, spells.healtot2) -- replacing in main spell lineup with self rune buff
 
 -- entries in the items table are MQ item datatypes
-table.insert(rng.burnAbilities, {id=mq.TLO.FindItem('Rage of Rolfron').ID(), type='item'})
-table.insert(rng.burnAbilities, {id=mq.TLO.FindItem('Miniature Horn of Unity').ID(), type='item'})
-
-table.insert(rng.DPSAbilities, {id=mq.TLO.InvSlot('Chest').Item.ID(), type='item'})
+table.insert(rng.DPSAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
+table.insert(rng.burnAbilities, common.getItem('Rage of Rolfron'))
+table.insert(rng.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 
 -- entries in the AAs table are pairs of {aa name, aa id}
-table.insert(rng.burnAbilities, common.get_aa('Spire of the Pathfinders')) -- 7.5min CD
-table.insert(rng.burnAbilities, common.get_aa('Auspice of the Hunter')) -- crit buff, 9min CD
-table.insert(rng.burnAbilities, common.get_aa('Pack Hunt')) -- swarm pets, 15min CD
-table.insert(rng.burnAbilities, common.get_aa('Empowered Blades')) -- melee dmg burn, 10min CD
-table.insert(rng.burnAbilities, common.get_aa('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
-table.insert(rng.burnAbilities, common.get_aa('Group Guardian of the Forest')) -- base dmg, atk, overhaste, 10min CD
-table.insert(rng.burnAbilities, common.get_aa('Outrider\'s Accuracy')) -- base dmg, accuracy, atk, crit dmg, 5min CD
-table.insert(rng.burnAbilities, common.get_aa('Imbued Ferocity')) -- 100% wep proc chance, 8min CD
-table.insert(rng.burnAbilities, common.get_aa('Silent Strikes')) -- silent casting
-table.insert(rng.burnAbilities, common.get_aa('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
+table.insert(rng.burnAbilities, common.getAA('Spire of the Pathfinders')) -- 7.5min CD
+table.insert(rng.burnAbilities, common.getAA('Auspice of the Hunter')) -- crit buff, 9min CD
+table.insert(rng.burnAbilities, common.getAA('Pack Hunt')) -- swarm pets, 15min CD
+table.insert(rng.burnAbilities, common.getAA('Empowered Blades')) -- melee dmg burn, 10min CD
+table.insert(rng.burnAbilities, common.getAA('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
+table.insert(rng.burnAbilities, common.getAA('Group Guardian of the Forest')) -- base dmg, atk, overhaste, 10min CD
+table.insert(rng.burnAbilities, common.getAA('Outrider\'s Accuracy')) -- base dmg, accuracy, atk, crit dmg, 5min CD
+table.insert(rng.burnAbilities, common.getAA('Imbued Ferocity')) -- 100% wep proc chance, 8min CD
+table.insert(rng.burnAbilities, common.getAA('Silent Strikes')) -- silent casting
+table.insert(rng.burnAbilities, common.getAA('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
 
 local meleeBurnDiscs = {}
-table.insert(meleeBurnDiscs, common.get_disc('Dusksage Stalker\'s Discipline')) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
+table.insert(meleeBurnDiscs, common.getBestDisc({'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
 local rangedBurnDiscs = {}
-table.insert(rangedBurnDiscs, common.get_disc('Pureshot Discipline')) -- bow dmg buff, 1hr7min CD, timer 2
+table.insert(rangedBurnDiscs, common.getBestDisc({'Pureshot Discipline'})) -- bow dmg buff, 1hr7min CD, timer 2
 
 local mashAAs = {}
-table.insert(rng.DPSAbilities, common.get_aa('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
+table.insert(rng.DPSAbilities, common.getAA({'Elemental Arrow'})) -- inc dmg from fire+ice nukes, 1min CD
 
 local mashDiscs = {}
-table.insert(rng.DPSAbilities, common.get_disc('Jolting Roundhouse Kicks')) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
-table.insert(rng.DPSAbilities, common.get_disc('Focused Blizzard of Blades')) -- 4x arrows, 12s CD, timer 6
-table.insert(rng.DPSAbilities, common.get_disc('Reflexive Rimespurs')) -- 4x melee attacks + group HoT, 10min CD, timer 19
--- table.insert(mashDiscs, common.get_aa('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
+table.insert(rng.DPSAbilities, common.getBestDisc({'Jolting Roundhouse Kicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+table.insert(rng.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
+table.insert(rng.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
+-- table.insert(mashDiscs, common.getAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
 
-table.insert(rng.DPSAbilities, {name='Kick', type='ability'})
+table.insert(rng.DPSAbilities, common.getSkill('Kick'))
 
-local dispel = common.get_aa('Entropy of Nature') -- dispel 9 slots
-local snare = common.get_aa('Entrap')
-local fade = common.get_aa('Cover Tracks')
-local evasion = common.get_aa('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
-local brownies = common.get_aa('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
-local chameleon = common.get_aa('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
-local protection = common.get_aa('Protection of the Spirit Wolf') -- 20min cd, large rune
-local unity_azia = common.get_aa('Wildstalker\'s Unity (Azia)')
+local dispel = common.getAA('Entropy of Nature') -- dispel 9 slots
+local snare = common.getAA('Entrap')
+local fade = common.getAA('Cover Tracks')
+local evasion = common.getAA('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
+local brownies = common.getAA('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
+local chameleon = common.getAA('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
+local protection = common.getAA('Protection of the Spirit Wolf') -- 20min cd, large rune
+local unity_azia = common.getAA('Wildstalker\'s Unity (Azia)')
 --Slot 1: 	Devastating Barrage
 --Slot 2: 	Steeled by the Hunt
 --Slot 3: 	Protection of the Valley
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
-local unity_beza = common.get_aa('Wildstalker\'s Unity (Beza)')
+local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
 --Slot 1: 	Vociferous Blades
 --Slot 2: 	Steeled by the Hunt
 --Slot 3: 	Protection of the Valley
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
-local poison = common.get_aa('Poison Arrows')
-local fire = common.get_aa('Flaming Arrows')
+local poison = common.getAA('Poison Arrows')
+local fire = common.getAA('Flaming Arrows')
 
 local ranged_timer = timer:new(5)
 rng.reset_class_timers = function()
@@ -235,9 +234,9 @@ local function attack_range()
 end
 
 local function use_opener()
-    if mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' or not rng.spells.opener then return end
     if assist.should_assist() and state.assist_mob_id > 0 and rng.spells.opener.name and mq.TLO.Me.SpellReady(rng.spells.opener.name)() then
-        common.cast(rng.spells.opener, true)
+        rng.spells.opener:use()
     end
 end
 
@@ -285,16 +284,16 @@ rng.cast = function()
     if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.is_fighting() then
             if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and rng.OPTS.USESNARE.value then
-                common.cast(rng.spells.snare)
+                rng.spells.snare:use()
                 snared_id = mq.TLO.Target.ID()
                 return true
             end
             local spell = find_next_spell()
             if spell then
                 if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
-                    common.cast(spell, true)
+                    spell:use()
                 else
-                    common.cast(spell)
+                    spell:use()
                 end
                 return true
             end
@@ -304,7 +303,7 @@ end
 
 rng.mash_class = function()
     if rng.OPTS.USEDISPEL.value and dispel and mq.TLO.Target.Beneficial() then
-        common.use_aa(dispel)
+        dispel:use()
     end
 end
 
@@ -328,11 +327,11 @@ end
 rng.burn_class = function()
     if mq.TLO.Me.Combat() then
         for _,disc in ipairs(meleeBurnDiscs) do
-            common.use_disc(disc)
+            disc:use()
         end
     elseif mq.TLO.Me.AutoFire() then
         for _,disc in ipairs(rangedBurnDiscs) do
-            common.use_disc(disc)
+            disc:use()
         end
     end
 end
@@ -342,7 +341,7 @@ end
 --local check_aggro_timer = timer:new(10)
 rng.aggro = function()
     if mq.TLO.Me.PctHPs() < 50 then
-        common.use_aa(evasion)
+        evasion:use()
         if config.MODE:return_to_camp() then
             mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
         end
@@ -351,7 +350,7 @@ rng.aggro = function()
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 70 then
-                common.use_aa(fade)
+                fade:use()
                 check_aggro_timer:reset()
                 mq.delay(1000)
                 mq.cmd('/makemevis')
@@ -402,23 +401,23 @@ rng.buff = function()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if brownies and not mq.TLO.Me.Buff(brownies.name)() then
-        common.use_aa(brownies)
+        brownies:use()
     end
     if chameleon and not mq.TLO.Me.Song(chameleon.name)() and mq.TLO.Me.AltAbilityReady(chameleon.name)() then
         mq.cmd('/mqtar myself')
         mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
-        common.use_aa(chameleon)
+        chameleon:use()
     end
     if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if rng.OPTS.USEPOISONARROW.value then
         if poison and not mq.TLO.Me.Buff('Poison Arrows')() then
-            if common.use_aa(poison) then return end
+            if poison:use() then return end
         end
     elseif rng.OPTS.USEFIREARROW.value then
         if fire and not mq.TLO.Me.Buff('Fire Arrows')() then
-            if common.use_aa(fire) then return end
+            if fire:use() then return end
         end
     end
 
@@ -427,23 +426,23 @@ rng.buff = function()
     -- ranger unity aa
     if unity_azia and rng.OPTS.USEUNITYAZIA.value then
         if missing_unity_buffs(unity_azia.name) then
-            if common.use_aa(unity_azia) then return end
+            if unity_azia:use() then return end
         end
     elseif unity_beza and rng.OPTS.USEUNITYBEZA.value then
         if missing_unity_buffs(unity_beza.name) then
-            if common.use_aa(unity_beza) then return end
+            if unity_beza:use() then return end
         end
     end
 
-    if rng.spells.dmgbuff.name and not mq.TLO.Me.Buff(rng.spells.dmgbuff.name)() then
-        if common.cast(rng.spells.dmgbuff) then return end
+    if rng.spells.dmgbuff and not mq.TLO.Me.Buff(rng.spells.dmgbuff.name)() then
+        if rng.spells.dmgbuff:use() then return end
     end
 
-    if rng.spells.rune.name and not mq.TLO.Me.Buff(rng.spells.rune.name)() then
-        if common.cast(rng.spells.rune) then return end
+    if rng.spells.rune and not mq.TLO.Me.Buff(rng.spells.rune.name)() then
+        if rng.spells.rune:use() then return end
     end
 
-    if rng.OPTS.USEREGEN.value and rng.spells.regen.name and not mq.TLO.Me.Buff(rng.spells.regen.name)() then
+    if rng.OPTS.USEREGEN.value and rng.spells.regen and not mq.TLO.Me.Buff(rng.spells.regen.name)() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         mq.delay(500)
         if common.swap_and_cast(rng.spells.regen, 13) then return end
@@ -453,7 +452,7 @@ rng.buff = function()
         if mq.TLO.Group.MainTank() then
             local tank_spawn = mq.TLO.Group.MainTank.Spawn
             if tank_spawn() then
-                if spawn_missing_cachedbuff(tank_spawn, rng.spells.ds.name) then
+                if rng.spells.ds and spawn_missing_cachedbuff(tank_spawn, rng.spells.ds.name) then
                     tank_spawn.DoTarget()
                     mq.delay(1000) -- time to target and for buffs to be populated
                     if target_missing_buff(rng.spells.ds.name) then
@@ -468,19 +467,19 @@ rng.buff = function()
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
-                    if rng.spells.buffs.name and spawn_missing_cachedbuff(group_member, rng.spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
+                    if rng.spells.buffs and spawn_missing_cachedbuff(group_member, rng.spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
                         mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(rng.spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            if common.cast(rng.spells.buffs) then return end
+                            if rng.spells.buffs:use() then return end
                         end
                     end
-                    if rng.spells.dmgbuff.name and spawn_missing_cachedbuff(group_member, rng.spells.dmgbuff.name) then
+                    if rng.spells.dmgbuff and spawn_missing_cachedbuff(group_member, rng.spells.dmgbuff.name) then
                         group_member.DoTarget()
                         mq.delay(1000) -- time to target and for buffs to be populated
                         if target_missing_buff(rng.spells.dmgbuff.name) then
-                            if common.cast(rng.spells.dmgbuff) then return end
+                            if rng.spells.dmgbuff:use() then return end
                         end
                     end
                 end
@@ -495,7 +494,7 @@ local check_spell_timer = timer:new(30)
 rng.check_spell_set = function()
     if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or rng.OPTS.BYOS.value then return end
     if state.spellset_loaded ~= rng.OPTS.SPELLSET or check_spell_timer:timer_expired() then
-        if rng.OPTS.SPELLSET == 'standard' then
+        if rng.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(rng.spells.shots, 1)
             common.swap_spell(rng.spells.focused, 2)
             common.swap_spell(rng.spells.composite, 3, composite_names)

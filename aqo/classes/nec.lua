@@ -118,64 +118,61 @@ local swap_gem = nil
 local swap_gem_dis = nil
 
 -- entries in the items table are MQ item datatypes
-table.insert(nec.burnAbilities, mq.TLO.FindItem('Blightbringer\'s Tunic of the Grave').ID()) -- buff, 5 minute CD
-table.insert(nec.burnAbilities, mq.TLO.InvSlot('Chest').Item.ID()) -- buff, Consuming Magic, 10 minute CD
-table.insert(nec.burnAbilities, mq.TLO.FindItem('Rage of Rolfron').ID()) -- song, 30 minute CD
---table.insert(items, mq.TLO.FindItem('Vicious Rabbit').ID()) -- 5 minute CD
---table.insert(items, mq.TLO.FindItem('Necromantic Fingerbone').ID()) -- 3 minute CD
---table.insert(items, mq.TLO.FindItem('Amulet of the Drowned Mariner').ID()) -- 5 minute CD
+table.insert(nec.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
+table.insert(nec.burnAbilities, common.getItem('Rage of Rolfron'))
+table.insert(nec.burnAbilities, common.getItem('Blightbringer\'s Tunic of the Grave')) -- buff, 5 minute CD
+--table.insert(items, common.getItem('Vicious Rabbit')) -- 5 minute CD
+--table.insert(items, common.getItem('Necromantic Fingerbone')) -- 3 minute CD
+--table.insert(items, common.getItem('Amulet of the Drowned Mariner')) -- 5 minute CD
 
 local pre_burn_items = {}
-table.insert(pre_burn_items, mq.TLO.FindItem('Blightbringer\'s Tunic of the Grave').ID()) -- buff
-table.insert(pre_burn_items, mq.TLO.InvSlot('Chest').Item.ID()) -- buff, Consuming Magic
+table.insert(pre_burn_items, common.getItem('Blightbringer\'s Tunic of the Grave')) -- buff
+table.insert(pre_burn_items, common.getItem(mq.TLO.InvSlot('Chest').Item.Name())) -- buff, Consuming Magic
 
 -- entries in the AAs table are pairs of {aa name, aa id}
-table.insert(nec.burnAbilities, common.get_aa('Silent Casting')) -- song, 12 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Focus of Arcanum')) -- buff, 10 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Mercurial Torment')) -- buff, 24 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Heretic\'s Twincast')) -- buff, 15 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Spire of Necromancy')) -- buff, 7:30 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Hand of Death')) -- song, 8:30 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Companion\'s Fury')) -- 10 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Companion\'s Fortification')) -- 15 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Rise of Bones', {delay=1500})) -- 10 minute CD
-table.insert(nec.burnAbilities, common.get_aa('Swarm of Decay', {delay=1500})) -- 9 minute CD
+table.insert(nec.burnAbilities, common.getAA('Silent Casting')) -- song, 12 minute CD
+table.insert(nec.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
+table.insert(nec.burnAbilities, common.getAA('Mercurial Torment')) -- buff, 24 minute CD
+table.insert(nec.burnAbilities, common.getAA('Heretic\'s Twincast')) -- buff, 15 minute CD
+table.insert(nec.burnAbilities, common.getAA('Spire of Necromancy')) -- buff, 7:30 minute CD
+table.insert(nec.burnAbilities, common.getAA('Hand of Death')) -- song, 8:30 minute CD
+table.insert(nec.burnAbilities, common.getAA('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
+table.insert(nec.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
+table.insert(nec.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
+table.insert(nec.burnAbilities, common.getAA('Rise of Bones', {delay=1500})) -- 10 minute CD
+table.insert(nec.burnAbilities, common.getAA('Swarm of Decay', {delay=1500})) -- 9 minute CD
 
-local glyph = common.get_aa('Mythic Glyph of Ultimate Power V')
-local intensity = common.get_aa('Intensity of the Resolute')
+local glyph = common.getAA('Mythic Glyph of Ultimate Power V')
+local intensity = common.getAA('Intensity of the Resolute')
 
-local wakethedead = common.get_aa('Wake the Dead') -- 3 minute CD
+local wakethedead = common.getAA('Wake the Dead') -- 3 minute CD
 
-local funeralpyre = common.get_aa('Funeral Pyre') -- song, 20 minute CD
+local funeralpyre = common.getAA('Funeral Pyre') -- song, 20 minute CD
 
 local pre_burn_AAs = {}
-table.insert(pre_burn_AAs, common.get_aa('Focus of Arcanum')) -- buff
-table.insert(pre_burn_AAs, common.get_aa('Mercurial Torment')) -- buff
-table.insert(pre_burn_AAs, common.get_aa('Heretic\'s Twincast')) -- buff
-table.insert(pre_burn_AAs, common.get_aa('Spire of Necromancy')) -- buff
+table.insert(pre_burn_AAs, common.getAA('Focus of Arcanum')) -- buff
+table.insert(pre_burn_AAs, common.getAA('Mercurial Torment')) -- buff
+table.insert(pre_burn_AAs, common.getAA('Heretic\'s Twincast')) -- buff
+table.insert(pre_burn_AAs, common.getAA('Spire of Necromancy')) -- buff
 
-local tcclick = mq.TLO.FindItem('Bifold Focus of the Evil Eye').ID()
+local tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
 -- lifeburn/dying grasp combo
-local lifeburn = common.get_aa('Life Burn')
-local dyinggrasp = common.get_aa('Dying Grasp')
+local lifeburn = common.getAA('Life Burn')
+local dyinggrasp = common.getAA('Dying Grasp')
 -- Buffs
-local unity = common.get_aa('Mortifier\'s Unity')
+local unity = common.getAA('Mortifier\'s Unity')
 -- Mana Recovery AAs
-local deathbloom = common.get_aa('Death Bloom')
-local bloodmagic = common.get_aa('Blood Magic')
--- Mana Recovery items
---local item_feather = mq.TLO.FindItem('Unified Phoenix Feather')
---local item_horn = mq.TLO.FindItem('Miniature Horn of Unity') -- 10 minute CD
+local deathbloom = common.getAA('Death Bloom')
+local bloodmagic = common.getAA('Blood Magic')
 -- Agro
-local deathpeace = common.get_aa('Death Peace')
-local deathseffigy = common.get_aa('Death\'s Effigy')
+local deathpeace = common.getAA('Death Peace')
+local deathseffigy = common.getAA('Death\'s Effigy')
 
-local convergence = common.get_aa('Convergence')
-local dispel = common.get_aa('Eradicate Magic')
+local convergence = common.getAA('Convergence')
+local dispel = common.getAA('Eradicate Magic')
 
-local scent = common.get_aa('Scent of Thule')
+local scent = common.getAA('Scent of Thule')
 local debuff_timer = timer:new(30)
 
 local buffs={
@@ -217,10 +214,13 @@ local function should_swap_dots()
     -- Only swap spells in standard spell set
     if state.spellset_loaded ~= 'standard' or mq.TLO.Me.Moving() then return end
 
-    local woundsDuration = mq.TLO.Target.MyBuffDuration(nec.spells.wounds.name)()
-    local pyrelongDuration = mq.TLO.Target.MyBuffDuration(nec.spells.pyrelong.name)()
-    local fireshadowDuration = mq.TLO.Target.MyBuffDuration(nec.spells.fireshadow.name)()
-    if mq.TLO.Me.Gem(nec.spells.wounds.name)() then
+    local woundsName = nec.spells.wounds and nec.spells.wounds.name
+    local pyrelongName = nec.spells.pyrelong and nec.spells.pyrelong.name
+    local fireshadowName = nec.spells.fireshadow and nec.spells.fireshadow.name
+    local woundsDuration = mq.TLO.Target.MyBuffDuration(woundsName)()
+    local pyrelongDuration = mq.TLO.Target.MyBuffDuration(pyrelongName)()
+    local fireshadowDuration = mq.TLO.Target.MyBuffDuration(fireshadowName)()
+    if mq.TLO.Me.Gem(woundsName)() then
         if not nec.OPTS.USEWOUNDS.value or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swap_spell(nec.spells.pyrelong, swap_gem or 10)
@@ -228,7 +228,7 @@ local function should_swap_dots()
                 common.swap_spell(nec.spells.fireshadow, swap_gem or 10)
             end
         end
-    elseif mq.TLO.Me.Gem(nec.spells.pyrelong.name)() then
+    elseif mq.TLO.Me.Gem(pyrelongName)() then
         if pyrelongDuration and pyrelongDuration > 20000 then
             if nec.OPTS.USEWOUNDS.value and (not woundsDuration or woundsDuration < 20000) then
                 common.swap_spell(nec.spells.wounds, swap_gem or 10)
@@ -236,7 +236,7 @@ local function should_swap_dots()
                 common.swap_spell(nec.spells.fireshadow, swap_gem or 10)
             end
         end
-    elseif mq.TLO.Me.Gem(nec.spells.fireshadow.name)() then
+    elseif mq.TLO.Me.Gem(fireshadowName)() then
         if fireshadowDuration and fireshadowDuration > 20000 then
             if nec.OPTS.USEWOUNDS.value and (not woundsDuration or woundsDuration < 20000) then
                 common.swap_spell(nec.spells.wounds, swap_gem or 10)
@@ -249,15 +249,17 @@ local function should_swap_dots()
         common.swap_spell(nec.spells.wounds, swap_gem or 10)
     end
 
-    local decayDuration = mq.TLO.Target.MyBuffDuration(nec.spells.decay.name)()
-    local gripDuration = mq.TLO.Target.MyBuffDuration(nec.spells.grip.name)()
-    if mq.TLO.Me.Gem(nec.spells.decay.name)() then
+    local decayName = nec.spells.decay and nec.spells.decay.name
+    local gripName = nec.spells.grip and nec.spells.grip.name
+    local decayDuration = mq.TLO.Target.MyBuffDuration(decayName)()
+    local gripDuration = mq.TLO.Target.MyBuffDuration(gripName)()
+    if mq.TLO.Me.Gem(decayName)() then
         if decayDuration and decayDuration > 20000 then
             if not gripDuration or gripDuration < 20000 then
                 common.swap_spell(nec.spells.grip, swap_gem_dis or 11)
             end
         end
-    elseif mq.TLO.Me.Gem(nec.spells.grip.name)() then
+    elseif mq.TLO.Me.Gem(gripName)() then
         if gripDuration and gripDuration > 20000 then
             if not decayDuration or decayDuration < 20000 then
                 common.swap_spell(nec.spells.decay, swap_gem_dis or 11)
@@ -271,14 +273,16 @@ end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function try_alliance()
-    if nec.OPTS.USEALLIANCE.value then
+    if nec.OPTS.USEALLIANCE.value and nec.spells.alliance then
         if mq.TLO.Spell(nec.spells.alliance.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
         if mq.TLO.Me.SpellReady(nec.spells.alliance.name)() and neccount > 1 and not mq.TLO.Target.Buff(nec.spells.alliance.name)() and mq.TLO.Spell(nec.spells.alliance.name).StacksTarget() then
             -- pick the first 3 dots in the rotation as they will hopefully always be up given their priority
-            if mq.TLO.Target.MyBuff(nec.spells.pyreshort.name)() and mq.TLO.Target.MyBuff(nec.spells.venom.name)() and mq.TLO.Target.MyBuff(nec.spells.magic.name)() then
-                common.cast(nec.spells.alliance, true)
+            if mq.TLO.Target.MyBuff(nec.spells.pyreshort and nec.spells.pyreshort.name)() and
+                    mq.TLO.Target.MyBuff(nec.spells.venom and nec.spells.venom.name)() and
+                    mq.TLO.Target.MyBuff(nec.spells.magic and nec.spells.magic.name)() then
+                nec.spells.alliance:use()
                 return true
             end
         end
@@ -287,13 +291,15 @@ local function try_alliance()
 end
 
 local function cast_synergy()
-    if not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(nec.spells.synergy.name)() then
+    if nec.spells.synergy and not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(nec.spells.synergy.name)() then
         if mq.TLO.Spell(nec.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
         -- don't bother with proc'ing synergy until we've got most dots applied
-        if mq.TLO.Target.MyBuff(nec.spells.pyreshort.name)() and mq.TLO.Target.MyBuff(nec.spells.venom.name)() and mq.TLO.Target.MyBuff(nec.spells.magic.name)() then
-            common.cast(nec.spells.synergy, true)
+        if mq.TLO.Target.MyBuff(nec.spells.pyreshort and nec.spells.pyreshort.name)() and
+                    mq.TLO.Target.MyBuff(nec.spells.venom and nec.spells.venom.name)() and
+                    mq.TLO.Target.MyBuff(nec.spells.magic and nec.spells.magic.name)() then
+            nec.spells.synergy:use()
             return true
         end
     end
@@ -307,10 +313,10 @@ local function find_next_dot_to_cast()
     --if common.is_dot_ready(spells.composite.id, spells.composite.name) then
     --    return spells.composite.id, spells.composite.name
     --end
-    if mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(nec.spells.manatap.name)() and mq.TLO.Spell(nec.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if nec.spells.manatap and mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(nec.spells.manatap.name)() and mq.TLO.Spell(nec.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.manatap
     end
-    if nec.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(nec.spells.swarm.name)() and mq.TLO.Spell(nec.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if nec.spells.swarm and nec.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(nec.spells.swarm.name)() and mq.TLO.Spell(nec.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.swarm
     end
     local pct_hp = mq.TLO.Target.PctHPs()
@@ -327,10 +333,10 @@ local function find_next_dot_to_cast()
             end
         end
     end
-    if mq.TLO.Me.SpellReady(nec.spells.manatap.name)() and mq.TLO.Spell(nec.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if nec.spells.manatap and mq.TLO.Me.SpellReady(nec.spells.manatap.name)() and mq.TLO.Spell(nec.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.manatap
     end
-    if nec.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(nec.spells.venin.name)() and mq.TLO.Spell(nec.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if nec.spells.venin and nec.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(nec.spells.venin.name)() and mq.TLO.Spell(nec.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
         return nec.spells.venin
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
@@ -340,19 +346,18 @@ nec.cast = function()
     if mq.TLO.Me.SpellInCooldown() then return false end
     if assist.is_fighting() then
         if nec.OPTS.USEDISPEL.value and mq.TLO.Target.Beneficial() then
-            common.use_aa(dispel)
+            dispel:use()
         end
-        if nec.OPTS.DEBUFF.value and not mq.TLO.Target.Buff(nec.spells.scentterris.name)() and mq.TLO.Spell(nec.spells.scentterris.name).StacksTarget() then
-            common.use_aa(scent)
+        if nec.OPTS.DEBUFF.value and nec.spells.scentterris and not mq.TLO.Target.Buff(nec.spells.scentterris.name)() and mq.TLO.Spell(nec.spells.scentterris.name).StacksTarget() then
+            scent:use()
             debuff_timer:reset()
         end
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             if spell.name == nec.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
-                local tc_item = mq.TLO.FindItem(tcclick)
-                common.use_item(tc_item)
+                tcclick:use()
             end
-            common.cast(spell, true) -- then cast the dot
+            spell:use() -- then cast the dot
         end
 
         if nec.OPTS.MULTIDOT.value then
@@ -369,7 +374,7 @@ nec.cast = function()
                         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
                             --if not mq.TLO.Me.SpellReady(spell.name)() then break end
-                            common.cast(spell, true)
+                            spell:use()
                             dotted_count = dotted_count + 1
                             if dotted_count >= nec.OPTS.MULTICOUNT.value then break end
                         end
@@ -387,7 +392,7 @@ end
 
 -- Check whether a dot is applied to the target
 local function target_has_proliferation()
-    if not mq.TLO.Target.MyBuff(nec.spells.proliferation.name)() then return false else return true end
+    if not mq.TLO.Target.MyBuff(nec.spells.proliferation and nec.spells.proliferation.name)() then return false else return true end
 end
 
 local function is_nec_burn_condition_met()
@@ -436,25 +441,25 @@ nec.burn_class = function()
     if fierce_eye then base_crit = base_crit + 15 end
 
     if mq.TLO.SpawnCount('corpse radius 150')() > 0 then
-        common.use_aa(wakethedead)
+        wakethedead:use()
         mq.delay(1500)
     end
 
-    if nec.OPTS.USEGLYPH.value then
+    if nec.OPTS.USEGLYPH.value and intensity and glyph then
         if not mq.TLO.Me.Song(intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
-            common.use_aa(glyph)
+            glyph:use()
         end
     end
-    if nec.OPTS.USEINTENSITY.value then
+    if nec.OPTS.USEINTENSITY.value and glyph and intensity then
         if not mq.TLO.Me.Buff(glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
-            common.use_aa(intensity)
+            intensity:use()
         end
     end
 
     if mq.TLO.Me.PctHPs() > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
-        common.use_aa(lifeburn)
+        lifeburn:use()
         mq.delay(5)
-        common.use_aa(dyinggrasp)
+        dyinggrasp:use()
     end
 end
 
@@ -466,9 +471,8 @@ local function pre_pop_burns()
     |===========================================================================================
     ]]--
 
-    for _,item_id in ipairs(pre_burn_items) do
-        local item = mq.TLO.FindItem(item_id)
-        common.use_item(item)
+    for _,item in ipairs(pre_burn_items) do
+        item:use()
     end
 
     --[[
@@ -478,12 +482,12 @@ local function pre_pop_burns()
     ]]--
 
     for _,aa in ipairs(pre_burn_AAs) do
-        common.use_aa(aa)
+        aa:use()
     end
 
-    if nec.OPTS.USEGLYPH.value then
+    if nec.OPTS.USEGLYPH.value and intensity and glyph then
         if not mq.TLO.Me.Song(intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
-            common.use_aa(glyph)
+            glyph:use()
         end
     end
 end
@@ -494,12 +498,12 @@ nec.recover = function()
     local pct_mana = mq.TLO.Me.PctMana()
     if pct_mana < 65 then
         -- death bloom at some %
-        common.use_aa(deathbloom)
+        deathbloom:use()
     end
     if mq.TLO.Me.CombatState() == 'COMBAT' then
         if pct_mana < 40 then
             -- blood magic at some %
-            common.use_aa(bloodmagic)
+            bloodmagic:use()
         end
     end
 end
@@ -530,9 +534,9 @@ nec.aggro = function()
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
                 if mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
-                    common.use_aa(dyinggrasp)
+                    dyinggrasp:use()
                 end
-                common.use_aa(deathseffigy)
+                deathseffigy:use()
                 if mq.TLO.Me.Feigning() then
                     check_aggro_timer:reset()
                     mq.delay(500)
@@ -542,7 +546,7 @@ nec.aggro = function()
                     end
                 end
             elseif mq.TLO.Me.PctAggro() >= 70 then
-                common.use_aa(deathpeace)
+                deathpeace:use()
                 if mq.TLO.Me.Feigning() then
                     check_aggro_timer:reset()
                     mq.delay(500)
@@ -565,14 +569,14 @@ nec.rez = function()
     if mq.TLO.SpawnCount('pccorpse group healer radius 100')() > 0 then
         mq.TLO.Spawn('pccorpse group healer radius 100').DoTarget()
         mq.cmd('/corpse')
-        common.use_aa(convergence)
+        convergence:use()
         rez_timer:reset()
         return
     end
     if mq.TLO.SpawnCount('pccorpse raid healer radius 100')() > 0 then
         mq.TLO.Spawn('pccorpse raid healer radius 100').DoTarget()
         mq.cmd('/corpse')
-        common.use_aa(convergence)
+        convergence:use()
         rez_timer:reset()
         return
     end
@@ -582,7 +586,7 @@ nec.rez = function()
         local corpse_y = mq.TLO.Target.Y()
         if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) > 100 then return end
         mq.cmd('/corpse')
-        common.use_aa(convergence)
+        convergence:use()
         rez_timer:reset()
         return
     end
@@ -593,7 +597,7 @@ nec.rez = function()
             local corpse_y = mq.TLO.Target.Y()
             if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) < 100 then
                 mq.cmd('/corpse')
-                common.use_aa(convergence)
+                convergence:use()
                 rez_timer:reset()
                 return
             end
@@ -603,25 +607,25 @@ end
 
 nec.buff = function()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
-    if nec.OPTS.USEBUFFSHIELD.value then
+    if nec.OPTS.USEBUFFSHIELD.value and nec.spells.shield then
         local tempName = nec.spells.shield.name
         if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
         if not mq.TLO.Me.Buff(tempName)() then
-            common.cast(nec.spells.shield)
+            nec.spells.shield:use()
         end
     end
-    if nec.OPTS.USEINSPIRE.value then
+    if nec.OPTS.USEINSPIRE.value and nec.spells.inspire then
         local tempName = nec.spells.inspire.name
         if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
         if not mq.TLO.Pet.Buff(tempName)() then
-            common.cast(nec.spells.inspire)
+            nec.spells.inspire:use()
         end
     end
     common.check_combat_buffs()
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if not mq.TLO.Me.Buff(nec.spells.lich.name)() or not mq.TLO.Me.Buff(nec.spells.flesh.name)() then
-        common.use_aa(unity)
+    if nec.spells.lich and not mq.TLO.Me.Buff(nec.spells.lich.name)() or not mq.TLO.Me.Buff(nec.spells.flesh.name)() then
+        unity:use()
     end
 
     common.check_item_buffs()
