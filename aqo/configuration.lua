@@ -1,8 +1,8 @@
 --- @type Mq
 local mq = require 'mq'
-local logger = require('aqo.utils.logger')
-local persistence = require('aqo.utils.persistence')
-local modes = require('aqo.mode')
+local logger = require(AQO..'.utils.logger')
+local persistence = require(AQO..'.utils.persistence')
+local modes = require(AQO..'.mode')
 
 local config = {
     MODE = modes.from_string('manual'),

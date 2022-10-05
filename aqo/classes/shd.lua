@@ -1,11 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require('aqo.classes.base')
-local assist = require('aqo.routines.assist')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local state = require('aqo.state')
+local baseclass = require(AQO..'.classes.base')
+local assist = require(AQO..'.routines.assist')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local state = require(AQO..'.state')
 
 mq.cmd('/squelch /stick mod -2')
 mq.cmd('/squelch /stick set delaystrafe on')

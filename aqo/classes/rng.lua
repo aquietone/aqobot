@@ -1,13 +1,13 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require('aqo.classes.base')
-local assist = require('aqo.routines.assist')
-local camp = require('aqo.routines.camp')
-local logger = require('aqo.utils.logger')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local state = require('aqo.state')
+local baseclass = require(AQO..'.classes.base')
+local assist = require(AQO..'.routines.assist')
+local camp = require(AQO..'.routines.camp')
+local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local state = require(AQO..'.state')
 
 mq.cmd('/squelch /stick mod 0')
 
@@ -18,25 +18,20 @@ rng.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 
 
 rng.SPELLSETS = {standard=1}
 
---    if OPTS.USEUNITYAZIA then OPTS.USEUNITYBEZA = false end
---    if OPTS.USEUNITYBEZA then OPTS.USEUNITYAZIA = false end
---    if OPTS.USEPOISONARROW then OPTS.USEFIREARROW = false end
---    if OPTS.USEFIREARROW then OPTS.USEPOISONARROW = false end
-
 rng.addOption('SPELLSET', 'Spell Set', 'standard', rng.SPELLSETS, nil, 'combobox')
 rng.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
 rng.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
 rng.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
 rng.addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox')
-rng.addOption('USEDOT', 'Use Nukes', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
-rng.addOption('USEPOISONARROW', 'Use DoT', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW')
-rng.addOption('USEFIREARROW', 'Use Composite', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW')
-rng.addOption('BUFFGROUP', 'Use Poison Arrow', false, nil, 'Buff group members', 'checkbox')
-rng.addOption('DSTANK', 'Use Fire Arrow', false, nil, 'DS Tank', 'checkbox')
-rng.addOption('NUKE', 'Buff Group', false, nil, 'Cast nukes on all mobs', 'checkbox')
-rng.addOption('USEDISPEL', 'DS Tank', true, nil, 'Dispel mobs with Entropy AA', 'checkbox')
-rng.addOption('USEREGEN', 'Use Dispel', false, nil, 'Buff regen on self', 'checkbox')
-rng.addOption('USECOMPOSITE', 'Use Regen', true, nil, 'Cast composite as its available', 'checkbox')
+rng.addOption('USEDOT', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
+rng.addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW')
+rng.addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW')
+rng.addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox')
+rng.addOption('DSTANK', 'DS Tank', false, nil, 'DS Tank', 'checkbox')
+rng.addOption('USENUKES', 'Use Nukes', false, nil, 'Cast nukes on all mobs', 'checkbox')
+rng.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Entropy AA', 'checkbox')
+rng.addOption('USEREGEN', 'Use Regen', false, nil, 'Buff regen on self', 'checkbox')
+rng.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox')
 rng.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
 rng.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
@@ -46,10 +41,10 @@ rng.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+i
 rng.addSpell('heart', {'Heartruin'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
 rng.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
 rng.addSpell('summer', {'Summer\'s Torrent'}) -- fire + ice nuke, Summer's Sleet
-rng.addSpell('boon', {'Lunarflare boon'}) -- 
+rng.addSpell('boon', {'Lunarflare boon', 'Icewind'}) -- 
 rng.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
 rng.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
-rng.addSpell('dot', {'Bloodbeetle Swarm'}) -- main DoT
+rng.addSpell('dot', {'Bloodbeetle Swarm', 'Flame Lick'}) -- main DoT
 rng.addSpell('dotds', {'Swarm of Bloodflies'}) -- DoT + reverse DS, Swarm of Hyperboreads
 rng.addSpell('dmgbuff', {'Arbor Stalker\'s Enrichment'}) -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
 rng.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
@@ -70,7 +65,7 @@ rng.addSpell('blades', {'Vociferous Blades'}) -- Howling Blades
 rng.addSpell('ds', {'Shield of Shadethorns'}) -- DS
 rng.addSpell('rune', {'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
 rng.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
-rng.addSpell('snare', {'Snare'})
+rng.addSpell('snare', {'Ensnare', 'Snare'})
 
 -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
 local arrow_spells = {}
@@ -275,7 +270,7 @@ local function find_next_spell()
             end
         end
     end
-    if rng.OPTS.NUKE.value then
+    if rng.OPTS.USENUKES.value then
         for _,spell in ipairs(dd_spells) do
             if common.is_spell_ready(spell) then
                 return spell

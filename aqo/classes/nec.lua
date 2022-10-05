@@ -1,13 +1,13 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require('aqo.classes.base')
-local assist = require('aqo.routines.assist')
-local logger = require('aqo.utils.logger')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local state = require('aqo.state')
-local ui = require('aqo.ui')
+local baseclass = require(AQO..'.classes.base')
+local assist = require(AQO..'.routines.assist')
+local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local state = require(AQO..'.state')
+local ui = require(AQO..'.ui')
 
 local nec = baseclass
 

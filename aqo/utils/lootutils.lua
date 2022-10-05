@@ -477,6 +477,7 @@ loot.sellStuff = function()
         if not openVendor() then return end
     end
 
+    local totalPlat = mq.TLO.Me.Platinum()
     -- sell any top level inventory items that are marked as well, which aren't bags
     for i=1,10 do
         local bagSlot = mq.TLO.InvSlot('pack'..i).Item
@@ -511,6 +512,8 @@ loot.sellStuff = function()
     end
     mq.flushevents('Sell')
     if mq.TLO.Window('MerchantWnd').Open() then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
+    local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
+    loot.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
 end
 
 -- BANKING

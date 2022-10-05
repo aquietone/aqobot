@@ -1,11 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
-local camp = require('aqo.routines.camp')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local logger = require('aqo.utils.logger')
-local timer = require('aqo.utils.timer')
-local state = require('aqo.state')
+local camp = require(AQO..'.routines.camp')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
+local state = require(AQO..'.state')
 
 local tank = {}
 

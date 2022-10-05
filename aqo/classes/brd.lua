@@ -1,12 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require('aqo.classes.base')
-local mez = require('aqo.routines.mez')
-local logger = require('aqo.utils.logger')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local state = require('aqo.state')
+local baseclass = require(AQO..'.classes.base')
+local mez = require(AQO..'.routines.mez')
+local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local state = require(AQO..'.state')
 
 -- what was this again?
 mq.cmd('/squelch /stick mod 0')

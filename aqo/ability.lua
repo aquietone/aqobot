@@ -1,6 +1,6 @@
 local mq = require('mq')
-local logger = require('aqo.utils.logger')
-local state = require('aqo.state')
+local logger = require(AQO..'.utils.logger')
+local state = require(AQO..'.state')
 
 ---@class Ability
 ---@field ID number|nil #

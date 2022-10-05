@@ -3,16 +3,17 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
-local assist = require('aqo.routines.assist')
-local camp = require('aqo.routines.camp')
-local logger = require('aqo.utils.logger')
-local loot = require('aqo.utils.lootutils')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local mode = require('aqo.mode')
-local state = require('aqo.state')
-local ui = require('aqo.ui')
+AQO='aqo'
+local assist = require(AQO..'.routines.assist')
+local camp = require(AQO..'.routines.camp')
+local logger = require(AQO..'.utils.logger')
+local loot = require(AQO..'.utils.lootutils')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local mode = require(AQO..'.mode')
+local state = require(AQO..'.state')
+local ui = require(AQO..'.ui')
 local aqoclass
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
@@ -185,7 +186,7 @@ local function init()
     state.subscription = mq.TLO.Me.Subscription()
     common.set_swap_gem()
 
-    aqoclass = require('aqo.classes.'..state.class)
+    aqoclass = require(AQO..'.classes.'..state.class)
     mq.bind(('/%s'):format(state.class), cmd_bind)
 
     aqoclass.load_settings()

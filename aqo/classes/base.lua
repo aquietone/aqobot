@@ -1,17 +1,17 @@
 --- @type Mq
 local mq = require 'mq'
-local assist = require('aqo.routines.assist')
-local camp = require('aqo.routines.camp')
-local mez = require('aqo.routines.mez')
-local pull = require('aqo.routines.pull')
-local tank = require('aqo.routines.tank')
-local logger = require('aqo.utils.logger')
-local persistence = require('aqo.utils.persistence')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
-local config = require('aqo.configuration')
-local state = require('aqo.state')
-local ui = require('aqo.ui')
+local assist = require(AQO..'.routines.assist')
+local camp = require(AQO..'.routines.camp')
+local mez = require(AQO..'.routines.mez')
+local pull = require(AQO..'.routines.pull')
+local tank = require(AQO..'.routines.tank')
+local logger = require(AQO..'.utils.logger')
+local persistence = require(AQO..'.utils.persistence')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
+local config = require(AQO..'.configuration')
+local state = require(AQO..'.state')
+local ui = require(AQO..'.ui')
 local base = {}
 
 base.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,rez=1,recover=1,managepet=1}

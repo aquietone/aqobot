@@ -1,7 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require('aqo.classes.base')
-local common = require('aqo.common')
+local baseclass = require(AQO..'.classes.base')
+local common = require(AQO..'.common')
 
 local clr = baseclass
 

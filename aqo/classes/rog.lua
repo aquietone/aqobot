@@ -1,4 +1,4 @@
-local baseclass = require('aqo.classes.base')
+local baseclass = require(AQO..'.classes.base')
 
 local rog = baseclass
 

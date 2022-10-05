@@ -1,10 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
-local named = require('aqo.data.named')
-local logger = require('aqo.utils.logger')
-local timer = require('aqo.utils.timer')
-local config = require('aqo.configuration')
-local state = require('aqo.state')
+local named = require(AQO..'.data.named')
+local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
+local ability = require(AQO..'.ability')
+local config = require(AQO..'.configuration')
+local state = require(AQO..'.state')
 
 local common = {}
 
@@ -78,6 +79,7 @@ common.get_best_spell = function(spells, options)
     for _,spell_name in ipairs(spells) do
         local spell = common.get_spell(spell_name)
         if spell then
+            local s = ability.Spell:new(spell.id, spell.name, options)
             if options then
                 options.name = spell.name
                 options.id = spell.id

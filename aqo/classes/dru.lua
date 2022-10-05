@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require 'mq'
-local baseclass = require('aqo.classes.base')
-local timer = require('aqo.utils.timer')
-local common = require('aqo.common')
+local baseclass = require(AQO..'.classes.base')
+local timer = require(AQO..'.utils.timer')
+local common = require(AQO..'.common')
 
 local dru = baseclass
 

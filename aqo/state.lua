@@ -1,5 +1,5 @@
-local logger = require('aqo.utils.logger')
-local timer = require('aqo.utils.timer')
+local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
 
 local state = {
     debug = false,

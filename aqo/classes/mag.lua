@@ -1,5 +1,5 @@
-local baseclass = require('aqo.classes.base')
-local assist = require('aqo.routines.assist')
+local baseclass = require(AQO..'.classes.base')
+local assist = require(AQO..'.routines.assist')
 
 local mag = baseclass
 

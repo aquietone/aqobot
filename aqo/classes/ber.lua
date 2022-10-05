@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
-local baseclass = require('aqo.classes.base')
-local common = require('aqo.common')
+local baseclass = require(AQO..'.classes.base')
+local common = require(AQO..'.common')
 
 local ber = baseclass
 
@@ -10,7 +10,9 @@ ber.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 --ber.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
---table.insert(ber.DPSAbilities, {name='Kick',            type='ability'})
+table.insert(ber.DPSAbilities, {name='Kick',            type='ability'})
+table.insert(ber.DPSAbilities, {name='Frenzy',          type='ability'})
+table.insert(ber.DPSAbilities, common.get_disc('Rage Volley'))
 --table.insert(ber.DPSAbilities, common.get_disc('Head Pummel'))
 --table.insert(ber.DPSAbilities, common.get_disc('Leg Cut'))
 
