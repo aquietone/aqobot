@@ -66,7 +66,11 @@ brd.addSpell('emuregen', {'Chorus of Marr', 'Chorus of Replenishment', 'Cantata 
 brd.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
 brd.addSpell('emuproc', {'Song of the Storm'})
 brd.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
-brd.addSpell('selos', {'Selo\'s Accelerating Chorus'})
+
+local selos = common.getAA('Selo\'s Sonata')
+if not selos then
+    brd.addSpell('selos', {'Selo\'s Accelerating Chorus'})
+end
 table.insert(brd.buffs, brd.spells.emuaura)
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
@@ -153,7 +157,6 @@ table.insert(brd.buffs, common.getItem('Songblade of the Eternal') or common.get
 
 -- deftdance discipline
 
-local selos = common.getAA('Selo\'s Sonata')
 -- Mana Recovery AAs
 local rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
 table.insert(brd.recoverAbilities, rallyingsolo)
@@ -424,6 +427,11 @@ brd.can_i_sing = function()
     if brd.OPTS.USETWIST.value then return true end
     if song_timer:timer_expired() then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
+            -- keep cursor clear for spell swaps and such
+        if selos and selos_timer:timer_expired() then
+            selos:use()
+            selos_timer:reset()
+        end
         return true
     end
     return false

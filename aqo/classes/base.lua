@@ -437,7 +437,7 @@ local function buff_ooc()
                 end
                 return true
             end
-        elseif buff.type == Abilities.Types.Disc and buff then
+        elseif buff.type == Abilities.Types.Disc then
             if buff.aura and not mq.TLO.Me.Aura(buff.checkfor)() and not mq.TLO.Me.Aura(buff.name)() then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
                 return true
@@ -445,6 +445,9 @@ local function buff_ooc()
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
                 return true
             end
+        elseif buff.type == Abilities.Types.AA then
+            buff:use()
+            if buff.removesong then mq.cmdf('/removebuff %s', buff.removesong) end
         elseif buff.type == Abilities.Types.Item then
             local item = mq.TLO.FindItem(buff.id)
             if not mq.TLO.Me.Buff(item.Spell.Name())() then

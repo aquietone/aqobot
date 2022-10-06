@@ -25,6 +25,9 @@ shm.addSpell('proc', {'Spirit of the Leopard', 'Spirit of the Jaguar'})
 shm.addSpell('cure', {'Blood of Nadox'})
 shm.addSpell('nuke', {'Spear of Torment'}, {opt='USENUKES'})
 
+table.insert(shm.buffs, common.getAA('Pact of the Wolf', {removesong='Pact of the Wolf Effect'}))
+-- pact of the wolf, remove pact of the wolf effect
+
 local standard = {}
 table.insert(standard, shm.spells.nuke)
 
@@ -35,7 +38,7 @@ shm.spellRotations = {
 table.insert(shm.healAbilities, shm.spells.heal)
 table.insert(shm.cures, shm.spells.cure)
 
-shm.slow = common.get_best_spell({'Turgur\'s Insects', 'Togor\'s Insects'})
+shm.slow = common.getBestSpell({'Turgur\'s Insects', 'Togor\'s Insects'})
 shm.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
 table.insert(shm.recoverAbilities, shm.canni)
 table.insert(shm.recoverAbilities, shm.spells.canni)
@@ -56,7 +59,7 @@ shm.cure = function()
 end
 
 local melees = {'MNK','BER','ROG','BST','WAR','PAL','SHD'}
-shm.buff = function()
+shm.buff_class = function()
     if common.am_i_dead() then return end
 
     if shm.spells.proc and mq.TLO.Me.SpellReady(shm.spells.proc.name)() and mq.TLO.Group.GroupSize() then

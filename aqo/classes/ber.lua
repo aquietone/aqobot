@@ -19,6 +19,7 @@ table.insert(ber.DPSAbilities, common.getBestDisc({'Confusing Strike'}))
 
 table.insert(ber.buffs, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 table.insert(ber.buffs, common.getBestDisc({'Cry Havoc'}, {combat=true, ooc=false}))
+table.insert(ber.buffs, common.getAA('Decapitation', {combat=true}))
 -- Aura of Rage, Aura of Rage Effect
 
 local axes = mq.TLO.FindItem('Bonesplicer Axe').ID()
