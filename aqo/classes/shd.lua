@@ -41,7 +41,7 @@ shd.addSpell('aeterror', {'Antipathy'}, {threshold=2}) -- ST increase hate by 1
 --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 -- Lifetaps
 shd.addSpell('largetap', {'Dire Censure'}) -- large lifetap
-shd.addSpell('tap1', {'Touch of Txiki'})--, 'Lifedraw'}) -- lifetap
+shd.addSpell('tap1', {'Touch of Txiki'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
 shd.addSpell('tap2', {'Touch of Namdrows'}) -- lifetap + temp hp buff Gift of Namdrows
 shd.addSpell('dottap', {'Bond of Bynn'}) -- lifetap dot
 shd.addSpell('bitetap', {'Cruor\'s Bite'}) -- lifetap with hp/mana recourse
@@ -61,8 +61,8 @@ shd.addSpell('skin', {'Xenacious\' Skin'}) -- Xenacious' Skin proc, 5min buff
 shd.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
 --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
 -- Pet
-shd.addSpell('pet', {'Minion of Itzal', 'Animate Dead'}) -- pet
-shd.addSpell('pethaste', {'Gift of Itzal'}) -- pet haste
+shd.addSpell('pet', {'Minion of Itzal', 'Cackling Bones', 'Animate Dead'}) -- pet
+shd.addSpell('pethaste', {'Gift of Itzal', 'Augment Death'}) -- pet haste
 -- Unity Buffs
 shd.addSpell('shroud', {'Shroud of Zelinstein'}) -- Shroud of Zelinstein Strike proc
 shd.addSpell('bezaproc', {'Mental Anguish'}) -- Mental Anguish Strike proc
@@ -171,6 +171,7 @@ local epic = common.getItem('Innoruuk\'s Dark Blessing')
 
 table.insert(shd.buffs, common.getItem('Chestplate of the Dark Flame'))
 table.insert(shd.buffs, common.getItem('Violet Conch of the Tempest'))
+table.insert(shd.petBuffs, shd.spells.pethaste)
 
 local function find_next_spell()
     local myhp = mq.TLO.Me.PctHPs()

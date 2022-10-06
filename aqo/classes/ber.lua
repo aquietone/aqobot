@@ -10,12 +10,15 @@ ber.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 --ber.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
+table.insert(ber.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))
 table.insert(ber.DPSAbilities, common.getSkill('Frenzy'))
 table.insert(ber.DPSAbilities, common.getBestDisc({'Rage Volley'}))
+table.insert(ber.DPSAbilities, common.getBestDisc({'Confusing Strike'}))
 --table.insert(ber.DPSAbilities, common.getBestDisc({'Head Pummel'}))
 --table.insert(ber.DPSAbilities, common.getBestDisc({'Leg Cut'}))
 
-table.insert(ber.buffs, common.getBestDisc({'Aura of Rage'}, {combat=false}))
+table.insert(ber.buffs, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
+table.insert(ber.buffs, common.getBestDisc({'Cry Havoc'}, {combat=true, ooc=false}))
 -- Aura of Rage, Aura of Rage Effect
 
 local axes = mq.TLO.FindItem('Bonesplicer Axe').ID()

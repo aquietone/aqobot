@@ -12,9 +12,15 @@ clr.SPELLSETS = {standard=1}
 
 clr.addOption('SPELLSET', 'Spell Set', 'standard', clr.SPELLSETS, nil, 'combobox')
 clr.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
+clr.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')
+clr.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
 
 clr.addSpell('heal', {'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
 clr.addSpell('remedy', {'Remedy'}, {me=30, mt=30, other=30})
+clr.addSpell('aura', {'Aura of Divinity'}, {aura=true})
+clr.addSpell('yaulp', {'Yaulp VI'}, {combat=true, ooc=false, opt='USEYAULP'})
+clr.addSpell('armor', {'Armor of the Zealot'})
+clr.addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
 
 local standard = {}
 
@@ -22,8 +28,14 @@ clr.spellRotations = {
     standard=standard
 }
 
+table.insert(clr.DPSAbilities, clr.spells.hammerpet)
+
 table.insert(clr.healAbilities, clr.spells.heal)
 table.insert(clr.healAbilities, clr.spells.remedy)
+
+table.insert(clr.buffs, clr.spells.aura)
+table.insert(clr.buffs, clr.spells.yaulp)
+table.insert(clr.buffs, clr.spells.armor)
 
 clr.heal = function()
     for _,heal in ipairs(clr.healAbilities) do

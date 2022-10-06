@@ -102,7 +102,7 @@ end
 local function getDisc(discName)
     local disc = mq.TLO.Spell(discName)
     local rankName = disc.RankName()
-    if not rankName then return nil end
+    if not rankName or not mq.TLO.Me.CombatAbility(rankName)() then return nil end
     return {name=rankName, id=disc.ID()}
 end
 
@@ -114,10 +114,12 @@ common.getBestDisc = function(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
+            logger.printf('Found Disc: %s (%s)', bestDisc.name, bestDisc.id)
             local disc = ability.Disc:new(bestDisc.id, bestDisc.name, options)
             return disc
         end
     end
+    logger.printf('[%s] Could not find disc!', discs[1])
     return nil
 end
 
@@ -494,7 +496,7 @@ common.swap_and_cast = function(spell, gem)
     mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
     logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
     local did_cast = spell:use()
-    if restore_gem then
+    if restore_gem and restore_gem.name then
         common.swap_spell(restore_gem, gem)
     end
     return did_cast

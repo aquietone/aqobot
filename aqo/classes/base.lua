@@ -384,7 +384,7 @@ local function buff_combat()
     common.check_combat_buffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
     for _,buff in ipairs(base.buffs) do
-        if (buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.AA) and buff.combat then
+        if (buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.AA) and buff.combat and not mq.TLO.Me.Buff(buff.name)() and not mq.TLO.Me.Song(buff.name)() then
             buff:use()
         elseif buff.summons then
             if mq.TLO.FindItemCount(buff.summons)() < 30 and not mq.TLO.Me.Moving() then
@@ -403,26 +403,47 @@ local function buff_ooc()
     if base.buff_class then base.buff_class() end
     -- find an actual buff spell that takes time to cast
     for _,buff in ipairs(base.buffs) do
-        if buff.type == Abilities.Types.Spell then
+        if buff.type == Abilities.Types.Spell and buff.aura then
             local buffName = buff.name
             if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
             if not mq.TLO.Me.Aura(buffName)() then
                 local restore_gem = nil
                 if not mq.TLO.Me.Gem(buff.name)() then
-                    restore_gem = {name=mq.TLO.Me.Gem(1)()}
-                    common.swap_spell(buff, 1)
+                    restore_gem = {name=mq.TLO.Me.Gem(state.swapGem)()}
+                    common.swap_spell(buff, state.swapGem)
                 end
                 mq.delay(3000, function() return mq.TLO.Me.Gem(buff.name)() and mq.TLO.Me.GemTimer(buff.name)() == 0 end)
                 buff:use()
                 -- project lazarus super long cast time special bard aura stupidity
                 if state.class == 'brd' then mq.delay(100) mq.delay(6000, function() return not mq.TLO.Window('CastingWindow').Open() end) end
                 if restore_gem then
-                    common.swap_spell(restore_gem, 1)
+                    common.swap_spell(restore_gem, state.swapGem)
                 end
+                return true
+            end
+        elseif buff.type == Abilities.Types.Spell then
+            local buffName = buff.name
+            if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
+            if (not buff.opt or base.isEnabled(buff.opt)) and not mq.TLO.Me.Buff(buffName)() then
+                local restore_gem = nil
+                if not mq.TLO.Me.Gem(buff.name)() then
+                    restore_gem = {name=mq.TLO.Me.Gem(state.swapGem)()}
+                    common.swap_spell(buff, state.swapGem)
+                end
+                mq.delay(3000, function() return mq.TLO.Me.Gem(buff.name)() and mq.TLO.Me.GemTimer(buff.name)() == 0 end)
+                buff:use()
+                if restore_gem and restore_gem.name then
+                    common.swap_spell(restore_gem, state.swapGem)
+                end
+                return true
             end
         elseif buff.type == Abilities.Types.Disc and buff then
-            if not mq.TLO.Me.Aura(buff.checkfor or buff.name)() then
+            if buff.aura and not mq.TLO.Me.Aura(buff.checkfor)() and not mq.TLO.Me.Aura(buff.name)() then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
+                return true
+            elseif not buff.aura and not mq.TLO.Me.Buff(buff.name)() and not mq.TLO.Me.Song(buff.name)() then
+                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
+                return true
             end
         elseif buff.type == Abilities.Types.Item then
             local item = mq.TLO.FindItem(buff.id)
@@ -526,7 +547,7 @@ base.managepet = function()
     if not base.isEnabled('SUMMONPET') or not base.spells.pet then return end
     if not common.clear_to_buff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
-    if mq.TLO.Spell(base.spells.pet.name).Mana() or 0 > mq.TLO.Me.CurrentMana() then return end
+    if (mq.TLO.Spell(base.spells.pet.name).Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(base.spells.pet, state.swapGem)
 end
 

@@ -19,6 +19,7 @@ dru.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbo
 dru.addSpell('heal', {'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {me=75, mt=75, other=75})
 dru.addSpell('firenuke', {'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
 dru.addSpell('snare', {'Ensnare', 'Snare'})
+dru.addSpell('aura', {'Aura of the Grove'}, {aura=true})
 
 -- Aura of the Grove, Aura of the Grove Effect
 
@@ -30,6 +31,8 @@ dru.spellRotations = {
 }
 
 table.insert(dru.healAbilities, dru.spells.heal)
+
+table.insert(dru.buffs, dru.spells.aura)
 
 dru.nuketimer = timer:new(5)
 

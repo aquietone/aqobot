@@ -100,11 +100,11 @@ enc.addSpell('haste', {'Speed of Itzal', 'Speed of Cekenar'}) -- single target b
 enc.addSpell('grouphaste', {'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
 enc.addSpell('nightsterror', {'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}) -- melee attack proc
 -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
-enc.addSpell('twincast', {'Twincast Aura'})
-enc.addSpell('regen', {'Marvel\'s Aura', 'Deviser\'s Aura'}) -- mana + end regen aura
-enc.addSpell('spellfocus', {'Enhancing Aura', 'Fortifying Aura'}) -- increase dmg of DDs
-enc.addSpell('combatinnate', {'Mana Radix Aura', 'Mana Replication Aura'}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
-enc.addSpell('disempower', {'Arcane Disjunction Aura'})
+enc.addSpell('twincast', {'Twincast Aura'}, {aura=true})
+enc.addSpell('regen', {'Marvel\'s Aura', 'Deviser\'s Aura'}, {aura=true}) -- mana + end regen aura
+enc.addSpell('spellfocus', {'Enhancing Aura', 'Fortifying Aura'}, {aura=true}) -- increase dmg of DDs
+enc.addSpell('combatinnate', {'Mana Radix Aura', 'Mana Replication Aura'}, {aura=true}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
+enc.addSpell('disempower', {'Arcane Disjunction Aura'}, {aura=true})
 -- unity buffs
 enc.addSpell('shield', {'Shield of Shadow', 'Shield of Restless Ice'})
 enc.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})

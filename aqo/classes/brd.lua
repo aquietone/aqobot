@@ -14,7 +14,7 @@ local brd = baseclass
 brd.class = 'brd'
 brd.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
-brd.SPELLSETS = {melee=1,caster=1,meleedot=1,emuaura=1,emunoaura=1}
+brd.SPELLSETS = {melee=1,caster=1,meleedot=1,emuaura55=1,emuaura65=1,emunoaura=1}
 brd.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
 
 brd.addOption('SPELLSET', 'Spell Set', 'melee', brd.SPELLSETS, nil, 'combobox')
@@ -58,12 +58,13 @@ brd.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber o
 brd.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
 
 -- haste song doesn't stack with enc haste?
-brd.addSpell('emuaura', {'Aura of Insight'})
+brd.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'}, {aura=true})
 brd.addSpell('overhaste', {'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
-brd.addSpell('bardhaste', {'Composition of Ervaj'})
-brd.addSpell('emuhaste', {'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
-brd.addSpell('emuregen', {'Chorus of Replenishment', 'Cantata of Soothing'})
+brd.addSpell('bardhaste', {'Psalm of Veeshan', 'Composition of Ervaj'})
+brd.addSpell('emuhaste', {'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
+brd.addSpell('emuregen', {'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
 brd.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
+brd.addSpell('emuproc', {'Song of the Storm'})
 brd.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
 brd.addSpell('selos', {'Selo\'s Accelerating Chorus'})
 table.insert(brd.buffs, brd.spells.emuaura)
@@ -92,7 +93,10 @@ local meleedot = {
 }
 -- synergy, mezst, mezae
 
-local emu = {
+local emuaura65 = {
+    brd.spells.selos, brd.spells.emuregen, brd.spells.emuproc, brd.spells.bardhaste, brd.spells.emuhaste
+}
+local emuaura55 = {
     brd.spells.selos, brd.spells.emuregen, brd.spells.overhaste, brd.spells.bardhaste, brd.spells.emuhaste
 }
 local emunoaura = {
@@ -103,7 +107,8 @@ local songs = {
     melee=melee,
     caster=caster,
     meleedot=meleedot,
-    emuaura=emu,
+    emuaura55=emuaura55,
+    emuaura65=emuaura65,
     emunoaura=emunoaura,
 }
 
@@ -396,11 +401,12 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.emuaura, 1)
             common.swap_spell(brd.spells.emuregen, 2)
             common.swap_spell(brd.spells.emuhaste, 3)
-            common.swap_spell(brd.spells.selos, 4)
+            common.swap_spell(brd.spells.emuproc, 4)
             common.swap_spell(brd.spells.emunukebuff, 5)
             common.swap_spell(brd.spells.bardhaste, 6)
             common.swap_spell(brd.spells.overhaste, 7)
-            common.swap_spell(brd.spells.snare, 8)
+            common.swap_spell(brd.spells.selos, 8)
+            common.swap_spell(brd.spells.snare, 9)
         end
         check_spell_timer:reset()
     end
