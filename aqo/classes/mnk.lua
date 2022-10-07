@@ -17,5 +17,6 @@ table.insert(mnk.burnAbilities, common.getBestDisc({'Thunderkick Discipline'}))
 
 table.insert(mnk.buffs, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {combat=false, checkfor='Disciples Aura'}))
 table.insert(mnk.buffs, common.getBestDisc({'Fists of Wu'}, {combat=true, ooc=false}))
+table.insert(mnk.buffs, common.getAA('Zan Fi\'s Whistle', {combat=true, ooc=false}))
 
 return mnk

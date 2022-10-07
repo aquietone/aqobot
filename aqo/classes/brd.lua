@@ -97,11 +97,15 @@ local meleedot = {
 }
 -- synergy, mezst, mezae
 
-local emuaura65 = {
-    brd.spells.selos, brd.spells.emuregen, brd.spells.emuproc, brd.spells.bardhaste, brd.spells.emuhaste
-}
+local emuaura65 = {}
+if brd.spells.selos then table.insert(emuaura65, brd.spells.selos) end
+table.insert(emuaura65, brd.spells.emuregen)
+table.insert(emuaura65, brd.spells.emuproc)
+table.insert(emuaura65, brd.spells.bardhaste)
+table.insert(emuaura65, brd.spells.emuhaste)
+
 local emuaura55 = {
-    brd.spells.selos, brd.spells.emuregen, brd.spells.overhaste, brd.spells.bardhaste, brd.spells.emuhaste
+    brd.spells.selosb, brd.spells.emuregen, brd.spells.overhaste, brd.spells.bardhaste, brd.spells.emuhaste
 }
 local emunoaura = {
     brd.spells.selos, brd.spells.emuregen, brd.spells.overhaste, brd.spells.emuhaste, brd.spells.emunukebuff
