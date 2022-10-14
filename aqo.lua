@@ -181,9 +181,16 @@ local function cmd_bind(...)
     end
 end
 
+local function zoned()
+    if not state.paused and config.MODE:get_name() == 'huntertank' then
+        config.MODE = mode.from_string('manual')
+    end
+end
+
 local function init()
     state.class = mq.TLO.Me.Class.ShortName():lower()
     state.subscription = mq.TLO.Me.Subscription()
+    if mq.TLO.EverQuest.Server() == 'Project Lazarus' then state.emu = true end
     common.set_swap_gem()
 
     aqoclass = require(AQO..'.classes.'..state.class)
@@ -200,6 +207,7 @@ local function init()
     mq.cmd('/squelch /stick set verbflags 0')
     mq.cmd('/squelch /plugin melee unload noauto')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
+    mq.event('zoned', 'You have entered #*#', zoned)
     --loot.logger.loglevel = 'debug'
 end
 

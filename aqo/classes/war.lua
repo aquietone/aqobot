@@ -1,6 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 local config = require(AQO..'.configuration')
 local state = require(AQO..'.state')
@@ -116,16 +116,16 @@ local exploitive = common.getBestDisc({'Exploitive Strike'}) -- 35s cd, timer 9,
 table.insert(war.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20}))
 
 local leap = common.getAA('Battle Leap', {opt='USEBATTLELEAP'}, {combat=false})
-table.insert(war.buffs, common.getBestDisc({'Champion\'s Aura'}))
-table.insert(war.buffs, common.getBestDisc({'Full Moon\'s Champion'}))
-table.insert(war.buffs, common.getBestDisc({'Commanding Voice'}))
-table.insert(war.buffs, common.getAA('Imperator\'s Command'))
+table.insert(war.auras, common.getBestDisc({'Champion\'s Aura'}))
+table.insert(war.combatBuffs, common.getBestDisc({'Full Moon\'s Champion'}))
+table.insert(war.combatBuffs, common.getBestDisc({'Commanding Voice'}))
+table.insert(war.combatBuffs, common.getAA('Imperator\'s Command'))
 
-table.insert(war.buffs, common.getItem('Chestplate of the Dark Flame'))
-table.insert(war.buffs, common.getItem('Violet Conch of the Tempest'))
-table.insert(war.buffs, common.getItem('Mask of the Lost Guktan'))
+table.insert(war.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
+table.insert(war.selfBuffs, common.getItem('Violet Conch of the Tempest'))
+table.insert(war.selfBuffs, common.getItem('Mask of the Lost Guktan'))
 
-table.insert(war.buffs, common.getItem('Huntsman\'s Ethereal Quiver', {summons='Ethereal Arrow'}))
+table.insert(war.combatBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summons='Ethereal Arrow'}))
 
 war.ae_class = function()
     if state.mob_count_nopet < 2 then return end

@@ -1,6 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local mez = require(AQO..'.routines.mez')
 local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
@@ -9,7 +9,7 @@ local state = require(AQO..'.state')
 local enc = baseclass
 
 enc.class = 'enc'
-enc.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
+enc.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}
 
 enc.SPELLSETS = {standard=1}
 enc.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
@@ -86,9 +86,9 @@ enc.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan'})
 enc.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
 enc.addSpell('stunae', {'Remote Color Conflagration'})
 enc.addSpell('stunpbae', {'Color Conflagration'})
-enc.addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune'}) -- self rune, proc ae stun on fade
+enc.addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Arcane Rune'}) -- self rune, proc ae stun on fade
 
-enc.addSpell('pet', {'Constance\'s Animation'})
+enc.addSpell('pet', {'Constance\'s Animation', 'Aeidorb\'s Animation'})
 enc.addSpell('pethaste', {'Invigorated Minion'})
 enc.addSpell('charm', {'Marvel\'s Command'})
 -- buffs
@@ -117,7 +117,9 @@ if enc.spells.synergy then
         enc.spells.nuke5 = common.get_best_spell({'Mindslash'})
     end
 end
-
+if state.emu then
+    enc.addSpell('nuke5', {'Madness of Ikkibi', 'Insanity'})
+end
 -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local standard = {}

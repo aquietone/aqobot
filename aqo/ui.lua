@@ -203,7 +203,16 @@ local function draw_debug_tab()
     ImGui.SetCursorPosX(100)
     ImGui.TextColored(1, 0, 0, 1, string.format('%s', mq.TLO.Target()))
 
-    ImGui.TextColored(1, 1, 0, 1, 'AM_I_DEAD:')
+    for k,v in pairs(state) do
+        if type(v) ~= 'table' and type(v) ~= 'function' then
+            ImGui.TextColored(1, 1, 0, 1, ('%s:'):format(k))
+            ImGui.SameLine()
+            x,_ = ImGui.GetCursorPosX()
+            ImGui.SetCursorPosX(125)
+            ImGui.TextColored(1, 0, 0, 1, ('%s'):format(v))
+        end
+    end
+    --[[ImGui.TextColored(1, 1, 0, 1, 'AM_I_DEAD:')
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
     ImGui.SetCursorPosX(100)
@@ -243,7 +252,7 @@ local function draw_debug_tab()
     ImGui.SameLine()
     x,_ = ImGui.GetCursorPos()
     ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.mob_count))
+    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.mob_count))]]
 end
 
 local function draw_body()

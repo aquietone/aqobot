@@ -124,6 +124,7 @@ common.getBestDisc = function(discs, options)
 end
 
 common.getItem = function(itemName, options)
+    if not itemName then return nil end
     local itemRef = mq.TLO.FindItem('='..itemName)
     if itemRef() then
         local item = ability.Item:new(itemRef.ID(), itemRef.Name(), options)

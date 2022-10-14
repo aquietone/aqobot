@@ -1,6 +1,6 @@
 ---@type Mq
 local mq = require('mq')
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
 local ber = baseclass
@@ -17,10 +17,10 @@ table.insert(ber.DPSAbilities, common.getBestDisc({'Confusing Strike'}))
 --table.insert(ber.DPSAbilities, common.getBestDisc({'Head Pummel'}))
 --table.insert(ber.DPSAbilities, common.getBestDisc({'Leg Cut'}))
 
-table.insert(ber.buffs, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
-table.insert(ber.buffs, common.getBestDisc({'Cry Havoc'}, {combat=true, ooc=false}))
-table.insert(ber.buffs, common.getAA('Decapitation', {combat=true}))
--- Aura of Rage, Aura of Rage Effect
+table.insert(ber.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
+table.insert(ber.combatBuffs, common.getBestDisc({'Cry Havoc'}, {combat=true, ooc=false}))
+-- Project Lazarus only
+table.insert(ber.combatBuffs, common.getAA('Decapitation', {combat=true}))
 
 local axes = mq.TLO.FindItem('Bonesplicer Axe').ID()
 local components = mq.TLO.FindItem('Axe Components').ID()

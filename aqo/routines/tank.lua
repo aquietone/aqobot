@@ -18,7 +18,7 @@ local camp_buffer = 20
 tank.find_mob_to_tank = function()
     if state.mob_count == 0 then return end
     if common.am_i_dead() then return end
-    if state.tank_mob_id > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' then
+    if state.tank_mob_id > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tank_mob_id == mq.TLO.Target.ID() then
         return
     else
         state.tank_mob_id = 0

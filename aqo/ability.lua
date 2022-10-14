@@ -45,7 +45,7 @@ local Ability = {
     summons = nil,
 }
 
----@enum Ability.Type
+---@enum Ability.Types
 Ability.Types = {
     Spell = 1,
     Disc = 2,
@@ -81,6 +81,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
     local requireTarget = false
     local dist = mq.TLO.Target.Distance3D()
     if spell.Beneficial() then
+        if spell.TargetType() == 'Group v1' and not spell.Stacks() then return false end
         -- duration is number of ticks, so it tostring'd
         if spell.Duration() ~= '0' then
             if spell.TargetType() == 'Self' then
@@ -89,6 +90,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
                 result = ((skipSelfStack or spell.Stacks()) and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()) == true
             elseif spell.TargetType() == 'Single' then
                 result = (dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())()) == true
+                requireTarget = true
             else
                 -- no one to check stacking on, sure
                 result = true
@@ -153,7 +155,7 @@ function Ability.canUseSpell(spell, abilityType)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, 'Can use spell returning true for: \ay%s\ax=%s', spell.Name())
+    logger.debug(logger.log_flags.common.cast, ('Can use spell returning true for: \ay%s\ax=%s'):format(spell.Name(), 'true'))
     return true
 end
 
@@ -174,7 +176,11 @@ function Spell:use()
         local result, requiresTarget =  Ability.shouldUseSpell(spell)
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
-        logger.printf('Casting \ar%s\ax', self.name)
+        if requiresTarget then
+            logger.printf('Casting \ar%s\ax on \at%s\ax', self.name, mq.TLO.Target.CleanName())
+        else
+            logger.printf('Casting \ar%s\ax', self.name)
+        end
         mq.cmdf('/cast "%s"', self.name)
         if state.class ~= 'brd' then
             mq.delay(20)
@@ -314,7 +320,7 @@ end
 ---Use the item specified by item.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 function Item:use()
-    local item = mq.TLO.FindItem(self.ID)
+    local item = mq.TLO.FindItem(self.id)
     if self:isReady(item) then
         logger.printf('Use Item: \ax\ar%s\ax', item)
         mq.cmdf('/useitem "%s"', item)

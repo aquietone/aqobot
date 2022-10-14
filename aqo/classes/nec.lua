@@ -1,6 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local assist = require(AQO..'.routines.assist')
 local logger = require(AQO..'.utils.logger')
 local timer = require(AQO..'.utils.timer')

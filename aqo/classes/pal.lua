@@ -1,4 +1,4 @@
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
 local pal = baseclass

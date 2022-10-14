@@ -1,10 +1,13 @@
-local baseclass = require(AQO..'.classes.base')
+---@type Mq
+local mq = require('mq')
+local baseclass = require(AQO..'.classes.classbase')
 local assist = require(AQO..'.routines.assist')
+local common = require(AQO..'.common')
 
 local mag = baseclass
 
 mag.class = 'mag'
-mag.classOrder = {'assist', 'cast', 'burn', 'recover', 'buff', 'rest', 'managepet'}
+mag.classOrder = {'assist', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'managepet'}
 
 mag.SPELLSETS = {standard=1}
 
@@ -27,11 +30,17 @@ mag.addSpell('manaregen', {'Elemental Siphon'}) -- self mana regen
 mag.addSpell('acregen', {'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
 mag.addSpell('petheal', {'Planar Renewal'}) -- pet heal
 
+table.insert(mag.DPSAbilities, common.getItem('Aged Sarnak Channeler Staff'))
+table.insert(mag.DPSAbilities, common.getAA('Force of Elements'))
+table.insert(mag.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
+table.insert(mag.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
+table.insert(mag.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
+
 table.insert(mag.petBuffs, mag.spells.petbuff)
 table.insert(mag.petBuffs, mag.spells.petstrbuff)
 
-table.insert(mag.buffs, mag.spells.manaregen)
-table.insert(mag.buffs, mag.spells.acregen)
+table.insert(mag.selfBuffs, mag.spells.manaregen)
+table.insert(mag.selfBuffs, mag.spells.acregen)
 
 local standard = {}
 table.insert(standard, mag.spells.firenuke)
@@ -42,7 +51,9 @@ mag.spellRotations = {
 }
 
 mag.pull_func = function()
-    assist.send_pet()
+    if mq.TLO.Navigation.Active() then mq.cmd('/nav stop') end
+    mq.cmd('/multiline ; /pet attack ; /pet swarm')
+    mq.delay(1000)
 end
 
 return mag

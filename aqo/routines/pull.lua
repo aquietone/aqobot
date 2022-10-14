@@ -29,7 +29,7 @@ local function check_mob_angle(pull_spawn)
     local direction_to_mob = pull_spawn.HeadingTo(camp.Y, camp.X).Degrees()
     if not direction_to_mob then return false end
     -- switching from non-puller mode to puller mode, the camp may not be updated yet
-    if not camp.PullArcLeft or not camp.PullArcRight then return false end
+    if not (camp.PullArcLeft and camp.PullArcRight) then return false end
     logger.debug(logger.log_flags.routines.pull, 'arcleft: %s, arcright: %s, dirtomob: %s', camp.PullArcLeft, camp.PullArcRight, direction_to_mob)
     if camp.PullArcLeft >= camp.PullArcRight then
         if direction_to_mob < camp.PullArcLeft and direction_to_mob > camp.PullArcRight then return false end
@@ -61,8 +61,7 @@ local function check_level(pull_spawn)
     if config.PULLMINLEVEL == 0 and config.PULLMAXLEVEL == 0 then return true end
     local mob_level = pull_spawn.Level()
     if not mob_level then return false end
-    if mob_level >= config.PULLMINLEVEL and mob_level <= config.PULLMAXLEVEL then return true end
-    return false
+    return mob_level >= config.PULLMINLEVEL and mob_level <= config.PULLMAXLEVEL
 end
 
 ---Validate that the spawn is good for pulling
@@ -74,10 +73,7 @@ local function validate_pull(pull_spawn, path_len, zone_sn)
     local mob_id = pull_spawn.ID()
     if not mob_id or mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' then return false end
     if path_len < 0 or path_len > config.PULLRADIUS then return false end
-    if check_mob_angle(pull_spawn) and check_z_rad(pull_spawn) and check_level(pull_spawn) and not config.ignores_contains(zone_sn, pull_spawn.CleanName()) then
-        return true
-    end
-    return false
+    return check_mob_angle(pull_spawn) and check_z_rad(pull_spawn) and check_level(pull_spawn) and not config.ignores_contains(zone_sn, pull_spawn.CleanName())
 end
 
 local medding = false
@@ -192,8 +188,7 @@ end
 local function pull_nav_to(pull_spawn)
     local mob_x = pull_spawn.X()
     local mob_y = pull_spawn.Y()
-    local mob_z = pull_spawn.Z()
-    if not mob_x or not mob_y or not mob_z then
+    if not (mob_x and mob_y) then
         clear_pull_vars()
         return false
     end
@@ -290,13 +285,33 @@ local function pull_engage(pull_spawn, pull_func)
     return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target()
 end
 
+local pull_return_timer = timer:new(120)
 ---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
-local function pull_return()
+local function pull_return(noMobs)
     --logger.printf('Bringing pull target back to camp (%s)', common.PULL_MOB_ID)
+    if noMobs and not pull_return_timer:timer_expired() then return end
+    if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 15 then return end
     if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', camp.Y, camp.X, camp.Z))() then
         mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
         mq.delay(50, function() return mq.TLO.Navigation.Active() end)
+        if noMobs then pull_return_timer:reset() end
     end
+end
+
+local function pullMobOnXTarget()
+    for i=1,20 do
+        if mq.TLO.Me.XTarget(i).ID() == state.pull_mob_id then return true end
+    end
+    return false
+end
+
+local function anyoneDead()
+    local groupSize = mq.TLO.Group.GroupSize()
+    if not groupSize then return false end
+    for i=1,groupSize-1 do
+        if mq.TLO.Group.Member(i).Dead() then return true end
+    end
+    return false
 end
 
 ---Attempt to pull the mob whose ID is stored in common.PULL_MOB_ID.
@@ -304,7 +319,7 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if common.am_i_dead() then return end
+    if common.am_i_dead() or anyoneDead() or mq.TLO.Me.PctHPs() < 60 then return end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
     if not pull_state and (state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
         logger.debug(logger.log_flags.routines.pull, 'returning at weird state')
@@ -317,6 +332,13 @@ pull.pull_mob = function(pull_func)
         pull_return()
         return
     end
+
+    -- try to break if something agro'd that isn't the pull mob? thought this was already happening somewhere...
+    if pull_state and common.hostile_xtargets() and not pullMobOnXTarget() then
+        clear_pull_vars()
+        return
+    end
+
     if not pull_state then
         logger.debug(logger.log_flags.routines.pull, 'a pull search can start')
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
@@ -329,6 +351,7 @@ pull.pull_mob = function(pull_func)
         if pull_spawn.ID() == 0 then
             -- didn't seem to find the mob returned by pull_radar
             clear_pull_vars()
+            pull_return(true)
             return
         end
         -- valid pull spawn acquired, begin approach
@@ -346,8 +369,9 @@ pull.pull_mob = function(pull_func)
             -- successfully agro'd the mob, or something else agro'd in the process
             if config.MODE:return_to_camp() and camp.Active then
                 state.pull_in_progress = common.PULL_STATES.RETURNING
-                pull_return()
+                pull_return(false)
             else
+                pull_return_timer:reset()
                 clear_pull_vars()
             end
         end
@@ -355,7 +379,7 @@ pull.pull_mob = function(pull_func)
         if common.check_distance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.CAMPRADIUS then
             clear_pull_vars()
         else
-            pull_return()
+            pull_return(false)
         end
     end
 end

@@ -1,6 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local assist = require(AQO..'.routines.assist')
 local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
@@ -13,7 +13,7 @@ mq.cmd('/squelch /stick set delaystrafe on')
 local shd = baseclass
 
 shd.class = 'shd'
-shd.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'rest', 'buff', 'managepet'}
+shd.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'aggro', 'recover', 'rest', 'buff', 'managepet'}
 
 shd.SPELLSETS = {standard=1,dps=1}
 
@@ -22,7 +22,8 @@ shd.addOption('SUMMONPET', 'Summon Pet', true, nil, '', 'checkbox')
 shd.addOption('BUFFPET', 'Buff Pet', true, nil, '', 'checkbox')
 shd.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, '', 'checkbox')
 shd.addOption('USEPROJECTION', 'Use Projection', true, nil, '', 'checkbox')
-shd.addOption('USEBEZA', 'Use Unity Beza', false, nil, '', 'checkbox')
+shd.addOption('USEAZIA', 'Use Unity Azia', true, nil, '', 'checkbox', 'USEBEZA')
+shd.addOption('USEBEZA', 'Use Unity Beza', false, nil, '', 'checkbox', 'USEAZIA')
 shd.addOption('USEDISRUPTION', 'Use Disruption', true, nil, '', 'checkbox')
 shd.addOption('USEINSIDIOUS', 'Use Insidious', false, nil, '', 'checkbox')
 shd.addOption('USELIFETAP', 'Use Lifetap', true, nil, '', 'checkbox')
@@ -40,15 +41,15 @@ shd.addSpell('terror', {'Terror of Ander', 'Terror of Darkness'}) -- ST increase
 shd.addSpell('aeterror', {'Antipathy'}, {threshold=2}) -- ST increase hate by 1
 --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 -- Lifetaps
-shd.addSpell('largetap', {'Dire Censure'}) -- large lifetap
-shd.addSpell('tap1', {'Touch of Txiki'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
-shd.addSpell('tap2', {'Touch of Namdrows'}) -- lifetap + temp hp buff Gift of Namdrows
+shd.addSpell('largetap', {'Dire Censure', 'Touch of Innoruuk'}) -- large lifetap
+shd.addSpell('tap1', {'Touch of Txiki', 'Touch of Volatis'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
+shd.addSpell('tap2', {'Touch of Namdrows', 'Aura of Hate'}) -- lifetap + temp hp buff Gift of Namdrows
 shd.addSpell('dottap', {'Bond of Bynn'}) -- lifetap dot
-shd.addSpell('bitetap', {'Cruor\'s Bite'}) -- lifetap with hp/mana recourse
+shd.addSpell('bitetap', {'Cruor\'s Bite', 'Zevfeer\'s Bite'}) -- lifetap with hp/mana recourse
 -- AE lifetap + aggro
 shd.addSpell('aetap', {'Insidious Renunciation'}) -- large hate + lifetap
 -- DPS
-shd.addSpell('spear', {'Spear of Bloodwretch', 'Spear of Disease'}) -- poison nuke
+shd.addSpell('spear', {'Spear of Bloodwretch', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
 shd.addSpell('poison', {'Blood of Tearc', 'Blood of Pain'}) -- poison dot
 shd.addSpell('disease', {'Plague of Fleshrot'}) -- disease dot
 shd.addSpell('corruption', {'Unscrupulous Blight'}) -- corruption dot
@@ -61,15 +62,15 @@ shd.addSpell('skin', {'Xenacious\' Skin'}) -- Xenacious' Skin proc, 5min buff
 shd.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
 --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
 -- Pet
-shd.addSpell('pet', {'Minion of Itzal', 'Cackling Bones', 'Animate Dead'}) -- pet
+shd.addSpell('pet', {'Minion of Itzal', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
 shd.addSpell('pethaste', {'Gift of Itzal', 'Augment Death'}) -- pet haste
 -- Unity Buffs
 shd.addSpell('shroud', {'Shroud of Zelinstein'}) -- Shroud of Zelinstein Strike proc
-shd.addSpell('bezaproc', {'Mental Anguish'}) -- Mental Anguish Strike proc
-shd.addSpell('aziaproc', {'Brightfield\'s Horror'}) -- Brightfield's Horror Strike proc
+shd.addSpell('bezaproc', {'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
+shd.addSpell('aziaproc', {'Brightfield\'s Horror', 'Black Shroud'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
 shd.addSpell('ds', {'Tekuel Skin'}) -- large damage shield self buff
 shd.addSpell('lich', {'Aten Ha Ra\'s Covenant'}) -- lich mana regen
-shd.addSpell('drape', {'Drape of the Akheva'}) -- self buff hp, ac, ds
+shd.addSpell('drape', {'Drape of the Akheva', 'Cloak of Luclin'}) -- self buff hp, ac, ds
 shd.addSpell('atkbuff', {'Penumbral Call'}) -- atk buff, hp drain on self
 --['']=common.get_best_spell({'Remorseless Demeanor'})
 
@@ -169,8 +170,14 @@ table.insert(shd.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 
 local epic = common.getItem('Innoruuk\'s Dark Blessing')
 
-table.insert(shd.buffs, common.getItem('Chestplate of the Dark Flame'))
-table.insert(shd.buffs, common.getItem('Violet Conch of the Tempest'))
+if state.emu then
+    table.insert(shd.selfBuffs, shd.spells.aziaproc)
+    table.insert(shd.selfBuffs, shd.spells.drape)
+    table.insert(shd.selfBuffs, shd.spells.bezaproc)
+    table.insert(shd.selfBuffs, common.getAA('Touch of the Cursed'))
+end
+table.insert(shd.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
+table.insert(shd.selfBuffs, common.getItem('Violet Conch of the Tempest'))
 table.insert(shd.petBuffs, shd.spells.pethaste)
 
 local function find_next_spell()
@@ -282,12 +289,12 @@ end
 
 shd.burn_class = function()
     if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-        mantle:use()
-        carapace:use()
-        guardian:use()
+        if mantle then mantle:use() end
+        if carapace then carapace:use() end
+        if guardian then guardian:use() end
     end
 
-    epic:use()
+    if epic then epic:use() end
 end
 
 shd.ohshit = function()
@@ -295,10 +302,10 @@ shd.ohshit = function()
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if flash and mq.TLO.Me.AltAbilityReady(flash.name)() then
                 flash:use()
-            elseif shd.OPTS.USEDEFLECTION.value then
+            elseif shd.OPTS.USEDEFLECTION.value and deflection then
                 deflection:use()
             end
-            leechtouch:use()
+            if leechtouch then leechtouch:use() end
         end
     end
 end
@@ -379,7 +386,7 @@ shd.check_spell_set = function()
     end
 end
 
-shd.pull_func = function()
+--[[shd.pull_func = function()
     if shd.spells.challenge then
         if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
             mq.cmd('/squelch /nav stop')
@@ -393,6 +400,6 @@ shd.pull_func = function()
             mq.delay(100)
         end
     end
-end
+end]]
 
 return shd

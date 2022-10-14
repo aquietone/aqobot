@@ -1,6 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local assist = require(AQO..'.routines.assist')
 local camp = require(AQO..'.routines.camp')
 local logger = require(AQO..'.utils.logger')
@@ -36,12 +36,12 @@ rng.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
 rng.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
 rng.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-rng.addSpell('focused', {'Focused Whirlwind of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+rng.addSpell('focused', {'Focused Whirlwind of Arrows', 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
 rng.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
-rng.addSpell('heart', {'Heartruin'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+rng.addSpell('heart', {'Heartruin', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
 rng.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-rng.addSpell('summer', {'Summer\'s Torrent'}) -- fire + ice nuke, Summer's Sleet
-rng.addSpell('boon', {'Lunarflare boon', 'Icewind'}) -- 
+rng.addSpell('summer', {'Summer\'s Torrent', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
+rng.addSpell('boon', {'Lunarflare boon'}) -- 
 rng.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
 rng.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
 rng.addSpell('dot', {'Bloodbeetle Swarm', 'Flame Lick'}) -- main DoT
@@ -54,14 +54,14 @@ rng.addSpell('cloak', {'Cloak of Bloodbarbs'}) -- Cloak of Rimespurs
 rng.addSpell('predator', {'Bay of the Predator'}) -- Frostroar of the Predator
 rng.addSpell('strength', {'Strength of the Dusksage Stalker'}) -- Strength of the Arbor Stalker
 -- Unity AA Buffs
-rng.addSpell('protection', {'Protection of the Valley'}) -- Protection of the Wakening Land
-rng.addSpell('eyes', {'Eyes of the Senshali'}) -- Eyes of the Visionary
+rng.addSpell('protection', {'Protection of the Valley', 'Protection of the Wild'}) -- Protection of the Wakening Land
+rng.addSpell('eyes', {'Eyes of the Senshali', 'Eyes of the Owl'}) -- Eyes of the Visionary
 rng.addSpell('hunt', {'Steeled by the Hunt'}) -- Provoked by the Hunt
 rng.addSpell('coat', {'Moonthorn Coat'}) -- Rimespur Coat
 -- Unity Azia only
 rng.addSpell('barrage', {'Devastating Barrage'}) -- Devastating Velium
 -- Unity Beza only
-rng.addSpell('blades', {'Vociferous Blades'}) -- Howling Blades
+rng.addSpell('blades', {'Vociferous Blades', 'Sylvan Call'}) -- Howling Blades
 rng.addSpell('ds', {'Shield of Shadethorns'}) -- DS
 rng.addSpell('rune', {'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
 rng.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
@@ -133,7 +133,14 @@ local unity_azia = common.getAA('Wildstalker\'s Unity (Azia)')
 --Slot 3: 	Protection of the Valley
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
+if not unity_azia then
+    table.insert(rng.selfBuffs, rng.spells.eyes)
+    table.insert(rng.selfBuffs, rng.spells.protection)
+end
 local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
+if not unity_beza then
+    table.insert(rng.selfBuffs, rng.spells.blades)
+end
 --Slot 1: 	Vociferous Blades
 --Slot 2: 	Steeled by the Hunt
 --Slot 3: 	Protection of the Valley
@@ -202,17 +209,13 @@ local function check_mob_angle()
     return true
 end
 
-local need_distance = true
-if mq.TLO.EverQuest.Server() == 'Project Lazarus' then
-    need_distance = false
-end
 local function attack_range()
     if state.assist_mob_id == 0 or mq.TLO.Target.ID() ~= state.assist_mob_id or not assist.should_assist() then
         if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
         return
     end
     local dist3d = mq.TLO.Target.Distance3D()
-    if need_distance then
+    if not state.emu then
         if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
             if not get_ranged_combat_position(40) then
                 return false
@@ -263,7 +266,7 @@ local function find_next_spell()
         end
     end
     for _,spell in ipairs(arrow_spells) do
-        if not rng.spells.composite.name or spell.name ~= rng.spells.composite.name or rng.OPTS.USECOMPOSITE.value then
+        if not rng.spells.composite or spell.name ~= rng.spells.composite.name or rng.OPTS.USECOMPOSITE.value then
             if common.is_spell_ready(spell) then
                 return spell
             end
@@ -290,11 +293,7 @@ rng.cast = function()
             end
             local spell = find_next_spell()
             if spell then
-                if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
-                    spell:use()
-                else
-                    spell:use()
-                end
+                spell:use()
                 return true
             end
         end
@@ -341,7 +340,7 @@ end
 --local check_aggro_timer = timer:new(10)
 rng.aggro = function()
     if mq.TLO.Me.PctHPs() < 50 then
-        evasion:use()
+        if evasion then evasion:use() end
         if config.MODE:return_to_camp() then
             mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
         end

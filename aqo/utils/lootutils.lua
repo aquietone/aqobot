@@ -108,9 +108,9 @@ EQ item names. Any INI entry which doesn't match the regex is just skipped over 
 
 ---@type Mq
 local mq = require 'mq'
-local _, LIP = pcall(require, 'lib.LIP')
+local _, LIP = pcall(require, AQO..'.utils.LIP')
 if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
-local _, Write = pcall(require, 'lib.Write')
+local _, Write = pcall(require, AQO..'.utils.Write')
 if not Write then print('\arERROR: Write.lua could not be loaded\ax') return end
 
 -- Public default settings, also read in from Loot.ini [Settings] section
@@ -121,7 +121,7 @@ local loot = {
     AddNewSales = true,
     LootForage = true,
     LootMobs = true,
-    CorpseRadius = 100,
+    CorpseRadius = 50,
     MobsTooClose = 40,
     ReportLoot = true,
     LootChannel = "dgt",
@@ -151,7 +151,7 @@ local cantLootList = {}
 local cantLootID = 0
 
 -- Constants
-local spawnSearch = '%s radius %d zradius 50'
+local spawnSearch = '%s radius %d zradius 25'
 local keepActions = {Keep=true, Bank=true, Sell=true}
 local destroyActions = {Destroy=true, Ignore=true}
 local validActions = {keep='Keep',bank='Bank',sell='Sell',ignore='Ignore',destroy='Destroy'}
@@ -194,7 +194,9 @@ local function checkCursor()
         -- can't do anything if there's nowhere to put the item, either due to no free inventory space
         -- or no slot of appropriate size
         if mq.TLO.Me.FreeInventory() == 0 or mq.TLO.Cursor() == currentItem then
-            shouldLootMobs = false
+            mq.cmdf('/dga /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName())
+            mq.cmd('/autoinv')
+            --shouldLootMobs = false
             return
         end
         currentItem = mq.TLO.Cursor()
@@ -204,7 +206,7 @@ local function checkCursor()
 end
 
 local function navToID(spawnID)
-    mq.cmdf('/nav id %d log=off', spawnID)
+    mq.cmdf('/squelch /nav id %d log=off', spawnID)
     mq.delay(50)
     if mq.TLO.Navigation.Active() then
         local startTime = os.time()
@@ -331,6 +333,7 @@ end
 local function lootCorpse(corpseID)
     loot.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
+    if mq.TLO.Me.FreeInventory() == 0 then mq.cmdf('/squelch /dga /squelch /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
     mq.cmd('/loot')
     mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
     mq.doevents('CantLoot')
@@ -340,20 +343,27 @@ local function lootCorpse(corpseID)
         cantLootList[corpseID] = os.time()
         return
     end
-    mq.delay(1000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
-    loot.logger.Debug(('Loot window open. Items: %s'):format(mq.TLO.Corpse.Items()))
-    if mq.TLO.Window('LootWnd').Open() and mq.TLO.Corpse.Items() > 0 then
-        for i=1,mq.TLO.Corpse.Items() do
+    mq.delay(1000, function() local items = mq.TLO.Corpse.Items() return items and items > 0 end)
+    local items = mq.TLO.Corpse.Items()
+    loot.logger.Debug(('Loot window open. Items: %s'):format(items))
+    if mq.TLO.Window('LootWnd').Open() and items > 0 then
+        for i=1,items do
+            local freeSpace = mq.TLO.Me.FreeInventory()
             local corpseItem = mq.TLO.Corpse.Item(i)
-            if corpseItem() and not corpseItem.Lore() then
+            local stackable = corpseItem.Stackable()
+            local freeStack = corpseItem.FreeStack()
+            if corpseItem() and not corpseItem.Lore() and (freeSpace > 0 or (stackable and freeStack > 0)) then
                 lootItem(i, getRule(corpseItem), 'leftmouseup')
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
-        for i=1,mq.TLO.Corpse.Items() do
+        for i=1,items do
+            local freeSpace = mq.TLO.Me.FreeInventory()
             local corpseItem = mq.TLO.Corpse.Item(i)
             if corpseItem() then
-                if corpseItem.Lore() and mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))() then
+                local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
+                local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
+                if (corpseItem.Lore() and (haveItem or haveItemBank)) or freeSpace == 0 then
                     loot.logger.Warn('Cannot loot lore item')
                 else
                     lootItem(i, getRule(corpseItem), 'leftmouseup')
@@ -382,13 +392,13 @@ end
 
 loot.lootMobs = function(limit)
     loot.logger.Debug('Enter lootMobs')
-    if mq.TLO.Me.FreeInventory() > 0 then shouldLootMobs = true end
-    if not shouldLootMobs then return false end
+    --if mq.TLO.Me.FreeInventory() > 0 then shouldLootMobs = true end
+    --if not shouldLootMobs then return false end
     local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.CorpseRadius))()
     loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
     local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.MobsTooClose))()
     -- options for combat looting or looting disabled
-    if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() or mq.TLO.Me.FreeInventory() == 0 then return false end
+    if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() then return false end -- or mq.TLO.Me.FreeInventory() == 0 then return false end
     local corpseList = {}
     for i=1,math.max(deadCount, limit or 0) do
         local corpse = mq.TLO.NearestSpawn(('%d,'..spawnSearch):format(i, 'npccorpse', loot.CorpseRadius))
@@ -400,7 +410,7 @@ loot.lootMobs = function(limit)
     for i=1,#corpseList do
         local corpse = corpseList[i]
         local corpseID = corpse.ID()
-        if corpseID and corpseID > 0 and not corpseLocked(corpseID) then
+        if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id '..tostring(corpseID))() or 100) < 60 then
             loot.logger.Debug('Moving to corpse ID='..tostring(corpseID))
             navToID(corpseID)
             corpse.DoTarget()
@@ -408,7 +418,7 @@ loot.lootMobs = function(limit)
             lootCorpse(corpseID)
             didLoot = true
             mq.doevents()
-            if not shouldLootMobs then break end
+            --if not shouldLootMobs then break end
         end
     end
     loot.logger.Debug('Done with corpse list.')

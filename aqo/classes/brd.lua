@@ -1,6 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.base')
+local baseclass = require(AQO..'.classes.classbase')
 local logger = require(AQO..'.utils.logger')
 local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
@@ -62,7 +62,7 @@ brd.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'}, {aura=true})
 brd.addSpell('overhaste', {'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
 brd.addSpell('bardhaste', {'Psalm of Veeshan', 'Composition of Ervaj'})
 brd.addSpell('emuhaste', {'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
-brd.addSpell('emuregen', {'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
+brd.addSpell('emuregen', {'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
 brd.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
 brd.addSpell('emuproc', {'Song of the Storm'})
 brd.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
@@ -71,7 +71,6 @@ local selos = common.getAA('Selo\'s Sonata')
 if not selos then
     brd.addSpell('selos', {'Selo\'s Accelerating Chorus'})
 end
-table.insert(brd.buffs, brd.spells.emuaura)
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local melee = {
@@ -111,14 +110,21 @@ local emunoaura = {
     brd.spells.selos, brd.spells.emuregen, brd.spells.overhaste, brd.spells.emuhaste, brd.spells.emunukebuff
 }
 
-local songs = {
-    melee=melee,
-    caster=caster,
-    meleedot=meleedot,
-    emuaura55=emuaura55,
-    emuaura65=emuaura65,
-    emunoaura=emunoaura,
-}
+local songs = {}
+if state.emu then
+    songs.emuaura65 = emuaura65
+    songs.emuaura55 = emuaura55
+    songs.emunoaura = emunoaura
+    table.insert(brd.auras, brd.spells.emuaura)
+    table.insert(brd.DPSAbilities, common.getItem('Rapier of Somber Notes'))
+    table.insert(brd.groupBuffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
+    table.insert(brd.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
+else
+    songs.melee = melee
+    songs.caster = caster
+    songs.meleedot = meleedot
+    table.insert(brd.auras, brd.spells.aura)
+end
 
 table.insert(brd.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
 table.insert(brd.burnAbilities, common.getItem('Rage of Rolfron'))
@@ -142,6 +148,7 @@ table.insert(brd.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
 
 table.insert(brd.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
 table.insert(brd.DPSAbilities, common.getSkill('Kick'))
+table.insert(brd.DPSAbilities, common.getAA('Selo\'s Kick'))
 
 local bellow = common.getAA('Boastful Bellow')
 
@@ -152,9 +159,6 @@ table.insert(baseclass.defensiveAbilities, common.getAA('Hymn of the Last Stand'
 
 -- Aggro
 brd.drop_aggro = common.getAA('Fading Memories')
-
-table.insert(brd.buffs, brd.spells.aura)
-table.insert(brd.buffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
 
 --table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
 --table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
@@ -316,9 +320,14 @@ end
 local fierceeye = common.getAA('Fierce Eye')
 local epic = common.getItem('Blade of Vesagran')
 local function use_epic()
-    local fierceeye_rdy = fierceeye and mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
-    if epic and mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy then
+    if not fierceeye or not epic then
         if fierceeye then fierceeye:use() end
+        if epic then epic:use() end
+        return
+    end
+    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
+    if mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy then
+        fierceeye:use()
         epic:use()
     end
 end
@@ -404,7 +413,7 @@ brd.check_spell_set = function()
             common.swap_spell(brd.spells.composite, 12, composite_names)
             common.swap_spell(brd.spells.dirge, 13)
             state.spellset_loaded = brd.OPTS.SPELLSET.value
-        elseif brd.OPTS.SPELLSET.value == 'emuaura' or brd.OPTS.SPELLSET.value == 'emunoaura' then
+        else -- emu spellsets
             common.swap_spell(brd.spells.emuaura, 1)
             common.swap_spell(brd.spells.emuregen, 2)
             common.swap_spell(brd.spells.emuhaste, 3)
@@ -439,14 +448,6 @@ brd.can_i_sing = function()
         return true
     end
     return false
-end
-
-brd.main_loop_old = function()
-    -- keep cursor clear for spell swaps and such
-    if selos_timer:timer_expired() then
-        selos:use()
-        selos_timer:reset()
-    end
 end
 
 return brd
