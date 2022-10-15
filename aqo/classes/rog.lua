@@ -11,6 +11,7 @@ class.addCommonOptions()
 
 table.insert(class.DPSAbilities, common.getSkill('Kick'))
 table.insert(class.DPSAbilities, common.getSkill('Backstab'))
+table.insert(class.DPSAbilities, common.getAA('Twisted Shank'))
 
 table.insert(class.combatBuffs, common.getAA('Envenomed Blades'))
 table.insert(class.combatBuffs, common.getBestDisc({'Thief\'s Eyes'}))

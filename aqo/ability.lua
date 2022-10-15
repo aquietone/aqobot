@@ -139,7 +139,7 @@ end
 function Ability.canUseSpell(spell, abilityType)
     if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then return false end
     if not in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then return false end
-    if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then return false end
+    if abilityType ~= Ability.Types.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then return false end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
     if state.class ~= 'brd' then
         for i=1,3 do
@@ -311,7 +311,7 @@ function Item:isReady(item)
     if state.subscription ~= 'GOLD' and item.Prestige() then return false end
     local spell = item.Clicky.Spell
     if spell() and item.Timer() == '0' then
-        return Ability.canUseSpell(spell) and Ability.shouldUseSpell(spell)
+        return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)
     else
         return false
     end
@@ -320,11 +320,11 @@ end
 ---Use the item specified by item.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 function Item:use()
-    local item = mq.TLO.FindItem(self.id)
-    if self:isReady(item) then
-        logger.printf('Use Item: \ax\ar%s\ax', item)
-        mq.cmdf('/useitem "%s"', item)
-        mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+    local theItem = mq.TLO.FindItem(self.id)
+    if self:isReady(theItem) then
+        logger.printf('Use Item: \ax\ar%s\ax', theItem)
+        mq.cmdf('/useitem "%s"', theItem)
+        mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true
     end
     return false

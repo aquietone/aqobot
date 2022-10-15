@@ -12,6 +12,7 @@ class.SPELLSETS = {standard=1}
 class.addCommonOptions()
 class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox')
 class.addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of heal over time', 'checkbox')
+class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 
 class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {me=75, mt=65, other=65})
 class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=true, endurance=false, minhp=50, ooc=false})
