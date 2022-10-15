@@ -4,17 +4,17 @@ local class = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
 class.class = 'bst'
-class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
+class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
 
 class.SPELLSETS = {standard=1}
 class.addCommonOptions()
 
 class.addSpell('pethaste',{'Arag\'s Celerity'}) -- pet haste
-class.addSpell('pet', {'Spirit of Sorsha, pet'}, {opt='SUMMONPET'}) -- pet
+class.addSpell('pet', {'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
 class.addSpell('petbuff', {'Spirit of Rellic'}) -- pet buff
 class.addSpell('groupregen', {'Spiritual Vigor'}) -- group buff
 class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
-class.addSpell('petheal', {'Healing of Sorsha'}) -- pet heal
+class.addSpell('petheal', {'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
 class.addSpell('fero', {'Ferocity'}) -- like shm avatar
 
 local standard = {}
@@ -44,7 +44,7 @@ class.buff_class = function()
         for i=1,mq.TLO.Group.GroupSize()-1 do
             local member = mq.TLO.Group.Member(i)
             local distance = member.Distance3D() or 300
-            if melees[member.Class.ShortName()] and not member.Buff(class.spells.fero.name)() and distance < 100 then
+            if melees[member.Class.ShortName()] and not member.Dead() and not member.Buff(class.spells.fero.name)() and distance < 100 then
                 member.DoTarget()
                 mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)

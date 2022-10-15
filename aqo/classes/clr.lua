@@ -12,7 +12,7 @@ class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'che
 class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
 
 --class.addSpell('heal', {'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
-class.addSpell('remedy', {'Supernal Remedy', 'Remedy'}, {me=75, mt=75, other=75})
+class.addSpell('remedy', {'Supernal Remedy', 'Remedy'}, {me=75, mt=75, other=75, pet=60})
 class.addSpell('aura', {'Aura of Divinity'}, {aura=true})
 class.addSpell('yaulp', {'Yaulp VI'}, {combat=true, ooc=false, opt='USEYAULP'})
 class.addSpell('armor', {'Armor of the Zealot'})

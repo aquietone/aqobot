@@ -313,6 +313,7 @@ local function draw_header()
         if ImGui.Button('PAUSE', 147, 22) then
             state.paused = true
             state.reset_combat_state()
+            mq.cmd('/stopcast')
         end
     end
     ImGui.SameLine()

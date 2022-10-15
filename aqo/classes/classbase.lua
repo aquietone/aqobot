@@ -114,6 +114,10 @@ base.addCommonOptions = function()
     if petclasses[base.class] then
         base.addOption('SUMMONPET', 'Summon Pet', true, nil, 'Summon a pet', 'checkbox')
         base.addOption('BUFFPET', 'Buff Pet', true, nil, 'Use pet buffs', 'checkbox')
+        base.addOption('HEALPET', 'Heal Pets', true, nil, 'Toggle healing of pets', 'checkbox')
+    end
+    if base.class == 'clr' then
+        base.addOption('HEALPET', 'Heal Pets', true, nil, 'Toggle healing of pets', 'checkbox')
     end
     base.addOption('USEGLYPH', 'Use DPS Glyph', false, nil, 'Use glyph of destruction during burns', 'checkbox')
     base.addOption('USEINTENSITY', 'Use Intensity', false, nil, 'Use intensity of the resolute during burns', 'checkbox')
@@ -299,7 +303,7 @@ base.heal = function()
     if common.am_i_dead() then return end
     for _,heal in ipairs(base.healAbilities) do
         local groupSize = mq.TLO.Group.GroupSize() or 0
-        if common.is_spell_ready(heal) then
+        if common.is_spell_ready(heal, true) or heal.type == Abilities.Types.Skill then
             if heal.self then
                 if mq.TLO.Me.PctHPs() < heal.me then
                     heal:use()
@@ -309,12 +313,13 @@ base.heal = function()
                     heal:use()
                     return
                 end
-            elseif heal.hot then
+            elseif heal.hot and base.isEnabled('USEHOT') then
                 for i=1,groupSize-1 do
                     local member = mq.TLO.Group.Member(i)
+                    local memberhp = member.PctHPs() or 0
                     local hotTimer = hottimers[member.CleanName()]
                     local distance = member.Distance3D() or 300
-                    if (not hotTimer or hotTimer:timer_expired()) and melees[member.Class.ShortName()] and (member.PctHPs() or 100) < 85 and distance < 100 then
+                    if (not hotTimer or hotTimer:timer_expired()) and melees[member.Class.ShortName()] and memberhp > 60 and memberhp < 85 and distance < 100 then
                         member.DoTarget()
                         mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                         heal:use()
@@ -350,7 +355,21 @@ base.heal = function()
                             heal:use()
                             return
                         end
+                        if base.isEnabled('HEALPET') then
+                            local memberPetHP = member.Pet.PctHPs() or 100
+                            if memberPetHP < heal.pet then
+                                member.Pet.DoTarget()
+                                mq.delay(100, function() return mq.TLO.Target.ID() == member.Pet.ID() end)
+                                heal:use()
+                                return
+                            end
+                        end
                     end
+                elseif base.isEnabled('HEALPET') and (mq.TLO.Pet.PctHPs() or 100) < heal.pet then
+                    mq.TLO.Pet.DoTarget()
+                    mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Pet.ID() end)
+                    heal:use()
+                    return
                 end
             end
         end
@@ -426,7 +445,8 @@ local function castDebuffs()
         if base.dispel.type == Abilities.Types.Spell then return true end
     end
     -- debuff too generic to be checking Tashed TLO...
-    if base.isEnabled('USEDEBUFFAOE') and (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and base.debuff then
+    --if base.isEnabled('USEDEBUFFAOE') and (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and base.debuff then
+    if base.isEnabled('USEDEBUFF') and (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and base.debuff then
         base.debuff:use()
         if base.debuff.type == Abilities.Types.Spell then return true end
     end

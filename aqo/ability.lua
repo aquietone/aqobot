@@ -137,9 +137,24 @@ local function in_control()
 end
 
 function Ability.canUseSpell(spell, abilityType)
-    if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then return false end
-    if not in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then return false end
-    if abilityType ~= Ability.Types.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then return false end
+    if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
+        if logger.log_flags.common.cast then
+            logger.debug(logger.log_flags.common.cast, ('Spell not ready (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
+        end
+        return false
+    end
+    if not in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then
+        if logger.log_flags.common.cast then
+            logger.debug(logger.log_flags.common.cast, ('Not in control or moving (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
+        end
+        return false
+    end
+    if abilityType ~= Ability.Types.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then
+        if logger.log_flags.common.cast then
+            logger.debug(logger.log_flags.common.cast, ('Not enough mana or endurance (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
+        end
+        return false
+    end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
     if state.class ~= 'brd' then
         for i=1,3 do
@@ -147,7 +162,9 @@ function Ability.canUseSpell(spell, abilityType)
             if reagentid ~= -1 then
                 local reagent_count = spell.ReagentCount(i)()
                 if mq.TLO.FindItemCount(reagentid)() < reagent_count then
-                    logger.debug(logger.log_flags.common.cast, 'Missing Reagent (%s)', reagentid)
+                    if logger.log_flags.common.cast then
+                        logger.debug(logger.log_flags.common.cast, 'Missing Reagent for (id=%d, name=%s, type=%s, reagentid=%s)', spell.ID(), spell.Name(), abilityType, reagentid)
+                    end
                     return false
                 end
             else
@@ -256,6 +273,8 @@ function Disc:use(overwrite)
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
+        else
+            logger.debug(logger.log_flags.common.cast, ('Not casting due to conflicting active disc (%s)'):format(self.name))
         end
     end
     return false
@@ -357,6 +376,7 @@ end
 
 return {
     Types=Ability.Types,
+    canUseSpell=Ability.canUseSpell,
     Spell=Spell,
     Disc=Disc,
     AA=AA,

@@ -302,7 +302,7 @@ common.is_dot_ready = function(spell)
     end
 end
 
-common.is_spell_ready = function(spell)
+common.is_spell_ready = function(spell, skipCheckTarget)
     if not spell then return false end
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
@@ -312,7 +312,7 @@ common.is_spell_ready = function(spell)
     if mq.TLO.Spell(spell.name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell.name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
         return false
     end
-    if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
+    if not skipCheckTarget and mq.TLO.Spell(spell.name).TargetType() == 'Single' then
         if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
     end
 

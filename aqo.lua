@@ -89,11 +89,13 @@ local function cmd_bind(...)
             state.paused = not state.paused
             if state.paused then
                 state.reset_combat_state()
+                mq.cmd('/stopcast')
             end
         else
             if common.BOOL.TRUE[new_value] then
                 state.paused = true
                 state.reset_combat_state()
+                mq.cmd('/stopcast')
             elseif common.BOOL.FALSE[new_value] then
                 camp.set_camp()
                 state.paused = false

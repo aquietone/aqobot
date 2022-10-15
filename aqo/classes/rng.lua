@@ -12,7 +12,7 @@ local state = require(AQO..'.state')
 mq.cmd('/squelch /stick mod 0')
 
 class.class = 'rng'
-class.classOrder = {'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
+class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'aggro', 'recover', 'buff', 'rest'}
 
 class.SPELLSETS = {standard=1}
 
@@ -33,7 +33,7 @@ class.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as i
 class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
 class.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+class.addSpell('focused', {'Focused Whirlwind of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
 class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
 class.addSpell('heart', {'Heartruin', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
 class.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
@@ -135,6 +135,7 @@ if state.emu then
     table.insert(class.selfBuffs, class.spells.protection)
     table.insert(class.selfBuffs, class.spells.blades)
     table.insert(class.combatBuffs, common.getBestDisc({'Trueshot Discipline'}))
+    --table.insert(class.healAbilities, class.getBestSpell({''}))
 end
 local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
 --Slot 1: 	Vociferous Blades
@@ -392,7 +393,7 @@ local function target_missing_buff(name)
 end
 
 local group_buff_timer = timer:new(60)
-class.buff = function()
+class.buff_class = function()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if brownies and not mq.TLO.Me.Buff(brownies.name)() then

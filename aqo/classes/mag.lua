@@ -5,7 +5,7 @@ local assist = require(AQO..'.routines.assist')
 local common = require(AQO..'.common')
 
 class.class = 'mag'
-class.classOrder = {'assist', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'managepet'}
+class.classOrder = {'assist', 'mash', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
 
 class.SPELLSETS = {standard=1}
 
@@ -23,7 +23,7 @@ class.addSpell('petstrbuff', {'Earthen Strength'})
 
 class.addSpell('manaregen', {'Elemental Siphon'}) -- self mana regen
 class.addSpell('acregen', {'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
-class.addSpell('petheal', {'Planar Renewal'}) -- pet heal
+class.addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
 
 table.insert(class.DPSAbilities, common.getItem('Aged Sarnak Channeler Staff'))
 table.insert(class.DPSAbilities, common.getAA('Force of Elements'))

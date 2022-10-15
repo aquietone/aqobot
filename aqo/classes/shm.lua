@@ -5,16 +5,17 @@ local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
 
 class.class = 'shm'
-class.classOrder = {'heal', 'assist', 'cast', 'cure', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}
+class.classOrder = {'heal', 'cure', 'assist', 'cast', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}
 
 class.SPELLSETS = {standard=1}
 
 class.addCommonOptions()
-class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox')
+class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox')
+class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox')
 class.addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of heal over time', 'checkbox')
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 
-class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {me=75, mt=65, other=65})
+class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {me=75, mt=65, other=65, pet=60})
 class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=true, endurance=false, minhp=50, ooc=false})
 class.addSpell('pet', {'True Spirit', 'Frenzied Spirit'})
 class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'})
@@ -40,6 +41,7 @@ table.insert(class.cures, class.spells.cure)
 table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
 table.insert(class.healAbilities, common.getAA('Union of Spirits', {me=30, mt=30, other=30}))
 
+class.debuff = common.getAA('Malosinete')
 class.slow = common.getAA('Turgur\'s Swarm') or common.getBestSpell({'Turgur\'s Insects', 'Togor\'s Insects'})
 class.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
 table.insert(class.recoverAbilities, class.canni)
@@ -73,7 +75,7 @@ class.buff_class = function()
         for i=1,mq.TLO.Group.GroupSize()-1 do
             local member = mq.TLO.Group.Member(i)
             local distance = member.Distance3D() or 300
-            if melees[member.Class.ShortName()] and not member.Buff(class.spells.proc.name)() and distance < 100 then
+            if melees[member.Class.ShortName()] and not member.Dead() and not member.Buff(class.spells.proc.name)() and distance < 100 then
                 member.DoTarget()
                 mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)

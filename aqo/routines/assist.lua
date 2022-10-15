@@ -9,6 +9,36 @@ local state = require(AQO..'.state')
 
 local assist = {}
 
+--|------------------------------------------------------------|
+--|-  Turns off attack, when a mob you're attacking enrages.  -|
+--|------------------------------------------------------------|
+local function eventEnraged(line, name)
+    if mq.TLO.Target.ID() == mq.TLO.Spawn(name).ID() then
+        -- target is enraged
+        mq.cmd('/squelch /face fast')
+        if math.abs(mq.TLO.Me.Heading.Degrees()-mq.TLO.Target.Heading.Degrees()) > 85 and not mq.TLO.Stick.Behind() then
+            mq.cmd('/attack off')
+        end
+    end
+    if mq.TLO.Pet.ID() > 0 then
+        mq.cmd('/pet back')
+    end
+end
+--mq.event('enrageOn', '#1# has become ENRAGED.', eventEnraged)
+
+--|------------------------------------------------|
+--|-  Turns attack back on, after enrage is over. -|
+--|------------------------------------------------|
+local function eventEnragedOff(line, name)
+    if mq.TLO.Target.ID() == mq.TLO.Spawn(name).ID() then
+        -- target is no longer enraged
+    end
+    if mq.TLO.Pet.ID() > 0 then
+        mq.cmd('/pet attack')
+    end
+end
+--mq.event('enrageOff', '#1# is no longer enraged.', eventEnragedOff)
+
 ---@return integer @Returns the spawn ID of the configured main assist, otherwise 0.
 assist.get_assist_id = function()
     local assist_id = 0

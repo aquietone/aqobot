@@ -114,13 +114,14 @@ if state.emu then
     songs.emunoaura = emunoaura
     table.insert(class.auras, class.spells.emuaura)
     table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes'))
-    table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
+    table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal'))
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
 else
     songs.melee = melee
     songs.caster = caster
     songs.meleedot = meleedot
     table.insert(class.auras, class.spells.aura)
+    table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
 end
 
 table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
