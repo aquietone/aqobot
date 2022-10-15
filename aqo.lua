@@ -81,6 +81,9 @@ local function cmd_bind(...)
         loot.sellStuff()
     elseif opt == 'burnnow' then
         state.burn_now = true
+        if new_value == 'quick' or new_value == 'long' then
+            state.burn_type = new_value
+        end
     elseif opt == 'pause' then
         if not new_value then
             state.paused = not state.paused

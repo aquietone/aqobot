@@ -1,24 +1,23 @@
 ---@type Mq
 local mq = require('mq')
-local baseclass = require(AQO..'.classes.classbase')
+local class = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
-local rog = baseclass
+class.class = 'rog'
+class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
-rog.class = 'rog'
-rog.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+class.addCommonOptions()
+--class.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
---rog.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
+table.insert(class.DPSAbilities, common.getSkill('Kick'))
+table.insert(class.DPSAbilities, common.getSkill('Backstab'))
 
-table.insert(rog.DPSAbilities, common.getSkill('Kick'))
-table.insert(rog.DPSAbilities, common.getSkill('Backstab'))
+table.insert(class.combatBuffs, common.getAA('Envenomed Blades'))
+table.insert(class.combatBuffs, common.getBestDisc({'Thief\'s Eyes'}))
+table.insert(class.selfBuffs, common.getItem('Faded Gloves of the Shadows', {checkfor='Strike Poison'}))
+table.insert(class.burnAbilities, common.getAA('Rogue\'s Fury'))
 
-table.insert(rog.combatBuffs, common.getAA('Envenomed Blades'))
-table.insert(rog.combatBuffs, common.getBestDisc({'Thief\'s Eyes'}))
-table.insert(rog.selfBuffs, common.getItem('Faded Gloves of the Shadows', {checkfor='Strike Poison'}))
-table.insert(rog.burnAbilities, common.getAA('Rogue\'s Fury'))
+table.insert(class.burnAbilities, common.getBestDisc({'Duelist Discipline'}))
+table.insert(class.burnAbilities, common.getBestDisc({'Deadly Precision Discipline'}))
 
-table.insert(rog.burnAbilities, common.getBestDisc({'Duelist Discipline'}))
-table.insert(rog.burnAbilities, common.getBestDisc({'Deadly Precision Discipline'}))
-
-return rog
+return class

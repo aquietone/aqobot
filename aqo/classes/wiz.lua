@@ -1,24 +1,22 @@
-local baseclass = require(AQO..'.classes.classbase')
+local class = require(AQO..'.classes.classbase')
 
-local wiz = baseclass
+class.class = 'wiz'
+class.classOrder = {'assist', 'cast', 'burn', 'recover', 'buff', 'rest'}
 
-wiz.class = 'wiz'
-wiz.classOrder = {'assist', 'cast', 'burn', 'recover', 'buff', 'rest'}
+class.SPELLSETS = {standard=1}
 
-wiz.SPELLSETS = {standard=1}
+class.addCommonOptions()
+class.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
 
-wiz.addOption('SPELLSET', 'Spell Set', 'standard', wiz.SPELLSETS, nil, 'combobox')
-wiz.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
-
-wiz.addSpell('nuke1', {'Pillar of Fire'})
-wiz.addSpell('nuke2', {'Fire Spiral of Al\'Kabor'})
+class.addSpell('nuke1', {'Pillar of Fire'})
+class.addSpell('nuke2', {'Fire Spiral of Al\'Kabor'})
 
 local standard = {}
-table.insert(standard, wiz.spells.nuke1)
-table.insert(standard, wiz.spells.nuke2)
+table.insert(standard, class.spells.nuke1)
+table.insert(standard, class.spells.nuke2)
 
-wiz.spellRotations = {
+class.spellRotations = {
     standard=standard
 }
 
-return wiz
+return class

@@ -1,43 +1,39 @@
 ---@type Mq
 local mq = require 'mq'
-local baseclass = require(AQO..'.classes.classbase')
+local class = require(AQO..'.classes.classbase')
 local timer = require(AQO..'.utils.timer')
 local common = require(AQO..'.common')
 
-local dru = baseclass
+class.class = 'dru'
+class.classOrder = {'heal', 'assist', 'cast', 'burn', 'recover', 'buff', 'rest'}
 
-dru.class = 'dru'
-dru.classOrder = {'heal', 'assist', 'cast', 'burn', 'recover', 'buff', 'rest'}
+class.SPELLSETS = {standard=1}
+class.addCommonOptions()
+class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
+class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
-dru.SPELLSETS = {standard=1}
+class.addSpell('heal', {'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {me=75, mt=75, other=75})
+class.addSpell('groupheal', {'Word of Restoration'})
+class.addSpell('firenuke', {'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
+class.addSpell('dot', {'Winged Death'})
+class.addSpell('snare', {'Ensnare', 'Snare'})
+class.addSpell('aura', {'Aura of Life', 'Aura of the Grove'}, {aura=true})
 
-dru.addOption('SPELLSET', 'Spell Set', 'standard', dru.SPELLSETS, nil, 'combobox')
-dru.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
-dru.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
-dru.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
-
-dru.addSpell('heal', {'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {me=75, mt=75, other=75})
-dru.addSpell('groupheal', {'Word of Restoration'})
-dru.addSpell('firenuke', {'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
-dru.addSpell('dot', {'Winged Death'})
-dru.addSpell('snare', {'Ensnare', 'Snare'})
-dru.addSpell('aura', {'Aura of Life', 'Aura of the Grove'}, {aura=true})
-
-dru.snare = dru.spells.snare
+class.snare = class.spells.snare
 
 -- Aura of the Grove, Aura of the Grove Effect
 
 local standard = {}
-table.insert(standard, dru.spells.firenuke)
+table.insert(standard, class.spells.firenuke)
 
-dru.spellRotations = {
+class.spellRotations = {
     standard=standard
 }
 
-table.insert(dru.healAbilities, dru.spells.heal)
+table.insert(class.healAbilities, class.spells.heal)
 
-table.insert(dru.auras, dru.spells.aura)
+table.insert(class.auras, class.spells.aura)
 
-dru.nuketimer = timer:new(5)
+class.nuketimer = timer:new(5)
 
-return dru
+return class

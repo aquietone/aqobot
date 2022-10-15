@@ -1,21 +1,19 @@
-local baseclass = require(AQO..'.classes.classbase')
+local class = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
-local pal = baseclass
+class.class = 'pal'
+class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
-pal.class = 'pal'
-pal.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+class.SPELLSETS = {standard=1}
 
-pal.SPELLSETS = {standard=1}
-
-pal.addOption('SPELLSET', 'Spell Set', 'standard', pal.SPELLSETS, nil, 'combobox')
+class.addCommonOptions()
 
 local standard = {}
 
-pal.spellRotations = {
+class.spellRotations = {
     standard=standard
 }
 
-table.insert(pal.DPSAbilities, common.getSkill('Kick'))
+table.insert(class.DPSAbilities, common.getSkill('Kick'))
 
-return pal
+return class

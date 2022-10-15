@@ -97,6 +97,35 @@ base.addOption = function(key, label, value, options, tip, type, exclusive)
     table.insert(base.OPTS, key)
 end
 
+local casterpriests = {clr=true,shm=true,dru=true,mag=true,nec=true,enc=true,wiz=true}
+local petclasses = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=true}
+local buffclasses = {clr=true,dru=true,enc=true,shm=true,mag=true,rng=true,bst=true}
+local healers = {clr=true,dru=true,shm=true}
+base.addCommonOptions = function()
+    if base.SPELLSETS then
+        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.SPELLSETS, nil, 'combobox')
+        base.addOption('BYOS', 'BYOS', false, nil, 'Bring your own spells', 'checkbox')
+    end
+    base.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
+    base.addOption('USEALLIANCE', 'Use Alliance', true, nil, 'Use alliance spell', 'checkbox')
+    if casterpriests[base.class] then
+        base.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
+    end
+    if petclasses[base.class] then
+        base.addOption('SUMMONPET', 'Summon Pet', true, nil, 'Summon a pet', 'checkbox')
+        base.addOption('BUFFPET', 'Buff Pet', true, nil, 'Use pet buffs', 'checkbox')
+    end
+    base.addOption('USEGLYPH', 'Use DPS Glyph', false, nil, 'Use glyph of destruction during burns', 'checkbox')
+    base.addOption('USEINTENSITY', 'Use Intensity', false, nil, 'Use intensity of the resolute during burns', 'checkbox')
+    if buffclasses[base.class] then
+        base.addOption('SERVEBUFFREQUESTS', 'Serve Buff Requests', true, nil, 'Toggle serving buff requests', 'checkbox')
+    end
+    if healers[base.class] then
+        base.addOption('XTARGETHEAL', 'Heal XTarget', false, nil, 'Toggle healing of PCs on XTarget', 'checkbox')
+        base.addOption('XTARGETBUFF', 'Buff XTarget', false, nil, 'Toggle buffing of PCs on XTarget', 'checkbox')
+    end
+end
+
 -- Return true only if the option is both defined and true
 -- For cases where something should only be done by a class who has the option
 -- Ex. USEMEZ logic should only ever be entered for classes who can mez.
@@ -134,7 +163,11 @@ base.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
     if not settings or not settings[base.class] then return end
     for setting,value in pairs(settings[base.class]) do
-        base.OPTS[setting].value = value
+        if base.OPTS[setting] == nil then
+            logger.printf('Unrecognized setting: %s=%s', setting, value)
+        else
+            base.OPTS[setting].value = value
+        end
     end
 end
 
@@ -328,14 +361,15 @@ base.cure = function()
 
 end
 
-local function doCombatLoop(list)
+local function doCombatLoop(list, burn_type)
     local target = mq.TLO.Target
     local dist = target.Distance3D() or 0
     local maxdist = target.MaxRangeTo() or 0
     for _,ability in ipairs(list) do
         if (ability.name or ability.id) and (base.isAbilityEnabled(ability.opt)) and
                 (ability.threshold == nil or ability.threshold <= state.mob_count_nopet) and
-                (ability.type ~= Abilities.Types.Skill or dist < maxdist) then
+                (ability.type ~= Abilities.Types.Skill or dist < maxdist) and
+                (burn_type == nil or ability[burn_type]) then
             if ability:use() and ability.delay then mq.delay(ability.delay) end
         end
     end
@@ -353,6 +387,7 @@ base.mash = function()
 end
 
 base.ae = function()
+    if not base.isEnabled('USEAOE') then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then
@@ -371,9 +406,9 @@ base.burn = function()
         if base.burn_class then base.burn_class() end
 
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() then
-            doCombatLoop(base.tankBurnAbilities)
+            doCombatLoop(base.tankBurnAbilities, state.burn_type)
         end
-        doCombatLoop(base.burnAbilities)
+        doCombatLoop(base.burnAbilities, state.burn_type)
     end
 end
 
@@ -489,6 +524,8 @@ local function buff_ooc()
         local buffName = buff.name -- TODO: buff name may not match AA or item name
         if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
         if base.isEnabledOrDNE(buff.opt) and not mq.TLO.Me.Buff(buffName)() and not mq.TLO.Me.Song(buffName)() and (not buff.checkfor or (not mq.TLO.Me.Buff(buff.checkfor)() and not mq.TLO.Me.Song(buff.checkfor)())) then
+            mq.TLO.Me.DoTarget()
+            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then return true end
             elseif buff.type == Abilities.Types.Disc then

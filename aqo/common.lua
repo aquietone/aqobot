@@ -11,7 +11,7 @@ local common = {}
 
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
 common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
-common.FD_CLASSES = {nec=true}--{mnk=true,bst=true,shd=true,nec=true}
+common.FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true}
 common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
 common.BOOL = {
     TRUE={
@@ -427,6 +427,7 @@ common.is_burn_condition_met = function(always_condition)
         return true
     else
         state.burn_active = false
+        state.burn_type = nil
     end
     if state.burn_now then
         logger.printf('\arActivating Burns (on demand)\ax')
@@ -445,21 +446,25 @@ common.is_burn_condition_met = function(always_condition)
             logger.printf('\arActivating Burns (named)\ax')
             state.burn_active_timer:reset()
             state.burn_active = true
+            state.burn_type = nil
             return true
         elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() >= config.BURNCOUNT then
             logger.printf('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT)
             state.burn_active_timer:reset()
             state.burn_active = true
+            state.burn_type = nil
             return true
         elseif config.BURNPCT ~= 0 and mq.TLO.Target.PctHPs() < config.BURNPCT then
             logger.printf('\arActivating Burns (percent HP)\ax')
             state.burn_active_timer:reset()
             state.burn_active = true
+            state.burn_type = nil
             return true
         end
     end
     state.burn_active_timer:reset(0)
     state.burn_active = false
+    state.burn_type = nil
     return false
 end
 
