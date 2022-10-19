@@ -130,13 +130,14 @@ pull.pull_radar = function()
     pull_radar_timer:reset()
     local pull_radius_count
     local pull_radius = config.PULLRADIUS
+    if not pull_radius then return 0 end
     if camp.Active then
         pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(camp.X, camp.Y, pull_radius))()
         logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
     else
         pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
         -- error here
-        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count_camp:format(pull_radius)))
+        logger.debug(logger.log_flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count:format(pull_radius)))
     end
     local shortest_path = pull_radius
     local pull_id = 0
@@ -192,9 +193,9 @@ local function pull_nav_to(pull_spawn)
         clear_pull_vars()
         return false
     end
-    logger.printf('Pulling \ay%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID())
+    logger.printf('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID())
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
-        logger.debug(logger.log_flags.routines.pull, 'Moving to pull target (%s)', state.pull_mob_id)
+        logger.debug(logger.log_flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pull_mob_id)
         --if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
         if mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
             mq.cmdf('/nav spawn id %d | dist=15 log=off', state.pull_mob_id)

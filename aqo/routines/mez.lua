@@ -84,13 +84,13 @@ mez.do_single = function(mez_spell)
 end
 
 mez.event_mezbreak = function(line, mob, breaker)
-    logger.printf('\ay%s\ax mez broken by \ag%s\ax', mob, breaker)
+    logger.printf('\at%s\ax mez broken by \at%s\ax', mob, breaker)
 end
 
 mez.event_mezimmune = function(line)
     local mez_target_name = state.mez_target_name
     if mez_target_name then
-        logger.printf('Added to MEZ_IMMUNE: \ay%s', mez_target_name)
+        logger.printf('Added to MEZ_IMMUNE: \at%s', mez_target_name)
         state.mez_immunes[mez_target_name] = 1
     end
 end
@@ -98,7 +98,7 @@ end
 mez.event_mezresist = function(line, mob)
     local mez_target_name = state.mez_target_name
     if mez_target_name and mob == mez_target_name then
-        logger.printf('MEZ RESIST >>> %s <<<', mez_target_name)
+        logger.printf('MEZ RESIST >>> \at%s\ax <<<', mez_target_name)
         state.targets[state.mez_target_id].meztimer:reset(0)
     end
 end

@@ -144,7 +144,7 @@ assist.check_target = function(reset_timers)
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
             reset_combat_timers()
             if reset_timers then reset_timers() end
-            logger.printf('Assisting on >>> \ay%s\ax <<<', mq.TLO.Target.CleanName())
+            logger.printf('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
         end
     end
 end

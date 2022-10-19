@@ -1,6 +1,6 @@
 local logger = {}
 
-local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax '
+local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax \aw'
 
 logger.log_flags = {
     class={cast=false,mash=false,assist=false,tank=false,rest=false,recover=false,burn=false,heal=false,managepet=false},
@@ -12,7 +12,7 @@ logger.log_flags = {
 ---The formatted string and zero or more replacement variables for the formatted string.
 ---@vararg string
 function logger.printf(...)
-    print(log_prefix..string.format(...))
+    print(log_prefix..string.format(...)..'\ax')
 end
 
 ---The formatted string and zero or more replacement variables for the formatted string.

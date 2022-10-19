@@ -33,11 +33,11 @@ class.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as i
 class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
 class.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-class.addSpell('focused', {'Focused Whirlwind of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
 class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
 class.addSpell('heart', {'Heartruin', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
 class.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-class.addSpell('summer', {'Summer\'s Torrent', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
+class.addSpell('summer', {'Summer\'s Torrent', 'Sylvan Burn', 'Scorched Earth', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
 class.addSpell('boon', {'Lunarflare boon'}) -- 
 class.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
 class.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast

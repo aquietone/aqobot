@@ -12,7 +12,11 @@ mq.cmd('/squelch /stick mod 0')
 class.class = 'brd'
 class.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
-class.SPELLSETS = {melee=1,caster=1,meleedot=1,emuaura55=1,emuaura65=1,emunoaura=1}
+if state.emu then
+    class.SPELLSETS = {emuancient=1,emuaura65=1,emuaura55=1,emunoaura=1}
+else
+    class.SPELLSETS = {melee=1,caster=1,meleedot=1}
+end
 class.DEFAULT_SPELLSET='melee'
 class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
 
@@ -46,23 +50,24 @@ class.addSpell('firemagicdotbuff', {'Fyrthek Fior\'s Psalm of Potency', 'Velketo
 class.addSpell('crescendo', {'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}) -- small heal hp, mana, end
 class.addSpell('insult', {'Yelinak\'s Insult', 'Sathir\'s Insult'}) -- synergy DD
 class.addSpell('insult2', {'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}) -- synergy DD 2
-class.addSpell('chantflame', {'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame'})
-class.addSpell('chantfrost', {'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost'})
-class.addSpell('chantdisease', {'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease'})
-class.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison'})
+class.addSpell('chantflame', {'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, {opt='USEDOTS'})
+class.addSpell('chantfrost', {'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, {opt='USEDOTS'})
+class.addSpell('chantdisease', {'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDOTS'})
+class.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEDOTS'})
 class.addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
 class.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'})
 class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
 
 -- haste song doesn't stack with enc haste?
 class.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'}, {aura=true})
-class.addSpell('overhaste', {'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
+class.addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
 class.addSpell('bardhaste', {'Psalm of Veeshan', 'Composition of Ervaj'})
 class.addSpell('emuhaste', {'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
 class.addSpell('emuregen', {'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
 class.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
 class.addSpell('emuproc', {'Song of the Storm'})
 class.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
+class.addSpell('debuff', {'Harmony of Sound'})
 
 local selos = common.getAA('Selo\'s Sonata')
 if not selos then
@@ -93,6 +98,10 @@ local meleedot = {
 }
 -- synergy, mezst, mezae
 
+local emuancient = {
+    class.spells.overhaste, class.spells.emuregen, class.spells.bardhaste, class.spells.emuproc, class.spells.chantflame
+}
+
 local emuaura65 = {}
 if class.spells.selos then table.insert(emuaura65, class.spells.selos) end
 table.insert(emuaura65, class.spells.emuregen)
@@ -101,7 +110,7 @@ table.insert(emuaura65, class.spells.bardhaste)
 table.insert(emuaura65, class.spells.emuhaste)
 
 local emuaura55 = {
-    class.spells.selosb, class.spells.emuregen, class.spells.overhaste, class.spells.bardhaste, class.spells.emuhaste
+    class.spells.selos, class.spells.emuregen, class.spells.overhaste, class.spells.bardhaste, class.spells.emuhaste
 }
 local emunoaura = {
     class.spells.selos, class.spells.emuregen, class.spells.overhaste, class.spells.emuhaste, class.spells.emunukebuff
@@ -109,6 +118,7 @@ local emunoaura = {
 
 local songs = {}
 if state.emu then
+    songs.emuancient = emuancient
     songs.emuaura65 = emuaura65
     songs.emuaura55 = emuaura55
     songs.emunoaura = emunoaura
@@ -116,6 +126,8 @@ if state.emu then
     table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes'))
     table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal'))
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
+
+    table.insert(class.burnAbilities, common.getAA('A Tune Stuck In Your Head'))
 else
     songs.melee = melee
     songs.caster = caster
@@ -287,7 +299,7 @@ local function find_next_song()
     for _,song in ipairs(songs[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.id
         local song_name = song.name
-        if is_song_ready(song_id, song_name) then
+        if is_song_ready(song_id, song_name) and class.isAbilityEnabled(song.opt) then
             if song_name ~= (class.spells.composite and class.spells.composite.name) or mq.TLO.Target() then
                 return song
             end
@@ -420,7 +432,8 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.bardhaste, 6)
             common.swap_spell(class.spells.overhaste, 7)
             common.swap_spell(class.spells.selos, 8)
-            common.swap_spell(class.spells.snare, 9)
+            --common.swap_spell(class.spells.snare, 9)
+            --common.swap_spell(class.spells.chantflame, 10)
         end
         check_spell_timer:reset()
     end

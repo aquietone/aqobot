@@ -192,6 +192,11 @@ local function zoned()
     end
 end
 
+local lootMyBody = false
+local function rezzed()
+    lootMyBody = true
+end
+
 local function init()
     state.class = mq.TLO.Me.Class.ShortName():lower()
     state.subscription = mq.TLO.Me.Subscription()
@@ -209,10 +214,17 @@ local function init()
 
     mq.imgui.init('AQO Bot 1.0', ui.main)
 
+    if state.emu then
+        mq.cmd('/hidecorpse looted')
+    else
+        mq.cmd('/hidecorpse alwaysnpc')
+    end
+    mq.cmd('/multiline ; /pet hold on ; /pet ghold on')
     mq.cmd('/squelch /stick set verbflags 0')
     mq.cmd('/squelch /plugin melee unload noauto')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
     mq.event('zoned', 'You have entered #*#', zoned)
+    mq.event('rezzed', 'You regain #*# experience from resurrection', rezzed)
     --loot.logger.loglevel = 'debug'
 end
 
@@ -249,6 +261,12 @@ local function main()
             if mq.TLO.Me.Hovering() then
                 mq.delay(50)
             elseif not mq.TLO.Me.Invis() and not common.blocking_window_open() then
+                if mq.TLO.Me.Buff('Resurrection Sickness')() and lootMyBody then
+                    mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
+                    mq.delay(1000)
+                    
+                    lootMyBody = false
+                end
                 -- do active combat assist things when not paused and not invis
                 if mq.TLO.Me.Feigning() and not common.FD_CLASSES[state.class] then
                     mq.cmd('/stand')

@@ -344,7 +344,7 @@ local function lootCorpse(corpseID)
         return
     end
     mq.delay(1000, function() local items = mq.TLO.Corpse.Items() return items and items > 0 end)
-    local items = mq.TLO.Corpse.Items()
+    local items = mq.TLO.Corpse.Items() or 0
     loot.logger.Debug(('Loot window open. Items: %s'):format(items))
     if mq.TLO.Window('LootWnd').Open() and items > 0 then
         for i=1,items do

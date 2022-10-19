@@ -124,7 +124,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(logger.log_flags.common.cast, 'Should use spell: \ag%s\ax=%s', spell.Name(), result)
     return result, requireTarget
 end
 
@@ -172,7 +172,7 @@ function Ability.canUseSpell(spell, abilityType)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, ('Can use spell returning true for: \ay%s\ax=%s'):format(spell.Name(), 'true'))
+    logger.debug(logger.log_flags.common.cast, ('Can use spell: \ag%s\ax=%s'):format(spell.Name(), 'true'))
     return true
 end
 
@@ -194,9 +194,9 @@ function Spell:use()
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
         if requiresTarget then
-            logger.printf('Casting \ar%s\ax on \at%s\ax', self.name, mq.TLO.Target.CleanName())
+            logger.printf('Casting \ag%s\ax on \at%s\ax', self.name, mq.TLO.Target.CleanName())
         else
-            logger.printf('Casting \ar%s\ax', self.name)
+            logger.printf('Casting \ag%s\ax', self.name)
         end
         mq.cmdf('/cast "%s"', self.name)
         if state.class ~= 'brd' then
@@ -254,7 +254,7 @@ function Disc:use(overwrite)
     local spell = mq.TLO.Spell(self.name)
     if self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
-            logger.printf('Use Disc: \ax\ar%s\ax', self.name)
+            logger.printf('Use Disc: \ag%s\ax', self.name)
             if self.name:find('Composite') then
                 mq.cmdf('/disc %s', self.id)
             else
@@ -267,7 +267,7 @@ function Disc:use(overwrite)
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
-            logger.printf('Use Disc: \ax\ar%s\ax', self.name)
+            logger.printf('Use Disc: \ag%s\ax', self.name)
             mq.cmdf('/disc %s', self.name)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
@@ -306,7 +306,7 @@ end
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 function AA:use()
     if self:isReady() then
-        logger.printf('Use AA: \ax\ar%s\ax', self.name)
+        logger.printf('Use AA: \ag%s\ax', self.name)
         mq.cmdf('/alt activate %d', self.id)
         mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.name)() end)
@@ -341,7 +341,7 @@ end
 function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
     if self:isReady(theItem) then
-        logger.printf('Use Item: \ax\ar%s\ax', theItem)
+        logger.printf('Use Item: \ag%s\ax', theItem)
         mq.cmdf('/useitem "%s"', theItem)
         mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true

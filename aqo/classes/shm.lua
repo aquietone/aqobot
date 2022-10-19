@@ -16,13 +16,14 @@ class.addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of heal over time',
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 
 class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {me=75, mt=65, other=65, pet=60})
-class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=true, endurance=false, minhp=50, ooc=false})
-class.addSpell('pet', {'True Spirit', 'Frenzied Spirit'})
+class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
+class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
 class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'})
 class.addSpell('proc', {'Ferine Avatar', 'Spirit of the Leopard', 'Spirit of the Jaguar'})
 class.addSpell('cure', {'Blood of Nadox'})
 class.addSpell('nuke', {'Spear of Torment'}, {opt='USENUKES'})
-class.addSpell('hot', {'Breath of Trushar'}, {opt='USEHOT', hot=true})
+class.addSpell('hot', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOT', hot=true})
+class.addSpell('slowproc', {'Lingering Sloth'})
 
 table.insert(class.selfBuffs, common.getAA('Pact of the Wolf', {removesong='Pact of the Wolf Effect'}))
 --table.insert(class.groupBuffs, common.getAA('Group Pact of the Wolf', {group=true, self=false}))
@@ -39,7 +40,7 @@ table.insert(class.healAbilities, class.spells.heal)
 table.insert(class.healAbilities, class.spells.hot)
 table.insert(class.cures, class.spells.cure)
 table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
-table.insert(class.healAbilities, common.getAA('Union of Spirits', {me=30, mt=30, other=30}))
+table.insert(class.healAbilities, common.getAA('Union of Spirits', {me=30, mt=30, other=30, pet=30}))
 
 class.debuff = common.getAA('Malosinete')
 class.slow = common.getAA('Turgur\'s Swarm') or common.getBestSpell({'Turgur\'s Insects', 'Togor\'s Insects'})
@@ -71,6 +72,18 @@ local melees = {MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}
 class.buff_class = function()
     if common.am_i_dead() then return end
 
+    if class.spells.slowproc and mq.TLO.Me.SpellReady(class.spells.slowproc.name)() and mq.TLO.Group.MainAssist() then
+        local mainAssist = mq.TLO.Group.MainAssist
+        if not mainAssist.Buff(class.spells.slowproc.name)() then
+            mainAssist.DoTarget()
+            mq.delay(100, function() return mq.TLO.Target.ID() == mainAssist.ID() end)
+            mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
+            if not mq.TLO.Target.Buff(class.spells.slowproc.name)() then
+                class.spells.slowproc:use()
+            end
+        end
+    end
+    
     if class.spells.proc and mq.TLO.Me.SpellReady(class.spells.proc.name)() and mq.TLO.Group.GroupSize() then
         for i=1,mq.TLO.Group.GroupSize()-1 do
             local member = mq.TLO.Group.Member(i)

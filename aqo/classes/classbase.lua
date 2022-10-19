@@ -331,7 +331,7 @@ base.heal = function()
                         return
                     end
                 end
-            else
+            elseif not heal.hot then
                 local mthp = mq.TLO.Group.MainTank.PctHPs() or 0
                 local mtdistance = mq.TLO.Group.MainTank.Distance3D() or 300
                 if mq.TLO.Me.PctHPs() < heal.me then
@@ -496,15 +496,17 @@ local function buff_combat()
     -- common clicky buffs like geomantra and ... just geomantra
     common.check_combat_buffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
-    for _,buff in ipairs(base.combatBuffs) do
-        if (buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.AA) and not mq.TLO.Me.Buff(buff.name)() and not mq.TLO.Me.Song(buff.name)() then
-            buff:use()
-        elseif buff.summons then
-            if mq.TLO.FindItemCount(buff.summons)() < 30 and not mq.TLO.Me.Moving() then
+    if mq.TLO.Me.CombatState() == 'COMBAT' then
+        for _,buff in ipairs(base.combatBuffs) do
+            if (buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.AA) and not mq.TLO.Me.Buff(buff.name)() and not mq.TLO.Me.Song(buff.name)() then
                 buff:use()
-                if mq.TLO.Cursor() then
-                    mq.delay(50)
-                    mq.cmd('/autoinv')
+            elseif buff.summons then
+                if mq.TLO.FindItemCount(buff.summons)() < 30 and not mq.TLO.Me.Moving() then
+                    buff:use()
+                    if mq.TLO.Cursor() then
+                        mq.delay(50)
+                        mq.cmd('/autoinv')
+                    end
                 end
             end
         end
@@ -689,6 +691,7 @@ base.managepet = function()
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
     if (mq.TLO.Spell(base.spells.pet.name).Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(base.spells.pet, state.swapGem)
+    mq.cmd('/multiline ; /pet hold on ; /pet ghold on')
 end
 
 base.hold = function()
@@ -746,7 +749,7 @@ local function handleRequests()
     if #base.requests > 0 then
         local request = base.requests[1]
         if request.expiration:timer_expired() then
-            logger.printf('Request timer expired for \ay%s\ax from \at%s\at', request.requested.name, request.requestor)
+            logger.printf('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requestor)
             table.remove(base.requests, 1)
         else
             if request.requested:isReady() then
@@ -792,14 +795,16 @@ end
 
 base.draw_skills_tab = function()
     for _,key in ipairs(base.OPTS) do
-        local option = base.OPTS[key]
-        if option.type == 'checkbox' then
-            option.value = ui.draw_check_box(option.label, '##'..key, option.value, option.tip)
-            if option.value and option.exclusive then base.OPTS[option.exclusive].value = false end
-        elseif option.type == 'combobox' then
-            option.value = ui.draw_combo_box(option.label, option.value, option.options, true)
-        elseif option.type == 'inputint' then
-            option.value = ui.draw_input_int(option.label, '##'..key, option.value, option.tip)
+        if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
+            local option = base.OPTS[key]
+            if option.type == 'checkbox' then
+                option.value = ui.draw_check_box(option.label, '##'..key, option.value, option.tip)
+                if option.value and option.exclusive then base.OPTS[option.exclusive].value = false end
+            elseif option.type == 'combobox' then
+                option.value = ui.draw_combo_box(option.label, option.value, option.options, true)
+            elseif option.type == 'inputint' then
+                option.value = ui.draw_input_int(option.label, '##'..key, option.value, option.tip)
+            end
         end
     end
 end

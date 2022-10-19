@@ -15,6 +15,8 @@ class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'aggro', 'recover', 
 
 class.SPELLSETS = {standard=1,dps=1}
 
+-- theft of agony
+-- decrepit skin
 class.addCommonOptions()
 class.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, '', 'checkbox')
 class.addOption('USEPROJECTION', 'Use Projection', true, nil, '', 'checkbox')
@@ -49,11 +51,11 @@ class.addSpell('poison', {'Blood of Tearc', 'Blood of Pain'}) -- poison dot
 class.addSpell('disease', {'Plague of Fleshrot'}) -- disease dot
 class.addSpell('corruption', {'Unscrupulous Blight'}) -- corruption dot
 class.addSpell('acdis', {'Dire Seizure'}) -- disease + ac dot
-class.addSpell('acdebuff', {'Torrent of Melancholy'}) -- ac debuff
+class.addSpell('acdebuff', {'Torrent of Melancholy', 'Theft of Agony'}) -- ac debuff
 --['']={'Despicable Bargain'}), -- nuke, does this get used?
 -- Short Term Buffs
 class.addSpell('stance', {'Adamant Stance', 'Vampiric Embrace'}) -- temp HP buff, 2.5min
-class.addSpell('skin', {'Xenacious\' Skin'}) -- Xenacious' Skin proc, 5min buff
+class.addSpell('skin', {'Xenacious\' Skin', 'Decrepit Skin'}) -- Xenacious' Skin proc, 5min buff
 class.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
 --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
 -- Pet
@@ -169,7 +171,9 @@ if state.emu then
     table.insert(class.selfBuffs, class.spells.aziaproc)
     table.insert(class.selfBuffs, class.spells.drape)
     table.insert(class.selfBuffs, class.spells.bezaproc)
+    table.insert(class.selfBuffs, class.spells.skin)
     table.insert(class.selfBuffs, common.getAA('Touch of the Cursed'))
+    table.insert(class.selfBuffs, common.getItem('Pauldron of Dark Auspices', {checkfor='Frost Guard'}))
 end
 table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
 table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))

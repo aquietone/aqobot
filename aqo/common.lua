@@ -362,7 +362,7 @@ common.should_use_spell = function(spell, skipselfstack)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, 'Should use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(logger.log_flags.common.cast, 'Should use spell: \ag%s\ax=%s', spell.Name(), result)
     return result
 end
 
@@ -388,7 +388,7 @@ common.can_use_spell = function(spell, type)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, 'Can use spell: \ay%s\ax=%s', spell.Name(), result)
+    logger.debug(logger.log_flags.common.cast, 'Can use spell: \ag%s\ax=%s', spell.Name(), result)
     return result
 end
 
@@ -408,7 +408,7 @@ end
 common.use_item = function(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if item_ready(item) then
-        logger.printf('Use Item: \ax\ar%s\ax', item)
+        logger.printf('Use Item: \ag%s\ax', item)
         mq.cmdf('/useitem "%s"', item)
         mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true
@@ -427,10 +427,9 @@ common.is_burn_condition_met = function(always_condition)
         return true
     else
         state.burn_active = false
-        state.burn_type = nil
     end
     if state.burn_now then
-        logger.printf('\arActivating Burns (on demand)\ax')
+        logger.printf('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
         state.burn_active_timer:reset()
         state.burn_active = true
         state.burn_now = false
@@ -441,6 +440,7 @@ common.is_burn_condition_met = function(always_condition)
             if always_condition and not always_condition() then
                 return false
             end
+            state.burn_type = nil
             return true
         elseif config.BURNALLNAMED and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
             logger.printf('\arActivating Burns (named)\ax')

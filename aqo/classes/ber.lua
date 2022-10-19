@@ -21,28 +21,29 @@ table.insert(class.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'},
 table.insert(class.combatBuffs, common.getBestDisc({'Cry Havoc'}, {combat=true, ooc=false}))
 -- Project Lazarus only
 table.insert(class.combatBuffs, common.getAA('Decapitation', {combat=true}))
+table.insert(class.combatBuffs, common.getAA('Battle Leap'))
 
 --quick burns
 table.insert(class.burnAbilities, common.getBestDisc({'Cleaving Anger Discipline'}, {quick=true}))
 table.insert(class.burnAbilities, common.getItem('Rage Bound Chestguard', {quick=true}))
 table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of Savagery', {quick=true}))
-table.insert(class.burnAbilities, common.getAA('Vehement Rage', {quick=true}))
+--table.insert(class.burnAbilities, common.getAA('Vehement Rage', {quick=true}))
 table.insert(class.burnAbilities, common.getAA('Juggernaut Surge', {quick=true}))
-table.insert(class.burnAbilities, common.getAA('Blood Pact', {quick=true}))
+--table.insert(class.burnAbilities, common.getAA('Blood Pact', {quick=true}))
 table.insert(class.burnAbilities, common.getBestDisc({'Blind Rage Discipline'}, {quick=true}))
 table.insert(class.burnAbilities, common.getBestDisc({'Cleaving Rage Discipline'}, {quick=true, long=true}))
 table.insert(class.burnAbilities, common.getAA('Cry of Battle', {quick=true}))
 
 -- long burns
-table.insert(class.burnAbilities, common.getAA('Savage Spirit', {long=true}))
-table.insert(class.burnAbilities, common.getAA('Untamed Rage', {long=true}))
+--table.insert(class.burnAbilities, common.getAA('Savage Spirit', {long=true}))
+--table.insert(class.burnAbilities, common.getAA('Untamed Rage', {long=true}))
 table.insert(class.burnAbilities, common.getBestDisc({'Cleaving Rage Discipline'}, {long=true}))
 table.insert(class.burnAbilities, common.getBestDisc({'Ancient: Cry of Chaos'}, {long=true}))
 table.insert(class.burnAbilities, common.getBestDisc({'Vengeful Flurry Discipline'}, {long=true}))
 table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of Savagery', {long=true}))
 table.insert(class.burnAbilities, common.getBestDisc({'War Cry'}, {long=true}))
-table.insert(class.burnAbilities, common.getAA('Reckless Abandon', {long=true}))
-table.insert(class.burnAbilities, common.getAA('Cascading Rage', {long=true}))
+--table.insert(class.burnAbilities, common.getAA('Reckless Abandon', {long=true}))
+--table.insert(class.burnAbilities, common.getAA('Cascading Rage', {long=true}))
 table.insert(class.burnAbilities, common.getAA('Blinding Fury', {long=true}))
 
 local axes = mq.TLO.FindItem('Bonesplicer Axe').ID()

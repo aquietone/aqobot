@@ -127,6 +127,9 @@ local function draw_assist_tab()
 end
 
 local function draw_camp_tab()
+    if ImGui.Button('Reset Camp', 303, 22) then
+        camp.set_camp(true)
+    end
     local current_camp_radius = config.CAMPRADIUS
     config.CAMPRADIUS = ui.draw_input_int('Camp Radius', '##campradius', config.CAMPRADIUS, 'Camp radius to assist within')
     config.CHASETARGET = ui.draw_input_text('Chase Target', '##chasetarget', config.CHASETARGET, 'Chase Target')
@@ -137,6 +140,17 @@ local function draw_camp_tab()
 end
 
 local function draw_burn_tab()
+    if ImGui.Button('Burn Now', 95, 22) then
+        mq.cmdf('/%s burnnow', state.class)
+    end
+    ImGui.SameLine()
+    if ImGui.Button('Quick Burn', 95, 22) then
+        mq.cmdf('/%s burnnow quick', state.class)
+    end
+    ImGui.SameLine()
+    if ImGui.Button('Long Burn', 95, 22) then
+        mq.cmdf('/%s burnnow long', state.class)
+    end
     config.BURNCOUNT = ui.draw_input_int('Burn Count', '##burncnt', config.BURNCOUNT, 'Trigger burns if this many mobs are on aggro')
     config.BURNPCT = ui.draw_input_int('Burn Percent', '##burnpct', config.BURNPCT, 'Percent health to begin burns')
     config.BURNALWAYS = ui.draw_check_box('Burn Always', '##burnalways', config.BURNALWAYS, 'Always be burning')
@@ -147,6 +161,13 @@ local function draw_burn_tab()
 end
 
 local function draw_pull_tab()
+    if ImGui.Button('Add Ignore', 147, 22) then
+        mq.cmdf('/%s ignore', state.class)
+    end
+    ImGui.SameLine()
+    if ImGui.Button('Remove Ignore', 147, 22) then
+        mq.cmdf('/%s unignore', state.class)
+    end
     local current_radius = config.PULLRADIUS
     local current_pullarc = config.PULLARC
     config.PULLRADIUS = ui.draw_input_int('Pull Radius', '##pullrad', config.PULLRADIUS, 'Radius to pull mobs within')
@@ -166,6 +187,7 @@ local function draw_pull_tab()
 end
 
 local function draw_debug_combo_box()
+    ImGui.PushItemWidth(300)
     if ImGui.BeginCombo('##debugoptions', 'debug options') then
         for category, subcategories in pairs(logger.log_flags) do
             for subcategory, enabled in pairs(subcategories) do
@@ -174,41 +196,42 @@ local function draw_debug_combo_box()
         end
         ImGui.EndCombo()
     end
+    ImGui.PopItemWidth()
 end
 
 local function draw_debug_tab()
     draw_debug_combo_box()
     ImGui.TextColored(1, 1, 0, 1, 'Mode:')
     ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
+    --x,_ = ImGui.GetCursorPos()
+    ImGui.SetCursorPosX(150)
     ImGui.TextColored(1, 1, 1, 1, config.MODE:get_name())
 
     ImGui.TextColored(1, 1, 0, 1, 'Camp:')
     ImGui.SameLine()
-    ImGui.SetCursorPosX(100)
+    ImGui.SetCursorPosX(150)
     if camp.Active then
         ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z))
         ImGui.TextColored(1, 1, 0, 1, 'Radius:')
         ImGui.SameLine()
-        ImGui.SetCursorPosX(100)    
+        ImGui.SetCursorPosX(150)    
         ImGui.TextColored(1, 1, 0, 1, string.format('%d', config.CAMPRADIUS))
     else
         ImGui.TextColored(1, 0, 0, 1, '--')
     end
 
-    ImGui.TextColored(1, 1, 0, 1, 'Target:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', mq.TLO.Target()))
+    --ImGui.TextColored(1, 1, 0, 1, 'Target:')
+    --ImGui.SameLine()
+    --x,_ = ImGui.GetCursorPos()
+    --ImGui.SetCursorPosX(150)
+    --ImGui.TextColored(1, 0, 0, 1, string.format('%s', mq.TLO.Target()))
 
     for k,v in pairs(state) do
         if type(v) ~= 'table' and type(v) ~= 'function' then
             ImGui.TextColored(1, 1, 0, 1, ('%s:'):format(k))
             ImGui.SameLine()
-            x,_ = ImGui.GetCursorPosX()
-            ImGui.SetCursorPosX(125)
+            --x,_ = ImGui.GetCursorPosX()
+            ImGui.SetCursorPosX(150)
             ImGui.TextColored(1, 0, 0, 1, ('%s'):format(v))
         end
     end
@@ -270,12 +293,12 @@ local function draw_body()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Skills') then
-            if ImGui.BeginChild('Skills', ImGui.GetContentRegionAvail(), 150) then
+            --if ImGui.BeginChild('Skills', ImGui.GetContentRegionAvail(), 150) then
                 ImGui.PushItemWidth(item_width-25)
                 class_funcs.draw_skills_tab()
                 ImGui.PopItemWidth()
-            end
-            ImGui.EndChild()
+            --end
+            --ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Burn') then
@@ -285,12 +308,12 @@ local function draw_body()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Pull') then
-            if ImGui.BeginChild('Pull', ImGui.GetContentRegionAvail(), 150) then
+            --if ImGui.BeginChild('Pull', ImGui.GetContentRegionAvail(), 150) then
                 ImGui.PushItemWidth(item_width)
                 draw_pull_tab()
                 ImGui.PopItemWidth()
-            end
-            ImGui.EndChild()
+            --end
+            --ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Debug') then

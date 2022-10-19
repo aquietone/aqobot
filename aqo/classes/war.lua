@@ -143,7 +143,7 @@ class.mash_class = function()
     end
 
     local targethp = mq.TLO.Target.PctHPs() or 100
-    if targethp <= 20 then
+    if targethp <= 20 and exploitive then
         exploitive:use()
     end
 end
@@ -151,9 +151,9 @@ end
 class.burn_class = function()
     if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         local replace_disc = mash_defensive and mash_defensive.name or nil
-        defensive:use(replace_disc)
-        runes:use(replace_disc)
-        stundefense:use(replace_disc)
+        if defensive then defensive:use(replace_disc) end
+        if runes then runes:use(replace_disc) end
+        if stundefense then stundefense:use(replace_disc) end
 
         -- Use Spire and Aegis when burning as tank
         if spire and aegis and mq.TLO.Me.AltAbilityReady(spire['name'])() and mq.TLO.Me.CombatAbilityReady(aegis['name'])() then

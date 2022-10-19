@@ -4,7 +4,7 @@ local class = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
 class.class = 'clr'
-class.classOrder = {'heal', 'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+class.classOrder = {'heal', 'assist', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
 
 class.SPELLSETS = {standard=1}
 class.addCommonOptions()
@@ -43,5 +43,22 @@ else
 end
 table.insert(class.selfBuffs, class.spells.yaulp)
 table.insert(class.selfBuffs, class.spells.armor)
+
+local rez = common.getAA('Blessing of Resurrection')
+
+class.rez = function()
+    if mq.TLO.Me.AltAbilityReady(rez.name)() then
+        local corpseCount = mq.TLO.SpawnCount('pc group corpse radius 100')()
+        if corpseCount > 0 then
+            mq.cmd('/mqt pccorpse group radius 100')
+            mq.delay(100)
+            if mq.TLO.Target.Type() == 'Corpse' then
+                mq.cmd('/corpse')
+                mq.delay(100)
+                rez:use()
+            end
+        end
+    end
+end
 
 return class

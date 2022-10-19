@@ -105,6 +105,10 @@ tank.tank_mob = function()
         return
     end
     if not tank_mob_in_range(tank_spawn) or not tank_spawn.LineOfSight() then
+        ---- los around benches and junk
+        --if config.MODE:get_name() == 'huntertank' and not mq.TLO.Navigation.Active() then
+        --    mq.cmdf('/nav id %s | log=off', state.tank_mob_id)
+        --end
         state.tank_mob_id = 0
         return
     end
@@ -121,7 +125,7 @@ tank.tank_mob = function()
     end
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() then
-        logger.printf('Tanking \ay%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id)
+        logger.printf('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id)
         -- /stick snaproll front moveback
         -- /stick mod -2
         mq.cmd('/attack on')
