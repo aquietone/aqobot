@@ -11,7 +11,7 @@ class.addCommonOptions()
 
 table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))
 table.insert(class.DPSAbilities, common.getSkill('Frenzy'))
-table.insert(class.DPSAbilities, common.getBestDisc({'Rage Volley'}))
+table.insert(class.DPSAbilities, common.getBestDisc({'Destroyer\'s Volley', 'Rage Volley'}))
 table.insert(class.DPSAbilities, common.getBestDisc({'Confusing Strike'}))
 table.insert(class.AEDPSAbilities, common.getAA('Rampage', {threshold=3}))
 --table.insert(class.DPSAbilities, common.getBestDisc({'Head Pummel'}))

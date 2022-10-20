@@ -12,10 +12,9 @@ class.SPELLSETS = {standard=1}
 class.addCommonOptions()
 class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox')
 class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox')
-class.addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of heal over time', 'checkbox')
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 
-class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {me=75, mt=65, other=65, pet=60})
+class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, me=75, mt=65, other=65, pet=60})
 class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
 class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
 class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'})
@@ -83,7 +82,7 @@ class.buff_class = function()
             end
         end
     end
-    
+
     if class.spells.proc and mq.TLO.Me.SpellReady(class.spells.proc.name)() and mq.TLO.Group.GroupSize() then
         for i=1,mq.TLO.Group.GroupSize()-1 do
             local member = mq.TLO.Group.Member(i)

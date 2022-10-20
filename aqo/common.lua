@@ -9,7 +9,7 @@ local state = require(AQO..'.state')
 
 local common = {}
 
-common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1}
+common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1,manual=1}
 common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
 common.FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true}
 common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}

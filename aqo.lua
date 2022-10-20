@@ -256,6 +256,9 @@ local function main()
             camp.clean_targets()
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 common.ASSIST_TARGET_ID = 0
+                state.tank_mob_id = 0
+                state.assist_mob_id = 0
+                state.pull_mob_id = 0
                 mq.cmd('/squelch /mqtarget clear')
             end
             if mq.TLO.Me.Hovering() then
@@ -273,9 +276,9 @@ local function main()
                 end
                 common.check_cursor()
                 local looted = false
-                if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
-                    looted = loot.lootMobs(5)
-                end
+            --    if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
+            --        looted = loot.lootMobs(5)
+            --    end
                 if not looted then
                     aqoclass.main_loop()
                 end

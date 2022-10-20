@@ -12,8 +12,8 @@ class.addCommonOptions()
 class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
 class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 
-class.addSpell('heal', {'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {me=75, mt=75, other=75, pet=60})
-class.addSpell('groupheal', {'Moonshadow', 'Word of Restoration'})
+class.addSpell('heal', {'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, me=75, mt=75, other=75, pet=60})
+class.addSpell('groupheal', {'Moonshadow', 'Word of Restoration'}, {group=true})
 class.addSpell('firenuke', {'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
 class.addSpell('dot', {'Winged Death'})
 class.addSpell('snare', {'Ensnare', 'Snare'})
@@ -33,6 +33,7 @@ class.spellRotations = {
 }
 
 table.insert(class.healAbilities, class.spells.heal)
+table.insert(class.healAbilities, class.spells.groupheal)
 
 table.insert(class.auras, class.spells.aura)
 

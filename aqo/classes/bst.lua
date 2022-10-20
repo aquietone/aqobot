@@ -8,7 +8,9 @@ class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff',
 
 class.SPELLSETS = {standard=1}
 class.addCommonOptions()
+class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 
+class.addSpell('nuke', {'Trushar\'s Frost'}, {opt='USENUKES'})
 class.addSpell('pethaste',{'Arag\'s Celerity'}) -- pet haste
 class.addSpell('pet', {'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
 class.addSpell('petbuff', {'Spirit of Rellic'}) -- pet buff
@@ -18,6 +20,7 @@ class.addSpell('petheal', {'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet
 class.addSpell('fero', {'Ferocity'}) -- like shm avatar
 
 local standard = {}
+table.insert(standard, class.spells.nuke)
 
 class.spellRotations = {
     standard=standard

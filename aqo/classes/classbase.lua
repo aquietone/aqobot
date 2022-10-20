@@ -3,6 +3,7 @@ local mq = require 'mq'
 local assist = require(AQO..'.routines.assist')
 local buffing = require(AQO..'.routines.buff')
 local camp = require(AQO..'.routines.camp')
+local healing = require(AQO..'.routines.heal')
 local mez = require(AQO..'.routines.mez')
 local pull = require(AQO..'.routines.pull')
 local tank = require(AQO..'.routines.tank')
@@ -125,6 +126,7 @@ base.addCommonOptions = function()
         base.addOption('SERVEBUFFREQUESTS', 'Serve Buff Requests', true, nil, 'Toggle serving buff requests', 'checkbox')
     end
     if healers[base.class] then
+        base.addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of heal over time', 'checkbox')
         base.addOption('XTARGETHEAL', 'Heal XTarget', false, nil, 'Toggle healing of PCs on XTarget', 'checkbox')
         base.addOption('XTARGETBUFF', 'Buff XTarget', false, nil, 'Toggle buffing of PCs on XTarget', 'checkbox')
     end
@@ -243,136 +245,13 @@ base.tank = function()
     assist.send_pet()
 end
 
-local tankClasses = {WAR=true,PAL=true,SHD=true}
-local function getHurt()
-    if mq.TLO.Me.PctHPs() < 30 then return mq.TLO.Me.ID(), 'panic' end
-    local tank = mq.TLO.Group.MainTank
-    if tank() then
-        local tankHP = tank.PctHPs() or 100
-        if tankHP < 30 then return tank.ID(), 'panic' end
-    end
-    local groupSize = mq.TLO.Group.GroupSize()
-    if groupSize then
-        local numHurt = 0
-        local mostHurtID = 0
-        local mostHurtPct = 100
-        for i=1,groupSize-1 do
-            local member = mq.TLO.Group.Member(i)
-            local memberHP = member.PctHPs() or 100
-            if memberHP < 80 then
-                if memberHP < mostHurtPct then
-                    mostHurtID = member.ID()
-                    mostHurtPct = memberHP
-                end
-                numHurt = numHurt + 1
-                if tankClasses[member.Class.ShortName()] and memberHP < 30 then
-                    return member.ID(), 'panic'
-                end
-            end
-        end
-        if numHurt > 2 then
-            return 'group','regular'
-        else
-            return mostHurtID, 'regular'
-        end
-    elseif mq.TLO.Me.PctHPs() < 80 then  return 'self', 'regular' end
-end
-
-local function getHeal(healType)
-    for _,heal in ipairs(base.healAbilities) do
-        if heal[healType] and common.is_spell_ready(heal) then return heal end
-    end
-end
-
---[[
-    1. Determine who to heal:
-        a. self very hurt -- self,panic
-        b. tank very hurt -- tank,panic
-        c. multiple hurt -- group,regular
-        d. self hurt -- self,regular
-        e. tank hurt -- tank,regular
-        f. other hurt -- other,regular
-    2. Determine heal to use
-        a. panic
-        b. group
-        c. regular
-]]
-local melees = {MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true,RNG=true}
-local hottimers = {}
 base.heal = function()
-    if common.am_i_dead() then return end
-    for _,heal in ipairs(base.healAbilities) do
-        local groupSize = mq.TLO.Group.GroupSize() or 0
-        if common.is_spell_ready(heal, true) or heal.type == Abilities.Types.Skill then
-            if heal.self then
-                if mq.TLO.Me.PctHPs() < heal.me then
-                    heal:use()
-                end
-            elseif heal.group then
-                if (mq.TLO.Group.Injured(heal.pct)() or 0) >= heal.threshold then
-                    heal:use()
-                    return
-                end
-            elseif heal.hot and base.isEnabled('USEHOT') then
-                for i=1,groupSize-1 do
-                    local member = mq.TLO.Group.Member(i)
-                    local memberhp = member.PctHPs() or 0
-                    local hotTimer = hottimers[member.CleanName()]
-                    local distance = member.Distance3D() or 300
-                    if (not hotTimer or hotTimer:timer_expired()) and melees[member.Class.ShortName()] and memberhp > 60 and memberhp < 85 and distance < 100 then
-                        member.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
-                        heal:use()
-                        if hotTimer then
-                            hotTimer:reset()
-                        else
-                            hottimers[member.CleanName()] = timer:new(24)
-                        end
-                        return
-                    end
-                end
-            elseif not heal.hot then
-                local mthp = mq.TLO.Group.MainTank.PctHPs() or 0
-                local mtdistance = mq.TLO.Group.MainTank.Distance3D() or 300
-                if mq.TLO.Me.PctHPs() < heal.me then
-                    mq.cmdf('/mqt myself')
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
-                    heal:use()
-                    return
-                elseif (mthp > 0) and (mthp <= heal.mt) and mtdistance < 100 then
-                    mq.cmdf('/mqt id %d', mq.TLO.Group.MainTank.ID())
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Group.MainTank.ID() end)
-                    heal:use()
-                    return
-                elseif groupSize then
-                    for i=1,groupSize-1 do
-                        local member = mq.TLO.Group.Member(i)
-                        local memberhp = member.PctHPs() or 0
-                        local distance = member.Distance3D() or 300
-                        if (memberhp > 0) and (memberhp <= heal.other) and distance < 100 then
-                            member.DoTarget()
-                            mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
-                            heal:use()
-                            return
-                        end
-                        if base.isEnabled('HEALPET') then
-                            local memberPetHP = member.Pet.PctHPs() or 100
-                            if memberPetHP < heal.pet then
-                                member.Pet.DoTarget()
-                                mq.delay(100, function() return mq.TLO.Target.ID() == member.Pet.ID() end)
-                                heal:use()
-                                return
-                            end
-                        end
-                    end
-                elseif base.isEnabled('HEALPET') and (mq.TLO.Pet.PctHPs() or 100) < heal.pet then
-                    mq.TLO.Pet.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Pet.ID() end)
-                    heal:use()
-                    return
-                end
-            end
-        end
+    if healers[base.class] then
+        healing.heal(base.healAbilities, base.OPTS)
+    elseif petclasses[base.class] then
+        healing.healPetOrSelf(base.healAbilities, base.OPTS)
+    else
+        healing.healSelf(base.healAbilities, base.OPTS)
     end
 end
 
@@ -806,6 +685,13 @@ base.draw_skills_tab = function()
                 option.value = ui.draw_input_int(option.label, '##'..key, option.value, option.tip)
             end
         end
+    end
+    if healers[base.class] then
+        config.HEALPCT = ui.draw_input_int('Heal Pct', '##healpct', config.HEALPCT, 'Percent HP to begin casting regular heals')
+        config.PANICHEALPCT = ui.draw_input_int('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT, 'Percent HP to begin casting panic heals')
+        config.GROUPHEALPCT = ui.draw_input_int('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT, 'Percent HP to begin casting group heals')
+        config.GROUPHEALMIN = ui.draw_input_int('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN, 'Minimum number of hurt group members to begin casting group heals')
+        config.HOTHEALPCT = ui.draw_input_int('HoT Pct', '##hothealpct', config.HOTHEALPCT, 'Percent HP to begin casting HoTs')
     end
 end
 

@@ -13,6 +13,12 @@ local config = {
     AUTOASSISTAT = 98,
     SWITCHWITHMA = true,
 
+    HEALPCT = 75,
+    PANICHEALPCT = 30,
+    GROUPHEALPCT = 75,
+    GROUPHEALMIN = 3,
+    HOTHEALPCT = 90,
+
     BURNALWAYS = false,
     BURNPCT = 0,
     BURNALLNAMED = false,
@@ -45,6 +51,12 @@ function config.get_all()
         AUTOASSISTAT = config.AUTOASSISTAT,
         SWITCHWITHMA = config.SWITCHWITHMA,
 
+        HEALPCT = config.HEALPCT,
+        PANICHEALPCT = config.PANICHEALPCT,
+        GROUPHEALPCT = config.GROUPHEALPCT,
+        GROUPHEALMIN = config.GROUPHEALMIN,
+        HOTHEALPCT = config.HOTHEALPCT,
+    
         BURNALWAYS = config.BURNALWAYS,
         BURNPCT = config.BURNPCT,
         BURNALLNAMED = config.BURNALLNAMED,

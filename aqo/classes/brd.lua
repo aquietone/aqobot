@@ -123,7 +123,7 @@ if state.emu then
     songs.emuaura55 = emuaura55
     songs.emunoaura = emunoaura
     table.insert(class.auras, class.spells.emuaura)
-    table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes'))
+    table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
     table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal'))
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
 

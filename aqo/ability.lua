@@ -136,7 +136,7 @@ local function in_control()
             mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
 end
 
-function Ability.canUseSpell(spell, abilityType)
+function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
     if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
         if logger.log_flags.common.cast then
             logger.debug(logger.log_flags.common.cast, ('Spell not ready (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
@@ -156,7 +156,7 @@ function Ability.canUseSpell(spell, abilityType)
         return false
     end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
-    if state.class ~= 'brd' then
+    if state.class ~= 'brd' and not skipReagentCheck then
         for i=1,3 do
             local reagentid = spell.ReagentID(i)()
             if reagentid ~= -1 then

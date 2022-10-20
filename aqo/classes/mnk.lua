@@ -11,9 +11,10 @@ table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))
 table.insert(class.DPSAbilities, common.getSkill('Tiger Claw'))
 table.insert(class.DPSAbilities, common.getBestDisc({'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}))
 
+table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of the Sensei'))
+table.insert(class.burnAbilities, common.getBestDisc({'Speed Focus Discipline'}))
 table.insert(class.burnAbilities, common.getBestDisc({'Heel of Kai', 'Heel of Kanji'}))
 table.insert(class.burnAbilities, common.getBestDisc({'Innerflame Discipline'}))
-table.insert(class.burnAbilities, common.getBestDisc({'Speed Focus Discipline'}))
 
 table.insert(class.auras, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {checkfor='Disciples Aura'}))
 table.insert(class.combatBuffs, common.getBestDisc({'Fists of Wu'}))

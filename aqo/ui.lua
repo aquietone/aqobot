@@ -203,7 +203,6 @@ local function draw_debug_tab()
     draw_debug_combo_box()
     ImGui.TextColored(1, 1, 0, 1, 'Mode:')
     ImGui.SameLine()
-    --x,_ = ImGui.GetCursorPos()
     ImGui.SetCursorPosX(150)
     ImGui.TextColored(1, 1, 1, 1, config.MODE:get_name())
 
@@ -220,62 +219,14 @@ local function draw_debug_tab()
         ImGui.TextColored(1, 0, 0, 1, '--')
     end
 
-    --ImGui.TextColored(1, 1, 0, 1, 'Target:')
-    --ImGui.SameLine()
-    --x,_ = ImGui.GetCursorPos()
-    --ImGui.SetCursorPosX(150)
-    --ImGui.TextColored(1, 0, 0, 1, string.format('%s', mq.TLO.Target()))
-
     for k,v in pairs(state) do
         if type(v) ~= 'table' and type(v) ~= 'function' then
             ImGui.TextColored(1, 1, 0, 1, ('%s:'):format(k))
             ImGui.SameLine()
-            --x,_ = ImGui.GetCursorPosX()
             ImGui.SetCursorPosX(150)
             ImGui.TextColored(1, 0, 0, 1, ('%s'):format(v))
         end
     end
-    --[[ImGui.TextColored(1, 1, 0, 1, 'AM_I_DEAD:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.i_am_dead))
-
-    ImGui.TextColored(1, 1, 0, 1, 'Burning:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.burn_active))
-
-    ImGui.TextColored(1, 1, 0, 1, 'assist_mob_id:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.assist_mob_id))
-
-    ImGui.TextColored(1, 1, 0, 1, 'tank_mob_id:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.tank_mob_id))
-
-    ImGui.TextColored(1, 1, 0, 1, 'pull_mob_id:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.pull_mob_id))
-
-    ImGui.TextColored(1, 1, 0, 1, 'pull_in_progress:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.pull_in_progress))
-
-    ImGui.TextColored(1, 1, 0, 1, 'mob_count:')
-    ImGui.SameLine()
-    x,_ = ImGui.GetCursorPos()
-    ImGui.SetCursorPosX(100)
-    ImGui.TextColored(1, 0, 0, 1, string.format('%s', state.mob_count))]]
 end
 
 local function draw_body()

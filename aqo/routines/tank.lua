@@ -124,7 +124,7 @@ tank.tank_mob = function()
         mq.cmd('/squelch /nav stop')
     end
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
-    if not mq.TLO.Me.Combat() then
+    if not mq.TLO.Me.Combat() and not state.dontAttack then
         logger.printf('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id)
         -- /stick snaproll front moveback
         -- /stick mod -2

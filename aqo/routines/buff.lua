@@ -3,6 +3,9 @@ local mq = require('mq')
 
 local buff = {}
 
+-- xpBuffs = { 42962 /*xp6*/, 42617 /*xp5*/, 42616 /*xp4*/}
+-- gmBuffs = { 34835,35989,35361,25732,34567,36838,43040,36266,36423}
+
 buff.selfBuff = function(spell)
     if not mq.TLO.Me.Buff(spell.name)() and mq.TLO.Spell(spell.name).Stacks() then
         if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
