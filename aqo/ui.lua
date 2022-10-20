@@ -17,8 +17,8 @@ local should_draw_gui = true
 local class_funcs
 local ui = {}
 
-local mid_x = 159
-local item_width = 153
+local mid_x = 187--159
+local item_width = 173--153
 
 ui.set_class_funcs = function(funcs)
     class_funcs = funcs
@@ -127,7 +127,7 @@ local function draw_assist_tab()
 end
 
 local function draw_camp_tab()
-    if ImGui.Button('Reset Camp', 303, 22) then
+    if ImGui.Button('Reset Camp', 352, 22) then
         camp.set_camp(true)
     end
     local current_camp_radius = config.CAMPRADIUS
@@ -139,16 +139,26 @@ local function draw_camp_tab()
     end
 end
 
+local function draw_heal_tab()
+    if state.class == 'clr' or state.class == 'dru' or state.class == 'shm' then
+        config.HEALPCT = ui.draw_input_int('Heal Pct', '##healpct', config.HEALPCT, 'Percent HP to begin casting regular heals')
+        config.PANICHEALPCT = ui.draw_input_int('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT, 'Percent HP to begin casting panic heals')
+        config.GROUPHEALPCT = ui.draw_input_int('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT, 'Percent HP to begin casting group heals')
+        config.GROUPHEALMIN = ui.draw_input_int('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN, 'Minimum number of hurt group members to begin casting group heals')
+        config.HOTHEALPCT = ui.draw_input_int('HoT Pct', '##hothealpct', config.HOTHEALPCT, 'Percent HP to begin casting HoTs')
+    end
+end
+
 local function draw_burn_tab()
-    if ImGui.Button('Burn Now', 95, 22) then
+    if ImGui.Button('Burn Now', 112, 22) then
         mq.cmdf('/%s burnnow', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Quick Burn', 95, 22) then
+    if ImGui.Button('Quick Burn', 112, 22) then
         mq.cmdf('/%s burnnow quick', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Long Burn', 95, 22) then
+    if ImGui.Button('Long Burn', 112, 22) then
         mq.cmdf('/%s burnnow long', state.class)
     end
     config.BURNCOUNT = ui.draw_input_int('Burn Count', '##burncnt', config.BURNCOUNT, 'Trigger burns if this many mobs are on aggro')
@@ -161,11 +171,11 @@ local function draw_burn_tab()
 end
 
 local function draw_pull_tab()
-    if ImGui.Button('Add Ignore', 147, 22) then
+    if ImGui.Button('Add Ignore', 173, 22) then
         mq.cmdf('/%s ignore', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Remove Ignore', 147, 22) then
+    if ImGui.Button('Remove Ignore', 173, 22) then
         mq.cmdf('/%s unignore', state.class)
     end
     local current_radius = config.PULLRADIUS
@@ -184,6 +194,10 @@ local function draw_pull_tab()
     if current_radius ~= config.PULLRADIUS or current_pullarc ~= config.PULLARC then
         camp.set_camp()
     end
+end
+
+local function draw_loot_tab()
+    config.LOOTMOBS = ui.draw_check_box('Loot Mobs', '##lootmobs', config.LOOTMOBS, 'Loot corpses')
 end
 
 local function draw_debug_combo_box()
@@ -244,13 +258,21 @@ local function draw_body()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Skills') then
-            --if ImGui.BeginChild('Skills', ImGui.GetContentRegionAvail(), 150) then
+            --if ImGui.BeginChild('Skills', ImGui.GetContentRegionAvail(), 500) then
                 ImGui.PushItemWidth(item_width-25)
                 class_funcs.draw_skills_tab()
                 ImGui.PopItemWidth()
             --end
             --ImGui.EndChild()
             ImGui.EndTabItem()
+        end
+        if state.class  == 'clr' or state.class == 'shm' or state.class == 'dru' then
+            if ImGui.BeginTabItem('Heal') then
+                ImGui.PushItemWidth(item_width)
+                draw_heal_tab()
+                ImGui.PopItemWidth()
+                ImGui.EndTabItem()
+            end
         end
         if ImGui.BeginTabItem('Burn') then
             ImGui.PushItemWidth(item_width)
@@ -267,6 +289,12 @@ local function draw_body()
             --ImGui.EndChild()
             ImGui.EndTabItem()
         end
+        if ImGui.BeginTabItem('Loot') then
+            ImGui.PushItemWidth(item_width)
+            draw_loot_tab()
+            ImGui.PopItemWidth()
+            ImGui.EndTabItem()
+        end
         if ImGui.BeginTabItem('Debug') then
             ImGui.PushItemWidth(item_width)
             draw_debug_tab()
@@ -279,24 +307,27 @@ end
 
 local function draw_header()
     if state.paused then
-        if ImGui.Button('RESUME', 147, 22) then
+        if ImGui.Button('RESUME', 173, 22) then
+--        if ImGui.Button('RESUME', 147, 22) then
             camp.set_camp()
             state.paused = false
         end
     else
-        if ImGui.Button('PAUSE', 147, 22) then
+        if ImGui.Button('PAUSE', 173, 22) then
+--        if ImGui.Button('PAUSE', 147, 22) then
             state.paused = true
             state.reset_combat_state()
             mq.cmd('/stopcast')
         end
     end
     ImGui.SameLine()
-    if ImGui.Button('Save Settings', 147, 22) then
+    if ImGui.Button('Save Settings', 173, 22) then
+--    if ImGui.Button('Save Settings', 147, 22) then
         class_funcs.save_settings()
     end
     ImGui.Text('Bot Status: ')
     ImGui.SameLine()
-    ImGui.SetCursorPosX(159)
+    ImGui.SetCursorPosX(187)--159)
     if state.paused then
         ImGui.TextColored(1, 0, 0, 1, 'PAUSED')
     else

@@ -276,9 +276,11 @@ local function main()
                 end
                 common.check_cursor()
                 local looted = false
-            --    if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
-            --        looted = loot.lootMobs(5)
-            --    end
+                if config.LOOTMOBS then
+                    if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
+                        looted = loot.lootMobs(5)
+                    end
+                end
                 if not looted then
                     aqoclass.main_loop()
                 end

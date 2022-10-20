@@ -547,15 +547,28 @@ base.recover = function()
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     for _,ability in ipairs(base.recoverAbilities) do
-        if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
-            useAbility = ability
-            break
-        elseif ability.endurance and pct_end < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') then
-            useAbility = ability
-            break
+        if base.isAbilityEnabled(ability.opt) then
+            --if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
+            if ability.mana and pct_mana < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
+                useAbility = ability
+                break
+            elseif ability.endurance and pct_end < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') then
+                useAbility = ability
+                break
+            end
         end
     end
     if useAbility then
+        local spell = nil
+        if useAbility.type == Abilities.Types.Spell then
+            spell = mq.TLO.Spell(useAbility.name)
+        elseif useAbility.type == Abilities.Types.AA then
+            spell = mq.TLO.Me.AltAbility(useAbility.name).Spell
+        end
+        if spell and spell.TargetType() == 'Single' then
+            mq.TLO.Me.DoTarget()
+            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+        end
         useAbility:use()
     end
 end
@@ -686,13 +699,7 @@ base.draw_skills_tab = function()
             end
         end
     end
-    if healers[base.class] then
-        config.HEALPCT = ui.draw_input_int('Heal Pct', '##healpct', config.HEALPCT, 'Percent HP to begin casting regular heals')
-        config.PANICHEALPCT = ui.draw_input_int('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT, 'Percent HP to begin casting panic heals')
-        config.GROUPHEALPCT = ui.draw_input_int('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT, 'Percent HP to begin casting group heals')
-        config.GROUPHEALMIN = ui.draw_input_int('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN, 'Minimum number of hurt group members to begin casting group heals')
-        config.HOTHEALPCT = ui.draw_input_int('HoT Pct', '##hothealpct', config.HOTHEALPCT, 'Percent HP to begin casting HoTs')
-    end
+    config.RECOVERPCT = ui.draw_input_int('Recover Pct', '##recoverpct', config.RECOVERPCT, 'Percent Mana or End to use class recover abilities')
 end
 
 return base

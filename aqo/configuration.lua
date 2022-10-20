@@ -13,6 +13,8 @@ local config = {
     AUTOASSISTAT = 98,
     SWITCHWITHMA = true,
 
+    RECOVERPCT = 70,
+
     HEALPCT = 75,
     PANICHEALPCT = 30,
     GROUPHEALPCT = 75,
@@ -50,6 +52,8 @@ function config.get_all()
         ASSIST = config.ASSIST,
         AUTOASSISTAT = config.AUTOASSISTAT,
         SWITCHWITHMA = config.SWITCHWITHMA,
+
+        RECOVERPCT = config.RECOVERPCT,
 
         HEALPCT = config.HEALPCT,
         PANICHEALPCT = config.PANICHEALPCT,

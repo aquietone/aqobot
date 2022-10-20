@@ -9,7 +9,7 @@ class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff',
 class.SPELLSETS = {standard=1}
 class.addCommonOptions()
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
-
+class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
 class.addSpell('nuke', {'Trushar\'s Frost'}, {opt='USENUKES'})
 class.addSpell('pethaste',{'Arag\'s Celerity'}) -- pet haste
 class.addSpell('pet', {'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
@@ -38,6 +38,9 @@ table.insert(class.healAbilities, class.spells.heal)
 table.insert(class.selfBuffs, class.spells.groupregen)
 table.insert(class.selfBuffs, class.spells.fero)
 table.insert(class.selfBuffs, common.getAA('Gelid Rending'))
+table.insert(class.selfBuffs, common.getAA('Pact of the Wurine'))
+
+table.insert(class.recoverAbilities, common.getAA('Focused Paragon of Spirit', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true}))
 
 local melees = {MNK=true,BER=true,ROG=true}
 class.buff_class = function()
