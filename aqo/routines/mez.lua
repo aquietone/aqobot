@@ -36,6 +36,7 @@ mez.do_ae = function(mez_spell, ae_count)
             logger.printf('AE Mezzing (MOB_COUNT=%d)', state.mob_count)
             mez_spell:use()
             mez.init_mez_timers()
+            return true
         end
     end
 end
@@ -66,6 +67,7 @@ mez.do_single = function(mez_spell)
                             state.mez_target_name = mob.CleanName()
                             state.mez_target_id = id
                             logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
+                            if mez_spell.precast then mez_spell.precast() end
                             mez_spell:use()
                             logger.debug(logger.log_flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
                             state.targets[id].meztimer:reset()
@@ -73,6 +75,7 @@ mez.do_single = function(mez_spell)
                             mq.doevents('event_mezresist')
                             state.mez_target_id = 0
                             state.mez_target_name = nil
+                            return true
                         end
                     end
                 elseif mob.Type() == 'Corpse' then

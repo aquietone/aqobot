@@ -320,7 +320,7 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if common.am_i_dead() or anyoneDead() or mq.TLO.Me.PctHPs() < 60 then return end
+    if common.am_i_dead() or anyoneDead() or mq.TLO.Me.PctHPs() < 60 or common.DMZ[mq.TLO.Zone.ID()] then return end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
     if not pull_state and (state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
         logger.debug(logger.log_flags.routines.pull, 'returning at weird state')

@@ -47,7 +47,10 @@ local LDON = {
         RECRUITER = 'Periac Windfell',
         ENTRANCE_ZONE_ID = 35,
         ENTRANCES = {
-            ['through a cave'] = '/nav loc 5 -222 129.58',
+            ['through a cave'] = '/nav loc -2134.39 1347.20 -97.4'-- '/nav door RUJPORTAL701',-- '/nav loc 5 -222 129.58',
+        },
+        ENTRANCEDOOR = {
+            ['through a cave'] = 'RUJPORTAL701',
         },
         EXITS = {
             [230] = '/nav door RUJPORTAL701E',
@@ -65,7 +68,9 @@ local LDON = {
         EXIT_COMMAND_DELAY = 1000,
         INSTANCE_ZONE_IDS = {230,235,240,245,250,255,260,265,269,273}, -- rujx
         MAGUS_PHRASE = 'commonlands',
+        AFTER_MAGUS_COMMAND = '/nav loc -1455.03 977.42 -26.69',
         OTHER_RELATED_ZONES = {},--34,}, -- nro
+        DONE_THRESHOLD=20,
     },
     -- everfrost
     [30] = {
@@ -128,8 +133,11 @@ local LDON = {
         RECRUITER = 'Kallei Ribblok',
         ENTRANCE_ZONE_ID = 46, -- innothule only, ignore guk (boss type only ignores guk?)
         ENTRANCES = {
-            ['rotting tree trunk'] = '/nav loc 940.77 569.75 16.65',
-            --['barricaded door'] = '/nav loc -9.59 -1148.92 26.51', guktop (65)
+            ['rotting tree trunk'] = '/nav door GKPORTAL700'--'/nav loc 940.77 569.75 16.65',
+            --['barricaded door'] = '/nav loc 440.64 223.66 -12.81', guktop (65)
+        },
+        ENTRANCEDOOR = {
+            ['rotting tree trunk'] = 'GKPORTAL700',
         },
         EXITS = {
             [229] = '/nav door GKPORTAL701E',
@@ -161,11 +169,14 @@ local alternate = nil
 local currentAlternate = nil
 
 local args = {...}
-if #args ~= 1 then
+if #args < 1 then
     print('Usage: /lua run ldon tankname')
     return
 end
 local tankname = args[1]
+if #args == 2 then
+    ldonRequestZoneID = tonumber(args[2])
+end
 
 local function printf(...)
     print('\ay[\ax\atLDON\ax\ay]\ax ' .. string.format(...))
@@ -187,23 +198,79 @@ local function allPresent(zoneonly)
     return true
 end
 
+local function goToMagus(who)
+    -- wait a few seconds to see the spawn incase this is called before totally done zoning
+    -- or something weird like that
+    local magusSpawn = mq.TLO.Spawn('npc magus')
+    mq.delay(5000, function() return magusSpawn() end)
+    local command = '/nav spawn npc magus | dist=10'
+    if who == 'all' then
+        command = '/dgga ' .. command
+    end
+    if not mq.TLO.Navigation.Active() then
+        mq.cmd(command)
+    end
+    mq.delay(120000, function() return magusSpawn.Distance3D() < 15 end)
+    command = '/mqt npc magus'
+    if who == 'all' then
+        command = '/dgga ' .. command
+    end
+    mq.cmd(command)
+    mq.delay(200, function() return mq.TLO.Target.ID() == magusSpawn.ID() end)
+end
+
+local function takeMagus(destination, who)
+    if who ~= 'all' or allPresent() then
+        local prefix = ''
+        if who == 'all' then prefix = '/dgga ' end
+        mq.cmd('/aqoa pause on')
+        mq.delay(500)
+        mq.cmdf('%s/mqt npc magus', prefix)
+        mq.delay(1000)
+        if not destination then
+            ldonEntranceZoneID = LDON[alternate[currentAlternate]].ENTRANCE_ZONE_ID
+            ldonRequestZoneID = alternate[currentAlternate]
+            if currentAlternate == 1 then
+                currentAlternate = 2
+            else
+                currentAlternate = 1
+            end
+            destination = LDON[ldonRequestZoneID].MAGUS_PHRASE
+        end
+        if who == 'all' then
+            for i=1,mq.TLO.Group.GroupSize() do
+                local member = mq.TLO.Group.Member(i)
+                mq.cmdf('/dex %s /say %s', member.CleanName(), destination)
+                mq.delay(1000)
+            end
+        end
+        mq.cmdf('/say %s', destination)
+        mq.delay(30000, function() return mq.TLO.Zone.ID() == ldonRequestZoneID end)
+        if who == 'all' then
+            mq.delay(30000, function() return allPresent() end)
+            if allPresent() then
+                currentState = STATES.TRAVEL_TO_REQUEST
+            else
+                mq.cmd('/beep')
+                mq.cmd('toons are missing, fixit')
+                mq.cmd('/popcustom 5 toons are missing, fixit')
+            end
+        end
+        mq.cmd('/aqoa pause off')
+    end
+end
+
 local function sell()
-    mq.delay(10000, function() return mq.TLO.Spawn('npc magus')() end)
-    mq.cmdf('/%s pause on', mq.TLO.Me.Class.ShortName())
-    mq.cmd('/nav spawn magus | dist=10')
-    mq.delay(60000, function() return mq.TLO.Spawn('npc magus').Distance3D() < 15 end)
-    mq.cmd('/mqt magus')
-    mq.delay(500)
+    goToMagus()
     mq.cmdf('/%s sell', mq.TLO.Me.Class.ShortName())
     mq.delay(1000)
     mq.delay(60000, function() return not mq.TLO.Window('MerchantWnd').Open() end)
-    mq.cmdf('/%s pause off', mq.TLO.Me.Class.ShortName())
 end
 
 -- Click button to request new adventure
 local function requestTask()
     mq.cmd('/notify AdventureRequestWnd AdvRqst_RiskCombobox ListSelect 2')
-    mq.cmd('/notify AdventureRequestWnd AdvRqst_TypeCombobox ListSelect 3')
+    mq.cmdf('/notify AdventureRequestWnd AdvRqst_TypeCombobox ListSelect %s', LDON[ldonRequestZoneID].ADVENTURE_TYPE)
     mq.delay(100)
     mq.cmd('/notify AdventureRequestWnd AdvRqst_RequestButton leftmouseup')
     mq.delay(5000, function() return mq.TLO.Window('AdventureRequestWnd/AdvRqst_AcceptButton').Enabled() end)
@@ -213,8 +280,10 @@ end
 
 -- Move to LDON request NPC
 local function goToTaskGiver()
-    mq.delay(10000, function() return mq.TLO.Spawn(('npc %s'):format(LDON[currentZoneID].RECRUITER))() end)
-    if not mq.TLO.Navigation.Active() and mq.TLO.Zone.ID() == ldonRequestZoneID and mq.TLO.Spawn(('npc %s'):format(LDON[currentZoneID].RECRUITER)).Distance3D() > 10 then
+    -- wait a few seconds to see the spawn incase this is called before totally done zoning
+    -- or something weird like that
+    mq.delay(5000, function() return mq.TLO.Spawn(('npc %s'):format(LDON[currentZoneID].RECRUITER))() end)
+    if not mq.TLO.Navigation.Active() and mq.TLO.Zone.ID() == ldonRequestZoneID and mq.TLO.Spawn(('npc %s'):format(LDON[currentZoneID].RECRUITER)).Distance3D() > 15 then
         mq.cmdf('/nav spawn npc %s | dist=10', LDON[currentZoneID].RECRUITER)
         mq.delay(100)
         mq.delay(30000, function() return not mq.TLO.Navigation.Active() end)
@@ -248,19 +317,37 @@ end
 
 -- Move group leader back to LDON request NPC
 local function travelToRequestZone()
-    -- try to move people away from non-meshed zone outs
-    if not mq.TLO.Navigation.Active() then
-        printf('Traveling to request zone')
-        mq.cmdf('/travelto %s', mq.TLO.Zone(ldonRequestZoneID).ShortName())
+    if ldonRequestZoneID == 22 then
+        if currentZoneID == 46 then
+            -- innothule to sro to take magus
+            if not mq.TLO.Navigation.Active() then
+                mq.cmd('/travelto sro')
+            end
+        elseif currentZoneID == 35 then
+            -- take magus to commonlands
+            goToMagus('all')
+            takeMagus('commonlands')
+        end
+    else
+        -- try to move people away from non-meshed zone outs
+        if not mq.TLO.Navigation.Active() then
+            printf('Traveling to request zone')
+            mq.cmdf('/travelto %s', mq.TLO.Zone(ldonRequestZoneID).ShortName())
+        end
     end
 end
 
 -- Move to LDON instance
 local function travelToEntranceZone()
-    if not mq.TLO.Navigation.Active() then
-        printf('Traveling to entrance zone')
-        -- todo: make everyone travel there
-        mq.cmdf('/travelto %s', mq.TLO.Zone(ldonEntranceZoneID).ShortName())
+    if ldonRequestZoneID == 22 then
+        goToMagus()
+        takeMagus('south ro')
+    else
+        if not mq.TLO.Navigation.Active() then
+            printf('Traveling to entrance zone')
+            -- todo: make everyone travel there
+            mq.cmdf('/dgga /travelto %s', mq.TLO.Zone(ldonEntranceZoneID).ShortName())
+        end
     end
 end
 
@@ -271,10 +358,14 @@ local function enterTask()
     mq.cmd('/travelto stop')
     -- nav group to spot
     printf('Adventure description: %s', ldonEntranceText)
+    local entranceDoor = ''
     for text,loc in pairs(LDON[ldonRequestZoneID].ENTRANCES) do
         printf('%s : %s', text, loc)
         if ldonEntranceText:lower():find(text) then
             mq.cmdf('/dgga %s', loc)
+            if LDON[ldonRequestZoneID].ENTRANCEDOOR then
+                entranceDoor = LDON[ldonRequestZoneID].ENTRANCEDOOR[text]
+            end
         end
     end
     mq.delay(100)
@@ -283,7 +374,7 @@ local function enterTask()
     -- wait for group
     mq.delay(60000, function() return allPresent() end)
     if allPresent() then
-        mq.cmd('/dgga /multiline ; /doortarget ; /timed 5 /click left door')
+        mq.cmdf('/dgga /multiline ; /doortarget %s; /timed 5 /click left door', entranceDoor)
         mq.delay(10000, function() return mq.TLO.Zone.ID() ~= ldonEntranceZoneID end)
         return true
     else
@@ -325,6 +416,10 @@ local function leaveTask()
 end
 
 local function inLDONRelatedZone()
+    if ldonRequestZoneID then
+        ldonEntranceZoneID = LDON[ldonRequestZoneID].ENTRANCE_ZONE_ID
+        return true
+    end
     for requestZoneID,relatedZones in pairs(LDON) do
         if currentZoneID == requestZoneID or currentZoneID == relatedZones.ENTRANCE_ZONE_ID then
             ldonRequestZoneID = requestZoneID
@@ -428,6 +523,12 @@ while true do
             mq.delay(1000)
         end
     elseif currentState == STATES.TRAVEL_TO_ENTRANCE then
+        if currentZoneID == 35 and ldonEntranceZoneID == 46 and not mq.TLO.Navigation.Active() then
+            if LDON[ldonRequestZoneID].AFTER_MAGUS_COMMAND then
+                mq.cmdf('/dgga %s', LDON[ldonRequestZoneID].AFTER_MAGUS_COMMAND)
+                mq.delay(10000)
+            end
+        end
         if currentZoneID ~= ldonEntranceZoneID then
             travelToEntranceZone()
         else
@@ -438,6 +539,10 @@ while true do
         end
     elseif currentState == STATES.MOVE_TO_ENTRANCE then
         printf('Moving to entrance')
+        if LDON[ldonRequestZoneID].AFTER_MAGUS_COMMAND then
+            mq.cmdf('/dgga %s', LDON[ldonRequestZoneID].AFTER_MAGUS_COMMAND)
+            mq.delay(10000)
+        end
         if enterTask() then
             mq.delay(10000, function() return mq.TLO.Zone.ID() ~= ldonEntranceZoneID end)
             currentState = STATES.ENTERING
@@ -457,9 +562,13 @@ while true do
             if mq.TLO.Me.XTarget() < 2 then
                 printf('Stop clearing the dungeon')
                 mq.cmd('/aqoa mode manual')
+                mq.delay(500)
                 currentState = STATES.RETURN_TO_ENTRANCE
             else
                 printf('Done with mobs but still mobs on xtarget')
+                for i=1,13 do
+                    mq.cmdf('/xtarget remove %s', i)
+                end
             end
         end
     elseif currentState == STATES.RETURN_TO_ENTRANCE then
@@ -513,6 +622,10 @@ while true do
     elseif currentState == STATES.ALTERNATE then
         printf('Switching to next LDON zone')
         if allPresent(true) then
+            if currentZoneID == 46 then
+                mq.cmdf('/dgga /travelto sro')
+
+            end
             mq.cmd('/dgga /nav spawn magus')
             mq.delay(100)
             mq.delay(120000, function() return not mq.TLO.Navigation.Active() end)
@@ -528,21 +641,25 @@ while true do
                 else
                     currentAlternate = 1
                 end
-                for i=1,mq.TLO.Group.GroupSize() do
-                    local member = mq.TLO.Group.Member(i)
-                    mq.cmdf('/dex %s /say %s', member.CleanName(), LDON[ldonRequestZoneID].MAGUS_PHRASE)
-                    mq.delay(1000)
-                end
-                mq.cmdf('/say %s', LDON[ldonRequestZoneID].MAGUS_PHRASE)
-                --mq.cmdf('/dgga /say %s', LDON[ldonRequestZoneID].MAGUS_PHRASE)
-                mq.delay(30000, function() return mq.TLO.Zone.ID() == ldonRequestZoneID end)
-                mq.delay(30000, function() return allPresent() end)
-                if allPresent() then
-                    currentState = STATES.TRAVEL_TO_REQUEST
-                else
-                    mq.cmd('/beep')
-                    mq.cmd('toons are missing, fixit')
-                    mq.cmd('/popcustom 5 toons are missing, fixit')
+                if ldonRequestZoneID ~= currentZoneID then
+                    local MAGUS_PHRASE = LDON[ldonRequestZoneID].MAGUS_PHRASE
+                    if ldonRequestZoneID == 22 then MAGUS_PHRASE = 'South Ro' end
+                    for i=1,mq.TLO.Group.GroupSize() do
+                        local member = mq.TLO.Group.Member(i)
+                        mq.cmdf('/dex %s /say %s', member.CleanName(), MAGUS_PHRASE)
+                        mq.delay(1000)
+                    end
+                    mq.cmdf('/say %s', LDON[ldonRequestZoneID].MAGUS_PHRASE)
+                    --mq.cmdf('/dgga /say %s', LDON[ldonRequestZoneID].MAGUS_PHRASE)
+                    mq.delay(30000, function() return mq.TLO.Zone.ID() == ldonRequestZoneID end)
+                    mq.delay(30000, function() return allPresent() end)
+                    if ldonRequestZoneID == 22 or allPresent() then
+                        currentState = STATES.TRAVEL_TO_REQUEST
+                    else
+                        mq.cmd('/beep')
+                        mq.cmd('toons are missing, fixit')
+                        mq.cmd('/popcustom 5 toons are missing, fixit')
+                    end
                 end
                 mq.cmd('/aqoa pause off')
             end

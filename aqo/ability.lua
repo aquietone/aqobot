@@ -4,20 +4,34 @@ local logger = require(AQO..'.utils.logger')
 local state = require(AQO..'.state')
 
 ---@class Ability
----@field id number|nil #
----@field name string #
----@field type Ability.Type #
----@field opt string|nil #
----@field delay number|nil #
----@field threshold number|nil #
----@field combat boolean|nil #
----@field ooc boolean|nil #
----@field minhp number|nil #
----@field mana boolean|nil #
----@field endurance boolean|nil #
----@field me number|nil #
----@field mt number|nil #
----@field other number|nil #
+---@field id number|nil # the ID of this ability
+---@field name string # the name of this ability
+---@field type Ability.Type # spell, aa, disc, item, skill
+---@field opt string|nil # configuration option to check is enabled before using this ability
+---@field delay number|nil # time in MS to delay after using an ability, primarily for swarm pets that take time to spawn after activation
+---@field threshold number|nil # number of mobs to be on aggro before using an AE ability, or % mana/end to begin using recover abilities
+---@field combat boolean|nil # flag to indicate whether to use recover ability in combat. e.g. don't canni when we should be healing
+---@field ooc boolean|nil # flag to indicate whether to use recover ability in ooc. e.g. don't canni if OOC
+---@field minhp number|nil # minimum HP % threshold to use recover ability. e.g. don't canni below 50% HP
+---@field mana boolean|nil # flag to indicate ability recovers mana
+---@field endurance boolean|nil # flag to indicate ability recovers endurance
+---@field quick boolean|nil # flag the ability as used for quick burns
+---@field long boolean|nil # flag the ability as used for long burns
+---@field me number|nil # ignored currently. should be % hp to use self heal abilities since non-heal classes don't expose healer options
+---@field pet number|nil # percent HP to begin casting pet heal
+---@field self boolean|nil # indicates the heal ability is a self heal, like monk mend
+---@field regular boolean|nil # flag to indicate heal should be used as a regular heal
+---@field panic boolean|nil # flag to indicate heal should be used as a panic heal
+---@field group boolean|nil # flag to indicate heal should be used as a group heal
+---@field pct number|nil # group heal injured percent
+---@field classes table|nil # list of classes which a buff should be cast on
+---@field checkfor string|nil # other name to check for presence of a buff, primarily when the buff name doesn't match the spell name
+---@field skipifbuff string|nil # do not use this ability if the buff indicated by this string is already present
+---@field summons string|nil # name of item summoned by this ability
+---@field summonMinimum number|nil # minimum amount of summoned item to keep
+---@field summonComponent string|nil # reagent required for summon ability to function
+---@field precast string|nil # function to call prior to using an ability
+---@field postcast string|nil # function to call after to using an ability
 local Ability = {
     id=0,
     name = '',
@@ -36,13 +50,29 @@ local Ability = {
     mana = nil,
     endurance = nil,
 
+    quick = nil,
+    long = nil,
+
     -- healing percents
     me = nil,
-    mt = nil,
-    other = nil,
+    pet = nil,
+    self = nil,
+    group = nil,
+    pct = nil,
+    regular = nil,
+    panic = nil,
+
+    classes = nil,
+    checkfor = nil,
+    skipifbuff = nil,
 
     -- name of summoned item like Ethereal Arrows
     summons = nil,
+    summonMinimum = nil,
+    summonComponent = nil,
+
+    precast = nil,
+    postcast = nil,
 }
 
 ---@enum Ability.Types
@@ -176,10 +206,18 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
     return true
 end
 
+---@class Spell : Ability
 local Spell = {}
 
+function Spell:isReady()
+    return Ability.canUseSpell(mq.TLO.Spell(self.name), self.type)
+end
+
 ---Initialize a new spell instance
+---@param ID number|nil #
+---@param name string|nil #
 ---@param options table|nil #
+---@return Ability #
 function Spell:new(ID, name, options)
     local spell = Ability:new(ID, name, Ability.Types.Spell, options)
     setmetatable(spell, self)
@@ -219,10 +257,15 @@ function Spell:use()
     end
 end
 
+---@class Disc : Ability
 local Disc = {}
 
 ---Initialize a new spell instance
+---Initialize a new spell instance
+---@param ID number|nil #
+---@param name string|nil #
 ---@param options table|nil #
+---@return Ability #
 function Disc:new(ID, name, options)
     local disc = Ability:new(ID, name, Ability.Types.Disc, options)
     setmetatable(disc, self)
@@ -280,10 +323,15 @@ function Disc:use(overwrite)
     return false
 end
 
+---@class AA : Ability
 local AA = {}
 
 ---Initialize a new spell instance
+---Initialize a new spell instance
+---@param ID number|nil #
+---@param name string|nil #
 ---@param options table|nil #
+---@return Ability #
 function AA:new(ID, name, options)
     local aa = Ability:new(ID, name, Ability.Types.AA, options)
     setmetatable(aa, self)
@@ -316,9 +364,15 @@ function AA:use()
     return false
 end
 
+---@class Item : Ability
 local Item = {}
 
 ---Initialize a new spell instance
+---Initialize a new spell instance
+---@param ID number|nil #
+---@param name string|nil #
+---@param options table|nil #
+---@return Ability #
 function Item:new(ID, name, options)
     local item = Ability:new(ID, name, Ability.Types.Item, options)
     setmetatable(item, self)
@@ -328,8 +382,8 @@ end
 
 function Item:isReady(item)
     if state.subscription ~= 'GOLD' and item.Prestige() then return false end
-    local spell = item.Clicky.Spell
-    if spell() and item.Timer() == '0' then
+    local spell = item() and item.Clicky.Spell
+    if spell and spell() and item.Timer() == '0' then
         return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)
     else
         return false
@@ -349,11 +403,13 @@ function Item:use()
     return false
 end
 
+---@class Skill : Ability
 local Skill = {}
 
 ---Initialize a new spell instance
 ---@param name string|nil #
 ---@param options table|nil #
+---@return Ability #
 function Skill:new(name, options)
     local skill = Ability:new(nil, name, Ability.Types.Skill, options)
     setmetatable(skill, self)

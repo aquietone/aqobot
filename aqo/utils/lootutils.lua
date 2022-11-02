@@ -417,12 +417,31 @@ loot.lootMobs = function(limit)
             mq.delay(100, function() return mq.TLO.Target.ID() == corpseID end)
             lootCorpse(corpseID)
             didLoot = true
-            mq.doevents()
+            mq.doevents('InventoryFull')
             --if not shouldLootMobs then break end
         end
     end
     loot.logger.Debug('Done with corpse list.')
     return didLoot
+end
+
+loot.lootMyCorpse = function()
+    mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
+    mq.delay(1000)
+    if mq.TLO.Target.Type() == 'Corpse' then
+        mq.cmd('/nav target')
+        mq.delay(10000, function() return mq.TLO.Target.Distance3D() < 10 end)
+        mq.cmd('/loot')
+        mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
+        if mq.TLO.Window('LootWnd').Open() then
+            mq.delay(3000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
+            local items = mq.TLO.Corpse.Items() or 0
+            if items > 0 then
+                mq.cmd('/notify LootWnd LW_LootAllButton leftmouseup')
+                mq.delay(30000, function() return not mq.TLO.Window('LootWnd').Open() end)
+            end
+        end
+    end
 end
 
 -- SELLING

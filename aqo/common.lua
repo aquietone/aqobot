@@ -11,16 +11,14 @@ local common = {}
 
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1,manual=1}
 common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
+common.TANK_CLASSES = {war=true,shd=true,pal=true}
+common.MELEE_CLASSES = {ber=true,mnk=true,rog=true}
+common.CASTER_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true}
+common.PET_CLASSES = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=true}
+common.BUFF_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true,pal=true}
+common.HEALER_CLASSES = {clr=true,dru=true,shm=true}
 common.FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true}
 common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
-common.BOOL = {
-    TRUE={
-        ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
-    },
-    FALSE={
-        ['0']=1, ['false']=1,['off']=1,['FALSE']=1,['OFF']=1,
-    },
-}
 common.DMZ = {
     [344] = 1,
     [345] = 1,
@@ -76,9 +74,12 @@ local function getSpell(spellName)
 end
 
 common.getBestSpell = function(spells, options)
-    for _,spellName in ipairs(spells) do
+    for i,spellName in ipairs(spells) do
         local bestSpell = getSpell(spellName)
         if bestSpell then
+            if options and type(options.summons) == 'table' then
+                options.summons = options.summons[i]
+            end
             local spell = ability.Spell:new(bestSpell.id, bestSpell.name, options)
             return spell
         end
@@ -226,7 +227,7 @@ end
 
 common.blocking_window_open = function()
     -- check blocking windows -- BigBankWnd, MerchantWnd, GiveWnd, TradeWnd
-    return mq.TLO.Window('BigBankWnd').Open() or mq.TLO.Window('MerchantWnd').Open() or mq.TLO.Window('GiveWnd').Open() or mq.TLO.Window('TradeWnd').Open()
+    return mq.TLO.Window('BigBankWnd').Open() or mq.TLO.Window('MerchantWnd').Open() or mq.TLO.Window('GiveWnd').Open() or mq.TLO.Window('TradeWnd').Open() or mq.TLO.Window('LootWnd').Open()
 end
 
 -- Movement Functions
@@ -243,8 +244,15 @@ common.check_chase = function()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.CHASETARGET))() then
-            mq.cmdf('/nav spawn pc =%s | log=off', config.CHASETARGET)
+        if not mq.TLO.Navigation.Active() then
+            if mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.CHASETARGET))() then
+                mq.cmdf('/nav spawn pc =%s | log=off', config.CHASETARGET)
+            else
+                local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
+                if chaseSpawn.LineOfSight() then
+                    mq.cmdf('/moveto id %s', chaseSpawn.ID())
+                end
+            end
         end
     end
 end
@@ -487,9 +495,11 @@ common.swap_spell = function(spell, gem, other_names)
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
-    mq.delay(6000, function() return common.swap_gem_ready(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
+    -- Low meditate skill or non-casters may take more time to memorize stuff
+    mq.delay(15000, function() return common.swap_gem_ready(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
     logger.debug(logger.log_flags.common.memspell, "Delayed for mem_spell "..spell.name)
-    mq.TLO.Window('SpellBookWnd').DoClose()
+    if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
+    return common.swap_gem_ready(spell.name, gem)
 end
 
 common.swap_and_cast = function(spell, gem)
@@ -497,13 +507,18 @@ common.swap_and_cast = function(spell, gem)
     local restore_gem = nil
     if not mq.TLO.Me.Gem(spell.name)() then
         restore_gem = {name=mq.TLO.Me.Gem(gem)()}
-        common.swap_spell(spell, gem)
+        if not common.swap_spell(spell, gem) then
+            -- failed to mem?
+        end
     end
-    mq.delay(3500, function() return mq.TLO.Me.SpellReady(spell.name)() end)
+    -- if we swapped a spell then at least try to give it enough time to become ready or why did we swap
+    mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.name)() end)
     logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
     local did_cast = spell:use()
     if restore_gem and restore_gem.name then
-        common.swap_spell(restore_gem, gem)
+        if not common.swap_spell(restore_gem, gem) then
+            -- failed to mem?
+        end
     end
     return did_cast
 end

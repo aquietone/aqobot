@@ -9,6 +9,7 @@ local state = require(AQO..'.state')
 
 local assist = {}
 
+state.enrageTimer = timer:new(10)
 --|------------------------------------------------------------|
 --|-  Turns off attack, when a mob you're attacking enrages.  -|
 --|------------------------------------------------------------|
@@ -18,15 +19,16 @@ local function eventEnraged(line, name)
             -- target is enraged
             mq.cmd('/squelch /face fast')
             if math.abs(mq.TLO.Me.Heading.Degrees()-mq.TLO.Target.Heading.Degrees()) > 85 and not mq.TLO.Stick.Behind() then
-                state.dontAttack = true
+                --state.dontAttack = true
                 mq.cmd('/attack off')
             end
         end
     end
     if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() == mq.TLO.Target.ID() then
         mq.cmd('/pet back')
-        state.petDontAttack = true
+        --state.petDontAttack = true
     end
+    state.enrageTimer:reset()
 end
 mq.event('enrageOn', '#1# has become ENRAGED.', eventEnraged)
 
@@ -134,7 +136,7 @@ end
 ---Acquire the correct target when running in an assist mode. Clears target if the main assist targets themself.
 ---Targets the main assists target if assist conditions are met.
 ---If currently engaged, remains on the current target unless the switch with MA option is enabled.
----Sets common.ASSIST_TARGET_ID to 0 or the ID of the mob to assist on.
+---Sets state.assist_mob_id to 0 or the ID of the mob to assist on.
 ---@param reset_timers function @An optional function to be called to reset combat timers specific to the class calling this function.
 assist.check_target = function(reset_timers)
     if common.am_i_dead() then return end
@@ -255,6 +257,8 @@ assist.attack = function(skip_no_los)
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
+    elseif state.dontAttack and state.enrageTimer:timer_expired() then
+        state.dontAttack = false
     end
 end
 

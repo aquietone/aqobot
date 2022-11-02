@@ -28,11 +28,13 @@ class.addOption('MEZAECOUNT', 'Mez AE Count', 3, nil, 'Threshold to use AE Mez a
 class.addOption('USEINSULTS', 'Use Insults', true, nil, 'Use insult songs', 'checkbox')
 class.addOption('USEINTIMIDATE', 'Use Intimidate', false, nil, 'Use Intimidate (It may fear mobs without the appropriate AA\'s', 'checkbox')
 class.addOption('USEBELLOW', 'Use Bellow', true, nil, 'Use Boastful Bellow AA', 'checkbox')
+class.addOption('USECACOPHONY', 'Use Cacophony', true, nil, 'Use Cacophony AA', 'checkbox')
 class.addOption('USEFADE', 'Use Fade', false, nil, 'Fade when aggro', 'checkbox')
 class.addOption('RALLYGROUP', 'Rallying Group', false, nil, 'Use Rallying Group AA', 'checkbox')
 class.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox')
 class.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
 class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox')
+class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT songs if they are in the selected song list', 'checkbox')
 
 -- All spells ID + Rank name
 class.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
@@ -59,11 +61,11 @@ class.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber
 class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
 
 -- haste song doesn't stack with enc haste?
-class.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'}, {aura=true})
+class.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'})
 class.addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
 class.addSpell('bardhaste', {'Psalm of Veeshan', 'Composition of Ervaj'})
 class.addSpell('emuhaste', {'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
-class.addSpell('emuregen', {'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
+class.addSpell('emuregen', {'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
 class.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
 class.addSpell('emuproc', {'Song of the Storm'})
 class.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
@@ -123,7 +125,7 @@ if state.emu then
     songs.emuaura55 = emuaura55
     songs.emunoaura = emunoaura
     table.insert(class.auras, class.spells.emuaura)
-    table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
+    --table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
     table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal'))
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
 
@@ -138,7 +140,6 @@ end
 
 table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
 table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
-
 table.insert(class.burnAbilities, common.getAA('Quick Time'))
 table.insert(class.burnAbilities, common.getAA('Funeral Dirge'))
 table.insert(class.burnAbilities, common.getAA('Spire of the Minstrels'))
@@ -146,16 +147,13 @@ table.insert(class.burnAbilities, common.getAA('Bladed Song'))
 table.insert(class.burnAbilities, common.getAA('Dance of Blades'))
 table.insert(class.burnAbilities, common.getAA('Flurry of Notes'))
 table.insert(class.burnAbilities, common.getAA('Frenzied Kicks'))
-
 table.insert(class.burnAbilities, common.getBestDisc({'Thousand Blades'}))
 
-table.insert(class.DPSAbilities, common.getAA('Cacophony'))
+table.insert(class.DPSAbilities, common.getAA('Cacophony', {opt='USECACOPHONY'}))
 -- Delay after using swarm pet AAs while pets are spawning
 table.insert(class.DPSAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
 table.insert(class.DPSAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
-
 table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
-
 table.insert(class.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
 table.insert(class.DPSAbilities, common.getSkill('Kick'))
 table.insert(class.DPSAbilities, common.getAA('Selo\'s Kick'))

@@ -20,6 +20,10 @@ local config = {
     GROUPHEALPCT = 75,
     GROUPHEALMIN = 3,
     HOTHEALPCT = 90,
+    REZGROUP = true,
+    REZRAID = true,
+    REZINCOMBAT = false,
+    PRIORITYTARGET = '',
 
     BURNALWAYS = false,
     BURNPCT = 0,
@@ -39,6 +43,10 @@ local config = {
     MEDMANASTOP = 30,
     MEDENDSTART = 5,
     MEDENDSTOP = 30,
+
+    LOOTMOBS = true,
+
+    MAINTANK = false,
 }
 
 local ignores = {}
@@ -60,7 +68,11 @@ function config.get_all()
         GROUPHEALPCT = config.GROUPHEALPCT,
         GROUPHEALMIN = config.GROUPHEALMIN,
         HOTHEALPCT = config.HOTHEALPCT,
-    
+        REZGROUP = config.REZGROUP,
+        REZRAID = config.REZRAID,
+        REZINCOMBAT = config.REZINCOMBAT,
+        PRIORITYTARGET = config.PRIORITYTARGET,
+
         BURNALWAYS = config.BURNALWAYS,
         BURNPCT = config.BURNPCT,
         BURNALLNAMED = config.BURNALLNAMED,
@@ -79,7 +91,88 @@ function config.get_all()
         MEDMANASTOP = config.MEDMANASTOP,
         MEDENDSTART = config.MEDENDSTART,
         MEDENDSTOP = config.MEDENDSTOP,
+
+        LOOTMOBS = config.LOOTMOBS,
+
+        MAINTANK = config.MAINTANK,
     }
+end
+
+config.BOOL = {
+    TRUE={
+        ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
+    },
+    FALSE={
+        ['0']=1, ['false']=1,['off']=1,['FALSE']=1,['OFF']=1,
+    },
+}
+
+config.aliases = {
+    campradius = 'CAMPRADIUS',
+    autoassistat = 'AUTOASSISTAT',
+    chasedistance = 'CHASEDISTANCE',
+    chasetarget = 'CHASETARGET',
+    switchwithma = 'SWITCHWITHMA',
+
+    burnpercent = 'BURNPCT',
+    burncount = 'BURNCOUNT',
+    burnalways = 'BURNALWAYS',
+    burnallnamed = 'BURNALLNAMED',
+    useintensity = 'USEINTENSITY',
+    useglyph = 'USEGLYPH',
+
+    recoverpct = 'RECOVERPCT',
+
+    healpct = 'HEALPCT',
+    panichealpct = 'PANICHEALPCT',
+    grouphealpct = 'GROUPHEALPCT',
+    grouphealmin = 'GROUPHEALMIN',
+    hothealpct = 'HOTHEALPCT',
+    rezgroup = 'REZGROUP',
+    rezraid = 'REZRAID',
+    rezincombat = 'REZINCOMBAT',
+    prioritytarget = 'PRIORITYTARGET',
+
+    medmanastart = 'MEDMANASTART',
+    medmanastop = 'MEDMANASTOP',
+    medendstart = 'MEDENDSTART',
+    medendstop = 'MEDENDSTOP',
+
+    radius = 'PULLRADIUS',
+    pullarc = 'PULLARC',
+    levelmin = 'PULLMINLEVEL',
+    levelmax = 'PULLMAXLEVEL',
+    zlow = 'PULLLOW',
+    zhigh = 'PULLHIGH',
+    groupwatch = 'GROUPWATCHWHO',
+
+    maintank = 'MAINTANK',
+
+    lootmobs = 'LOOTMOBS',
+}
+
+---Get or set the specified configuration option. Currently applies to pull settings only.
+---@param name string @The name of the setting.
+---@param current_value any @The current value of the specified setting.
+---@param new_value string @The new value for the setting.
+---@param key string @The configuration key to be set.
+config.getOrSetOption = function(name, current_value, new_value, key)
+    if config[key] == nil then return end
+    if new_value then
+        if type(current_value) == 'number' then
+            config[key] = tonumber(new_value) or current_value
+        elseif type(current_value) == 'boolean' then
+            if config.BOOL.TRUE[new_value] then
+                config[key] = true
+            elseif config.BOOL.FALSE[new_value] then
+                config[key] = false
+            end
+        else
+            config[key] = new_value
+        end
+    else
+        logger.printf('%s: %s', name, current_value)
+    end
 end
 
 ---Check whether the specified file exists or not.
@@ -126,7 +219,10 @@ function config.get_ignores(zone_short_name)
 end
 
 function config.add_ignore(zone_short_name, mob_name)
-    if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then return end
+    if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then
+        logger.printf('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name)
+        return
+    end
     if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
     logger.printf('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name)
@@ -134,7 +230,10 @@ function config.add_ignore(zone_short_name, mob_name)
 end
 
 function config.remove_ignore(zone_short_name, mob_name)
-    if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then return end
+    if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then
+        logger.printf('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name)
+        return
+    end
     ignores[zone_short_name:lower()][mob_name] = nil
     logger.printf('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name)
     config.save_ignores()

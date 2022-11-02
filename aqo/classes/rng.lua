@@ -48,8 +48,8 @@ class.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
 class.addSpell('buffs', {'Shout of the Dusksage Stalker'}) -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
 -- Shout of the X Stalker Buffs
 class.addSpell('cloak', {'Cloak of Bloodbarbs'}) -- Cloak of Rimespurs
-class.addSpell('predator', {'Bay of the Predator'}) -- Frostroar of the Predator
-class.addSpell('strength', {'Strength of the Dusksage Stalker'}) -- Strength of the Arbor Stalker
+class.addSpell('predator', {'Bay of the Predator', 'Spirit of the Predator'}) -- Frostroar of the Predator
+class.addSpell('strength', {'Strength of the Dusksage Stalker', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
 -- Unity AA Buffs
 class.addSpell('protection', {'Protection of the Valley', 'Protection of the Wild'}) -- Protection of the Wakening Land
 class.addSpell('eyes', {'Eyes of the Senshali', 'Eyes of the Owl'}) -- Eyes of the Visionary
@@ -121,8 +121,11 @@ local dispel = common.getAA('Entropy of Nature') -- dispel 9 slots
 local snare = common.getAA('Entrap')
 local fade = common.getAA('Cover Tracks')
 local evasion = common.getAA('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
+table.insert(class.selfBuffs, common.getAA('Outrider\'s Evasion'))
 local brownies = common.getAA('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
+table.insert(class.selfBuffs, common.getAA('Bulwark of the Brownies'))
 local chameleon = common.getAA('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
+table.insert(class.selfBuffs, common.getAA('Chameleon\'s Gift'))
 local protection = common.getAA('Protection of the Spirit Wolf') -- 20min cd, large rune
 local unity_azia = common.getAA('Wildstalker\'s Unity (Azia)')
 --Slot 1: 	Devastating Barrage
@@ -131,11 +134,14 @@ local unity_azia = common.getAA('Wildstalker\'s Unity (Azia)')
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
 if state.emu then
+    class.addSpell('heal', {'Sylvan Light'})
     table.insert(class.selfBuffs, class.spells.eyes)
     table.insert(class.selfBuffs, class.spells.protection)
     table.insert(class.selfBuffs, class.spells.blades)
+    table.insert(class.selfBuffs, class.spells.predator)
+    --table.insert(class.selfBuffs, class.spells.strength)
     table.insert(class.combatBuffs, common.getBestDisc({'Trueshot Discipline'}))
-    --table.insert(class.healAbilities, class.getBestSpell({''}))
+    table.insert(class.healAbilities, class.spells.heal)
 end
 local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
 --Slot 1: 	Vociferous Blades
@@ -144,7 +150,17 @@ local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
 local poison = common.getAA('Poison Arrows')
+table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW'}))
 local fire = common.getAA('Flaming Arrows')
+table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW'}))
+
+table.insert(class.selfBuffs, class.spells.buffs)
+table.insert(class.selfBuffs, class.spells.dmgbuff)
+
+class.predator = class.spells.predator
+class.strength = class.spells.strength
+class.requestAliases.predator = 'predator'
+class.requestAliases.strength = 'strength'
 
 local ranged_timer = timer:new(5)
 class.reset_class_timers = function()
@@ -297,12 +313,6 @@ class.cast = function()
     end
 end
 
-class.mash_class = function()
-    if class.OPTS.USEDISPEL.value and dispel and mq.TLO.Target.Beneficial() then
-        dispel:use()
-    end
-end
-
 --[[
     1. pureshot
     2. reflexive
@@ -393,7 +403,7 @@ local function target_missing_buff(name)
 end
 
 local group_buff_timer = timer:new(60)
-class.buff_class = function()
+class.buff_classb = function()
     if common.am_i_dead() then return end
     common.check_combat_buffs()
     if brownies and not mq.TLO.Me.Buff(brownies.name)() then

@@ -29,24 +29,26 @@ class.addOption('USEVOICEOFTHULE', 'Use Voice of Thule', false, nil, '', 'checkb
 class.addOption('USETORRENT', 'Use Torrent', true, nil, '', 'checkbox')
 class.addOption('USESWARM', 'Use Snare', true, nil, '', 'checkbox')
 class.addOption('USEDEFLECTION', 'Use Deflection', false, nil, '', 'checkbox')
+class.addOption('DONTCAST', 'Don\'t Cast', false, nil, 'Don\'t cast spells in combat', 'checkbox')
+class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
 
 class.addSpell('composite', {'Composite Fang'}) -- big lifetap
 class.addSpell('alliance', {'Bloodletting Coalition'}) -- alliance
 -- Aggro
-class.addSpell('challenge', {'Parlay for Power', 'Shroud of Hate'}) -- main hate spell
-class.addSpell('terror', {'Terror of Ander', 'Terror of Darkness'}) -- ST increase hate by 1
-class.addSpell('aeterror', {'Antipathy'}, {threshold=2}) -- ST increase hate by 1
+class.addSpell('challenge', {'Parlay for Power', 'Aura of Hate'}) -- main hate spell
+class.addSpell('terror', {'Terror of Ander', 'Terror of Thule', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}) -- ST increase hate by 1
+class.addSpell('aeterror', {'Antipathy', 'Dread Gaze'}, {threshold=2}) -- ST increase hate by 1
 --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 -- Lifetaps
 class.addSpell('largetap', {'Dire Censure', 'Touch of Innoruuk'}) -- large lifetap
-class.addSpell('tap1', {'Touch of Txiki', 'Touch of Volatis'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
-class.addSpell('tap2', {'Touch of Namdrows', 'Aura of Hate'}) -- lifetap + temp hp buff Gift of Namdrows
+class.addSpell('tap1', {'Touch of Txiki', 'Touch of the Devourer', 'Touch of Volatis'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
+class.addSpell('tap2', {'Touch of Namdrows', 'Touch of Draygun'}) -- lifetap + temp hp buff Gift of Namdrows
 class.addSpell('dottap', {'Bond of Bynn'}) -- lifetap dot
 class.addSpell('bitetap', {'Cruor\'s Bite', 'Zevfeer\'s Bite'}) -- lifetap with hp/mana recourse
 -- AE lifetap + aggro
 class.addSpell('aetap', {'Insidious Renunciation'}) -- large hate + lifetap
 -- DPS
-class.addSpell('spear', {'Spear of Bloodwretch', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
+class.addSpell('spear', {'Spear of Bloodwretch', 'Spear or Muram', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
 class.addSpell('poison', {'Blood of Tearc', 'Blood of Pain'}) -- poison dot
 class.addSpell('disease', {'Plague of Fleshrot'}) -- disease dot
 class.addSpell('corruption', {'Unscrupulous Blight'}) -- corruption dot
@@ -60,14 +62,14 @@ class.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lif
 --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
 -- Pet
 class.addSpell('pet', {'Minion of Itzal', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
-class.addSpell('pethaste', {'Gift of Itzal', 'Augment Death'}) -- pet haste
+class.addSpell('pethaste', {'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}) -- pet haste
 -- Unity Buffs
 class.addSpell('shroud', {'Shroud of Zelinstein'}) -- Shroud of Zelinstein Strike proc
 class.addSpell('bezaproc', {'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
 class.addSpell('aziaproc', {'Brightfield\'s Horror', 'Black Shroud'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
 class.addSpell('ds', {'Tekuel Skin'}) -- large damage shield self buff
 class.addSpell('lich', {'Aten Ha Ra\'s Covenant'}) -- lich mana regen
-class.addSpell('drape', {'Drape of the Akheva', 'Cloak of Luclin'}) -- self buff hp, ac, ds
+class.addSpell('drape', {'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}) -- self buff hp, ac, ds
 class.addSpell('atkbuff', {'Penumbral Call'}) -- atk buff, hp drain on self
 --['']=common.get_best_spell({'Remorseless Demeanor'})
 
@@ -165,7 +167,7 @@ table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Na
 table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
 table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 
-local epic = common.getItem('Innoruuk\'s Dark Blessing')
+local epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
 
 if state.emu then
     table.insert(class.selfBuffs, class.spells.aziaproc)
@@ -204,7 +206,8 @@ local function find_next_spell()
     if myhp < 85 then
         if common.is_spell_ready(class.spells['tap1']) then return class.spells['tap1'] end
     end
-    if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(class.spells['tap2']) then return class.spells['tap2'] end
+    --if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(class.spells['tap2']) then return class.spells['tap2'] end
+    if common.is_spell_ready(class.spells.tap2) then return class.spells.tap2 end
     if common.is_dot_ready(class.spells['dottap']) then return class.spells['dottap'] end
     if common.is_spell_ready(class.spells['bitetap']) then return class.spells['bitetap'] end
     if common.is_dot_ready(class.spells['acdebuff']) then return class.spells['acdebuff'] end
@@ -220,6 +223,7 @@ end
 
 class.cast = function()
     if common.am_i_dead() then return end
+    if class.isEnabled('DONTCAST') then return end
     if not mq.TLO.Me.Invis() then
         if assist.is_fighting() then
             local spell = find_next_spell()
@@ -293,7 +297,7 @@ class.burn_class = function()
         if guardian then guardian:use() end
     end
 
-    if epic then epic:use() end
+    if class.isEnabled('USEEPIC') and epic then epic:use() end
 end
 
 class.ohshit = function()

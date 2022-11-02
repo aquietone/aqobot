@@ -18,11 +18,6 @@ local aqoclass
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
-    if state.subscription ~= 'GOLD' then
-        if mq.TLO.Me.Subscription() == 'GOLD' then
-            state.subscription = 'GOLD'
-        end
-    end
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
         logger.printf('Not in game, stopping aqo.')
         mq.exit()
@@ -33,29 +28,6 @@ end
 local function show_help()
     logger.printf('AQO Bot 1.0')
     logger.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', state.class))
-end
-
----Get or set the specified configuration option. Currently applies to pull settings only.
----@param name string @The name of the setting.
----@param current_value any @The current value of the specified setting.
----@param new_value string @The new value for the setting.
----@param key string @The configuration key to be set.
-local function get_or_set_opt(name, current_value, new_value, key)
-    if new_value then
-        if type(current_value) == 'number' then
-            config[key] = tonumber(new_value) or current_value
-        elseif type(current_value) == 'boolean' then
-            if common.BOOL.TRUE[new_value] then
-                config[key] = true
-            elseif common.BOOL.FALSE[new_value] then
-                config[key] = false
-            end
-        else
-            config[key] = new_value
-        end
-    else
-        logger.printf('%s: %s', name, current_value)
-    end
 end
 
 ---Process binding commands.
@@ -92,11 +64,11 @@ local function cmd_bind(...)
                 mq.cmd('/stopcast')
             end
         else
-            if common.BOOL.TRUE[new_value] then
+            if config.BOOL.TRUE[new_value] then
                 state.paused = true
                 state.reset_combat_state()
                 mq.cmd('/stopcast')
-            elseif common.BOOL.FALSE[new_value] then
+            elseif config.BOOL.FALSE[new_value] then
                 camp.set_camp()
                 state.paused = false
             end
@@ -108,58 +80,20 @@ local function cmd_bind(...)
     elseif opt == 'mode' then
         if new_value then
             config.MODE = mode.from_string(new_value) or config.MODE
+            state.reset_combat_state()
         else
             logger.printf('Mode: %s', config.MODE:get_name())
         end
         camp.set_camp()
     elseif opt == 'resetcamp' then
         camp.set_camp(true)
-    elseif opt == 'campradius' then
-        get_or_set_opt(opt, config.CAMPRADIUS, new_value, 'CAMPRADIUS')
+    elseif opt == 'campradius' or opt == 'radius' or opt == 'pullarc' then
+        config.getOrSetOption(opt, config[config.aliases[opt]], new_value, config.aliases[opt])
         camp.set_camp()
-    elseif opt == 'radius' then
-        get_or_set_opt(opt, config.PULLRADIUS, new_value, 'PULLRADIUS')
-        camp.set_camp()
-    elseif opt == 'pullarc' then
-        get_or_set_opt(opt, config.PULLARC, new_value, 'PULLARC')
-        camp.set_camp()
-    elseif opt == 'levelmin' then
-        get_or_set_opt(opt, config.PULLMINLEVEL, new_value, 'PULLMINLEVEL')
-    elseif opt == 'levelmax' then
-        get_or_set_opt(opt, config.PULLMAXLEVEL, new_value, 'PULLMAXLEVEL')
-    elseif opt == 'zlow' then
-        get_or_set_opt(opt, config.PULLLOW, new_value, 'PULLLOW')
-    elseif opt == 'zhigh' then
-        get_or_set_opt(opt, config.PULLHIGH, new_value, 'PULLHIGH')
-    elseif opt == 'zradius' then
-        get_or_set_opt(opt, config.PULLLOW, new_value, 'PULLLOW')
-        get_or_set_opt(opt, config.PULLHIGH, new_value, 'PULLHIGH')
-    elseif opt == 'groupwatch' then
-        if common.GROUP_WATCH_OPTS[new_value] then
-            get_or_set_opt(opt, config.GROUPWATCHWHO, new_value, 'GROUPWATCHWHO')
-        end
-    elseif opt == 'medmanastart' then
-        get_or_set_opt(opt, config.MEDMANASTART, new_value, 'MEDMANASTART')
-    elseif opt == 'medmanastop' then
-        get_or_set_opt(opt, config.MEDMANASTOP, new_value, 'MEDMANASTOP')
-    elseif opt == 'medendstart' then
-        get_or_set_opt(opt, config.MEDENDSTART, new_value, 'MEDENDSTART')
-    elseif opt == 'medendstop' then
-        get_or_set_opt(opt, config.MEDENDSTOP, new_value, 'MEDENDSTOP')
-    elseif opt == 'burnallnamed' then
-        get_or_set_opt(opt, config.BURNALLNAMED, new_value, 'BURNALLNAMED')
-    elseif opt == 'burnalways' then
-        get_or_set_opt(opt, config.BURNALWAYS, new_value, 'BURNALWAYS')
-    elseif opt == 'burncount' then
-        get_or_set_opt(opt, config.BURNCOUNT, new_value, 'BURNCOUNT')
-    elseif opt == 'burnpercent' then
-        get_or_set_opt(opt, config.BURNPCT, new_value, 'BURNPCT')
-    elseif opt == 'chasetarget' then
-        get_or_set_opt(opt, config.CHASETARGET, new_value, 'CHASETARGET')
-    elseif opt == 'chasedistance' then
-        get_or_set_opt(opt, config.CHASEDISTANCE, new_value, 'CHASEDISTANCE')
-    elseif opt == 'autoassistat' then
-        get_or_set_opt(opt, config.AUTOASSISTAT, new_value, 'AUTOASSISTAT')
+    elseif config.aliases[opt] then
+        config.getOrSetOption(opt, config[config.aliases[opt]], new_value, config.aliases[opt])
+    elseif opt == 'groupwatch' and common.GROUP_WATCH_OPTS[new_value] then
+        config.getOrSetOption(opt, config[config.aliases[opt]], new_value, config.aliases[opt])
     elseif opt == 'assist' then
         if new_value and common.ASSISTS[new_value] then
             config.ASSIST = new_value
@@ -187,9 +121,11 @@ local function cmd_bind(...)
 end
 
 local function zoned()
-    if not state.paused and config.MODE:get_name() == 'huntertank' then
-        config.MODE = mode.from_string('manual')
+    state.reset_combat_state()
+    if state.currentZone == mq.TLO.Zone.ID() then
+        -- evac'd
     end
+    state.currentZone = mq.TLO.Zone.ID()
 end
 
 local lootMyBody = false
@@ -199,6 +135,7 @@ end
 
 local function init()
     state.class = mq.TLO.Me.Class.ShortName():lower()
+    state.currentZone = mq.TLO.Zone.ID()
     state.subscription = mq.TLO.Me.Subscription()
     if mq.TLO.EverQuest.Server() == 'Project Lazarus' then state.emu = true end
     common.set_swap_gem()
@@ -219,12 +156,16 @@ local function init()
     else
         mq.cmd('/hidecorpse alwaysnpc')
     end
-    mq.cmd('/multiline ; /pet hold on ; /pet ghold on')
+    mq.cmd('/multiline ; /pet ghold on')
     mq.cmd('/squelch /stick set verbflags 0')
     mq.cmd('/squelch /plugin melee unload noauto')
+    mq.cmd('/squelch rez accept on')
+    mq.cmd('/squelch rez pct 90')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
     mq.event('zoned', 'You have entered #*#', zoned)
-    mq.event('rezzed', 'You regain #*# experience from resurrection', rezzed)
+    if state.emu then
+        mq.event('rezzed', 'You regain #*# experience from resurrection', rezzed)
+    end
     --loot.logger.loglevel = 'debug'
 end
 
@@ -234,28 +175,24 @@ local function main()
     local debug_timer = timer:new(3)
     -- Main Loop
     while true do
-        check_game_state()
         if state.debug and debug_timer:timer_expired() then
-            logger.debug(logger.log_flags.aqo.main, 'main loop: PAUSED=%s, Me.Invis=%s', state.paused, mq.TLO.Me.Invis())
-            logger.debug(logger.log_flags.aqo.main, '#TARGETS: %d, MOB_COUNT: %d', common.table_size(state.targets), state.mob_count)
+            logger.debug(logger.log_flags.aqo.main, 'Start Main Loop')
             debug_timer:reset()
         end
+        mq.doevents()
+        state.actionTaken = false
+        check_game_state()
 
         if not mq.TLO.Target() and (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then
-            common.ASSIST_TARGET_ID = 0
+            state.assist_mob_id = 0
+            state.tank_mob_id = 0
+            state.pull_mob_id = 0
             mq.cmd('/multiline ; /attack off; /autofire off;')
         end
 
-        if camp.Active and camp.ZoneID ~= mq.TLO.Zone.ID() then
-            state.reset_combat_state()
-        end
-
-        -- Process death events
-        mq.doevents()
         if not state.paused then
             camp.clean_targets()
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
-                common.ASSIST_TARGET_ID = 0
                 state.tank_mob_id = 0
                 state.assist_mob_id = 0
                 state.pull_mob_id = 0
@@ -264,24 +201,22 @@ local function main()
             if mq.TLO.Me.Hovering() then
                 mq.delay(50)
             elseif not mq.TLO.Me.Invis() and not common.blocking_window_open() then
-                if mq.TLO.Me.Buff('Resurrection Sickness')() and lootMyBody then
-                    mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
-                    mq.delay(1000)
-                    
-                    lootMyBody = false
-                end
                 -- do active combat assist things when not paused and not invis
                 if mq.TLO.Me.Feigning() and not common.FD_CLASSES[state.class] then
                     mq.cmd('/stand')
                 end
                 common.check_cursor()
-                local looted = false
-                if config.LOOTMOBS then
-                    if (mq.TLO.Group.Leader() == mq.TLO.Me.CleanName() or not mq.TLO.Group.GroupSize()) and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
-                        looted = loot.lootMobs(5)
+                if state.emu then
+                    if lootMyBody and mq.TLO.Me.Buff('Resurrection Sickness')() then
+                        loot.lootMyCorpse()
+                        lootMyBody = false
+                        state.actionTaken = true
+                    end
+                    if config.LOOTMOBS and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
+                        state.actionTaken = loot.lootMobs()
                     end
                 end
-                if not looted then
+                if not state.actionTaken then
                     aqoclass.main_loop()
                 end
                 mq.delay(50)

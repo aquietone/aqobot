@@ -1,7 +1,6 @@
 ---@type Mq
 local mq = require('mq')
 local class = require(AQO..'.classes.classbase')
-local assist = require(AQO..'.routines.assist')
 local common = require(AQO..'.common')
 
 class.class = 'mag'
@@ -10,16 +9,26 @@ class.classOrder = {'assist', 'mash', 'cast', 'burn', 'heal', 'recover', 'buff',
 class.SPELLSETS = {standard=1}
 
 class.addCommonOptions()
+class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM')
+class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM')
 class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox')
 class.addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox')
+class.addOption('USEDEBUFF', 'Use Malo', false, nil, '', 'checkbox')
 
-class.addSpell('firenuke', {'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
+class.addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
+class.addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
+class.addSpell('fastfire', {'Burning Earth'}, {opt='USEFIRENUKES'})
 class.addSpell('magicnuke', {'Rock of Taelosia'}, {opt='USEMAGICNUKES'})
-class.addSpell('pet', {'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water', 
-                    'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water', 
+class.addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
+                    'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                     'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
 class.addSpell('petbuff', {'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
-class.addSpell('petstrbuff', {'Earthen Strength'})
+class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
+class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summons={'Molten Orb','Lava Orb'}, summonMinimum=1})
+class.addSpell('petds', {'Iceflame Guard'})
+class.addSpell('servant', {'Rampaging Servant'})
+class.addSpell('ds', {'Circle of Fireskin'})
+class.addSpell('bigds', {'Burning Aura'})
 
 class.addSpell('manaregen', {'Elemental Siphon'}) -- self mana regen
 class.addSpell('acregen', {'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
@@ -30,20 +39,38 @@ table.insert(class.DPSAbilities, common.getAA('Force of Elements'))
 table.insert(class.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
 table.insert(class.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
 table.insert(class.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
+table.insert(class.burnAbilities, common.getAA('Frenzied Burnout'))
 
 table.insert(class.petBuffs, class.spells.petbuff)
 table.insert(class.petBuffs, class.spells.petstrbuff)
+table.insert(class.petBuffs, class.spells.petds)
 
+table.insert(class.healAbilities, class.spells.petheal)
+
+table.insert(class.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
+table.insert(class.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
 table.insert(class.selfBuffs, class.spells.manaregen)
 table.insert(class.selfBuffs, class.spells.acregen)
+table.insert(class.selfBuffs, class.spells.orb)
+table.insert(class.selfBuffs, class.spells.ds)
+table.insert(class.combatBuffs, common.getAA('Fire Core'))
+--table.insert(class.tankBuffs, class.spells.bigds)
+
+class.debuff = common.getAA('Malosinete')
 
 local standard = {}
+table.insert(standard, class.spells.servant)
+table.insert(standard, class.spells.prenuke)
+table.insert(standard, class.spells.fastfire)
 table.insert(standard, class.spells.firenuke)
 table.insert(standard, class.spells.magicnuke)
 
 class.spellRotations = {
     standard=standard
 }
+
+class.orb = class.spells.orb
+class.requestAliases.orb = 'orb'
 
 class.pull_func = function()
     if mq.TLO.Navigation.Active() then mq.cmd('/nav stop') end

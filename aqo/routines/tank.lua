@@ -17,7 +17,7 @@ local camp_buffer = 20
 ---Sets common.TANK_MOB_ID to the ID of the mob to tank.
 tank.find_mob_to_tank = function()
     if state.mob_count == 0 then return end
-    if common.am_i_dead() then return end
+    if common.am_i_dead() then state.tank_mob_id = 0 return end
     if state.tank_mob_id > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tank_mob_id == mq.TLO.Target.ID() then
         return
     else
@@ -130,6 +130,8 @@ tank.tank_mob = function()
         -- /stick mod -2
         mq.cmd('/attack on')
         stick_timer:reset(0)
+    elseif state.dontAttack and state.enrageTimer:timer_expired() then
+        state.dontAttack = false
     end
     if mq.TLO.Me.Combat() and stick_timer:timer_expired() and not mq.TLO.Stick.Active() and config.MODE:get_name() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')

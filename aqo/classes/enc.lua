@@ -90,17 +90,17 @@ class.addSpell('charm', {'Marvel\'s Command'})
 -- buffs
 class.addSpell('unity', {'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
 class.addSpell('procbuff', {'Mana Rebirth'}) -- single target dmg proc buff
-class.addSpell('kei', {'Scrying Visions', 'Sagacity'})
+class.addSpell('kei', {'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
 class.addSpell('keigroup', {'Voice of Perception', 'Voice of Sagacity'})
 class.addSpell('haste', {'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
 class.addSpell('grouphaste', {'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
 class.addSpell('nightsterror', {'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}) -- melee attack proc
 -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
-class.addSpell('twincast', {'Twincast Aura'}, {aura=true})
-class.addSpell('regen', {'Marvel\'s Aura', 'Deviser\'s Aura'}, {aura=true}) -- mana + end regen aura
-class.addSpell('spellfocus', {'Enhancing Aura', 'Fortifying Aura'}, {aura=true}) -- increase dmg of DDs
-class.addSpell('combatinnate', {'Mana Radix Aura', 'Mana Replication Aura'}, {aura=true}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
-class.addSpell('disempower', {'Arcane Disjunction Aura'}, {aura=true})
+class.addSpell('twincast', {'Twincast Aura'})
+class.addSpell('regen', {'Marvel\'s Aura', 'Deviser\'s Aura'}) -- mana + end regen aura
+class.addSpell('spellfocus', {'Enhancing Aura', 'Fortifying Aura'}) -- increase dmg of DDs
+class.addSpell('combatinnate', {'Mana Radix Aura', 'Mana Replication Aura'}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
+class.addSpell('disempower', {'Arcane Disjunction Aura'})
 -- unity buffs
 class.addSpell('shield', {'Shield of Shadow', 'Shield of Restless Ice'})
 class.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
@@ -146,11 +146,16 @@ table.insert(class.burnAbilities, common.getAA('Chromatic Haze')) -- 15min CD
 table.insert(class.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
 table.insert(class.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
 
+table.insert(class.DPSAbilities, common.getItem('Aged Shissar Focus Staff'))
+
 --table.insert(AAs, getAAid_and_name('Glyph of Destruction (115+)'))
 --table.insert(AAs, getAAid_and_name('Intensity of the Resolute'))
 
 class.debuff = common.getAA('Bite of Tashani')
 class.slow = common.getAA('Slowing Helix') -- single target slow
+if state.emu then
+    class.slow = common.getItem('Serpent of Vindication')
+end
 class.aeslow = common.getAA('Enveloping Helix') -- AE slow on 8 targets
 class.dispel = common.getAA('Eradicate Magic')
 
@@ -175,18 +180,24 @@ local debuffdot = common.getAA('Mental Corruption') -- decrease melee dmg + DoT
 -- Buffs
 local unity = common.getAA('Orator\'s Unity')
 -- Mana Recovery AAs
-local azure = common.getAA('Azure Mind Crystal') -- summon clicky mana heal
+local azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1}) -- summon clicky mana heal
 local gathermana = common.getAA('Gather Mana')
-local sanguine = common.getAA('Sanguine Mind Crystal') -- summon clicky hp heal
+local sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1}) -- summon clicky hp heal
 -- Agro
 local stasis = common.getAA('Self Stasis')
 
-local buffs={
-    self={},
-    pet={
-        class.spells.pethaste,
-    },
-}
+table.insert(class.selfBuffs, class.spells.guard)
+table.insert(class.selfBuffs, class.spells.stunaerune)
+table.insert(class.selfBuffs, rune)
+table.insert(class.selfBuffs, veil)
+table.insert(class.selfBuffs, sanguine)
+table.insert(class.selfBuffs, azure)
+table.insert(class.selfBuffs, class.spells.kei)
+table.insert(class.petBuffs, class.spells.pethaste)
+if state.emu then
+    table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
+end
+
 --[[
     track data about our targets, for one-time or long-term affects.
     for example: we do not need to continually poll when to debuff a mob if the debuff will last 17+ minutes
@@ -194,7 +205,16 @@ local buffs={
 ]]--
 local targets = {}
 
-class.mez = function()
+if class.spells.mezst then
+    local function beforeMez()
+        if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.tash then
+            class.tash:use()
+        end
+        return true
+    end
+    class.spells.mezst.precast = beforeMez
+end
+class.mez_unused = function()
     if class.OPTS.MEZAE.value then
         mez.do_ae(class.spells.mezae, class.OPTS.AEMEZCOUNT.value)
     end
@@ -273,7 +293,7 @@ local function missing_unity_buffs(name)
 end
 
 -- group guards - legion of liako / xetheg
-class.buff = function()
+class.buff_unused = function()
     if common.am_i_dead() or mq.TLO.Me.Moving() then return end
 -- now buffs:
 -- - class.spells.guard (shield of inevitability - quick-refresh, strong direct damage spell guard and melee-strike rune combined into one.)
@@ -319,18 +339,31 @@ class.buff = function()
         end
     end
 
-    if class.OPTS.AURA1.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
-        if common.swap_and_cast(class.spells[class.OPTS.AURA1.value], 13) then return end
-    elseif class.OPTS.AURA1.value ~= 'twincast' and class.spells[class.OPTS.AURA1.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA1.value].name)() then
-        if common.swap_and_cast(class.spells[class.OPTS.AURA1.value], 13) then return end
-    end
-    if class.OPTS.AURA2.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
-        if common.swap_and_cast(class.spells[class.OPTS.AURA2.value], 13) then return end
-    elseif class.OPTS.AURA2.value ~= 'twincast' and class.spells[class.OPTS.AURA2.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA2.value].name)() then
-        if common.swap_and_cast(class.spells[class.OPTS.AURA2.value], 13) then return end
+    if state.emu and #class.auras > 0 then
+        for _,aura in ipairs(class.auras) do
+            if not mq.TLO.Me.Aura(aura.checkfor)() and not mq.TLO.Me.Song(aura.checkfor)() then
+                aura:use()
+            end
+        end
+    else
+        if class.OPTS.AURA1.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
+            if common.swap_and_cast(class.spells[class.OPTS.AURA1.value], 13) then return end
+        elseif class.OPTS.AURA1.value ~= 'twincast' and class.spells[class.OPTS.AURA1.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA1.value].name)() then
+            if common.swap_and_cast(class.spells[class.OPTS.AURA1.value], 13) then return end
+        end
+        if class.OPTS.AURA2.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
+            if common.swap_and_cast(class.spells[class.OPTS.AURA2.value], 13) then return end
+        elseif class.OPTS.AURA2.value ~= 'twincast' and class.spells[class.OPTS.AURA2.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA2.value].name)() then
+            if common.swap_and_cast(class.spells[class.OPTS.AURA2.value], 13) then return end
+        end
     end
 
     -- kei
+    for _,buff in ipairs(class.selfBuffs) do
+        if not mq.TLO.Me.Buff(buff.name)() then
+            if buff:use() then return end
+        end
+    end
     -- haste
 
     common.check_item_buffs()

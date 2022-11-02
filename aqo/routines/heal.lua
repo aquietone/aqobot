@@ -16,11 +16,11 @@ local HEAL_TYPES = {
 local tankClasses = {WAR=true,PAL=true,SHD=true}
 local melees = {MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true,RNG=true}
 local hottimers = {}
+local reztimer = timer:new(30)
 
 local function healEnabled(opts, key)
     return opts[key] and opts[key].value
 end
-
 
 --[[
     1. Determine who to heal:
@@ -63,8 +63,8 @@ local function getHurt(opts)
         if myHP < config.HEALPCT then numHurt = numHurt + 1 end
     end
     local tank = mq.TLO.Group.MainTank
-    if not tank() then
-        tank = mq.TLO.Group.MainAssist
+    if not tank() and config.PRIORITYTARGET:len() > 0 then
+        tank = mq.TLO.Spawn('='..config.PRIORITYTARGET)
     end
     if tank() and not tank.Dead() then
         local tankHP = tank.PctHPs() or 100
@@ -191,6 +191,7 @@ healing.heal = function(healAbilities, opts)
         healToUse:use()
         if typeOfHeal == HEAL_TYPES.HOT then
             local targetName = mq.TLO.Target.CleanName()
+            if not targetName then return end
             local hotTimer = hottimers[targetName]
             if not hotTimer then
                 hottimers[targetName] = timer:new(24)
@@ -258,6 +259,43 @@ healing.healSelf = function(healAbilities, opts)
                 end
             end
         end
+    end
+end
+
+local function doRezFor(rezAbility, groupOrRaid)
+    local corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse tank radius 100 noalert 0')
+    if not corpse() then
+        corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse healer radius 100 noalert 0')
+        if not corpse() then
+            corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse radius 100 noalert 0')
+        end
+    end
+    if corpse() then
+        corpse.DoTarget()
+        mq.delay(100, function() return mq.TLO.Target.ID() == corpse.ID() end)
+        if mq.TLO.Target.Type() == 'Corpse' then
+            mq.cmd('/corpse')
+            mq.delay(50)
+            rezAbility:use()
+            mq.cmdf('/alert add 0 corpse "%s"', corpse.CleanName())
+            reztimer:reset()
+            return true
+        end
+    end
+end
+
+healing.rez = function(rezAbility)
+    if common.am_i_dead() or not rezAbility then return end
+    if not config.REZINCOMBAT and mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return
+    elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
+    elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
+    if reztimer:timer_expired() and mq.TLO.Alert(0)() then mq.cmd('/alert clear 0') end
+    if config.REZGROUP then
+        if doRezFor(rezAbility, 'group') then return true end
+    end
+    if config.REZRAID then
+        if doRezFor(rezAbility, 'raid') then return true end
     end
 end
 

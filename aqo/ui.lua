@@ -17,8 +17,14 @@ local should_draw_gui = true
 local class_funcs
 local ui = {}
 
-local mid_x = 187--159
-local item_width = 173--153
+local MINIMUM_WIDTH = 372
+local FULL_BUTTON_WIDTH = 354
+local HALF_BUTTON_WIDTH = 173
+local BUTTON_HEIGHT = 22
+local mid_x = 140
+local item_width = 115
+local X_COLUMN_OFFSET = 265
+local Y_COLUMN_OFFSET = 30
 
 ui.set_class_funcs = function(funcs)
     class_funcs = funcs
@@ -29,7 +35,6 @@ ui.toggle_gui = function(open)
 end
 
 local function help_marker(desc)
-    ImGui.TextDisabled('(?)')
     if ImGui.IsItemHovered() then
         ImGui.BeginTooltip()
         ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0)
@@ -39,12 +44,13 @@ local function help_marker(desc)
     end
 end
 
-ui.draw_combo_box = function(label, resultvar, options, bykey)
-    local _,y = ImGui.GetCursorPos()
-    ImGui.SetCursorPosY(y+5)
+ui.draw_combo_box = function(label, resultvar, options, bykey, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
     ImGui.Text(label)
     ImGui.SameLine()
-    ImGui.SetCursorPosX(mid_x)
+    ImGui.SetCursorPosX(mid_x + xOffset)
     local _,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
     if ImGui.BeginCombo('##'..label, resultvar) then
@@ -64,9 +70,10 @@ ui.draw_combo_box = function(label, resultvar, options, bykey)
     return resultvar
 end
 
-ui.draw_check_box = function(labelText, idText, resultVar, helpText)
-    local _,y = ImGui.GetCursorPos()
-    ImGui.SetCursorPosY(y+5)
+ui.draw_check_box = function(labelText, idText, resultVar, helpText, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
     if resultVar then
         ImGui.TextColored(0, 1, 0, 1, labelText)
     else
@@ -75,59 +82,74 @@ ui.draw_check_box = function(labelText, idText, resultVar, helpText)
     ImGui.SameLine()
     help_marker(helpText)
     ImGui.SameLine()
-    local _,y = ImGui.GetCursorPos()
+    local x,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
-    ImGui.SetCursorPosX(mid_x)
+    ImGui.SetCursorPosX(mid_x + xOffset)
     resultVar,_ = ImGui.Checkbox(idText, resultVar)
     return resultVar
 end
 
-ui.draw_input_int = function(labelText, idText, resultVar, helpText)
-    local _,y = ImGui.GetCursorPos()
-    ImGui.SetCursorPosY(y+5)
+ui.draw_input_int = function(labelText, idText, resultVar, helpText, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
     ImGui.Text(labelText)
     ImGui.SameLine()
     help_marker(helpText)
     ImGui.SameLine()
     local _,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
-    ImGui.SetCursorPosX(mid_x)
+    ImGui.SetCursorPosX(mid_x + xOffset)
     resultVar = ImGui.InputInt(idText, resultVar)
     return resultVar
 end
 
-ui.draw_input_text = function(labelText, idText, resultVar, helpText)
-    local _,y = ImGui.GetCursorPos()
-    ImGui.SetCursorPosY(y+5)
+ui.draw_input_text = function(labelText, idText, resultVar, helpText, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
     ImGui.Text(labelText)
     ImGui.SameLine()
     help_marker(helpText)
     ImGui.SameLine()
     local _,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
-    ImGui.SetCursorPosX(mid_x)
+    ImGui.SetCursorPosX(mid_x + xOffset)
     resultVar = ImGui.InputText(idText, resultVar)
     return resultVar
 end
 
-ui.get_next_item_loc = function()
-    ImGui.SameLine()
-    local x = ImGui.GetCursorPosX()
-    if x < 205 then ImGui.SetCursorPosX(205) elseif x < 410 then ImGui.SetCursorPosX(410) end
-    local avail = ImGui.GetContentRegionAvail()
-    if x >= 410 or avail < 95 then
-        ImGui.NewLine()
+ui.get_next_xy = function(startY, yAvail, xOffset, yOffset, maxY)
+    yOffset = yOffset + Y_COLUMN_OFFSET
+    if yOffset > maxY then maxY = yOffset end
+    if yAvail - yOffset + startY < 25 then
+        xOffset = xOffset + X_COLUMN_OFFSET
+        yOffset = startY
     end
+    return xOffset, yOffset, maxY
 end
 
 local function draw_assist_tab()
+    if ImGui.Button('Reset Camp', FULL_BUTTON_WIDTH, BUTTON_HEIGHT) then
+        camp.set_camp(true)
+    end
     config.ASSIST = ui.draw_combo_box('Assist', config.ASSIST, common.ASSISTS, true)
     config.AUTOASSISTAT = ui.draw_input_int('Assist %', '##assistat', config.AUTOASSISTAT, 'Percent HP to assist at')
     config.SWITCHWITHMA = ui.draw_check_box('Switch With MA', '##switchwithma', config.SWITCHWITHMA, 'Switch targets with MA')
+    local current_camp_radius = config.CAMPRADIUS
+    config.CAMPRADIUS = ui.draw_input_int('Camp Radius', '##campradius', config.CAMPRADIUS, 'Camp radius to assist within')
+    config.CHASETARGET = ui.draw_input_text('Chase Target', '##chasetarget', config.CHASETARGET, 'Chase Target')
+    config.CHASEDISTANCE = ui.draw_input_int('Chase Distance', '##chasedist', config.CHASEDISTANCE, 'Distance to follow chase target')
+    config.MAINTANK = ui.draw_check_box('Main Tank', '##maintank', config.MAINTANK, 'Am i main tank')
+    config.LOOTMOBS = ui.draw_check_box('Loot Mobs', '##lootmobs', config.LOOTMOBS, 'Loot corpses')
+
+    if current_camp_radius ~= config.CAMPRADIUS then
+        camp.set_camp()
+    end
 end
 
 local function draw_camp_tab()
-    if ImGui.Button('Reset Camp', 352, 22) then
+    if ImGui.Button('Reset Camp', FULL_BUTTON_WIDTH, BUTTON_HEIGHT) then
         camp.set_camp(true)
     end
     local current_camp_radius = config.CAMPRADIUS
@@ -139,6 +161,33 @@ local function draw_camp_tab()
     end
 end
 
+local function draw_skills_tab()
+    local x, y = ImGui.GetCursorPos()
+    local xOffset = x
+    local yOffset = y
+    local maxY = yOffset
+    local _, yAvail = ImGui.GetContentRegionAvail()
+    for _,key in ipairs(class_funcs.OPTS) do
+        if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
+            local option = class_funcs.OPTS[key]
+            if option.type == 'checkbox' then
+                option.value = ui.draw_check_box(option.label, '##'..key, option.value, option.tip, xOffset, yOffset)
+                if option.value and option.exclusive then class_funcs.OPTS[option.exclusive].value = false end
+            elseif option.type == 'combobox' then
+                option.value = ui.draw_combo_box(option.label, option.value, option.options, true, xOffset, yOffset)
+            elseif option.type == 'inputint' then
+                option.value = ui.draw_input_int(option.label, '##'..key, option.value, option.tip, xOffset, yOffset)
+            end
+            xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+        end
+    end
+    config.RECOVERPCT = ui.draw_input_int('Recover Pct', '##recoverpct', config.RECOVERPCT, 'Percent Mana or End to use class recover abilities', xOffset, yOffset)
+    local xAvail = ImGui.GetContentRegionAvail()
+    x, y = ImGui.GetWindowSize()
+    if x < xOffset + X_COLUMN_OFFSET or xAvail > 20 then x = math.max(MINIMUM_WIDTH, xOffset + X_COLUMN_OFFSET) ImGui.SetWindowSize(x, y) end
+    if y < maxY or y > maxY+35 then ImGui.SetWindowSize(x, maxY+35) end
+end
+
 local function draw_heal_tab()
     if state.class == 'clr' or state.class == 'dru' or state.class == 'shm' then
         config.HEALPCT = ui.draw_input_int('Heal Pct', '##healpct', config.HEALPCT, 'Percent HP to begin casting regular heals')
@@ -146,19 +195,23 @@ local function draw_heal_tab()
         config.GROUPHEALPCT = ui.draw_input_int('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT, 'Percent HP to begin casting group heals')
         config.GROUPHEALMIN = ui.draw_input_int('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN, 'Minimum number of hurt group members to begin casting group heals')
         config.HOTHEALPCT = ui.draw_input_int('HoT Pct', '##hothealpct', config.HOTHEALPCT, 'Percent HP to begin casting HoTs')
+        config.REZGROUP = ui.draw_check_box('Rez Group', '##rezgroup', config.REZGROUP, 'Rez Group Members')
+        config.REZRAID = ui.draw_check_box('Rez Raid', '##rezraid', config.REZRAID, 'Rez Raid Members')
+        config.REZINCOMBAT = ui.draw_check_box('Rez In Combat', '##rezincombat', config.REZINCOMBAT, 'Rez In Combat')
+        config.PRIORITYTARGET = ui.draw_input_text('Priority Target', '##prioritytarget', config.PRIORITYTARGET, 'Main focus for heals')
     end
 end
 
 local function draw_burn_tab()
-    if ImGui.Button('Burn Now', 112, 22) then
+    if ImGui.Button('Burn Now', 112, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Quick Burn', 112, 22) then
+    if ImGui.Button('Quick Burn', 112, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow quick', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Long Burn', 112, 22) then
+    if ImGui.Button('Long Burn', 112, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow long', state.class)
     end
     config.BURNCOUNT = ui.draw_input_int('Burn Count', '##burncnt', config.BURNCOUNT, 'Trigger burns if this many mobs are on aggro')
@@ -171,29 +224,48 @@ local function draw_burn_tab()
 end
 
 local function draw_pull_tab()
-    if ImGui.Button('Add Ignore', 173, 22) then
+    if ImGui.Button('Add Ignore', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
         mq.cmdf('/%s ignore', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Remove Ignore', 173, 22) then
+    if ImGui.Button('Remove Ignore', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
         mq.cmdf('/%s unignore', state.class)
     end
+    local x, y = ImGui.GetCursorPos()
+    local xOffset = x
+    local yOffset = y
+    local maxY = yOffset
+    local _, yAvail = ImGui.GetContentRegionAvail()
     local current_radius = config.PULLRADIUS
     local current_pullarc = config.PULLARC
-    config.PULLRADIUS = ui.draw_input_int('Pull Radius', '##pullrad', config.PULLRADIUS, 'Radius to pull mobs within')
-    config.PULLLOW = ui.draw_input_int('Pull ZLow', '##pulllow', config.PULLLOW, 'Z Low pull range')
-    config.PULLHIGH = ui.draw_input_int('Pull ZHigh', '##pullhigh', config.PULLHIGH, 'Z High pull range')
-    config.PULLMINLEVEL = ui.draw_input_int('Pull Min Level', '##pullminlvl', config.PULLMINLEVEL, 'Minimum level mobs to pull')
-    config.PULLMAXLEVEL = ui.draw_input_int('Pull Max Level', '##pullmaxlvl', config.PULLMAXLEVEL, 'Maximum level mobs to pull')
-    config.PULLARC = ui.draw_input_int('Pull Arc', '##pullarc', config.PULLARC, 'Only pull from this slice of the radius, centered around your current heading')
-    config.GROUPWATCHWHO = ui.draw_combo_box('Group Watch', config.GROUPWATCHWHO, common.GROUP_WATCH_OPTS, true)
-    config.MEDMANASTART = ui.draw_input_int('Med Mana Start', '##medmanastart', config.MEDMANASTART, 'Pct Mana to begin medding')
-    config.MEDMANASTOP = ui.draw_input_int('Med Mana Stop', '##medmanastop', config.MEDMANASTOP, 'Pct Mana to stop medding')
-    config.MEDENDSTART = ui.draw_input_int('Med End Start', '##medendstart', config.MEDENDSTART, 'Pct End to begin medding')
-    config.MEDENDSTOP = ui.draw_input_int('Med End Stop', '##medendstop', config.MEDENDSTOP, 'Pct End to stop medding')
+    config.PULLRADIUS = ui.draw_input_int('Pull Radius', '##pullrad', config.PULLRADIUS, 'Radius to pull mobs within', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.PULLLOW = ui.draw_input_int('Pull ZLow', '##pulllow', config.PULLLOW, 'Z Low pull range', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.PULLHIGH = ui.draw_input_int('Pull ZHigh', '##pullhigh', config.PULLHIGH, 'Z High pull range', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.PULLMINLEVEL = ui.draw_input_int('Pull Min Level', '##pullminlvl', config.PULLMINLEVEL, 'Minimum level mobs to pull', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.PULLMAXLEVEL = ui.draw_input_int('Pull Max Level', '##pullmaxlvl', config.PULLMAXLEVEL, 'Maximum level mobs to pull', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.PULLARC = ui.draw_input_int('Pull Arc', '##pullarc', config.PULLARC, 'Only pull from this slice of the radius, centered around your current heading', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.GROUPWATCHWHO = ui.draw_combo_box('Group Watch', config.GROUPWATCHWHO, common.GROUP_WATCH_OPTS, true, xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.MEDMANASTART = ui.draw_input_int('Med Mana Start', '##medmanastart', config.MEDMANASTART, 'Pct Mana to begin medding', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.MEDMANASTOP = ui.draw_input_int('Med Mana Stop', '##medmanastop', config.MEDMANASTOP, 'Pct Mana to stop medding', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.MEDENDSTART = ui.draw_input_int('Med End Start', '##medendstart', config.MEDENDSTART, 'Pct End to begin medding', xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
+    config.MEDENDSTOP = ui.draw_input_int('Med End Stop', '##medendstop', config.MEDENDSTOP, 'Pct End to stop medding', xOffset, yOffset)
     if current_radius ~= config.PULLRADIUS or current_pullarc ~= config.PULLARC then
         camp.set_camp()
     end
+    local xAvail, yAvail = ImGui.GetContentRegionAvail()
+    local x, y = ImGui.GetWindowSize()
+    if x < xOffset + X_COLUMN_OFFSET or xAvail > 20 then x = math.max(MINIMUM_WIDTH, xOffset + X_COLUMN_OFFSET) ImGui.SetWindowSize(x, y) end
+    if y < maxY or y > maxY+35 then ImGui.SetWindowSize(x, maxY+35) end
 end
 
 local function draw_loot_tab()
@@ -245,25 +317,22 @@ end
 
 local function draw_body()
     if ImGui.BeginTabBar('##tabbar') then
-        if ImGui.BeginTabItem('Assist') then
+        if ImGui.BeginTabItem('General') then
             ImGui.PushItemWidth(item_width)
             draw_assist_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
         end
-        if ImGui.BeginTabItem('Camp') then
+        --[[if ImGui.BeginTabItem('Camp') then
             ImGui.PushItemWidth(item_width)
             draw_camp_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
-        end
+        end]]
         if ImGui.BeginTabItem('Skills') then
-            --if ImGui.BeginChild('Skills', ImGui.GetContentRegionAvail(), 500) then
-                ImGui.PushItemWidth(item_width-25)
-                class_funcs.draw_skills_tab()
+                ImGui.PushItemWidth(item_width)
+                draw_skills_tab()
                 ImGui.PopItemWidth()
-            --end
-            --ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if state.class  == 'clr' or state.class == 'shm' or state.class == 'dru' then
@@ -281,20 +350,17 @@ local function draw_body()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Pull') then
-            --if ImGui.BeginChild('Pull', ImGui.GetContentRegionAvail(), 150) then
                 ImGui.PushItemWidth(item_width)
                 draw_pull_tab()
                 ImGui.PopItemWidth()
-            --end
-            --ImGui.EndChild()
             ImGui.EndTabItem()
         end
-        if ImGui.BeginTabItem('Loot') then
+        --[[if ImGui.BeginTabItem('Loot') then
             ImGui.PushItemWidth(item_width)
             draw_loot_tab()
             ImGui.PopItemWidth()
             ImGui.EndTabItem()
-        end
+        end]]
         if ImGui.BeginTabItem('Debug') then
             ImGui.PushItemWidth(item_width)
             draw_debug_tab()
@@ -307,27 +373,24 @@ end
 
 local function draw_header()
     if state.paused then
-        if ImGui.Button('RESUME', 173, 22) then
---        if ImGui.Button('RESUME', 147, 22) then
+        if ImGui.Button('RESUME', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
             camp.set_camp()
             state.paused = false
         end
     else
-        if ImGui.Button('PAUSE', 173, 22) then
---        if ImGui.Button('PAUSE', 147, 22) then
+        if ImGui.Button('PAUSE', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
             state.paused = true
             state.reset_combat_state()
             mq.cmd('/stopcast')
         end
     end
     ImGui.SameLine()
-    if ImGui.Button('Save Settings', 173, 22) then
---    if ImGui.Button('Save Settings', 147, 22) then
+    if ImGui.Button('Save Settings', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
         class_funcs.save_settings()
     end
     ImGui.Text('Bot Status: ')
     ImGui.SameLine()
-    ImGui.SetCursorPosX(187)--159)
+    ImGui.SetCursorPosX(190)
     if state.paused then
         ImGui.TextColored(1, 0, 0, 1, 'PAUSED')
     else
@@ -336,7 +399,9 @@ local function draw_header()
 
     local current_mode = config.MODE:get_name()
     ImGui.PushItemWidth(item_width)
+    mid_x = 182
     config.MODE = mode.from_string(ui.draw_combo_box('Mode', config.MODE:get_name(), mode.mode_names))
+    mid_x = 140
     ImGui.PopItemWidth()
     if current_mode ~= config.MODE:get_name() and not state.paused then
         camp.set_camp()
@@ -372,7 +437,7 @@ end
 ui.main = function()
     if not open_gui then return end
     push_styles()
-    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI', state.class), open_gui, ImGuiWindowFlags.AlwaysAutoResize)
+    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI', state.class), open_gui, 0)
     if should_draw_gui then
         draw_header()
         draw_body()

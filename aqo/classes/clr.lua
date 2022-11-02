@@ -12,13 +12,15 @@ class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'che
 class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
 
 --class.addSpell('heal', {'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {me=70, mt=70, other=50})
-class.addSpell('remedy', {'Supernal Remedy', 'Remedy'}, {regular=true, panic=true, me=75, mt=75, other=75, pet=60})
+class.addSpell('remedy', {'Supernal Remedy', 'Remedy'}, {regular=true, panic=true, pet=60})
 class.addSpell('aura', {'Aura of Divinity'}, {aura=true})
 class.addSpell('yaulp', {'Yaulp VI'}, {combat=true, ooc=false, opt='USEYAULP'})
 class.addSpell('armor', {'Armor of the Zealot'})
 class.addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
 class.addSpell('groupheal', {'Word of Replenishment', 'Word of Redemption'}, {threshold=3, group=true, pct=70})
 class.addSpell('hot', {'Holy Elixir'}, {opt='USEHOT', hot=true})
+class.addSpell('aego', {'Hand of Conviction', 'Hand of Virtue'})
+class.addSpell('di', {'Divine Intervention'})
 --common.getAA('Celestial Regeneration')
 --common.getAA('Divine Arbitration')
 
@@ -31,9 +33,9 @@ class.spellRotations = {
 table.insert(class.DPSAbilities, class.spells.hammerpet)
 
 table.insert(class.healAbilities, common.getAA('Burst of Life', {panic=true}))
-table.insert(class.healAbilities, common.getItem('Weighted Hammer of Conviction', {regular=true, panic=true, me=75, mt=75, other=75, pet=60}))
+table.insert(class.healAbilities, common.getItem('Weighted Hammer of Conviction', {regular=true, panic=true, pet=60}))
 --table.insert(class.healAbilities, class.spells.heal)
-table.insert(class.healAbilities, common.getAA('Divine Arbitration', {panic=true, me=30, mt=30, other=30}))
+table.insert(class.healAbilities, common.getAA('Divine Arbitration', {panic=true}))
 table.insert(class.healAbilities, class.spells.groupheal)
 table.insert(class.healAbilities, class.spells.remedy)
 table.insert(class.healAbilities, class.spells.hot)
@@ -58,21 +60,11 @@ end
 table.insert(class.selfBuffs, class.spells.yaulp)
 table.insert(class.selfBuffs, class.spells.armor)
 
-local rez = common.getAA('Blessing of Resurrection')
+class.rezAbility = common.getAA('Blessing of Resurrection')
 
-class.rez = function()
-    if mq.TLO.Me.AltAbilityReady(rez.name)() then
-        local corpseCount = mq.TLO.SpawnCount('pc group corpse radius 100')()
-        if corpseCount > 0 then
-            mq.cmd('/mqt pccorpse group radius 100')
-            mq.delay(100)
-            if mq.TLO.Target.Type() == 'Corpse' then
-                mq.cmd('/corpse')
-                mq.delay(100)
-                rez:use()
-            end
-        end
-    end
-end
+class.aego = class.spells.aego
+class.requestAliases.aego = 'aego'
+class.di = class.spells.di
+class.requestAliases.di = 'di'
 
 return class
