@@ -11,13 +11,14 @@ mq.cmd('/squelch /stick mod -2')
 mq.cmd('/squelch /stick set delaystrafe on')
 
 class.class = 'shd'
-class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'aggro', 'recover', 'rest', 'buff', 'managepet'}
+class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
 
 class.SPELLSETS = {standard=1,dps=1}
 
 -- theft of agony
 -- decrepit skin
 class.addCommonOptions()
+class.addCommonAbilities()
 class.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, '', 'checkbox')
 class.addOption('USEPROJECTION', 'Use Projection', true, nil, '', 'checkbox')
 class.addOption('USEAZIA', 'Use Unity Azia', true, nil, '', 'checkbox', 'USEBEZA')
@@ -40,16 +41,16 @@ class.addSpell('terror', {'Terror of Ander', 'Terror of Thule', 'Terror of Terri
 class.addSpell('aeterror', {'Antipathy', 'Dread Gaze'}, {threshold=2}) -- ST increase hate by 1
 --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 -- Lifetaps
-class.addSpell('largetap', {'Dire Censure', 'Touch of Innoruuk'}) -- large lifetap
-class.addSpell('tap1', {'Touch of Txiki', 'Touch of the Devourer', 'Touch of Volatis'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
-class.addSpell('tap2', {'Touch of Namdrows', 'Touch of Draygun'}) -- lifetap + temp hp buff Gift of Namdrows
-class.addSpell('dottap', {'Bond of Bynn'}) -- lifetap dot
-class.addSpell('bitetap', {'Cruor\'s Bite', 'Zevfeer\'s Bite'}) -- lifetap with hp/mana recourse
+class.addSpell('largetap', {'Dire Censure'}) -- large lifetap
+class.addSpell('tap1', {'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
+class.addSpell('tap2', {'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'}) -- lifetap + temp hp buff Gift of Namdrows
+class.addSpell('dottap', {'Bond of Bynn', 'Bond of Inruku'}) -- lifetap dot
+class.addSpell('bitetap', {'Cruor\'s Bite', 'Zevfeer\'s Bite', 'Ancient: Bite of Muram'}) -- lifetap with hp/mana recourse
 -- AE lifetap + aggro
 class.addSpell('aetap', {'Insidious Renunciation'}) -- large hate + lifetap
 -- DPS
 class.addSpell('spear', {'Spear of Bloodwretch', 'Spear or Muram', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
-class.addSpell('poison', {'Blood of Tearc', 'Blood of Pain'}) -- poison dot
+class.addSpell('poison', {'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'}) -- poison dot
 class.addSpell('disease', {'Plague of Fleshrot'}) -- disease dot
 class.addSpell('corruption', {'Unscrupulous Blight'}) -- corruption dot
 class.addSpell('acdis', {'Dire Seizure'}) -- disease + ac dot
@@ -61,12 +62,12 @@ class.addSpell('skin', {'Xenacious\' Skin', 'Decrepit Skin'}) -- Xenacious' Skin
 class.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
 --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
 -- Pet
-class.addSpell('pet', {'Minion of Itzal', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
+class.addSpell('pet', {'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
 class.addSpell('pethaste', {'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}) -- pet haste
 -- Unity Buffs
-class.addSpell('shroud', {'Shroud of Zelinstein'}) -- Shroud of Zelinstein Strike proc
+class.addSpell('shroud', {'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}) -- Shroud of Zelinstein Strike proc
 class.addSpell('bezaproc', {'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
-class.addSpell('aziaproc', {'Brightfield\'s Horror', 'Black Shroud'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
+class.addSpell('aziaproc', {'Brightfield\'s Horror'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
 class.addSpell('ds', {'Tekuel Skin'}) -- large damage shield self buff
 class.addSpell('lich', {'Aten Ha Ra\'s Covenant'}) -- lich mana regen
 class.addSpell('drape', {'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}) -- self buff hp, ac, ds
@@ -116,7 +117,7 @@ local carapace = common.getBestDisc({'Xetheg\'s Carapace'}) -- 7m30s CD, ac buff
 local guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
 local deflection = common.getBestDisc({'Deflection Discipline'}, {opt='USEDEFLECTION'})
 
-table.insert(class.tankAbilities, common.getSkill('Taunt'))
+table.insert(class.tankAbilities, common.getSkill('Taunt', {aggro=true}))
 table.insert(class.tankAbilities, class.spells.challenge)
 table.insert(class.tankAbilities, class.spells.terror)
 table.insert(class.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
@@ -170,12 +171,14 @@ table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 local epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
 
 if state.emu then
-    table.insert(class.selfBuffs, class.spells.aziaproc)
     table.insert(class.selfBuffs, class.spells.drape)
     table.insert(class.selfBuffs, class.spells.bezaproc)
     table.insert(class.selfBuffs, class.spells.skin)
+    table.insert(class.selfBuffs, class.spells.shroud)
     table.insert(class.selfBuffs, common.getAA('Touch of the Cursed'))
     table.insert(class.selfBuffs, common.getItem('Pauldron of Dark Auspices', {checkfor='Frost Guard'}))
+    table.insert(class.selfBuffs, common.getItem('Band of Primordial Energy', {checkfor='Form of Defense'}))
+    --table.insert(class.selfBuffs, common.getItem('Veil of the Inferno', {checkfor='Form of Endurance'}))
 end
 table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
 table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
@@ -195,7 +198,7 @@ local function find_next_spell()
             end
             if xtar_aggro_count ~= 0 and common.is_spell_ready(class.spells['aeterror']) then return class.spells['aeterror'] end
         end
-        if common.is_dot_ready(class.spells['challenge']) then return class.spells['challenge'] end
+        if common.is_spell_ready(class.spells['challenge']) then return class.spells['challenge'] end
         if common.is_spell_ready(class.spells['terror']) then return class.spells['terror'] end
     end
     -- taps
@@ -206,17 +209,16 @@ local function find_next_spell()
     if myhp < 85 then
         if common.is_spell_ready(class.spells['tap1']) then return class.spells['tap1'] end
     end
+    if common.is_spell_ready(class.spells['spear']) then return class.spells['spear'] end
     --if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(class.spells['tap2']) then return class.spells['tap2'] end
     if common.is_spell_ready(class.spells.tap2) then return class.spells.tap2 end
-    if common.is_dot_ready(class.spells['dottap']) then return class.spells['dottap'] end
+    if common.is_spell_ready(class.spells['dottap']) then return class.spells['dottap'] end
     if common.is_spell_ready(class.spells['bitetap']) then return class.spells['bitetap'] end
-    if common.is_dot_ready(class.spells['acdebuff']) then return class.spells['acdebuff'] end
-    -- dps
-    if common.is_spell_ready(class.spells['spear']) then return class.spells['spear'] end
+    if common.is_spell_ready(class.spells['acdebuff']) then return class.spells['acdebuff'] end
     if config.MODE:is_assist_mode() and class.OPTS.SPELLSET.value == 'dps' then
-        if common.is_dot_ready(class.spells['poison']) then return class.spells['poison'] end
-        if common.is_dot_ready(class.spells['disease']) then return class.spells['disease'] end
-        if common.is_dot_ready(class.spells['corruption']) then return class.spells['corruption'] end
+        if common.is_spell_ready(class.spells['poison']) then return class.spells['poison'] end
+        if common.is_spell_ready(class.spells['disease']) then return class.spells['disease'] end
+        if common.is_spell_ready(class.spells['corruption']) then return class.spells['corruption'] end
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
@@ -234,45 +236,6 @@ class.cast = function()
                     spell:use()
                 end
                 return true
-            end
-        end
-    end
-end
-
-local aggro_nopet_count = 'xtarhater radius 50 zradius 50 nopet'
-local function check_ae()
-    if common.am_i_dead() then return end
-    -- count number of aggro mobs on xtarget that are < 100% aggro
-    -- and not current target.
-    -- if > 0, then we need some ae aggro
-    local xtar_aggro_count = 0
-    for i=1,20 do
-        local xtar = mq.TLO.Me.XTarget(i)
-        if xtar.ID() ~= mq.TLO.Target.ID() and xtar.TargetType() == 'Auto Hater' and xtar.PctAggro() < 100 then
-            xtar_aggro_count = xtar_aggro_count + 1
-        end
-    end
-    -- if 1 or more mobs on xtarget < 100 aggro then no ae needed
-    if xtar_aggro_count == 0 then return end
-    -- now see how many xtarhater spawns are actually in range of ae
-    local mobs_in_range = mq.TLO.SpawnCount(aggro_nopet_count)()
-    if mobs_in_range >= 3 then
-        epic:use()
-        carapace:use()
-    end
-    if mobs_in_range >= 2 then
-        -- Discs to use when 2 or more mobs on aggro
-        for _,aa in ipairs(mashAEAggroAAs2) do
-            if not aa.opt or OPTS[aa.opt] then
-                if aa:use() then return end
-            end
-        end
-        if mobs_in_range >= 3 then
-            -- Discs to use when 4 or more mobs on aggro
-            for _,aa in ipairs(mashAEAggroAAs4) do
-                if not aa.opt or OPTS[aa.opt] then
-                    if aa:use() then return end
-                end
             end
         end
     end

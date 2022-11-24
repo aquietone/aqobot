@@ -63,7 +63,7 @@ mez.do_single = function(mez_spell)
                         state.targets[id] = nil
                     elseif pct_hp and pct_hp > 85 then
                         local assist_spawn = assist.get_assist_spawn()
-                        if assist_spawn.ID() ~= id then
+                        if assist_spawn == -1 or assist_spawn.ID() ~= id then
                             state.mez_target_name = mob.CleanName()
                             state.mez_target_id = id
                             logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())

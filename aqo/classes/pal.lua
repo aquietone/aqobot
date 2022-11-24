@@ -7,6 +7,7 @@ class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
 class.SPELLSETS = {standard=1}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 
 local standard = {}
 

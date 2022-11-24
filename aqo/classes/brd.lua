@@ -21,6 +21,7 @@ class.DEFAULT_SPELLSET='melee'
 class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, nil, 'combobox')
 class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
 class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
@@ -64,7 +65,7 @@ class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence
 class.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'})
 class.addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
 class.addSpell('bardhaste', {'Psalm of Veeshan', 'Composition of Ervaj'})
-class.addSpell('emuhaste', {'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
+class.addSpell('emuhaste', {'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
 class.addSpell('emuregen', {'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
 class.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})
 class.addSpell('emuproc', {'Song of the Storm'})
@@ -126,7 +127,7 @@ if state.emu then
     songs.emunoaura = emunoaura
     table.insert(class.auras, class.spells.emuaura)
     --table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
-    table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal'))
+    --table.insert(class.selfBuffs, common.getItem('Songblade of the Eternal', {checkfor='Symphony of Battle'}))
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
 
     table.insert(class.burnAbilities, common.getAA('A Tune Stuck In Your Head'))

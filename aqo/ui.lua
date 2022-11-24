@@ -437,7 +437,7 @@ end
 ui.main = function()
     if not open_gui then return end
     push_styles()
-    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI', state.class), open_gui, 0)
+    open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), open_gui, 0)
     if should_draw_gui then
         draw_header()
         draw_body()

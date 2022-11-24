@@ -174,7 +174,7 @@ assist.check_target = function(reset_timers)
                 return
             elseif not config.SWITCHWITHMA then
                 -- not fighting the MAs target, and switch with MA is disabled, so stay on current target
-                logger.debug(logger.log_flags.routines.assist, "check_target not switching targets with MA, staying on "..(mq.TLO.Target.CleanName()))
+                logger.debug(logger.log_flags.routines.assist, "check_target not switching targets with MA, staying on "..(mq.TLO.Target.CleanName() or ''))
                 return
             end
         end

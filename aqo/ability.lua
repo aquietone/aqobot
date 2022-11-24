@@ -4,38 +4,44 @@ local logger = require(AQO..'.utils.logger')
 local state = require(AQO..'.state')
 
 ---@class Ability
----@field id number|nil # the ID of this ability
+---@field id number # the ID of this ability
 ---@field name string # the name of this ability
 ---@field type Ability.Type # spell, aa, disc, item, skill
----@field opt string|nil # configuration option to check is enabled before using this ability
----@field delay number|nil # time in MS to delay after using an ability, primarily for swarm pets that take time to spawn after activation
----@field threshold number|nil # number of mobs to be on aggro before using an AE ability, or % mana/end to begin using recover abilities
----@field combat boolean|nil # flag to indicate whether to use recover ability in combat. e.g. don't canni when we should be healing
----@field ooc boolean|nil # flag to indicate whether to use recover ability in ooc. e.g. don't canni if OOC
----@field minhp number|nil # minimum HP % threshold to use recover ability. e.g. don't canni below 50% HP
----@field mana boolean|nil # flag to indicate ability recovers mana
----@field endurance boolean|nil # flag to indicate ability recovers endurance
----@field quick boolean|nil # flag the ability as used for quick burns
----@field long boolean|nil # flag the ability as used for long burns
----@field me number|nil # ignored currently. should be % hp to use self heal abilities since non-heal classes don't expose healer options
----@field pet number|nil # percent HP to begin casting pet heal
----@field self boolean|nil # indicates the heal ability is a self heal, like monk mend
----@field regular boolean|nil # flag to indicate heal should be used as a regular heal
----@field panic boolean|nil # flag to indicate heal should be used as a panic heal
----@field group boolean|nil # flag to indicate heal should be used as a group heal
----@field pct number|nil # group heal injured percent
----@field classes table|nil # list of classes which a buff should be cast on
----@field checkfor string|nil # other name to check for presence of a buff, primarily when the buff name doesn't match the spell name
----@field skipifbuff string|nil # do not use this ability if the buff indicated by this string is already present
----@field summons string|nil # name of item summoned by this ability
----@field summonMinimum number|nil # minimum amount of summoned item to keep
----@field summonComponent string|nil # reagent required for summon ability to function
----@field precast string|nil # function to call prior to using an ability
----@field postcast string|nil # function to call after to using an ability
+---@field targettype? string # The target type for the ability
+---@field opt? string # configuration option to check is enabled before using this ability
+---@field delay? number # time in MS to delay after using an ability, primarily for swarm pets that take time to spawn after activation
+---@field threshold? number # number of mobs to be on aggro before using an AE ability, or % mana/end to begin using recover abilities
+---@field combat? boolean # flag to indicate whether to use recover ability in combat. e.g. don't canni when we should be healing
+---@field ooc? boolean # flag to indicate whether to use recover ability in ooc. e.g. don't canni if OOC
+---@field minhp? number # minimum HP % threshold to use recover ability. e.g. don't canni below 50% HP
+---@field mana? boolean # flag to indicate ability recovers mana
+---@field endurance? boolean # flag to indicate ability recovers endurance
+---@field quick? boolean # flag the ability as used for quick burns
+---@field long? boolean # flag the ability as used for long burns
+---@field me? number # ignored currently. should be % hp to use self heal abilities since non-heal classes don't expose healer options
+---@field pet? number # percent HP to begin casting pet heal
+---@field self? boolean # indicates the heal ability is a self heal, like monk mend
+---@field regular? boolean # flag to indicate heal should be used as a regular heal
+---@field panic? boolean # flag to indicate heal should be used as a panic heal
+---@field group? boolean # flag to indicate heal should be used as a group heal
+---@field pct? number # group heal injured percent
+---@field classes? table # list of classes which a buff should be cast on
+---@field checkfor? string # other name to check for presence of a buff, primarily when the buff name doesn't match the spell name
+---@field skipifbuff? string # do not use this ability if the buff indicated by this string is already present
+---@field summons? string # name of item summoned by this ability
+---@field summonMinimum? number # minimum amount of summoned item to keep
+---@field summonComponent? string # reagent required for summon ability to function
+---@field precast? string # function to call prior to using an ability
+---@field postcast? string # function to call after to using an ability
+---@field usebelowpct? number # percent hp to begin using an ability, like executes
+---@field maxdistance? number # distance within which an ability should be used, like don't leap from a mile away
+---@field overwritedisc? string # name of disc which is acceptable to overwrite
+---@field aggro? boolean # flag to indicate if the ability is for getting aggro, like taunt
 local Ability = {
     id=0,
     name = '',
     type = 1,
+    targettype = nil,
     opt = nil,
 
     delay = nil,
@@ -73,6 +79,10 @@ local Ability = {
 
     precast = nil,
     postcast = nil,
+
+    usebelowpct = nil,
+    maxdistance = nil,
+    aggro = nil,
 }
 
 ---@enum Ability.Types
@@ -88,15 +98,17 @@ Ability.Types = {
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param type Ability.Type #
+---@param targettype string|nil #
 ---@param options table|nil #
 ---@return Ability #
-function Ability:new(ID, name, type, options)
+function Ability:new(ID, name, type, targettype, options)
     local ability = {}
     setmetatable(ability, self)
     self.__index = self
     ability.id = ID
     ability.name = name
     ability.type = type
+    ability.targettype = targettype
     if options then
         for key,value in pairs(options) do
             ability[key] = value
@@ -216,10 +228,11 @@ end
 ---Initialize a new spell instance
 ---@param ID number|nil #
 ---@param name string|nil #
+---@param targettype string|nil #
 ---@param options table|nil #
 ---@return Ability #
-function Spell:new(ID, name, options)
-    local spell = Ability:new(ID, name, Ability.Types.Spell, options)
+function Spell:new(ID, name, targettype, options)
+    local spell = Ability:new(ID, name, Ability.Types.Spell, targettype, options)
     setmetatable(spell, self)
     self.__index = self
     return spell
@@ -267,7 +280,7 @@ local Disc = {}
 ---@param options table|nil #
 ---@return Ability #
 function Disc:new(ID, name, options)
-    local disc = Ability:new(ID, name, Ability.Types.Disc, options)
+    local disc = Ability:new(ID, name, Ability.Types.Disc, nil, options)
     setmetatable(disc, self)
     self.__index = self
     return disc
@@ -330,10 +343,11 @@ local AA = {}
 ---Initialize a new spell instance
 ---@param ID number|nil #
 ---@param name string|nil #
+---@param targettype string|nil #
 ---@param options table|nil #
 ---@return Ability #
-function AA:new(ID, name, options)
-    local aa = Ability:new(ID, name, Ability.Types.AA, options)
+function AA:new(ID, name, targettype, options)
+    local aa = Ability:new(ID, name, Ability.Types.AA, targettype, options)
     setmetatable(aa, self)
     self.__index = self
     return aa
@@ -371,10 +385,11 @@ local Item = {}
 ---Initialize a new spell instance
 ---@param ID number|nil #
 ---@param name string|nil #
+---@param targettype string|nil #
 ---@param options table|nil #
 ---@return Ability #
-function Item:new(ID, name, options)
-    local item = Ability:new(ID, name, Ability.Types.Item, options)
+function Item:new(ID, name, targettype, options)
+    local item = Ability:new(ID, name, Ability.Types.Item, targettype, options)
     setmetatable(item, self)
     self.__index = self
     return item
@@ -395,6 +410,7 @@ end
 function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
     if self:isReady(theItem) then
+        mq.cmd('/stopcast')
         logger.printf('Use Item: \ag%s\ax', theItem)
         mq.cmdf('/useitem "%s"', theItem)
         mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -411,7 +427,7 @@ local Skill = {}
 ---@param options table|nil #
 ---@return Ability #
 function Skill:new(name, options)
-    local skill = Ability:new(nil, name, Ability.Types.Skill, options)
+    local skill = Ability:new(nil, name, Ability.Types.Skill, nil, options)
     setmetatable(skill, self)
     self.__index = self
     return skill

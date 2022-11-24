@@ -14,6 +14,7 @@ class.classOrder = {'assist', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff',
 
 class.SPELLSETS = {standard=1,short=1}
 class.addCommonOptions()
+class.addCommonAbilities()
 class.addOption('STOPPCT', 'DoT Stop Pct', 0, nil, 'Percent HP to stop refreshing DoTs on mobs', 'inputint')
 class.addOption('DEBUFF', 'Debuff', true, nil, 'Debuff targets', 'checkbox') -- enable use of debuffs
 class.addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox')
@@ -300,7 +301,7 @@ local function find_next_dot_to_cast()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
     -- Just cast composite as part of the normal dot rotation, no special handling
-    --if common.is_dot_ready(spells.composite.id, spells.composite.name) then
+    --if common.is_spell_ready(spells.composite.id, spells.composite.name) then
     --    return spells.composite.id, spells.composite.name
     --end
     if class.spells.manatap and mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
@@ -318,7 +319,7 @@ local function find_next_dot_to_cast()
             --         return dot
             --     end
             -- else
-            if (class.OPTS.USEWOUNDS.value or dot.id ~= class.spells.wounds.id) and common.is_dot_ready(dot) then
+            if (class.OPTS.USEWOUNDS.value or dot.id ~= class.spells.wounds.id) and common.is_spell_ready(dot) then
                 return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
         end

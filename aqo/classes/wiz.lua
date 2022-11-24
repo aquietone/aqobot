@@ -8,6 +8,7 @@ class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
 class.SPELLSETS = {standard=1}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 
 class.addSpell('nuke1', {'Draught of Ro', 'Pillar of Fire'})
 --class.addSpell('nuke2', {'Fire Spiral of Al\'Kabor'})

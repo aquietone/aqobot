@@ -13,6 +13,7 @@ class.SPELLSETS = {standard=1}
 class.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, nil, 'combobox')
 class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, nil, 'combobox')
 class.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
@@ -24,7 +25,7 @@ class.addOption('USEDOT', 'Use DoT', true, nil, '', 'checkbox')
 class.addOption('USEHASTE', 'Buff Haste', true, nil, '', 'checkbox')
 class.addOption('MEZST', 'Use Mez', true, nil, '', 'checkbox')
 class.addOption('MEZAE', 'Use AE Mez', true, nil, '', 'checkbox')
-class.addOption('AEMEZCOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
+class.addOption('MEZAECOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
 class.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, '', 'checkbox')
 class.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, '', 'checkbox')
 class.addOption('USENUKES', 'Use Nuke', true, nil, '', 'checkbox')
@@ -41,9 +42,9 @@ class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicat
 class.addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
 class.addSpell('alliance', {'Chromatic Coalition', 'Chromatic Covenant'})
 
-class.addSpell('mezst', {'Addle'}) -- 9 ticks
+class.addSpell('mezst', {'Addle', 'Euphoria'}) -- 9 ticks
 class.addSpell('mezst2', {'Addling Flash'}) -- 6 ticks
-class.addSpell('mezae', {'Bewildering Wave', 'Neutralizing Wave'}) -- targeted AE mez
+class.addSpell('mezae', {'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}) -- targeted AE mez
 class.addSpell('mezaehate', {'Confounding Glance'}) -- targeted AE mez + 100% hate reduction
 class.addSpell('mezpbae', {'Bewilderment'})
 class.addSpell('mezpbae2', {'Perilous Bewilderment'}) -- lvl 120
@@ -66,7 +67,7 @@ class.addSpell('groupdotrune', {'Legion of Xetheg', 'Legion of Cekenar'})
 class.addSpell('groupspellrune', {'Legion of Liako', 'Legion of Kildrukaun'})
 class.addSpell('groupaggrorune', {'Eclipsed Rune'}) -- group rune + aggro reduction proc
 
-class.addSpell('dot', {'Mind Vortex', 'Mind Coil'}) -- big dot
+class.addSpell('dot', {'Mind Vortex', 'Mind Coil', 'Mind Shatter'}) -- big dot
 class.addSpell('dot2', {'Throttling Grip', 'Pulmonary Grip'}) -- decent dot
 class.addSpell('debuffdot', {'Perplexing Constriction'}) -- debuff + nuke + dot
 class.addSpell('manadot', {'Tears of Xenacious'}) -- hp + mana DoT
@@ -82,7 +83,7 @@ class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan'})
 class.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
 class.addSpell('stunae', {'Remote Color Conflagration'})
 class.addSpell('stunpbae', {'Color Conflagration'})
-class.addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Arcane Rune'}) -- self rune, proc ae stun on fade
+class.addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}) -- self rune, proc ae stun on fade
 
 class.addSpell('pet', {'Constance\'s Animation', 'Aeidorb\'s Animation'})
 class.addSpell('pethaste', {'Invigorated Minion'})
@@ -114,7 +115,8 @@ if class.spells.synergy then
     end
 end
 if state.emu then
-    class.addSpell('nuke5', {'Madness of Ikkibi', 'Insanity'})
+    class.addSpell('nuke5', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
+    class.addSpell('unified', {'Unified Alacrity'})
 end
 -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
@@ -192,7 +194,18 @@ table.insert(class.selfBuffs, rune)
 table.insert(class.selfBuffs, veil)
 table.insert(class.selfBuffs, sanguine)
 table.insert(class.selfBuffs, azure)
-table.insert(class.selfBuffs, class.spells.kei)
+if class.spells.unified then
+    table.insert(class.selfBuffs, class.spells.unified)
+    class.kei = class.spells.unified
+    class.haste = class.spells.unified
+else
+    table.insert(class.selfBuffs, class.spells.kei)
+    class.kei = class.spells.kei
+    class.haste = class.spells.haste
+end
+class.requestAliases.kei = 'kei'
+class.requestAliases.haste = 'haste'
+
 table.insert(class.petBuffs, class.spells.pethaste)
 if state.emu then
     table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
@@ -246,7 +259,7 @@ class.find_next_spell = function()
     if common.is_spell_ready(class.spells.composite) then return class.spells.composite end
     if cast_synergy() then return nil end
     if common.is_spell_ready(class.spells.nuke5) then return class.spells.nuke5 end
-    if common.is_dot_ready(class.spells.dot2) then return class.spells.dot2 end
+    if common.is_spell_ready(class.spells.dot2) then return class.spells.dot2 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 

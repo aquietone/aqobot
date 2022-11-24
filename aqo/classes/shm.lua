@@ -10,12 +10,13 @@ class.classOrder = {'heal', 'cure', 'assist', 'cast', 'burn', 'aggro', 'recover'
 class.SPELLSETS = {standard=1}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox')
 class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox')
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
 
-class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, me=75, mt=65, other=65, pet=60})
+class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
 class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
 class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
 class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'})
@@ -23,7 +24,8 @@ class.addSpell('proc', {'Spirit of the Leopard', 'Spirit of the Jaguar'}, {class
 class.addSpell('champion', {'Champion', 'Ferine Avatar'})
 class.addSpell('cure', {'Blood of Nadox'})
 class.addSpell('nuke', {'Spear of Torment'}, {opt='USENUKES'})
-class.addSpell('hot', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOT', hot=true})
+class.addSpell('hottank', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTTANK', hot=true})
+class.addSpell('hotdps', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTDPS', hot=true})
 class.addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=true}})
 class.addSpell('panther', {'Talisman of the Panther'})
 
@@ -47,8 +49,9 @@ class.spellRotations = {
 }
 
 table.insert(class.healAbilities, class.spells.heal)
-table.insert(class.healAbilities, class.spells.hot)
-table.insert(class.healAbilities, common.getAA('Union of Spirits', {panic=true, pet=30}))
+table.insert(class.healAbilities, class.spells.hottank)
+table.insert(class.healAbilities, class.spells.hotdps)
+table.insert(class.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
 table.insert(class.cures, class.spells.cure)
 table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
 table.insert(class.burnAbilities, epic)

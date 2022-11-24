@@ -292,12 +292,12 @@ local function commandHandler(...)
             loot.markTradeSkillAsBank()
         end
     elseif #args == 2 then
-        if validActions[args[1]] then
+        if validActions[args[1]] and args[2] ~= 'NULL' then
             addRule(args[2], args[2]:sub(1,1), validActions[args[1]])
             loot.logger.Info(string.format("Setting \ay%s\ax to \ay%s\ax", args[2], validActions[args[1]]))
         end
     elseif #args == 3 then
-        if args[1] == 'quest' then
+        if args[1] == 'quest' and args[2] ~= 'NULL' then
             addRule(args[2], args[2]:sub(1,1), 'Quest|'..args[3])
             loot.logger.Info(string.format("Setting \ay%s\ax to \ayQuest|%s\ax", args[2], args[3]))
         end
@@ -481,7 +481,9 @@ local function openVendor()
     return mq.TLO.Merchant.ItemsReceived()
 end
 
+local NEVER_SELL = {['Diamond Coin']=true, ['Celestial Crest']=true, ['Gold Coin']=true, ['Taelosian Symbols']=true, ['Planar Symbols']=true}
 local function sellToVendor(itemToSell)
+    if NEVER_SELL[itemToSell] then return end
     while mq.TLO.FindItemCount('='..itemToSell)() > 0 do
         if mq.TLO.Window('MerchantWnd').Open() then
             loot.logger.Info('Selling '..itemToSell)

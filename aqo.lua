@@ -115,6 +115,24 @@ local function cmd_bind(...)
             local target_name = mq.TLO.Target.CleanName()
             if target_name then config.remove_ignore(zone, target_name) end
         end
+    elseif opt == 'addclicky' then
+        local clickyType = new_value
+        local itemName = mq.TLO.Cursor()
+        if itemName then
+            local clicky = {name=itemName, clickyType=clickyType}
+            aqoclass.addClicky(clicky)
+            aqoclass.save_settings()
+        else
+            logger.printf('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class)
+        end
+    elseif opt == 'removeclicky' then
+        local itemName = mq.TLO.Cursor()
+        if itemName then
+            aqoclass.removeClicky(itemName)
+            aqoclass.save_settings()
+        else
+            logger.printf('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
+        end
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
@@ -126,6 +144,7 @@ local function zoned()
         -- evac'd
     end
     state.currentZone = mq.TLO.Zone.ID()
+    mq.cmd('/pet ghold on')
 end
 
 local lootMyBody = false

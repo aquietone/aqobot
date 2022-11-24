@@ -17,6 +17,7 @@ class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'aggro', 'recover'
 class.SPELLSETS = {standard=1}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 class.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
 class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
 class.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
@@ -35,9 +36,9 @@ class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'check
 class.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
 class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
 class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
-class.addSpell('heart', {'Heartruin', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
 class.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-class.addSpell('summer', {'Summer\'s Torrent', 'Sylvan Burn', 'Scorched Earth', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
+class.addSpell('summer', {'Summer\'s Torrent', 'Hearth Embers', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
 class.addSpell('boon', {'Lunarflare boon'}) -- 
 class.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
 class.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
@@ -48,21 +49,22 @@ class.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
 class.addSpell('buffs', {'Shout of the Dusksage Stalker'}) -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
 -- Shout of the X Stalker Buffs
 class.addSpell('cloak', {'Cloak of Bloodbarbs'}) -- Cloak of Rimespurs
-class.addSpell('predator', {'Bay of the Predator', 'Spirit of the Predator'}) -- Frostroar of the Predator
-class.addSpell('strength', {'Strength of the Dusksage Stalker', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
+class.addSpell('predator', {'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}) -- Frostroar of the Predator
+class.addSpell('strength', {'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
 -- Unity AA Buffs
-class.addSpell('protection', {'Protection of the Valley', 'Protection of the Wild'}) -- Protection of the Wakening Land
+class.addSpell('protection', {'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}) -- Protection of the Wakening Land
 class.addSpell('eyes', {'Eyes of the Senshali', 'Eyes of the Owl'}) -- Eyes of the Visionary
 class.addSpell('hunt', {'Steeled by the Hunt'}) -- Provoked by the Hunt
 class.addSpell('coat', {'Moonthorn Coat'}) -- Rimespur Coat
 -- Unity Azia only
 class.addSpell('barrage', {'Devastating Barrage'}) -- Devastating Velium
 -- Unity Beza only
-class.addSpell('blades', {'Vociferous Blades', 'Sylvan Call'}) -- Howling Blades
+class.addSpell('blades', {'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}) -- Howling Blades
 class.addSpell('ds', {'Shield of Shadethorns'}) -- DS
 class.addSpell('rune', {'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
 class.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
 class.addSpell('snare', {'Ensnare', 'Snare'})
+class.addSpell('dispel', {'Nature\'s Balance'})
 
 -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
 local arrow_spells = {}
@@ -90,7 +92,11 @@ table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
 table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 
 -- entries in the AAs table are pairs of {aa name, aa id}
-table.insert(class.burnAbilities, common.getAA('Spire of the Pathfinders')) -- 7.5min CD
+if state.emu then
+    table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Pathfinders'))
+else
+    table.insert(class.burnAbilities, common.getAA('Spire of the Pathfinders')) -- 7.5min CD
+end
 table.insert(class.burnAbilities, common.getAA('Auspice of the Hunter')) -- crit buff, 9min CD
 table.insert(class.burnAbilities, common.getAA('Pack Hunt')) -- swarm pets, 15min CD
 table.insert(class.burnAbilities, common.getAA('Empowered Blades')) -- melee dmg burn, 10min CD
@@ -117,7 +123,7 @@ table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) --
 
 table.insert(class.DPSAbilities, common.getSkill('Kick'))
 
-local dispel = common.getAA('Entropy of Nature') -- dispel 9 slots
+local dispel = common.getAA('Entropy of Nature') or class.spells.dispel -- dispel 9 slots
 local snare = common.getAA('Entrap')
 local fade = common.getAA('Cover Tracks')
 local evasion = common.getAA('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
@@ -134,7 +140,7 @@ local unity_azia = common.getAA('Wildstalker\'s Unity (Azia)')
 --Slot 4: 	Eyes of the Senshali
 --Slot 5: 	Moonthorn Coat
 if state.emu then
-    class.addSpell('heal', {'Sylvan Light'})
+    class.addSpell('heal', {'Sylvan Water', 'Sylvan Light'})
     table.insert(class.selfBuffs, class.spells.eyes)
     table.insert(class.selfBuffs, class.spells.protection)
     table.insert(class.selfBuffs, class.spells.blades)
@@ -273,7 +279,7 @@ local function find_next_spell()
     end
     for _,spell in ipairs(dot_spells) do
         if spell.name ~= class.spells.dot.name or class.OPTS.USEDOT.value or (state.burn_active and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
-            if common.is_dot_ready(spell) then
+            if common.is_spell_ready(spell) then
                 return spell
             end
         end

@@ -67,6 +67,8 @@ base.cures = {}
 base.requests = {}
 base.requestAliases = {}
 
+base.clickies = {}
+
 --base.slow
 --base.aeslow
 --base.snare
@@ -126,10 +128,17 @@ base.addCommonOptions = function()
         base.addOption('SERVEBUFFREQUESTS', 'Serve Buff Requests', true, nil, 'Toggle serving buff requests', 'checkbox')
     end
     if healers[base.class] then
-        base.addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of heal over time', 'checkbox')
+        base.addOption('USEHOTTANK', 'Use HoT (Tank)', false, nil, 'Toggle use of heal over time on tank', 'checkbox')
+        base.addOption('USEHOTDPS', 'Use HoT (All)', false, nil, 'Toggle use of heal over time on everyone', 'checkbox')
         base.addOption('XTARGETHEAL', 'Heal XTarget', false, nil, 'Toggle healing of PCs on XTarget', 'checkbox')
         base.addOption('XTARGETBUFF', 'Buff XTarget', false, nil, 'Toggle buffing of PCs on XTarget', 'checkbox')
     end
+end
+
+base.addCommonAbilities = function()
+    base.tranquil = common.getAA('Tranquil Blessings')
+    base.radiant = common.getAA('Radiant Cure')
+    base.silent = common.getAA('Silent Casting')
 end
 
 -- Return true only if the option is both defined and true
@@ -139,19 +148,11 @@ base.isEnabled = function(key)
     return base.OPTS[key] and base.OPTS[key].value
 end
 
--- Return true if the option is not defined or if it is defined and true
--- For cases where everyone should do something except some who can toggle it
--- Ex. USEMELEE setting doesn't exist on melees, so they always melee. But for others
---     the use of melee can be toggled.
-base.isEnabledOrDNE = function(key)
-    return not base.OPTS[key] or base.OPTS[key].value
-end
-
 -- Return true if the option is nil or the option is true
 -- Ex. Kick has no option to toggle it, so should always be true. Intimidate has a toggle
 -- so should evaluate the option.
 base.isAbilityEnabled = function(key)
-    return not key or base.OPTS[key].value
+    return not key or not base.OPTS[key] or base.OPTS[key].value
 end
 
 base.addSpell = function(spellGroup, spellList, options)
@@ -161,6 +162,48 @@ base.addSpell = function(spellGroup, spellList, options)
         logger.printf('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id)
     else
         logger.printf('[%s] Could not find spell!', spellGroup)
+    end
+end
+
+base.addClicky = function(clicky)
+    local item = mq.TLO.FindItem('='..clicky.name)
+    if item.Clicky() then
+        if clicky.clickyType == 'burn' then
+            table.insert(base.burnAbilities, common.getItem(clicky.name))
+        elseif clicky.clickyType == 'mash' then
+            table.insert(base.DPSAbilities, common.getItem(clicky.name))
+        elseif clicky.clickyType == 'heal' then
+            table.insert(base.healAbilities, common.getItem(clicky.name))
+        elseif clicky.clickyType == 'buff' then
+            table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
+        end
+        table.insert(base.clickies, clicky)
+        logger.printf('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+    end
+end
+
+base.removeClicky = function(itemName)
+    for i,clicky in ipairs(base.clickies) do
+        if clicky.name == itemName then
+            table.remove(base.clickies, i)
+            local t
+            if clicky.clickyType == 'burn' then
+                t = base.burnAbilities
+            elseif clicky.clickyType == 'mash' then
+                t = base.DPSAbilities
+            elseif clicky.clickyType == 'heal' then
+                t = base.healAbilities
+            elseif clicky.clickyType == 'buff' then
+                t = base.selfBuffs
+            end
+            for j,entry in ipairs(t) do
+                if entry.name == itemName then
+                    table.remove(t, j)
+                    logger.printf('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+                    return
+                end
+            end
+        end
     end
 end
 
@@ -175,12 +218,17 @@ base.load_settings = function()
             base.OPTS[setting].value = value
         end
     end
+    if settings.clickies then
+        for _,clicky in ipairs(settings.clickies) do
+            base.addClicky(clicky)
+        end
+    end
 end
 
 base.save_settings = function()
     local optValues = {}
     for name,options in pairs(base.OPTS) do optValues[name] = options.value end
-    persistence.store(SETTINGS_FILE, {common=config.get_all(), [base.class]=optValues})
+    persistence.store(SETTINGS_FILE, {common=config.get_all(), [base.class]=optValues, clickies=base.clickies})
 end
 
 -- attempt to avoid trying to slow mobs that are slow immune. currently this table is never cleaned up unless restarted
@@ -201,16 +249,40 @@ base.event_snareimmune = function()
     end
 end
 
-base.event_request =function(line, requestor, requested)
-    if base.isEnabled('SERVEBUFFREQUESTS') and mq.TLO.Group.Member(requestor)() and base.requestAliases[requested:lower()] then
-        local requested = base[base.requestAliases[requested:lower()]]
-        if requested then
-            local expiration = timer:new(15)
-            expiration:reset()
-            table.insert(base.requests, {requestor=requestor, requested=requested, expiration=expiration})
-        else
-            mq.cmdf('/t %s I dont have that ability!', requestor)
+local function validateRequester(requester)
+    return mq.TLO.Group.Member(requester)() or mq.TLO.Raid.Member(requester)() or mq.TLO.Spawn('='..requester).Guild() == mq.TLO.Me.Guild()
+end
+
+base.event_request = function(line, requester, requested)
+    if base.isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
+        local tranquil = false
+        if requested:find('^tranquil') then
+            requested = requested:gsub('tranquil','')
+            tranquil = true
         end
+        if base.requestAliases[requested:lower()] then
+            local requested = base[base.requestAliases[requested:lower()]]
+            if requested then
+                local expiration = timer:new(15)
+                expiration:reset()
+                table.insert(base.requests, {requester=requester, requested=requested, expiration=expiration, tranquil=tranquil})
+            else
+                mq.cmdf('/t %s I dont have that ability!', requester)
+            end
+        elseif requested == 'list buffs' then
+            local buffList = ''
+            for alias,ability in pairs(base.requestAliases) do
+                buffList = ('%s | %s : %s'):format(buffList, alias, base[ability].name)
+            end
+            mq.cmdf('/t %s %s', requester, buffList)
+        end
+    end
+end
+
+base.event_tranquil = function()
+    if mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Raid.Members() > 0 then
+        mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
+        if base.tranquil:use() then mq.cmd('/rs Tranquil Blessings used') end
     end
 end
 
@@ -230,14 +302,18 @@ base.setup_events = function()
         mq.event('event_requests_tell', '#1# tells you, \'#2#\'', base.event_request)
         mq.event('event_requests_group', '#1# tells the group, \'#2#\'', base.event_request)
     end
+    if base.tranquil then
+        mq.event('event_tranquil', '#*# tells the #*#, \'tranquil\'', base.event_tranquil)
+    end
 end
 
 base.assist = function()
     if mq.TLO.Navigation.Active() then return end
+    if healers[base.class] and config.ASSIST == 'manual' then return end
     if config.MODE:is_assist_mode() then
         assist.check_target(base.reset_class_timers)
         logger.debug(logger.log_flags.class.assist, "after check target "..tostring(state.assist_mob_id))
-        if base.isEnabledOrDNE('USEMELEE') then
+        if base.isAbilityEnabled('USEMELEE') then
             if state.assist_mob_id and not mq.TLO.Me.Combat() and base.beforeEngage then
                 base.beforeEngage()
             end
@@ -273,11 +349,16 @@ local function doCombatLoop(list, burn_type)
     local target = mq.TLO.Target
     local dist = target.Distance3D() or 0
     local maxdist = target.MaxRangeTo() or 0
+    local mobhp = target.PctHPs() or 100
+    local aggropct = target.PctAggro() or 100
     for _,ability in ipairs(list) do
         if (ability.name or ability.id) and (base.isAbilityEnabled(ability.opt)) and
                 (ability.threshold == nil or ability.threshold <= state.mob_count_nopet) and
                 (ability.type ~= Abilities.Types.Skill or dist < maxdist) and
-                (burn_type == nil or ability[burn_type]) then
+                (ability.maxdistance == nil or dist <= ability.maxdistance) and
+                (ability.usebelowpct == nil or mobhp <= ability.usebelowpct) and
+                (burn_type == nil or ability[burn_type]) and
+                (ability.aggro == nil or aggropct < 100) then
             if ability:use() and ability.delay then mq.delay(ability.delay) end
         end
     end
@@ -291,7 +372,7 @@ local function doMashClickies()
         if clickyItem() and clickyItem.Timer() == '0' then
             if mq.TLO.Cursor.Name() == clickyItem.Name() then
                 mq.cmd('/autoinv')
-                mq.delay(1)
+                mq.delay(50)
                 clickyItem = mq.TLO.FindItem('='..clicky)
             end
             mq.cmdf('/useitem "%s"', clickyItem.Name())
@@ -310,7 +391,7 @@ base.mash = function()
             doCombatLoop(base.tankAbilities)
         end
         doCombatLoop(base.DPSAbilities)
-        doMashClickies()
+        if base.class ~= 'brd' then doMashClickies() end
     end
 end
 
@@ -357,7 +438,12 @@ local function castDebuffs()
     end
     -- debuff too generic to be checking Tashed TLO...
     --if base.isEnabled('USEDEBUFFAOE') and (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and base.debuff then
-    if base.isEnabled('USEDEBUFF') and (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and (base.class ~= 'mag' or not mq.TLO.Target.Maloed()) and base.debuff then
+    if base.isEnabled('USEDEBUFF') and 
+            (base.class ~= 'enc' or not mq.TLO.Target.Tashed()) and
+            (base.class ~= 'shm' or not mq.TLO.Target.Maloed()) and
+            (base.class ~= 'mag' or not mq.TLO.Target.Maloed()) and
+            (base.class ~= 'dru' or not mq.TLO.Target.Buff('Blessing of Ro')()) and
+            base.debuff then
         base.debuff:use()
         if base.debuff.type == Abilities.Types.Spell then return true end
     end
@@ -495,7 +581,7 @@ base.managepet = function()
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() > 0 then return end
     if (mq.TLO.Spell(base.spells.pet.name).Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
     common.swap_and_cast(base.spells.pet, state.swapGem)
-    mq.cmd('/multiline ; /pet hold on ; /pet ghold on')
+    mq.cmd('/multiline ; /pet ghold on')
     state.actionTaken = true
 end
 
@@ -554,21 +640,30 @@ local function handleRequests()
     if #base.requests > 0 then
         local request = base.requests[1]
         if request.expiration:timer_expired() then
-            logger.printf('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requestor)
+            logger.printf('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requester)
             table.remove(base.requests, 1)
         else
             if request.requested:isReady() then
-                local requestorSpawn = mq.TLO.Spawn('pc '..request.requestor)
-                if (requestorSpawn.Distance3D() or 300) < 100 then
-                    mq.cmd('/multiline ; /nav stop ; /stick off')
-                    local spell = nil
-                    if request.requested.type == Abilities.Types.Spell then spell = mq.TLO.Spell(request.requested.name)
-                    elseif request.requested.type == Abilities.Types.AA then spell = mq.TLO.Me.AltAbility(request.requested.name).Spell end
-                    if spell and spell.TargetType() == 'Single' then
-                        requestorSpawn.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == requestorSpawn.ID() end)
+                local requesterSpawn = mq.TLO.Spawn('pc '..request.requester)
+                if (requesterSpawn.Distance3D() or 300) < 100 then
+                    local tranquilUsed = 'Casting'
+                    if request.tranquil then
+                        if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then
+                            return
+                        elseif base.tranquil then
+                            if base.tranquil:use() then tranquilUsed = 'MGB\'ing' end
+                        end
                     end
-                    mq.cmdf('/g Casting %s for %s', request.requested.name, request.requestor)
+                    mq.cmd('/multiline ; /nav stop ; /stick off')
+                    --local spell = nil
+                    --if request.requested.type == Abilities.Types.Spell then spell = mq.TLO.Spell(request.requested.name)
+                    --elseif request.requested.type == Abilities.Types.AA then spell = mq.TLO.Me.AltAbility(request.requested.name).Spell end
+                    --if spell and spell.TargetType() == 'Single' then
+                    if request.requested.targettype == 'Single' then
+                        requesterSpawn.DoTarget()
+                        mq.delay(100, function() return mq.TLO.Target.ID() == requesterSpawn.ID() end)
+                    end
+                    mq.cmdf('/g %s %s for %s', tranquilUsed, request.requested.name, request.requester)
                     request.requested:use()
                     table.remove(base.requests, 1)
                 end

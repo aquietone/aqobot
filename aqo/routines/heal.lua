@@ -11,6 +11,7 @@ local HEAL_TYPES = {
     HOT='hot',
     PANIC='panic',
     REGULAR='regular',
+    TANK='tank',
 }
 
 local tankClasses = {WAR=true,PAL=true,SHD=true}
@@ -122,7 +123,7 @@ local function getHurt(opts)
     elseif numHurt > config.GROUPHEALMIN then
         return nil, HEAL_TYPES.GROUP
     elseif mostHurtPct < config.HEALPCT and mostHurtDistance < 200 then
-        return mostHurtID, HEAL_TYPES.REGULAR
+        return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.PRIORITYTARGET) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
     elseif mostHurtPct < config.HOTHEALPCT and melees[mostHurtClass] and mostHurtDistance < 100 then
         local hotTimer = hottimers[mostHurtName]
         if (not hotTimer or hotTimer:timer_expired()) then
@@ -267,10 +268,11 @@ local function doRezFor(rezAbility, groupOrRaid)
     if not corpse() then
         corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse healer radius 100 noalert 0')
         if not corpse() then
-            corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse radius 100 noalert 0')
+            corpse = mq.TLO.Spawn('pccorpse radius 100 noalert 0')
         end
     end
-    if corpse() then
+    local corpseName = corpse.Name()
+    if corpseName and mq.TLO.Raid.Member(corpseName:gsub('\'s corpse.*', ''))() then
         corpse.DoTarget()
         mq.delay(100, function() return mq.TLO.Target.ID() == corpse.ID() end)
         if mq.TLO.Target.Type() == 'Corpse' then

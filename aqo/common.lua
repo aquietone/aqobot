@@ -70,7 +70,10 @@ local function getSpell(spellName)
     local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
     if not mq.TLO.Me.Book(rankname)() then return nil end
-    return {id=spell.ID(), name=rankname}
+    if spell.HasSPA(32)() then
+        local summonID = spell.Base(1)()
+    end
+    return {id=spell.ID(), name=rankname, targettype=spell.TargetType()}
 end
 
 common.getBestSpell = function(spells, options)
@@ -80,7 +83,7 @@ common.getBestSpell = function(spells, options)
             if options and type(options.summons) == 'table' then
                 options.summons = options.summons[i]
             end
-            local spell = ability.Spell:new(bestSpell.id, bestSpell.name, options)
+            local spell = ability.Spell:new(bestSpell.id, bestSpell.name, bestSpell.targettype, options)
             return spell
         end
     end
@@ -94,7 +97,21 @@ end
 common.getAA = function(aaName, options)
     local aaData = mq.TLO.Me.AltAbility(aaName)
     if aaData() then
-        local aa = ability.AA:new(aaData.ID(), aaData.Name(), options)
+        if not options then options = {} end
+        if not options.checkfor then
+            if aaData.Spell.HasSPA(470)() then
+                options.checkfor = aaData.Spell.Trigger(1)()
+            else
+                options.checkfor = aaData.Spell()
+            end
+        end
+        if not options.summons then
+            if aaData.Spell.HasSPA(32)() then
+                options.summons = aaData.Spell.Base(1)()
+                options.summonMinimum = 1
+            end
+        end
+        local aa = ability.AA:new(aaData.ID(), aaData.Name(), aaData.Spell.TargetType(), options)
         return aa
     end
     return nil
@@ -127,8 +144,10 @@ end
 common.getItem = function(itemName, options)
     if not itemName then return nil end
     local itemRef = mq.TLO.FindItem('='..itemName)
-    if itemRef() then
-        local item = ability.Item:new(itemRef.ID(), itemRef.Name(), options)
+    if itemRef() and itemRef.Clicky() then
+        if not options then options = {} end
+        options.checkfor = itemRef.Clicky.Spell()
+        local item = ability.Item:new(itemRef.ID(), itemRef.Name(), itemRef.Clicky.Spell.TargetType(), options)
         return item
     end
     return nil
@@ -292,39 +311,38 @@ end
 
 -- Casting Functions
 
-common.is_dot_ready = function(spell)
-    if not common.is_spell_ready(spell) then return false end
-
-    local buff_duration = 0
-    local remaining_cast_time = 0
-    buff_duration = mq.TLO.Target.MyBuffDuration(spell.name)()
-    if not common.is_target_dotted_with(spell.id, spell.name) then
-        -- target does not have the dot, we are ready
-        return true
-    else
-        if not buff_duration then
-            return true
-        end
-        remaining_cast_time = mq.TLO.Spell(spell.name).MyCastTime()
-        return buff_duration < remaining_cast_time + 3000
-    end
-end
-
 common.is_spell_ready = function(spell, skipCheckTarget)
     if not spell then return false end
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
-    if mq.TLO.Spell(spell.name).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spell.name).Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
+    local spellData = mq.TLO.Spell(spell.name)
+    if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
         return false
     end
-    if mq.TLO.Spell(spell.name).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spell.name).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
+    if spellData.EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (spellData.EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
         return false
     end
-    if not skipCheckTarget and mq.TLO.Spell(spell.name).TargetType() == 'Single' then
+    if not skipCheckTarget and spellData.TargetType() == 'Single' then
         if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
     end
 
-    return true
+    if spellData.Duration.Ticks() > 0 then
+        local buff_duration = 0
+        local remaining_cast_time = 0
+        buff_duration = mq.TLO.Target.MyBuffDuration(spell.name)()
+        if not common.is_target_dotted_with(spell.id, spell.name) then
+            -- target does not have the dot, we are ready
+            return true
+        else
+            if not buff_duration then
+                return true
+            end
+            remaining_cast_time = spellData.MyCastTime()
+            return buff_duration < remaining_cast_time + 3000
+        end
+    else
+        return true
+    end
 end
 
 --- Stacking check stuff

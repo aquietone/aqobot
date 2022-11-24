@@ -8,11 +8,13 @@ class.class = 'ber'
 class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
 class.addCommonOptions()
+class.addCommonAbilities()
 --class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, nil, 'combobox')
 if state.emu then
     class.addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox')
 end
 
+table.insert(class.DPSAbilities, common.getItem('Raging Taelosian Alloy Axe'))
 table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))
 table.insert(class.DPSAbilities, common.getSkill('Frenzy'))
 table.insert(class.DPSAbilities, common.getBestDisc({'Destroyer\'s Volley', 'Rage Volley'}))

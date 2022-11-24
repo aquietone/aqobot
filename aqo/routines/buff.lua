@@ -57,20 +57,33 @@ buff.petBuff = function(spell)
     end
 end
 
+local function haveBuff(buffName)
+    return buffName and (mq.TLO.Me.Buff(buffName)() or mq.TLO.Me.Song(buffName)())
+end
+
+local function summonItem(buff)
+    if mq.TLO.FindItemCount(buff.summons)() < buff.summonMinimum and not mq.TLO.Me.Moving() and (not buff.summonComponent or mq.TLO.FindItemCount(buff.summonComponent)() > 0) then
+        buff:use()
+        if mq.TLO.Cursor() then
+            mq.delay(50)
+            mq.cmd('/autoinv')
+        end
+    end
+end
+
 local function buff_combat(base)
     -- common clicky buffs like geomantra and ... just geomantra
     common.check_combat_buffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
     if mq.TLO.Me.CombatState() == 'COMBAT' then
         for _,buff in ipairs(base.combatBuffs) do
-            if (buff.type == Abilities.Types.Disc or buff.type == Abilities.Types.AA) and not mq.TLO.Me.Buff(buff.name)() and not mq.TLO.Me.Song(buff.name)() then
-                buff:use()
-            elseif buff.summons then
-                if mq.TLO.FindItemCount(buff.summons)() < buff.summonMinimum and not mq.TLO.Me.Moving() then
-                    buff:use()
-                    if mq.TLO.Cursor() then
-                        mq.delay(50)
-                        mq.cmd('/autoinv')
+            if base.isAbilityEnabled(buff.opt) then
+                if buff.summons then
+                    summonItem(buff)
+                else
+                    local buffName = buff.checkfor or buff.name
+                    if not haveBuff(buffName) then
+                        buff:use()
                     end
                 end
             end
@@ -111,23 +124,19 @@ local function buff_self(base)
         local buffName = buff.name -- TODO: buff name may not match AA or item name
         if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
         if buff.summons then
-            if mq.TLO.FindItemCount(buff.summons)() < buff.summonMinimum and not mq.TLO.Me.Moving() and (not buff.summonComponent or mq.TLO.FindItemCount(buff.summonComponent)() > 0) then
-                buff:use()
-                if mq.TLO.Cursor() then
-                    mq.delay(50)
-                    mq.cmd('/autoinv')
-                end
+            summonItem(buff)
+        elseif base.isAbilityEnabled(buff.opt) and not haveBuff(buffName) and not haveBuff(buff.checkfor)
+                and mq.TLO.Spell(buff.checkfor or buff.name).Stacks()
+                and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0) then
+            if buff.targettype == 'Single' then
+                mq.TLO.Me.DoTarget()
+                mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
             end
-        elseif base.isEnabledOrDNE(buff.opt) and not mq.TLO.Me.Buff(buffName)() and not mq.TLO.Me.Song(buffName)() and (not buff.checkfor or (not mq.TLO.Me.Buff(buff.checkfor)() and not mq.TLO.Me.Song(buff.checkfor)())) and mq.TLO.Spell(buff.checkfor or buff.name).Stacks() then
-            mq.TLO.Me.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then return true end
             elseif buff.type == Abilities.Types.Disc then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) return true end
-            elseif buff.type == Abilities.Types.AA then
-                buff:use()
-            elseif buff.type == Abilities.Types.Item then
+            else
                 buff:use()
             end
             if buff.removesong then mq.cmdf('/removebuff %s', buff.removesong) end
@@ -136,7 +145,7 @@ local function buff_self(base)
 end
 
 local function buff_single(base)
-    local groupSize = mq.TLO.Group.GroupSize() or 0
+    local groupSize = mq.TLO.Group.Members() or 0
     for i=1,groupSize do
         local member = mq.TLO.Group.Member(i)
         local memberClass = member.Class.ShortName()
@@ -146,7 +155,7 @@ local function buff_single(base)
                 member.DoTarget()
                 mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
-                if not mq.TLO.Target.Buff(buff.name)() then
+                if not mq.TLO.Target.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksTarget() then
                     if buff:use() then return true end
                 end
             end
@@ -217,6 +226,11 @@ local function buff_pet(base)
                 end
             elseif buff.type == Abilities.Types.AA then
                 if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Me.AltAbilityReady(buff.name)() and (not buff.checkfor or not mq.TLO.Pet.Buff(buff.checkfor)()) then
+                    buff:use()
+                end
+            elseif buff.type == Abilities.Types.Item then
+                local item = mq.TLO.FindItem(buff.id)
+                if not mq.TLO.Pet.Buff(item.Spell.Name())() and (not buff.checkfor or not mq.TLO.Pet.Buff(buff.checkfor)()) then
                     buff:use()
                 end
             end
