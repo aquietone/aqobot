@@ -156,7 +156,7 @@ local function init()
     state.class = mq.TLO.Me.Class.ShortName():lower()
     state.currentZone = mq.TLO.Zone.ID()
     state.subscription = mq.TLO.Me.Subscription()
-    if mq.TLO.EverQuest.Server() == 'Project Lazarus' then state.emu = true end
+    if mq.TLO.EverQuest.Server() == 'Project Lazarus' or mq.TLO.EverQuest.Server() == 'EZ (Linux) x4 Exp' then state.emu = true end
     common.set_swap_gem()
 
     aqoclass = require(AQO..'.classes.'..state.class)

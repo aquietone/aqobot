@@ -520,6 +520,7 @@ end
 
 local check_aggro_timer = timer:new(10)
 class.aggro = function()
+    if state.emu then return end
     if config.MODE:is_manual_mode() then return end
     if class.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
@@ -615,7 +616,7 @@ class.buff = function()
     common.check_combat_buffs()
     if not common.clear_to_buff() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if class.spells.lich and not mq.TLO.Me.Buff(class.spells.lich.name)() or not mq.TLO.Me.Buff(class.spells.flesh.name)() then
+    if (class.spells.lich and not mq.TLO.Me.Buff(class.spells.lich.name)()) or (class.spells.flesh and not mq.TLO.Me.Buff(class.spells.flesh.name)()) then
         unity:use()
     end
 

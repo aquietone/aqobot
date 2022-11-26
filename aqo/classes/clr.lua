@@ -12,7 +12,7 @@ class.addCommonAbilities()
 class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')
 class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
 
-class.addSpell('heal', {'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {tank=true})
+class.addSpell('heal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {tank=true})
 class.addSpell('remedy', {'Pious Remedy', 'Supernal Remedy', 'Remedy'}, {regular=true, panic=true, pet=60})
 class.addSpell('desperate', {'Desperate Renewal'}, {panic=true, pet=15})
 class.addSpell('aura', {'Aura of Divinity'}, {aura=true})
@@ -21,8 +21,8 @@ class.addSpell('armor', {'Armor of the Pious', 'Armor of the Zealot'})
 class.addSpell('spellhaste', {'Aura of Devotion'})
 class.addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
 class.addSpell('groupheal', {'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'}, {threshold=3, group=true, pct=70})
-class.addSpell('hottank', {'Holy Elixir'}, {opt='USEHOTTANK', hot=true})
-class.addSpell('hotdps', {'Holy Elixir'}, {opt='USEHOTDPS', hot=true})
+class.addSpell('hottank', {'Pious Elixir', 'Holy Elixir'}, {opt='USEHOTTANK', hot=true})
+class.addSpell('hotdps', {'Pious Elixir', 'Holy Elixir'}, {opt='USEHOTDPS', hot=true})
 class.addSpell('aego', {'Hand of Conviction', 'Hand of Virtue'})
 class.addSpell('di', {'Divine Intervention'})
 --common.getAA('Celestial Regeneration')
@@ -37,6 +37,7 @@ table.insert(class.DPSAbilities, class.spells.hammerpet)
 
 table.insert(class.healAbilities, common.getAA('Burst of Life', {panic=true}))
 table.insert(class.healAbilities, common.getItem('Weighted Hammer of Conviction', {tank=true, regular=true, panic=true, pet=60}))
+table.insert(class.healAbilities, common.getItem('Harmony of the Soul', {panic=true}))
 table.insert(class.healAbilities, class.spells.heal)
 table.insert(class.healAbilities, common.getAA('Divine Arbitration', {panic=true}))
 table.insert(class.healAbilities, class.spells.groupheal)
@@ -76,5 +77,9 @@ class.requestAliases.di = 'di'
 class.requestAliases.radiant = 'radiant'
 class.spellhaste = class.spells.spellhaste
 class.requestAliases.spellhaste = 'spellhaste'
+class.cr = common.getAA('Celestial Regeneration')
+class.requestAliases.cr = 'cr'
+class.focusedcr = common.getAA('Focused Celestial Regeneration')
+class.requestAliases.focusedcr = 'focusedcr'
 
 return class

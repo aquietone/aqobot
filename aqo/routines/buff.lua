@@ -79,7 +79,7 @@ local function buff_combat(base)
         for _,buff in ipairs(base.combatBuffs) do
             if base.isAbilityEnabled(buff.opt) then
                 if buff.summons then
-                    summonItem(buff)
+                    if base.isAbilityEnabled(buff.opt) then summonItem(buff) end
                 else
                     local buffName = buff.checkfor or buff.name
                     if not haveBuff(buffName) then
@@ -124,7 +124,7 @@ local function buff_self(base)
         local buffName = buff.name -- TODO: buff name may not match AA or item name
         if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
         if buff.summons then
-            summonItem(buff)
+            if base.isAbilityEnabled(buff.opt) then summonItem(buff) end
         elseif base.isAbilityEnabled(buff.opt) and not haveBuff(buffName) and not haveBuff(buff.checkfor)
                 and mq.TLO.Spell(buff.checkfor or buff.name).Stacks()
                 and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0) then
@@ -151,7 +151,7 @@ local function buff_single(base)
         local memberClass = member.Class.ShortName()
         local memberDistance = member.Distance3D() or 300
         for _,buff in ipairs(base.singleBuffs) do
-            if buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.name)() and not member.Buff(buff.name)() and not member.Dead() and memberDistance < 100 then
+            if base.isAbilityEnabled(buff.opt) and buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.name)() and not member.Buff(buff.name)() and not member.Dead() and memberDistance < 100 then
                 member.DoTarget()
                 mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
@@ -246,6 +246,8 @@ buff.buff = function(base)
     if buff_ooc(base) then return true end
 
     if buff_pet(base) then return true end
+
+    common.check_item_buffs()
 end
 
 buff.setupBegEvents = function(callback)

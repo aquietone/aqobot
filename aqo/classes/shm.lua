@@ -16,7 +16,7 @@ class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs',
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
 
-class.addSpell('heal', {'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
+class.addSpell('heal', {'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
 class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
 class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
 class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'})
@@ -28,6 +28,8 @@ class.addSpell('hottank', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USE
 class.addSpell('hotdps', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTDPS', hot=true})
 class.addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=true}})
 class.addSpell('panther', {'Talisman of the Panther'})
+class.addSpell('twincast', {'Frostfall Boon'}, {regular=true, tank=true, tot=true})
+class.addSpell('torpor', {'Transcendent Torpor'})
 
 local epic = common.getItem('Blessed Spiritstaff of the Heyokah', {opt='USEEPIC'}) or common.getItem('Crafted Talisman of Fates', {opt='USEEPIC'})
 
@@ -48,6 +50,7 @@ class.spellRotations = {
     standard=standard
 }
 
+table.insert(class.healAbilities, class.spells.twincast)
 table.insert(class.healAbilities, class.spells.heal)
 table.insert(class.healAbilities, class.spells.hottank)
 table.insert(class.healAbilities, class.spells.hotdps)
@@ -66,6 +69,8 @@ table.insert(class.defensiveAbilities, common.getAA('Ancestral Guard'))
 
 class.radiant = common.getAA('Radiant Cure')
 class.requestAliases.radiant = 'radiant'
+class.torpor = class.spells.torpor
+class.requestAliases.torpor = 'torpor'
 
 class.nuketimer = timer:new(3)
 

@@ -15,6 +15,9 @@ class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of El
 class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox')
 class.addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox')
 class.addOption('USEDEBUFF', 'Use Malo', false, nil, '', 'checkbox')
+class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, '', 'checkbox')
+class.addOption('USEDS', 'Use Group DS', true, nil, '', 'checkbox')
+class.addOption('USETEMPDS', 'Use Temp DS', true, nil, '', 'checkbox')
 
 class.addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
 class.addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
@@ -28,8 +31,8 @@ class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifb
 class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summons={'Molten Orb','Lava Orb'}, summonMinimum=1})
 class.addSpell('petds', {'Iceflame Guard'})
 class.addSpell('servant', {'Rampaging Servant'})
-class.addSpell('ds', {'Circle of Fireskin'})
-class.addSpell('bigds', {'Pyrilen Skin', 'Burning Aura'}, {classes={WAR=true,SHD=true,PAL=true}})
+class.addSpell('ds', {'Circle of Fireskin'}, {opt='USEDS'})
+class.addSpell('bigds', {'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, {opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}})
 
 class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
 class.addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
@@ -54,7 +57,7 @@ table.insert(class.selfBuffs, class.spells.manaregen)
 table.insert(class.selfBuffs, class.spells.acregen)
 table.insert(class.selfBuffs, class.spells.orb)
 table.insert(class.selfBuffs, class.spells.ds)
-table.insert(class.selfBuffs, common.getAA('Large Modulation Shard', {summons='Summoned: Large Modulation Shard', summonMinimum=1}))
+table.insert(class.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summons='Summoned: Large Modulation Shard', summonMinimum=1}))
 table.insert(class.combatBuffs, common.getAA('Fire Core'))
 --table.insert(class.singleBuffs, class.spells.bigds)
 

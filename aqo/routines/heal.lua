@@ -162,19 +162,21 @@ local function getHurt(opts)
     end
 end
 
-local function getHeal(healAbilities, healType)
+local function getHeal(healAbilities, healType, whoToHeal)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] then
-            if heal.type == Abilities.Types.Spell then
-                local spell = mq.TLO.Spell(heal.name)
-                if Abilities.canUseSpell(spell, heal.type) then
-                    return heal
+            if not heal.tot or (mq.TLO.Me.CombatState() ~= 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
+                if heal.type == Abilities.Types.Spell then
+                    local spell = mq.TLO.Spell(heal.name)
+                    if Abilities.canUseSpell(spell, heal.type) then
+                        return heal
+                    end
+                elseif heal.type == Abilities.Types.Item then
+                    local theItem = mq.TLO.FindItem(heal.id)
+                    if heal:isReady(theItem) then return heal end
+                else
+                    if heal:isReady() then return heal end
                 end
-            elseif heal.type == Abilities.Types.Item then
-                local theItem = mq.TLO.FindItem(heal.id)
-                if heal:isReady(theItem) then return heal end
-            else
-                if heal:isReady() then return heal end
             end
         end
     end
@@ -184,7 +186,7 @@ healing.heal = function(healAbilities, opts)
     if common.am_i_dead() then return end
     local whoToHeal, typeOfHeal = getHurt(opts)
     if typeOfHeal == HEAL_TYPES.HOT and not healEnabled(opts, 'USEHOT') then return end
-    local healToUse = getHeal(healAbilities, typeOfHeal)
+    local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal)
     if healToUse then
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             mq.cmdf('/mqt id %s', whoToHeal)

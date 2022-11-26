@@ -79,7 +79,7 @@ class.addSpell('nuke4', {'Obscuring Eclipse'}) -- 27k nuke
 class.addSpell('aenuke', {'Gravity Roil'}) -- 23k targeted ae nuke
 
 class.addSpell('calm', {'Still Mind'})
-class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan'})
+class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani'})
 class.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
 class.addSpell('stunae', {'Remote Color Conflagration'})
 class.addSpell('stunpbae', {'Color Conflagration'})
@@ -117,11 +117,18 @@ end
 if state.emu then
     class.addSpell('nuke5', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
     class.addSpell('unified', {'Unified Alacrity'})
+    class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'})
+    class.addSpell('runett', {'Chromaburst'})
+    class.addSpell('spasm', {'Synapsis Spasm'})
 end
 -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local standard = {}
 table.insert(standard, class.spells.tash)
+if state.emu then
+    table.insert(standard, class.spells.spasm)
+    table.insert(standard, class.spells.runett)
+end
 table.insert(standard, class.spells.dotmiti)
 table.insert(standard, class.spells.meznoblur)
 table.insert(standard, class.spells.mezae)
@@ -159,7 +166,7 @@ if state.emu then
     class.slow = common.getItem('Serpent of Vindication')
 end
 class.aeslow = common.getAA('Enveloping Helix') -- AE slow on 8 targets
-class.dispel = common.getAA('Eradicate Magic')
+class.dispel = common.getAA('Eradicate Magic') or class.spells.dispel
 
 local mezbeam = common.getAA('Beam of Slumber')
 local longmez = common.getAA('Noctambulate') -- 3min single target mez

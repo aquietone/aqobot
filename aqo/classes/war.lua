@@ -111,6 +111,7 @@ table.insert(class.combatBuffs, common.getAA('Imperator\'s Command'))
 table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
 table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
 table.insert(class.selfBuffs, common.getItem('Mask of the Lost Guktan'))
+table.insert(class.selfBuffs, common.getAA('Infused by Rage'))
 
 table.insert(class.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summons='Ethereal Arrow', summonMinimum=101}))
 

@@ -2,10 +2,11 @@ local class = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
 
 class.class = 'mnk'
-class.classOrder = {'assist', 'heal', 'mash', 'burn', 'recover', 'buff', 'rest'}
+class.classOrder = {'assist', 'heal', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
 class.addCommonOptions()
 class.addCommonAbilities()
+class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox')
 --class.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
 table.insert(class.DPSAbilities, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
@@ -31,5 +32,8 @@ table.insert(class.selfBuffs, common.getItem('Pauldron of Dark Auspices', {check
 --table.insert(class.selfBuffs, common.getItem('Ring of Organic Darkness', {checkfor='Taelosian Guard'}))
 
 table.insert(class.healAbilities, common.getSkill('Mend', {me=60, self=true}))
+
+table.insert(class.defensiveAbilities, common.getSkill('Feign Death', {stand=true}))
+class.drop_aggro = common.getSkill('Feign Death')
 
 return class

@@ -37,6 +37,8 @@ local state = require(AQO..'.state')
 ---@field maxdistance? number # distance within which an ability should be used, like don't leap from a mile away
 ---@field overwritedisc? string # name of disc which is acceptable to overwrite
 ---@field aggro? boolean # flag to indicate if the ability is for getting aggro, like taunt
+---@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
+---@field tot? boolean # flag to indicate if spell is target-of-target
 local Ability = {
     id=0,
     name = '',
@@ -83,6 +85,10 @@ local Ability = {
     usebelowpct = nil,
     maxdistance = nil,
     aggro = nil,
+
+    stand = nil,
+
+    tot = nil,
 }
 
 ---@enum Ability.Types
@@ -443,6 +449,7 @@ function Skill:use()
         mq.cmdf('/doability "%s"', self.name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(self.name)() end)
         logger.debug(logger.log_flags.common.cast, "Delayed for use_ability "..self.name)
+        return true
     end
 end
 

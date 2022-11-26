@@ -151,7 +151,7 @@ table.insert(class.burnAbilities, common.getAA('Leech Touch')) -- 9min CD, giant
 table.insert(class.burnAbilities, common.getAA('Thought Leech')) -- 18min CD, nuke + mana/end tap
 table.insert(class.burnAbilities, common.getAA('Scourge Skin')) -- 15min CD, large DS
 table.insert(class.burnAbilities, common.getAA('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
-table.insert(class.burnAbilities, common.getAA('Visage of Death')) -- 12min CD, melee dmg burn
+--table.insert(class.burnAbilities, common.getAA('Visage of Death')) -- 12min CD, melee dmg burn
 table.insert(class.burnAbilities, common.getAA('Visage of Decay')) -- 12min CD, dot dmg burn
 
 local leechtouch = common.getAA('Leech Touch') -- 9min CD, giant lifetap
@@ -179,6 +179,8 @@ if state.emu then
     table.insert(class.selfBuffs, common.getItem('Pauldron of Dark Auspices', {checkfor='Frost Guard'}))
     table.insert(class.selfBuffs, common.getItem('Band of Primordial Energy', {checkfor='Form of Defense'}))
     --table.insert(class.selfBuffs, common.getItem('Veil of the Inferno', {checkfor='Form of Endurance'}))
+    class.addSpell('voice', {'Voice of Innoruuk'})
+    table.insert(class.selfBuffs, class.spells.voice)
 end
 table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
 table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
@@ -201,6 +203,7 @@ local function find_next_spell()
         if common.is_spell_ready(class.spells['challenge']) then return class.spells['challenge'] end
         if common.is_spell_ready(class.spells['terror']) then return class.spells['terror'] end
     end
+    if common.is_spell_ready(class.spells['bitetap']) then return class.spells['bitetap'] end
     -- taps
     if common.is_spell_ready(class.spells['composite']) then return class.spells['composite'] end
     if myhp < 80 then
@@ -213,7 +216,6 @@ local function find_next_spell()
     --if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(class.spells['tap2']) then return class.spells['tap2'] end
     if common.is_spell_ready(class.spells.tap2) then return class.spells.tap2 end
     if common.is_spell_ready(class.spells['dottap']) then return class.spells['dottap'] end
-    if common.is_spell_ready(class.spells['bitetap']) then return class.spells['bitetap'] end
     if common.is_spell_ready(class.spells['acdebuff']) then return class.spells['acdebuff'] end
     if config.MODE:is_assist_mode() and class.OPTS.SPELLSET.value == 'dps' then
         if common.is_spell_ready(class.spells['poison']) then return class.spells['poison'] end

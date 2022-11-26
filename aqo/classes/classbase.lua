@@ -255,13 +255,17 @@ end
 
 base.event_request = function(line, requester, requested)
     if base.isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
+        requested = requested:lower()
         local tranquil = false
         if requested:find('^tranquil') then
             requested = requested:gsub('tranquil','')
             tranquil = true
         end
-        if base.requestAliases[requested:lower()] then
-            local requested = base[base.requestAliases[requested:lower()]]
+        if requested:find(' '..mq.TLO.Me.CleanName():lower()..'$') then
+            requested = requested:gsub(' '..mq.TLO.Me.CleanName():lower(),'')
+        end
+        if base.requestAliases[requested] then
+            local requested = base[base.requestAliases[requested]]
             if requested then
                 local expiration = timer:new(15)
                 expiration:reset()
@@ -454,7 +458,8 @@ local function castDebuffs()
     end
     if base.isEnabled('USESLOW') or base.isEnabled('USESLOWAOE') then
         local target = mq.TLO.Target
-        if target.Named() and not target.Slowed() and not base.SLOW_IMMUNES[target.CleanName()] then
+        if not target.Slowed() and not base.SLOW_IMMUNES[target.CleanName()] then
+        --if target.Named() and not target.Slowed() and not base.SLOW_IMMUNES[target.CleanName()] then
             local abilityType
             if base.isEnabled('USESLOWAOE') and base.aeslow then
                 base.aeslow:use()
@@ -517,15 +522,15 @@ base.aggro = function()
     if common.am_i_dead() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
         for _,ability in ipairs(base.defensiveAbilities) do
-            ability:use()
+            if ability:use() and ability.stand then print('FD used, standing') mq.delay(50) mq.cmd('/stand') end
         end
     end
     if base.drop_aggro and config.MODE:get_name() ~= 'manual' and base.OPTS.USEFADE.value and state.mob_count > 0 and check_aggro_timer:timer_expired() then
-        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 50 then
+        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 75 then
             base.drop_aggro:use()
             check_aggro_timer:reset()
             mq.delay(1000)
-            mq.cmd('/makemevis')
+            mq.cmd('/multiline ; /makemevis ; /stand')
         end
     end
 end

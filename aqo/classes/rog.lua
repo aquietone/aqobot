@@ -18,7 +18,7 @@ table.insert(class.DPSAbilities, common.getBestDisc({'Assault'}))
 table.insert(class.DPSAbilities, common.getAA('Ligament Slice'))
 
 table.insert(class.combatBuffs, common.getAA('Envenomed Blades'))
-table.insert(class.combatBuffs, common.getBestDisc({'Thief\'s Eyes'}))
+table.insert(class.combatBuffs, common.getBestDisc({'Brigand\'s Gaze', 'Thief\'s Eyes'}))
 table.insert(class.combatBuffs, common.getItem('Fatestealer', {checkfor='Assassin\'s Taint'}))
 table.insert(class.selfBuffs, common.getAA('Sleight of Hand'))
 table.insert(class.selfBuffs, common.getItem('Faded Gloves of the Shadows', {checkfor='Strike Poison'}))

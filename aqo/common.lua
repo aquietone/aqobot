@@ -543,6 +543,7 @@ end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
 common.check_combat_buffs = function()
+    if state.emu then return end
     if not mq.TLO.Me.Buff('Geomantra')() then
         common.use_item(mq.TLO.InvSlot('Charm').Item)
     end

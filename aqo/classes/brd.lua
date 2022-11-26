@@ -64,7 +64,7 @@ class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence
 -- haste song doesn't stack with enc haste?
 class.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'})
 class.addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
-class.addSpell('bardhaste', {'Psalm of Veeshan', 'Composition of Ervaj'})
+class.addSpell('bardhaste', {'Verse of Veeshan', 'Psalm of Veeshan', 'Composition of Ervaj'})
 class.addSpell('emuhaste', {'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
 class.addSpell('emuregen', {'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'})
 class.addSpell('emunukebuff', {'Rizlona\'s Fire', 'Rizlona\'s Embers'})

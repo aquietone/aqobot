@@ -53,7 +53,7 @@ class.addSpell('predator', {'Bay of the Predator', 'Howl of the Predator', 'Spir
 class.addSpell('strength', {'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
 -- Unity AA Buffs
 class.addSpell('protection', {'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}) -- Protection of the Wakening Land
-class.addSpell('eyes', {'Eyes of the Senshali', 'Eyes of the Owl'}) -- Eyes of the Visionary
+class.addSpell('eyes', {'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}) -- Eyes of the Visionary
 class.addSpell('hunt', {'Steeled by the Hunt'}) -- Provoked by the Hunt
 class.addSpell('coat', {'Moonthorn Coat'}) -- Rimespur Coat
 -- Unity Azia only

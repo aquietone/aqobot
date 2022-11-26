@@ -15,7 +15,7 @@ class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', '
 class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
 class.addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, '', 'checkbox')
 
-class.addSpell('heal', {'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
+class.addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
 class.addSpell('groupheal', {'Moonshadow', 'Word of Restoration'}, {group=true})
 class.addSpell('firenuke', {'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
 class.addSpell('dot', {'Swarming Death', 'Winged Death'}, {opt='USEDOTS'})
