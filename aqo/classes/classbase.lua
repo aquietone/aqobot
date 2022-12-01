@@ -265,7 +265,7 @@ base.event_request = function(line, requester, requested)
             requested = requested:gsub(' '..mq.TLO.Me.CleanName():lower(),'')
         end
         if base.requestAliases[requested] then
-            local requested = base[base.requestAliases[requested]]
+            requested = base[base.requestAliases[requested]]
             if requested then
                 local expiration = timer:new(15)
                 expiration:reset()
@@ -363,7 +363,7 @@ local function doCombatLoop(list, burn_type)
                 (ability.usebelowpct == nil or mobhp <= ability.usebelowpct) and
                 (burn_type == nil or ability[burn_type]) and
                 (ability.aggro == nil or aggropct < 100) then
-            if ability:use() and ability.delay then mq.delay(ability.delay) end
+            if ability:use() then state.actionTaken = true return true end
         end
     end
 end
@@ -373,15 +373,17 @@ base.mashClickies = {'Molten Orb', 'Lava Orb'}
 local function doMashClickies()
     for _,clicky in ipairs(base.mashClickies) do
         local clickyItem = mq.TLO.FindItem('='..clicky)
-        if clickyItem() and clickyItem.Timer() == '0' then
+        if (not state[clicky] or state[clicky]:timer_expired()) and clickyItem() and clickyItem.Timer() == '0' then
             if mq.TLO.Cursor.Name() == clickyItem.Name() then
                 mq.cmd('/autoinv')
-                mq.delay(50)
-                clickyItem = mq.TLO.FindItem('='..clicky)
+                return
             end
+            state.casting = common.getItem(clickyItem.Name())
             mq.cmdf('/useitem "%s"', clickyItem.Name())
-            mq.delay(50)
-            mq.delay(250, function() return not mq.TLO.Me.Casting() end)
+            state.actionTaken = true
+            state[clicky] = timer:new(2)
+            state[clicky]:reset()
+            return true
         end
     end
 end
@@ -392,10 +394,11 @@ base.mash = function()
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
         if base.mash_class then base.mash_class() end
         if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then
-            doCombatLoop(base.tankAbilities)
+            if doCombatLoop(base.tankAbilities) then return end
         end
-        doCombatLoop(base.DPSAbilities)
-        if base.class ~= 'brd' then doMashClickies() end
+        if not doCombatLoop(base.DPSAbilities) then
+            if base.class ~= 'brd' then doMashClickies() end
+        end
     end
 end
 
@@ -529,8 +532,8 @@ base.aggro = function()
         if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 75 then
             base.drop_aggro:use()
             check_aggro_timer:reset()
-            mq.delay(1000)
-            mq.cmd('/multiline ; /makemevis ; /stand')
+            --mq.delay(1000)
+            mq.cmd('/multiline ; /timed 5 /makemevis ; /timed 5 /stand')
         end
     end
 end
@@ -568,9 +571,12 @@ base.recover = function()
             spell = mq.TLO.Me.AltAbility(useAbility.name).Spell
         end
         if mq.TLO.Me.MaxHPs() < 6000 then return end
-        if spell and spell.TargetType() == 'Single' then
+        if spell and spell.TargetType() == 'Single' and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
             mq.TLO.Me.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+            state.actionTaken = true
+            state.queuedAction = function() if mq.TLO.Target.ID() == mq.TLO.Me.ID() then useAbility:use() return true else return false end end
+            return
+            --mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
         end
         if useAbility:use() then state.actionTaken = true end
     end
@@ -665,7 +671,24 @@ local function handleRequests()
                     --elseif request.requested.type == Abilities.Types.AA then spell = mq.TLO.Me.AltAbility(request.requested.name).Spell end
                     --if spell and spell.TargetType() == 'Single' then
                     if request.requested.targettype == 'Single' then
-                        requesterSpawn.DoTarget()
+                        if mq.TLO.Target.ID() ~= requesterSpawn.ID() then
+                            requesterSpawn.DoTarget()
+                            state.actionTaken = true
+                            logger.printf("requested action queued")
+                            state.queuedAction = function()
+                                    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then
+                                        mq.cmdf('/g %s %s for %s', tranquilUsed, request.requested.name, request.requester)
+                                        request.requested:use()
+                                        state.actionTaken = true
+                                        state.casting = request.requested
+                                        table.remove(base.requests, 1)
+                                        return true
+                                    else
+                                        return false
+                                    end
+                                end
+                            return true
+                        end
                         mq.delay(100, function() return mq.TLO.Target.ID() == requesterSpawn.ID() end)
                     end
                     mq.cmdf('/g %s %s for %s', tranquilUsed, request.requested.name, request.requester)

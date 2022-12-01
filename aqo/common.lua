@@ -70,6 +70,7 @@ local function getSpell(spellName)
     local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
     if not mq.TLO.Me.Book(rankname)() then return nil end
+    if spell.Level() > mq.TLO.Me.Level() then return nil end
     if spell.HasSPA(32)() then
         local summonID = spell.Base(1)()
     end
@@ -121,6 +122,7 @@ local function getDisc(discName)
     local disc = mq.TLO.Spell(discName)
     local rankName = disc.RankName()
     if not rankName or not mq.TLO.Me.CombatAbility(rankName)() then return nil end
+    if disc.Level() > mq.TLO.Me.Level() then return nil end
     return {name=rankName, id=disc.ID()}
 end
 
@@ -434,10 +436,13 @@ end
 common.use_item = function(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if item_ready(item) then
+        state.casting = common.getItem(item.Name())
         logger.printf('Use Item: \ag%s\ax', item)
         mq.cmdf('/useitem "%s"', item)
-        mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        state.actionTaken = true
         return true
+        --mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        --return true
     end
     return false
 end
@@ -513,32 +518,40 @@ common.swap_spell = function(spell, gem, other_names)
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
+    state.actionTaken = true
+    state.memSpell = spell
+    state.memSpellTimer = timer:new(10)
+    state.memSpellTimer:reset()
+    return true
     -- Low meditate skill or non-casters may take more time to memorize stuff
-    mq.delay(15000, function() return common.swap_gem_ready(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
-    logger.debug(logger.log_flags.common.memspell, "Delayed for mem_spell "..spell.name)
-    if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
-    return common.swap_gem_ready(spell.name, gem)
+    --mq.delay(15000, function() return common.swap_gem_ready(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
+    --logger.debug(logger.log_flags.common.memspell, "Delayed for mem_spell "..spell.name)
+    --if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
+    --return common.swap_gem_ready(spell.name, gem)
 end
 
 common.swap_and_cast = function(spell, gem)
     if not spell then return false end
     local restore_gem = nil
     if not mq.TLO.Me.Gem(spell.name)() then
-        restore_gem = {name=mq.TLO.Me.Gem(gem)()}
+        state.restore_gem = {name=mq.TLO.Me.Gem(gem)(),gem=gem}
         if not common.swap_spell(spell, gem) then
             -- failed to mem?
+            return
         end
+        state.castAfterMem = true
+        return true
     end
     -- if we swapped a spell then at least try to give it enough time to become ready or why did we swap
-    mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.name)() end)
-    logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
-    local did_cast = spell:use()
-    if restore_gem and restore_gem.name then
-        if not common.swap_spell(restore_gem, gem) then
-            -- failed to mem?
-        end
-    end
-    return did_cast
+    --mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.name)() end)
+    --logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
+    --local did_cast = spell:use()
+    --if restore_gem and restore_gem.name then
+    --    if not common.swap_spell(restore_gem, gem) then
+    --        -- failed to mem?
+    --    end
+    --end
+    --return did_cast
 end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
@@ -566,6 +579,8 @@ common.check_item_buffs = function()
     end
 end
 
+local modrods = {['Summoned: Dazzling Modulation Shard']=true,['Sickle of Umbral Modulation']=true,['Wand of Restless Modulation']=true,
+                ['Summoned: Large Modulation Shard']=true, ['Summoned: Medium Modulation Shard']=true, ['Summoned: Small Modulation Shard']=true, ['Azure Mind Crystal']=true}
 ---Attempt to click mod rods if mana is below 75%.
 common.check_mana = function()
     -- modrods
@@ -575,17 +590,17 @@ common.check_mana = function()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 then
         local cursor = mq.TLO.Cursor.Name()
-        if cursor and (cursor == 'Summoned: Dazzling Modulation Shard' or cursor == 'Sickle of Umbral Modulation' or cursor == 'Wand of Restless Modulation') then
-            mq.cmd('/autoinventory')
-            mq.delay(50)
+        if cursor and modrods[cursor] then
+            mq.cmd('/autoinv')
+            return
         end
         -- Find ModRods in check_mana since they poof when out of charges, can't just find once at startup.
-        local item_aa_modrod = mq.TLO.FindItem('Summoned: Dazzling Modulation Shard')
-        common.use_item(item_aa_modrod)
-        local item_wand_modrod = mq.TLO.FindItem('Sickle of Umbral Modulation')
-        common.use_item(item_wand_modrod)
-        local item_wand_old = mq.TLO.FindItem('Wand of Restless Modulation')
-        common.use_item(item_wand_old)
+        for item,_ in pairs(modrods) do
+            local modrod = mq.TLO.FindItem(item)
+            if mq.TLO.Me.PctHPs() > 70 then
+                common.use_item(modrod)
+            end
+        end
         -- use feather for self if not grouped (group.LowMana is null if not grouped)
         if feather() and not group_mana and not mq.TLO.Me.Song(feather.Spell.Name())() then
             common.use_item(feather)

@@ -246,8 +246,6 @@ buff.buff = function(base)
     if buff_ooc(base) then return true end
 
     if buff_pet(base) then return true end
-
-    common.check_item_buffs()
 end
 
 buff.setupBegEvents = function(callback)

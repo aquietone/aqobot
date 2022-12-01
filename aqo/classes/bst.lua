@@ -2,6 +2,7 @@
 local mq = require('mq')
 local class = require(AQO..'.classes.classbase')
 local common = require(AQO..'.common')
+local state = require(AQO..'.state')
 
 class.class = 'bst'
 class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
@@ -100,10 +101,15 @@ class.recover_class = function()
                 local memberDistance = member.Distance3D() or 300
                 local memberClass = member.Class.ShortName() or 'WAR'
                 if casterpriests[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.focusedParagon.name)() then
-                    member.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
+                    if mq.TLO.Target.ID() ~= member.ID() then
+                        member.DoTarget()
+                        state.actionTaken = true
+                        state.queuedAction = function() if mq.TLO.Target.ID() == member.ID() then class.focusedParagon:use() return true else return false end end
+                        return true
+                    end
+                    --mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                     class.focusedParagon:use()
-                    return
+                    return true
                 end
             end
         end

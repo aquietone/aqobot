@@ -7,7 +7,6 @@ class.classOrder = {'assist', 'heal', 'mash', 'burn', 'aggro', 'recover', 'buff'
 class.addCommonOptions()
 class.addCommonAbilities()
 class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox')
---class.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
 table.insert(class.DPSAbilities, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
 table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))

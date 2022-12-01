@@ -1,6 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 local logger = require(AQO..'.utils.logger')
+local timer = require(AQO..'.utils.timer')
 local state = require(AQO..'.state')
 
 ---@class Ability
@@ -231,7 +232,7 @@ function Spell:isReady()
     return Ability.canUseSpell(mq.TLO.Spell(self.name), self.type)
 end
 
----Initialize a new spell instance
+---Initialize a new Spell instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
@@ -246,7 +247,7 @@ end
 
 function Spell:use()
     local spell = mq.TLO.Spell(self.name)
-    if Ability.canUseSpell(spell, self.type) then
+    if (not state[self.name] or state[self.name]:timer_expired()) and Ability.canUseSpell(spell, self.type) then
         local result, requiresTarget =  Ability.shouldUseSpell(spell)
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
@@ -256,31 +257,18 @@ function Spell:use()
             logger.printf('Casting \ag%s\ax', self.name)
         end
         mq.cmdf('/cast "%s"', self.name)
-        if state.class ~= 'brd' then
-            mq.delay(20)
-            if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
-            mq.delay(20)
-            if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
-            mq.delay(20)
-            while mq.TLO.Me.Casting() do
-                if requiresTarget and not mq.TLO.Target() then
-                    mq.cmd('/stopcast')
-                    break
-                end
-                mq.delay(10)
-            end
-        else
-            mq.delay(1000)
-        end
-        return not mq.TLO.Me.SpellReady(self.name)()
+        state.casting = self
+        state.actionTaken = true
+        state[self.name] = timer:new(2)
+        state[self.name]:reset()
+        return true
     end
 end
 
 ---@class Disc : Ability
 local Disc = {}
 
----Initialize a new spell instance
----Initialize a new spell instance
+---Initialize a new Disc instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param options table|nil #
@@ -314,7 +302,7 @@ end
 ---@param overwrite string|nil @The name of a disc which should be stopped in order to run this disc.
 function Disc:use(overwrite)
     local spell = mq.TLO.Spell(self.name)
-    if self:isReady() then
+    if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
             logger.printf('Use Disc: \ag%s\ax', self.name)
             if self.name:find('Composite') then
@@ -322,19 +310,29 @@ function Disc:use(overwrite)
             else
                 mq.cmdf('/disc %s', self.name)
             end
-            mq.delay(250+spell.CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
-            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
-            return not mq.TLO.Me.CombatAbilityReady(self.name)()
+            state.casting = self
+            state.actionTaken = true
+            state[self.name] = timer:new(2)
+            state[self.name]:reset()
+            return true
+            --mq.delay(250+spell.CastTime())
+            --mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
+            --logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
+            --return not mq.TLO.Me.CombatAbilityReady(self.name)()
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
             logger.printf('Use Disc: \ag%s\ax', self.name)
             mq.cmdf('/disc %s', self.name)
-            mq.delay(250+spell.CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
-            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
-            return not mq.TLO.Me.CombatAbilityReady(self.name)()
+            state.casting = self
+            state.actionTaken = true
+            state[self.name] = timer:new(2)
+            state[self.name]:reset()
+            return true
+            --mq.delay(250+spell.CastTime())
+            --mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
+            --logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
+            --return not mq.TLO.Me.CombatAbilityReady(self.name)()
         else
             logger.debug(logger.log_flags.common.cast, ('Not casting due to conflicting active disc (%s)'):format(self.name))
         end
@@ -345,8 +343,7 @@ end
 ---@class AA : Ability
 local AA = {}
 
----Initialize a new spell instance
----Initialize a new spell instance
+---Initialize a new AA instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
@@ -373,13 +370,14 @@ end
 ---Use the AA specified in the passed in table aa.
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 function AA:use()
-    if self:isReady() then
+    if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady() then
         logger.printf('Use AA: \ag%s\ax', self.name)
         mq.cmdf('/alt activate %d', self.id)
-        mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-        mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.name)() end)
-        logger.debug(logger.log_flags.common.cast, "Delayed for use_aa "..self.name)
-        return not mq.TLO.Me.AltAbilityReady(self.name)()
+        state.casting = self
+        state.actionTaken = true
+        state[self.name] = timer:new(2)
+        state[self.name]:reset()
+        return true
     end
     return false
 end
@@ -387,8 +385,7 @@ end
 ---@class Item : Ability
 local Item = {}
 
----Initialize a new spell instance
----Initialize a new spell instance
+---Initialize a new Item instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
@@ -415,11 +412,14 @@ end
 ---@return boolean @Returns true if the item was fired, otherwise false.
 function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
-    if self:isReady(theItem) then
+    if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady(theItem) then
         mq.cmd('/stopcast')
         logger.printf('Use Item: \ag%s\ax', theItem)
         mq.cmdf('/useitem "%s"', theItem)
-        mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        state.casting = self
+        state.actionTaken = true
+        state[self.name] = timer:new(2)
+        state[self.name]:reset()
         return true
     end
     return false
@@ -428,7 +428,7 @@ end
 ---@class Skill : Ability
 local Skill = {}
 
----Initialize a new spell instance
+---Initialize a new Skill instance
 ---@param name string|nil #
 ---@param options table|nil #
 ---@return Ability #
@@ -440,15 +440,17 @@ function Skill:new(name, options)
 end
 
 function Skill:isReady()
-    return mq.TLO.Me.AbilityReady(self.name)() and mq.TLO.Me.Skill(self.name)() > 0
+    return (not state[self.name] or state[self.name]:timer_expired()) and mq.TLO.Me.AbilityReady(self.name)() and mq.TLO.Me.Skill(self.name)() > 0
 end
 
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 function Skill:use()
     if self:isReady() then
         mq.cmdf('/doability "%s"', self.name)
-        mq.delay(500, function() return not mq.TLO.Me.AbilityReady(self.name)() end)
-        logger.debug(logger.log_flags.common.cast, "Delayed for use_ability "..self.name)
+        state.casting = self
+        state.actionTaken = true
+        state[self.name] = timer:new(2)
+        state[self.name]:reset()
         return true
     end
 end

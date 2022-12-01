@@ -65,7 +65,7 @@ class.debuff = common.getAA('Malosinete')
 
 local standard = {}
 table.insert(standard, class.spells.servant)
-table.insert(standard, class.spells.prenuke)
+--table.insert(standard, class.spells.prenuke)
 table.insert(standard, class.spells.fastfire)
 table.insert(standard, class.spells.firenuke)
 table.insert(standard, class.spells.magicnuke)

@@ -149,8 +149,10 @@ assist.check_target = function(reset_timers)
         if assist_target == -1 then
             if manual_assist_timer:timer_expired() and mq.TLO.Me.XTarget() > 0 then
                 mq.cmdf('/assist %s', config.CHASETARGET)
-                mq.delay(100)
+                --mq.delay(100)
                 manual_assist_timer:reset()
+                --state.actionTaken = true
+                return
             end
             if mq.TLO.Target.Type() == 'NPC' then
                 assist_target = mq.TLO.Target
@@ -188,7 +190,21 @@ assist.check_target = function(reset_timers)
         if assist.should_assist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
-                mq.delay(100, function() return mq.TLO.Target.ID() == assist_target.ID() end)
+                state.targetForAssist = function() return mq.TLO.Target.ID() == assist_target.ID() end
+                state.queuedAction = function()
+                    state.assist_mob_id = assist_target.ID()
+                    if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
+                    if mq.TLO.Target.ID() ~= originalTargetID then
+                        reset_combat_timers()
+                        if reset_timers then reset_timers() end
+                        logger.printf('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
+                    end
+                end
+                state.actionTaken = true
+                state.targetTimer = timer:new(2)
+                state.targetTimer:reset()
+                return true
+                --mq.delay(100, function() return mq.TLO.Target.ID() == assist_target.ID() end)
             end
             state.assist_mob_id = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -210,7 +226,10 @@ assist.get_combat_position = function()
     end
     if not mq.TLO.Navigation.PathExists('target')() then return end
     mq.cmd('/multiline ; /stick off ; /nav target log=off')
-    mq.delay(100)
+    state.positioning = true
+    state.positioningTimer = timer:new(5)
+    state.positioningTimer:reset()
+    --[[mq.delay(100)
     local position_timer = timer:new(5)
     while true do
         if mq.TLO.Target.LineOfSight() then
@@ -221,7 +240,7 @@ assist.get_combat_position = function()
         end
         mq.delay(100)
     end
-    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
+    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end]]
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
@@ -245,6 +264,7 @@ assist.attack = function(skip_no_los)
         -- incase this is called during bard song, to avoid mq.delay inside mq.delay
         if skip_no_los then return end
         assist.get_combat_position()
+        return true
     end
     -- check_los may have nav running already.. why separate get_combat_position and check_los???
     if not mq.TLO.Target.LineOfSight() and mq.TLO.Navigation.Active() then return end
