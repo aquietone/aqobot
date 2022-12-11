@@ -322,7 +322,7 @@ local function lootItem(index, doWhat, button)
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
     mq.delay(5000, function() return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop() end)
     if mq.TLO.Window('ConfirmationDialogBox').Open() then mq.cmd('/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup') end
-    mq.delay(5000, function() return mq.TLO.Cursor() or not mq.TLO.Window('LootWnd').Open() end)
+    mq.delay(5000, function() return mq.TLO.Cursor() ~= nil or not mq.TLO.Window('LootWnd').Open() end)
     mq.delay(100)
     if not mq.TLO.Window('LootWnd').Open() then return end
     if loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax %sing \ay%s\ax', loot.LootChannel, doWhat, itemName) end

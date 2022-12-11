@@ -25,7 +25,6 @@ class.addSpell('hottank', {'Pious Elixir', 'Holy Elixir'}, {opt='USEHOTTANK', ho
 class.addSpell('hotdps', {'Pious Elixir', 'Holy Elixir'}, {opt='USEHOTDPS', hot=true})
 class.addSpell('aego', {'Hand of Conviction', 'Hand of Virtue'})
 class.addSpell('di', {'Divine Intervention'})
---common.getAA('Celestial Regeneration')
 
 local standard = {}
 
@@ -46,11 +45,11 @@ table.insert(class.healAbilities, class.spells.hottank)
 table.insert(class.healAbilities, class.spells.hotdps)
 
 table.insert(class.burnAbilities, common.getAA('Celestial Rapidity'))
-table.insert(class.burnAbilities, common.getAA('Celestial Regeneration'))
+--table.insert(class.burnAbilities, common.getAA('Celestial Regeneration'))
 table.insert(class.burnAbilities, common.getAA('Exquisite Benediction'))
 table.insert(class.burnAbilities, common.getAA('Flurry of Life'))
 table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of Divinity'))
-table.insert(class.burnAbilities, common.getAA('Healing Frenzy'))
+--table.insert(class.burnAbilities, common.getAA('Healing Frenzy'))
 table.insert(class.burnAbilities, common.getAA('Improved Twincast'))
 
 --table.insert(class.burnAbilities, common.getAA('Focused Celestial Regeneration'))

@@ -139,6 +139,7 @@ base.addCommonAbilities = function()
     base.tranquil = common.getAA('Tranquil Blessings')
     base.radiant = common.getAA('Radiant Cure')
     base.silent = common.getAA('Silent Casting')
+    base.mgb = common.getAA('Mass Group Buff')
 end
 
 -- Return true only if the option is both defined and true
@@ -253,13 +254,45 @@ local function validateRequester(requester)
     return mq.TLO.Group.Member(requester)() or mq.TLO.Raid.Member(requester)() or mq.TLO.Spawn('='..requester).Guild() == mq.TLO.Me.Guild()
 end
 
+base.event_gear = function(line, requester, requested)
+    requested = requested:lower()
+    local slot = requested:gsub('gear ', '')
+    if slot == 'listslots' then
+        mq.cmd('/gu earrings,rings,leftear,rightear,leftfinger,rightfinger,face,head,neck,shoulder,chest,feet,arms,leftwrist,rightwrist,wrists,charm,powersource,mainhand,offhand,ranged,ammo,legs,waist,hands')
+    elseif slot == 'earrings' then
+        local leftear = mq.TLO.Me.Inventory('leftear')
+        local rightear = mq.TLO.Me.Inventory('rightear')
+        mq.cmdf('/gu leftear: %s, rightear: %s', leftear.ItemLink('CLICKABLE')(), rightear.ItemLink('CLICKABLE'))
+    elseif slot == 'rings' then
+        local leftfinger = mq.TLO.Me.Inventory('leftfinger')
+        local rightfinger = mq.TLO.Me.Inventory('rightfinger')
+        mq.cmdf('/gu leftfinger: %s, rightfinger: %s', leftfinger.ItemLink('CLICKABLE')(), rightfinger.ItemLink('CLICKABLE'))
+    elseif slot == 'wrists' then
+        local leftwrist = mq.TLO.Me.Inventory('leftwrist')
+        local rightwrist = mq.TLO.Me.Inventory('rightwrist')
+        mq.cmdf('/gu leftwrist: %s, rightwrist: %s', leftwrist.ItemLink('CLICKABLE')(), rightwrist.ItemLink('CLICKABLE'))
+    else
+        if mq.TLO.Me.Inventory(slot)() then
+            mq.cmdf('/gu %s: %s', slot, mq.TLO.Me.Inventory(slot).ItemLink('CLICKABLE')())
+        end
+    end
+end
+
 base.event_request = function(line, requester, requested)
     if base.isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
         requested = requested:lower()
+        if requested:find('^gear .+') then
+            return base.event_gear(line, requester, requested)
+        end
         local tranquil = false
+        local mgb = false
         if requested:find('^tranquil') then
             requested = requested:gsub('tranquil','')
             tranquil = true
+        end
+        if requested:find('^mgb') then
+            requested = requested:gsub('mgb','')
+            mgb = true
         end
         if requested:find(' '..mq.TLO.Me.CleanName():lower()..'$') then
             requested = requested:gsub(' '..mq.TLO.Me.CleanName():lower(),'')
@@ -269,7 +302,7 @@ base.event_request = function(line, requester, requested)
             if requested then
                 local expiration = timer:new(15)
                 expiration:reset()
-                table.insert(base.requests, {requester=requester, requested=requested, expiration=expiration, tranquil=tranquil})
+                table.insert(base.requests, {requester=requester, requested=requested, expiration=expiration, tranquil=tranquil, mgb=mgb})
             else
                 mq.cmdf('/t %s I dont have that ability!', requester)
             end
@@ -302,12 +335,13 @@ base.setup_events = function()
         mq.event('event_snareimmune', 'Your target is immune to changes in its run speed#*#', base.event_snareimmune)
         mq.event('event_snareimmune', 'Your target is immune to snare spells#*#', base.event_snareimmune)
     end
-    if base.OPTS.SERVEBUFFREQUESTS then
-        mq.event('event_requests_tell', '#1# tells you, \'#2#\'', base.event_request)
-        mq.event('event_requests_group', '#1# tells the group, \'#2#\'', base.event_request)
-    end
     if base.tranquil then
         mq.event('event_tranquil', '#*# tells the #*#, \'tranquil\'', base.event_tranquil)
+    end
+    if base.OPTS.SERVEBUFFREQUESTS then
+        mq.event('event_requests', '#1# tells #*#, \'#2#\'', base.event_request)
+    else
+        mq.event('event_gearrequest', '#1# tells #*#, \'gear #2#\'', base.event_gear)
     end
 end
 
@@ -487,6 +521,7 @@ base.cast = function()
                 --if spell.name == nec.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
                 --    tcclick:use()
                 --end
+                if spell.name == 'Synapsis Spasm' then print('using spasm') end
                 if spell:use() then state.actionTaken = true end -- then cast the dot
                 base.nuketimer:reset()
                 if spell.postcast then spell.postcast() end
@@ -532,6 +567,12 @@ base.aggro = function()
             mq.delay(1000)
             mq.cmd('/multiline ; /makemevis ; /stand')
         end
+    end
+    if base.class == 'rog' and mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70 then
+        if mq.TLO.Me.Combat() then mq.cmd('/attack off') mq.delay(1) end
+        mq.cmd('/doability hide')
+        mq.delay(1)
+        mq.cmd('/attack on')
     end
 end
 
@@ -651,12 +692,18 @@ local function handleRequests()
             if request.requested:isReady() then
                 local requesterSpawn = mq.TLO.Spawn('pc '..request.requester)
                 if (requesterSpawn.Distance3D() or 300) < 100 then
-                    local tranquilUsed = 'Casting'
+                    local tranquilUsed = '/g Casting'
                     if request.tranquil then
                         if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then
                             return
                         elseif base.tranquil then
-                            if base.tranquil:use() then tranquilUsed = 'MGB\'ing' end
+                            if base.tranquil:use() then tranquilUsed = '/rs MGB\'ing' end
+                        end
+                    elseif request.mgb then
+                        if not mq.TLO.Me.AltAbilityReady('Mass Group Buff')() then
+                            return
+                        elseif base.mgb then
+                            if base.mgb:use() then tranquilUsed = '/rs MGB\'ing' end
                         end
                     end
                     mq.cmd('/multiline ; /nav stop ; /stick off')
@@ -668,7 +715,7 @@ local function handleRequests()
                         requesterSpawn.DoTarget()
                         mq.delay(100, function() return mq.TLO.Target.ID() == requesterSpawn.ID() end)
                     end
-                    mq.cmdf('/g %s %s for %s', tranquilUsed, request.requested.name, request.requester)
+                    mq.cmdf('%s %s for %s', tranquilUsed, request.requested.name, request.requester)
                     request.requested:use()
                     table.remove(base.requests, 1)
                 end

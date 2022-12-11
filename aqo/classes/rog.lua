@@ -5,7 +5,7 @@ local common = require(AQO..'.common')
 local state = require(AQO..'.state')
 
 class.class = 'rog'
-class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+class.classOrder = {'assist', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
 
 class.addCommonOptions()
 class.addCommonAbilities()

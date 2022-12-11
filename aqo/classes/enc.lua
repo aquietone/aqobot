@@ -90,7 +90,7 @@ class.addSpell('pethaste', {'Invigorated Minion'})
 class.addSpell('charm', {'Marvel\'s Command'})
 -- buffs
 class.addSpell('unity', {'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
-class.addSpell('procbuff', {'Mana Rebirth'}) -- single target dmg proc buff
+class.addSpell('procbuff', {'Mana Rebirth', 'Mana Flare'}) -- single target dmg proc buff
 class.addSpell('kei', {'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
 class.addSpell('keigroup', {'Voice of Perception', 'Voice of Sagacity'})
 class.addSpell('haste', {'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
@@ -115,10 +115,9 @@ if class.spells.synergy then
     end
 end
 if state.emu then
-    class.addSpell('nuke5', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
+    class.addSpell('nuke5', {'Chromaburst', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
     class.addSpell('unified', {'Unified Alacrity'})
     class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'})
-    class.addSpell('runett', {'Chromaburst'})
     class.addSpell('spasm', {'Synapsis Spasm'})
 end
 -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
@@ -127,7 +126,6 @@ local standard = {}
 table.insert(standard, class.spells.tash)
 if state.emu then
     table.insert(standard, class.spells.spasm)
-    table.insert(standard, class.spells.runett)
 end
 table.insert(standard, class.spells.dotmiti)
 table.insert(standard, class.spells.meznoblur)
@@ -216,6 +214,8 @@ class.requestAliases.haste = 'haste'
 table.insert(class.petBuffs, class.spells.pethaste)
 if state.emu then
     table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
+    class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true}
+    table.insert(class.singleBuffs, class.spells.procbuff)
 end
 
 --[[
@@ -265,6 +265,7 @@ class.find_next_spell = function()
     if not mq.TLO.Target.Tashed() and class.OPTS.USEDEBUFF.value and common.is_spell_ready(class.spells.tash) then return class.spells.tash end
     if common.is_spell_ready(class.spells.composite) then return class.spells.composite end
     if cast_synergy() then return nil end
+    if state.emu and common.is_spell_ready(class.spells.spasm) then return class.spells.spasm end
     if common.is_spell_ready(class.spells.nuke5) then return class.spells.nuke5 end
     if common.is_spell_ready(class.spells.dot2) then return class.spells.dot2 end
     return nil -- we found no missing dot that was ready to cast, so return nothing

@@ -14,10 +14,11 @@ class.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 
 
 if state.emu then
     class.SPELLSETS = {emuancient=1,emuaura65=1,emuaura55=1,emunoaura=1}
+    class.DEFAULT_SPELLSET='emuancient'
 else
     class.SPELLSETS = {melee=1,caster=1,meleedot=1}
+    class.DEFAULT_SPELLSET='melee'
 end
-class.DEFAULT_SPELLSET='melee'
 class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
 
 class.addCommonOptions()
@@ -27,7 +28,7 @@ class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
 class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
 class.addOption('MEZAECOUNT', 'Mez AE Count', 3, nil, 'Threshold to use AE Mez ability', 'checkbox')
 class.addOption('USEINSULTS', 'Use Insults', true, nil, 'Use insult songs', 'checkbox')
-class.addOption('USEINTIMIDATE', 'Use Intimidate', false, nil, 'Use Intimidate (It may fear mobs without the appropriate AA\'s', 'checkbox')
+class.addOption('USEINTIMIDATE', 'Use Intimidate', false, nil, 'Use Intimidate (It may fear mobs without the appropriate AA\'s)', 'checkbox')
 class.addOption('USEBELLOW', 'Use Bellow', true, nil, 'Use Boastful Bellow AA', 'checkbox')
 class.addOption('USECACOPHONY', 'Use Cacophony', true, nil, 'Use Cacophony AA', 'checkbox')
 class.addOption('USEFADE', 'Use Fade', false, nil, 'Fade when aggro', 'checkbox')
@@ -38,7 +39,7 @@ class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of ma
 class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT songs if they are in the selected song list', 'checkbox')
 
 -- All spells ID + Rank name
-class.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru'}) -- spell dmg, overhaste, flurry, triple atk
+class.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of the Muse', 'Aura of Insight'}) -- spell dmg, overhaste, flurry, triple atk
 class.addSpell('composite', {'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}) -- DD+melee dmg bonus + small heal
 class.addSpell('aria', {'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru', }) -- spell dmg, overhaste, flurry, triple atk
 class.addSpell('warmarch', {'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}) -- haste, atk, ds
@@ -62,7 +63,6 @@ class.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber
 class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
 
 -- haste song doesn't stack with enc haste?
-class.addSpell('emuaura', {'Aura of the Muse', 'Aura of Insight'})
 class.addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
 class.addSpell('bardhaste', {'Verse of Veeshan', 'Psalm of Veeshan', 'Composition of Ervaj'})
 class.addSpell('emuhaste', {'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
@@ -73,9 +73,9 @@ class.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
 class.addSpell('debuff', {'Harmony of Sound'})
 
 local selos = common.getAA('Selo\'s Sonata')
-if not selos then
+--if not selos then
     class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
-end
+--end
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local melee = {
@@ -102,15 +102,12 @@ local meleedot = {
 -- synergy, mezst, mezae
 
 local emuancient = {
-    class.spells.overhaste, class.spells.emuregen, class.spells.bardhaste, class.spells.emuproc, class.spells.chantflame
+    class.spells.selos, class.spells.overhaste, class.spells.emuregen, class.spells.bardhaste, class.spells.emuproc, class.spells.chantflame
 }
 
-local emuaura65 = {}
-if class.spells.selos then table.insert(emuaura65, class.spells.selos) end
-table.insert(emuaura65, class.spells.emuregen)
-table.insert(emuaura65, class.spells.emuproc)
-table.insert(emuaura65, class.spells.bardhaste)
-table.insert(emuaura65, class.spells.emuhaste)
+local emuaura65 = {
+    class.spells.selos, class.spells.emuregen, class.spells.emuproc, class.spells.bardhaste, class.spells.emuhaste
+}
 
 local emuaura55 = {
     class.spells.selos, class.spells.emuregen, class.spells.overhaste, class.spells.bardhaste, class.spells.emuhaste
@@ -125,7 +122,6 @@ if state.emu then
     songs.emuaura65 = emuaura65
     songs.emuaura55 = emuaura55
     songs.emunoaura = emunoaura
-    table.insert(class.auras, class.spells.emuaura)
     --table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
     --table.insert(class.selfBuffs, common.getItem('Songblade of the Eternal', {checkfor='Symphony of Battle'}))
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
@@ -135,9 +131,10 @@ else
     songs.melee = melee
     songs.caster = caster
     songs.meleedot = meleedot
-    table.insert(class.auras, class.spells.aura)
     table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
 end
+
+table.insert(class.auras, class.spells.aura)
 
 table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
 table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
@@ -159,20 +156,20 @@ table.insert(class.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMI
 table.insert(class.DPSAbilities, common.getSkill('Kick'))
 table.insert(class.DPSAbilities, common.getAA('Selo\'s Kick'))
 
+-- Bellow handled separately as we want it to run its course and not be refreshed early
 local bellow = common.getAA('Boastful Bellow')
 
 table.insert(class.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=4}))
 
 table.insert(class.defensiveAbilities, common.getAA('Shield of Notes'))
 table.insert(class.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
+table.insert(class.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
 
 -- Aggro
 class.drop_aggro = common.getAA('Fading Memories')
 
 --table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
 --table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
-
--- deftdance discipline
 
 -- Mana Recovery AAs
 local rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
@@ -451,10 +448,10 @@ class.can_i_sing = function()
     if song_timer:timer_expired() then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
             -- keep cursor clear for spell swaps and such
-        if selos and selos_timer:timer_expired() then
-            selos:use()
-            selos_timer:reset()
-        end
+        --if selos and selos_timer:timer_expired() then
+        --    selos:use()
+        --    selos_timer:reset()
+        --end
         return true
     end
     return false

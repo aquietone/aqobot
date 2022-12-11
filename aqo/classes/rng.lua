@@ -38,11 +38,11 @@ class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrow
 class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
 class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
 class.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-class.addSpell('summer', {'Summer\'s Torrent', 'Hearth Embers', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
-class.addSpell('boon', {'Lunarflare boon'}) -- 
+class.addSpell('summer', {'Summer\'s Torrent', 'Scorched Earth', 'Hearth Embers', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
+class.addSpell('boon', {'Lunarflare boon', 'Ancient: North Wind'}) -- 
 class.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
 class.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
-class.addSpell('dot', {'Bloodbeetle Swarm', 'Flame Lick'}) -- main DoT
+class.addSpell('dot', {'Bloodbeetle Swarm', 'Locust Swarm', 'Flame Lick'}) -- main DoT
 class.addSpell('dotds', {'Swarm of Bloodflies'}) -- DoT + reverse DS, Swarm of Hyperboreads
 class.addSpell('dmgbuff', {'Arbor Stalker\'s Enrichment'}) -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
 class.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
