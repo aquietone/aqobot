@@ -12,6 +12,17 @@ local ui = require(AQO..'.ui')
 class.class = 'nec'
 class.classOrder = {'assist', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff', 'rest', 'managepet'}
 
+--[[
+splurt
+short pyre, long pyre, shadow
+combo disease (pretty strong after revamp)
+magic, mana drain, scourge (bit old these days)
+venom, haze
+single tap dot, group tap dot (bit stronger after revamp)
+corruption (pretty weak usually)
+alliance, swarm pets, blood nuke, poison nuke, imbue pet
+]]
+
 class.SPELLSETS = {standard=1,short=1}
 class.addCommonOptions()
 class.addCommonAbilities()
@@ -27,45 +38,65 @@ class.addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbo
 class.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox')
 class.addOption('MULTICOUNT', 'Multi DoT #', 3, nil, 'Number of mobs to rotate through when multi-dot is enabled', 'inputint')
 
-class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm'})
-class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds'})
-class.addSpell('fireshadow', {'Scalding Shadow', 'Broiling Shadow'})
-class.addSpell('pyreshort', {'Pyre of Va Xakra', 'Pyre of Klraggek'})
-class.addSpell('pyrelong', {'Pyre of the Neglected', 'Pyre of the Wretched'})
-class.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Poison Bolt'})
-class.addSpell('magic', {'Extinction', 'Oblivion'})
-class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay'})
-class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim'})
-class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze'})
-class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp'})
-class.addSpell('leech', {'Twilight Leech', 'Frozen Leech'})
-class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect'})
-class.addSpell('scourge', {'Scourge of Destiny'})
-class.addSpell('corruption', {'Decomposition', 'Miasma'})
+class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'})
+class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'})
+class.addSpell('fireshadow', {'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'})
+class.addSpell('pyreshort', {'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'})
+class.addSpell('pyrelong', {'Pyre of the Neglected', 'Pyre of the Wretched', 'Pyre of the Fereth', 'Pyre of the Lost', 'Pyre of the Forsaken', 'Pyre of the Piq\'a', 'Pyre of the Bereft', 'Pyre of the Forgotten', 'Pyre of Mori', 'Night Fire'})
+class.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad Venom', 'Glistenwing Venom', 'Binaesa Venom', 'Naeya Venom', 'Argendev\'s Venom', 'Slitheren Venom', 'Chaos Venom', 'Blood of Thule'})
+class.addSpell('magic', {'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'})
+class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'})
+class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'})
+class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze''Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'})
+class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp'})
+class.addSpell('leech', {'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'})
+class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy', 'Ancient: Curse of Mori'})
+class.addSpell('scourge', {'Scourge of Destiny', 'Scourge of Fates'})
+class.addSpell('corruption', {'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'})
+-- Lifetaps
+class.addSpell('tapee', {'Soulflay', 'Soulgouge', 'Soulsiphon', 'Soulrend', 'Soulrip', 'Soulspike'}) -- unused
+class.addSpell('tap', {'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak'}) -- unused
+class.addSpell('tapsummon', {'Vollmondnacht Orb', 'Dusternacht Orb', 'Dunkelnacht Orb', 'Finsternacht Orb', 'Shadow Orb'}) -- unused
 -- Wounds proc
-class.addSpell('proliferation', {'Infected Proliferation', 'Septic Proliferation'})
--- combo dot, outdated
---combodis', {'Danvid\'s Grip of Decay'},
+class.addSpell('proliferation', {'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'})
+-- combo dots
+class.addSpell('combodisease', {'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'})
+class.addSpell('chaotic', {'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}) -- unused
+-- sphere
+class.addSpell('sphere', {'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}) -- unused
 -- Alliance
-class.addSpell('alliance', {'Malevolent Coalition', 'Malevolent Covenant'})
+class.addSpell('alliance', {'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'})
 -- Nukes
-class.addSpell('synergy', {'Proclamation for Blood', 'Assert for Blood'})
-class.addSpell('venin', {'Embalming Venin', 'Searing Venin', 'Lifespike'})
+class.addSpell('synergy', {'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'})
+class.addSpell('venin', {'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin'})
 -- Debuffs
-class.addSpell('scentterris', {'Scent of Terris'})
-class.addSpell('scentmortality', {'Scent of The Grave', 'Scent of Mortality'})
+class.addSpell('scentterris', {'Scent of Terris'}) -- AA only
+class.addSpell('scentmortality', {'Scent of The Grave', 'Scent of Mortality', 'Scent of Extinction', 'Scent of Dread', 'Scent of Nightfall', 'Scent of Doom', 'Scent of Gloom', 'Scent of Midnight'})
+class.addSpell('snare', {'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness'}) -- unused
 -- Mana Drain
-class.addSpell('manatap', {'Mind Atrophy', 'Mind Erosion'})
+class.addSpell('manatap', {'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'})
 -- Buffs
-class.addSpell('lich', {'Lunaside', 'Gloomside'})
-class.addSpell('flesh', {'Flesh to Venom'})
-class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny'})
+class.addSpell('lich', {'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'})
+class.addSpell('flesh', {'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'})
+class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'})
+class.addSpell('rune', {'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}) -- unused
+class.addSpell('tapproc', {'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}) -- unused
+class.addSpell('defensiveproc', {'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'})
+class.addSpell('reflect', {'Mirror'})
+class.addSpell('hpbuff', {'Shadow Guard', 'Shield of Maelin'}) -- pre-unity
 -- Pet spells
-class.addSpell('pet', {'Unrelenting Assassin', 'Restless Assassin'})
-class.addSpell('pethaste', {'Sigil of Undeath', 'Sigil of Decay'})
+class.addSpell('pet', {'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'})
+class.addSpell('pethaste', {'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'})
+class.addSpell('petheal', {'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve'}) -- unused
+class.addSpell('petaegis', {'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}) -- unused
+class.addSpell('petshield', {'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}) -- unused
 class.addSpell('petillusion', {'Form of Mottled Bone'})
-class.addSpell('inspire', {'Inspire Ally', 'Incite Ally'})
-class.addSpell('swarm', {'Call Skeleton Mass', 'Call Skeleton Horde'})
+class.addSpell('inspire', {'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'})
+class.addSpell('swarm', {'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'})
+
+--class.addSpell('hot', {'Pact of Destiny', 'Pact of Fate'}) -- HoT
+-- Death Rune ???
+-- Emu nuke things? 'Fang of Death' -- triggered by ancient: curse of mori, 'Visceral Vexation'
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local standard = {}
