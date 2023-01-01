@@ -228,8 +228,10 @@ local function main()
             state.pull_mob_id = 0
             mq.cmd('/multiline ; /attack off; /autofire off;')
         end
-
-        if not state.paused then
+        if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
+            mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
+        end
+        if not state.paused or not common.in_control() then
             camp.clean_targets()
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 state.tank_mob_id = 0
@@ -277,9 +279,6 @@ local function main()
                 -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
                 local pet_target_id = mq.TLO.Pet.Target.ID() or 0
                 if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
-            end
-            if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
-                mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
             end
             mq.delay(500)
         end

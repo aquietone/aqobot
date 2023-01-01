@@ -10,7 +10,7 @@ local state = require('state')
 local ui = require('ui')
 
 class.class = 'nec'
-class.classOrder = {'assist', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff', 'rest', 'managepet'}
+class.classOrder = {'assist', 'mash', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff', 'rest', 'managepet'}
 
 --[[
 splurt
@@ -37,6 +37,8 @@ class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicat
 class.addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbox')
 class.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox')
 class.addOption('MULTICOUNT', 'Multi DoT #', 3, nil, 'Number of mobs to rotate through when multi-dot is enabled', 'inputint')
+class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
+class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs, in case mobs are just dying too fast', 'checkbox')
 
 class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'})
 class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'})
@@ -48,7 +50,7 @@ class.addSpell('magic', {'Extinction', 'Oblivion', 'Inevitable End', 'Annihilati
 class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'})
 class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'})
 class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'})
-class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp'})
+class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Fang of Death'})
 class.addSpell('leech', {'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'})
 class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy', 'Ancient: Curse of Mori'})
 class.addSpell('scourge', {'Scourge of Destiny', 'Scourge of Fates'})
@@ -197,6 +199,7 @@ local unity = common.getAA('Mortifier\'s Unity')
 if state.emu then
     table.insert(class.selfBuffs, class.spells.lich)
     table.insert(class.selfBuffs, class.spells.hpbuff)
+    table.insert(class.selfBuffs, common.getAA('Gift of the Grave', {removesong='Gift of the Grave Effect'}))
     table.insert(class.singleBuffs, class.spells.defensiveproc)
     table.insert(class.combatBuffs, common.getAA('Reluctant Benevolence'))
 else
@@ -337,9 +340,13 @@ local function try_alliance()
 end
 
 local function cast_synergy()
-    if class.spells.synergy and not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.name)() then
+    if  class.isEnabled('USENUKES') and class.spells.synergy and not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.name)() then
         if mq.TLO.Spell(class.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
+        end
+        if state.emu then
+            class.spells.synergy:use()
+            return true
         end
         -- don't bother with proc'ing synergy until we've got most dots applied
         if mq.TLO.Target.MyBuff(class.spells.pyreshort and class.spells.pyreshort.name)() and
@@ -362,11 +369,11 @@ local function find_next_dot_to_cast()
     if class.spells.manatap and state.loop.PctMana < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
-    if class.spells.swarm and class.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(class.spells.swarm.name)() and mq.TLO.Spell(class.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.spells.swarm and mq.TLO.Me.SpellReady(class.spells.swarm.name)() and mq.TLO.Spell(class.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.swarm
     end
     local pct_hp = mq.TLO.Target.PctHPs()
-    if pct_hp and pct_hp > class.OPTS.STOPPCT.value then
+    if pct_hp and pct_hp > class.OPTS.STOPPCT.value and class.isEnabled('USEDOTS') then
         for _,dot in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
             -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
             -- if spell_id == spells.combodis.id then
@@ -382,7 +389,7 @@ local function find_next_dot_to_cast()
     if class.spells.manatap and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
-    if class.spells.venin and class.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(class.spells.venin.name)() and mq.TLO.Spell(class.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.isEnabled('USENUKES') and class.spells.venin and mq.TLO.Me.SpellReady(class.spells.venin.name)() and mq.TLO.Spell(class.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.venin
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing

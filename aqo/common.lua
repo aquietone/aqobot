@@ -413,7 +413,7 @@ common.can_use_spell = function(spell, type)
     if not spell() then return false end
     local result = true
     if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
-    if not common.in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
+    if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then result = false end
     if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then result = false end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
     if state.class ~= 'brd' then

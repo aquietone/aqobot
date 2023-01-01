@@ -194,7 +194,7 @@ local function checkCursor()
         -- can't do anything if there's nowhere to put the item, either due to no free inventory space
         -- or no slot of appropriate size
         if mq.TLO.Me.FreeInventory() == 0 or mq.TLO.Cursor() == currentItem then
-            mq.cmdf('/dga /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName())
+            if loot.ReportLoot then mq.cmdf('/dga /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
             mq.cmd('/autoinv')
             --shouldLootMobs = false
             return
@@ -333,7 +333,7 @@ end
 local function lootCorpse(corpseID)
     loot.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
-    if mq.TLO.Me.FreeInventory() == 0 then mq.cmdf('/squelch /dga /squelch /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
+    if mq.TLO.Me.FreeInventory() == 0 and loot.ReportLoot then mq.cmdf('/squelch /dga /squelch /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
     mq.cmd('/loot')
     mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
     mq.doevents('CantLoot')

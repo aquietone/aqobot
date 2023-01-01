@@ -39,6 +39,7 @@ local state = require('state')
 ---@field aggro? boolean # flag to indicate if the ability is for getting aggro, like taunt
 ---@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
 ---@field tot? boolean # flag to indicate if spell is target-of-target
+---@field removesong? string # name of buff / song to remove after cast
 local Ability = {
     id=0,
     name = '',
@@ -89,6 +90,7 @@ local Ability = {
     stand = nil,
 
     tot = nil,
+    removesong = nil,
 }
 
 ---@enum Ability.Types
@@ -176,14 +178,6 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
     return result, requireTarget
 end
 
----Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
----@return boolean @Returns true if not under any loss of control effects, false otherwise.
-local function in_control()
-    return not (mq.TLO.Me.Dead() or mq.TLO.Me.Ducking() or mq.TLO.Me.Charmed() or
-            mq.TLO.Me.Stunned() or mq.TLO.Me.Silenced() or mq.TLO.Me.Feigning() or
-            mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
-end
-
 function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
     if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
         if logger.log_flags.common.cast then
@@ -191,7 +185,7 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
         end
         return false
     end
-    if not in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then
+    if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then
         if logger.log_flags.common.cast then
             logger.debug(logger.log_flags.common.cast, ('Not in control or moving (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
         end
