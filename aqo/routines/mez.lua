@@ -109,7 +109,7 @@ end
 mez.setup_events = function()
     mq.event('event_mezbreak', '#1# has been awakened by #2#.', mez.event_mezbreak)
     mq.event('event_mezimmune', 'Your target cannot be mesmerized#*#', mez.event_mezimmune)
-    mq.event('event_mezimmune', '#1# resisted your#*#slumber of the diabo#*#', mez.event_mezresist)
+    mq.event('event_mezresist', '#1# resisted your#*#slumber of the diabo#*#', mez.event_mezresist)
 end
 
 return mez

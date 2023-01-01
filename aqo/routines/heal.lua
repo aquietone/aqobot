@@ -12,6 +12,7 @@ local HEAL_TYPES = {
     PANIC='panic',
     REGULAR='regular',
     TANK='tank',
+    GROUPHOT='grouphot',
 }
 
 local tankClasses = {WAR=true,PAL=true,SHD=true}
@@ -160,13 +161,16 @@ local function getHurt(opts)
             end
         end
     end
+    return nil, HEAL_TYPES.GROUPHOT
 end
 
 local function getHeal(healAbilities, healType, whoToHeal)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] then
-            if not heal.tot or (mq.TLO.Me.CombatState() ~= 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
-                if heal.type == Abilities.Types.Spell then
+            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
+                if healType == HEAL_TYPES.GROUPHOT then
+                    if mq.TLO.Me.CombatState() == 'COMBAT' and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
+                elseif heal.type == Abilities.Types.Spell then
                     local spell = mq.TLO.Spell(heal.name)
                     if Abilities.canUseSpell(spell, heal.type) then
                         return heal
@@ -186,6 +190,7 @@ healing.heal = function(healAbilities, opts)
     if common.am_i_dead() then return end
     local whoToHeal, typeOfHeal = getHurt(opts)
     if typeOfHeal == HEAL_TYPES.HOT and not healEnabled(opts, 'USEHOT') then return end
+    if typeOfHeal == HEAL_TYPES.GROUPHOT and not healEnabled(opts, 'USEGROUPHOT') then return end
     local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal)
     if healToUse then
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then

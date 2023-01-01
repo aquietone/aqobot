@@ -3,16 +3,16 @@ local mq = require('mq')
 --- @type ImGui
 local imgui = require 'ImGui'
 
-AQO='aqo'
-local assist = require(AQO..'.routines.assist')
-local camp = require(AQO..'.routines.camp')
-local logger = require(AQO..'.utils.logger')
-local loot = require(AQO..'.utils.lootutils')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local mode = require(AQO..'.mode')
-local state = require(AQO..'.state')
-local ui = require(AQO..'.ui')
+AQO='aqoplugin'
+local assist = require('routines.assist')
+local camp = require('routines.camp')
+local logger = require('utils.logger')
+local loot = require('utils.lootutils')
+local common = require('common')
+local config = require('configuration')
+local mode = require('mode')
+local state = require('state')
+local ui = require('ui')
 local aqoclass
 
 --- The plugin table factory will instantiate a plugin object that is used to
@@ -69,6 +69,8 @@ function plugin:aqocmd(line)
         end
     elseif opt == 'sell' and not new_value then
         loot.sellStuff()
+    elseif opt == 'bank' and not new_value then
+        loot.bankStuff()
     elseif opt == 'burnnow' then
         state.burn_now = true
         if new_value == 'quick' or new_value == 'long' then
@@ -151,6 +153,16 @@ function plugin:aqocmd(line)
         else
             logger.printf('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
         end
+    elseif opt == 'tribute' then
+        common.toggleTribute()
+    elseif opt == 'bark' then
+        local repeatstring = ''
+        for i=2,#args do
+            repeatstring = repeatstring .. ' ' .. args[i]
+        end
+        mq.cmdf('/dgga /say %s', repeatstring)
+    elseif opt == 'force' then
+        assist.force_assist(new_value)
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
@@ -189,10 +201,6 @@ local function init()
     mq.cmd('/squelch rez accept on')
     mq.cmd('/squelch rez pct 90')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
-    --mq.event('zoned', 'You have entered #*#', zoned)
-    if state.emu then
-        mq.event('rezzed', 'You regain #*# experience from resurrection', rezzed)
-    end
     --loot.logger.loglevel = 'debug'
 end
 
@@ -271,6 +279,7 @@ function plugin:SetGameState(GameState)
     if GameState ~= 5 then plugin.suspended = true end
 end
 
+local frameCount = 0
 --- OnPulse
 ---
 --- This is called each time MQ2 goes through its heartbeat (pulse) function.
@@ -281,6 +290,15 @@ end
 ---
 ---@param self Plugin optionally specify a self plugin
 function plugin:OnPulse()
+    if frameCount == 0 then
+        frameCount = frameCount + 1
+    elseif frameCount == 10 then
+        frameCount = 0
+        return
+    else
+        frameCount = frameCount + 1
+        return
+    end
     if self.suspended then return end
     if not self.PulseTimer then
         self.PulseTimer = os.clock()
@@ -291,89 +309,15 @@ function plugin:OnPulse()
         printf("%s::OnPulse()", self.name)
     end
 
-    if state.targetForAssist then
-        if state.targetForAssist() then
-            state.queuedAction()
-            state.targetForAssist = nil
-            state.queuedAction = nil
-            state.actionTaken = false
-        elseif not state.targetTimer:timer_expired() then
-            return
-        else
-            state.targetForAssist = nil
-            state.queuedAction = nil
-            state.actionTaken = false
-            state.targetTimer = nil
-        end
-    elseif state.positioning then
-        if state.positioningTimer:timer_expired() or not mq.TLO.Navigation.Active() then
-            state.positioning = nil
-            state.positioningTimer = nil
-        else
-            return
-        end
-    elseif state.queuedAction then
-        state.queuedAction()
-        state.queuedAction = nil
-    elseif state.memSpell then
-        --if mq.TLO.Me.Gem(state.memSpell.name)() then
-        if mq.TLO.Me.SpellReady(state.memSpell.name)() then
-            printf('spell ready %s', state.memSpell.name)
-            if state.castAfterMem then
-                printf('going to cast mem\'d spell %s', state.memSpell.name)
-                state.memSpell:use()
-                state.casting = state.memSpell
-                state.memSpell = nil
-                state.memSpellTimer = nil
-                return
-            else
-                printf('not going to cast mem\'d spell %s', state.memSpell.name)
-                state.memSpell = nil
-                state.memSpellTimer = nil
-                state.castAfterMem = nil
-                state.actionTaken = false
-                state.restore_gem = nil
-            end
-        elseif state.memSpellTimer:timer_expired() then
-            state.memSpell = nil
-            state.memSpellTimer = nil
-            state.actionTaken = false
-        else
-            return
-        end
-    elseif state.actionTaken then
-        if state.casting then
-            if not mq.TLO.Me.Casting() then
-                if state.fizzled then
-                    state.fizzled = nil
-                    printf('Fizzled casting %s', state.casting.name)
-                    --state.casting:use()
-                    --return
-                elseif state.interrupted then
-                    state.interrupted = nil
-                    printf('Interrupted casting %s', state.casting.name)
-                else
-                    printf('Finished casting %s', state.casting.name)
-                end
-                if state.restore_gem and state.restore_gem.name then
-                    printf('going to restore gem %s', state.restore_gem.name)
-                    common.swap_spell(state.restore_gem,state.restore_gem.gem)
-                    state.casting = nil
-                    state.castAfterMem = nil
-                    return
-                else
-                    state.actionTaken = false
-                    state.casting = nil
-                end
-            elseif state.casting.targettype == 'Single' and not mq.TLO.Target() then
-                mq.cmd('/stopcast')
-                state.casting = nil
-                state.actionTaken = false
-            else
-                return
-            end
-        end
-    end
+    -- Async state handling
+    if loot.state.looting then loot.lootMobs() return end
+    if loot.state.selling then loot.sellStuff() return end
+    if loot.state.banking then loot.bankStuff() return end
+    if not state.handleTargetState() then return end
+    if not state.handlePositioningState() then return end
+    if not state.handleMemSpell() then return end
+    if not state.handleCastingState() then return end
+    if not state.handleQueuedAction() then return end
 
     mq.doevents()
     state.actionTaken = false
@@ -388,7 +332,7 @@ function plugin:OnPulse()
 
     if not state.paused then
         camp.clean_targets()
-        if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
+        if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' and not common.HEALER_CLASSES[state.class] then
             state.tank_mob_id = 0
             state.assist_mob_id = 0
             state.pull_mob_id = 0
@@ -461,6 +405,37 @@ function plugin:OnIncomingChat(Line, Color)
     end
 	return false
 end
+--[[
+    elseif Line:find('.*Returning to Bind Location.*') then
+    elseif Line:find('You died.') then
+    elseif Line:find('You have been slain by.*') then
+    elseif Line:find('(.*) resisted your (.*)!') then
+    elseif Line:find('You have entered .*') then
+    elseif Line:find('You regain .* experience from resurrection') then
+    elseif Line:find('Your target is immune to changes in its attack speed.*') then
+    elseif Line:find('Your target is immune to changes in its run speed.*') then
+    elseif Line:find('Your target is immune to snare spells.*') then
+    elseif Line:find('(.*) tells you, \'(.*)\'') then
+    elseif Line:find('(.*) tells the group, \'(.*)\'') then
+    elseif Line:find('(.*) tells the .*, \'tranquil\'') then
+    elseif Line:find('(.*) has become ENRAGED.') then
+    elseif Line:find('(.*) is no longer enraged.') then
+    elseif Line:find('(.*) .*, \'Cure Please!\'') then
+    elseif Line:find('(.*) has been awakened by (.*).') then
+    elseif Line:find('Your target cannot be mesmerized.*') then
+    elseif Line:find('.*may not loot this corpse.*') then
+    elseif Line:find('.*Your inventory appears full!.*') then
+    elseif Line:find('.*You receive.* for the (.*)(s).*') then
+    elseif Line:find('.*give you absolutely nothing for the (.*)..*') then
+    elseif Line:find('.*You cannot loot this Lore Item..*') then
+
+    elseif Line:find('(.*) says, \'Buffs Please!\'') then
+    elseif Line:find('(.*) tells the group, \'Buffs Please!\'') then
+    elseif Line:find('(.*) tells the raid, \'Buffs Please!\'') then
+    elseif Line:find('(.*) tells you, \'Buffs Please!\'') then
+    elseif Line:find('Your forage mastery has enabled you to find something else!') then
+    elseif Line:find('You have scrounged up #*#') then
+]]
 
 --- OnBeginZone
 ---

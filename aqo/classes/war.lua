@@ -51,7 +51,7 @@ table.insert(class.AETankAbilities, common.getBestDisc({'Wade into Battle'}, {th
 table.insert(class.AETankAbilities, common.getAA('Extended Area Taunt', {threshold=3}) or common.getAA('Area Taunt', {threshold=3}))
 
 table.insert(class.tankBurnAbilities, common.getBestDisc({'Unrelenting Attention'}))
-table.insert(class.tankBurnAbilities, common.getBestDisc({'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.name or nil}))
+--table.insert(class.tankBurnAbilities, common.getBestDisc({'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.name or nil}))
 table.insert(class.tankBurnAbilities, common.getBestDisc({'Armor of Akhevan Runes'}, {overwritedisc=mash_defensive and mash_defensive.name or nil}))
 table.insert(class.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=mash_defensive and mash_defensive.name or nil}))
 table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity')) -- big taunt
@@ -89,7 +89,7 @@ table.insert(class.DPSAbilities, common.getAA('Gut Punch'))
 table.insert(class.DPSAbilities, common.getAA('Knee Strike'))
 table.insert(class.DPSAbilities, common.getBestDisc({'Exploitive Strike'}, {usebelowpct=20})) -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
 
-table.insert(class.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
+--table.insert(class.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
 table.insert(class.burnAbilities, common.getBestDisc({'Offensive Discipline'})) -- 4min cd, timer 2, increased offensive capabilities
 
 table.insert(class.burnAbilities, common.getAA('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min

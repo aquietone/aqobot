@@ -20,13 +20,14 @@ common.HEALER_CLASSES = {clr=true,dru=true,shm=true}
 common.FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true}
 common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
 common.DMZ = {
-    [344] = 1,
-    [345] = 1,
-    [202] = 1,
-    [203] = 1,
-    [279] = 1,
-    [151] = 1,
-    [33506] = 1,
+    [344] = 1, -- Guild Lobby
+    [345] = 1, -- Guild Hall
+    [202] = 1, -- Plane of Knowledge
+    [203] = 1, -- Plane of Tranquility
+    [279] = 1, -- Abysmal Sea
+    [151] = 1, -- Bazaar
+    [220] = 1, -- Temple of Marr
+    [33506] = 1, -- Small Guild Hall
 }
 
 local familiar = mq.TLO.Familiar and mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
@@ -149,6 +150,21 @@ common.getItem = function(itemName, options)
     if itemRef() and itemRef.Clicky() then
         if not options then options = {} end
         options.checkfor = itemRef.Clicky.Spell()
+        if itemRef.Clicky.Spell.HasSPA(374)() then
+            for i=1,5 do
+                if itemRef.Clicky.Spell.Attrib(i)() == 374 then
+                    -- mount blessing buff
+                    if not itemRef.Clicky.Spell.Trigger(i).Name():find('Illusion') then
+                        options.checkfor = itemRef.Clicky.Spell.Trigger(i).Name()
+                        options.removesong = itemRef.Clicky.Spell()
+                    else
+                        options.removesong = itemRef.Clicky.Spell.Trigger(i).Name()
+                    end
+                elseif itemRef.Clicky.Spell.Attrib(i)() == 113 then
+                    -- summon mount SPA
+                end
+            end
+        end
         local item = ability.Item:new(itemRef.ID(), itemRef.Name(), itemRef.Clicky.Spell.TargetType(), options)
         return item
     end
@@ -438,6 +454,7 @@ common.use_item = function(item)
     if item_ready(item) then
         state.casting = common.getItem(item.Name())
         logger.printf('Use Item: \ag%s\ax', item)
+        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
         mq.cmdf('/useitem "%s"', item)
         state.actionTaken = true
         return true
@@ -520,38 +537,28 @@ common.swap_spell = function(spell, gem, other_names)
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
     state.actionTaken = true
     state.memSpell = spell
-    state.memSpellTimer = timer:new(10)
     state.memSpellTimer:reset()
     return true
-    -- Low meditate skill or non-casters may take more time to memorize stuff
-    --mq.delay(15000, function() return common.swap_gem_ready(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
-    --logger.debug(logger.log_flags.common.memspell, "Delayed for mem_spell "..spell.name)
-    --if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
-    --return common.swap_gem_ready(spell.name, gem)
 end
 
 common.swap_and_cast = function(spell, gem)
     if not spell then return false end
-    local restore_gem = nil
     if not mq.TLO.Me.Gem(spell.name)() then
         state.restore_gem = {name=mq.TLO.Me.Gem(gem)(),gem=gem}
         if not common.swap_spell(spell, gem) then
             -- failed to mem?
             return
         end
-        state.castAfterMem = true
+        state.queuedAction = function()
+            spell:use()
+            if state.restore_gem then
+                return function()
+                    common.swap_spell(state.restore_gem, gem)
+                end
+            end
+        end
         return true
     end
-    -- if we swapped a spell then at least try to give it enough time to become ready or why did we swap
-    --mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.name)() end)
-    --logger.debug(logger.log_flags.common.memspell, "Delayed for spell swap "..spell.name)
-    --local did_cast = spell:use()
-    --if restore_gem and restore_gem.name then
-    --    if not common.swap_spell(restore_gem, gem) then
-    --        -- failed to mem?
-    --    end
-    --end
-    --return did_cast
 end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
@@ -643,6 +650,13 @@ common.check_cursor = function()
         logger.debug(logger.log_flags.common.misc, 'Cursor is empty, resetting autoinv_timer')
         autoinv_timer:reset(0)
     end
+end
+
+common.toggleTribute = function()^M
+    logger.debug(logger.log_flags.common.misc, 'Toggle tribute')
+    mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
+    mq.cmd('/notify TBW_PersonalPage TBWP_ActivateButton leftmouseup')
+    mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
 end
 
 ---Event callback for handling spell resists from mobs

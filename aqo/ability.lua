@@ -413,7 +413,7 @@ end
 function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
     if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady(theItem) then
-        mq.cmd('/stopcast')
+        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(50) return false end
         logger.printf('Use Item: \ag%s\ax', theItem)
         mq.cmdf('/useitem "%s"', theItem)
         state.casting = self

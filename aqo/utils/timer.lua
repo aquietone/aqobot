@@ -6,12 +6,17 @@ local Timer = {
 
 ---Initialize a new timer istance.
 ---@param expiration number @The number of seconds after the start time which the timer will be expired.
+---@param reset boolean @Indicate whether or not the timer start time should be now (reset) or 0 (expired)
 ---@return Timer @The timer instance.
-function Timer:new(expiration)
+function Timer:new(expiration, reset)
     local t = {}
     setmetatable(t, self)
     self.__index = self
-    t.start_time = 0
+    if reset then
+        t.start_time = os.time()
+    else
+        t.start_time = 0
+    end
     t.expiration = expiration
     return t
 end

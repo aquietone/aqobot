@@ -14,21 +14,24 @@ class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'chec
 class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
 class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox')
 class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
+class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
 
 class.addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
 class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}) -- pet haste
 class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}) -- pet buff
 class.addSpell('petheal', {'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
-class.addSpell('nuke', {'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
+class.addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
 class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
 class.addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
 class.addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
 class.addSpell('panther', {'Growl of the Panther'})
-class.addSpell('groupregen', {'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}) -- group buff
+class.addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
 class.addSpell('grouphp', {'Spiritual Vitality'})
+class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
 
 local standard = {}
 table.insert(standard, class.spells.nuke)
+table.insert(standard, class.spells.dot)
 
 class.spellRotations = {
     standard=standard
@@ -41,6 +44,7 @@ table.insert(class.DPSAbilities, common.getAA('Chameleon Strike'))
 table.insert(class.DPSAbilities, common.getAA('Bite of the Asp'))
 table.insert(class.DPSAbilities, common.getAA('Roar of Thunder'))
 table.insert(class.DPSAbilities, common.getAA('Gorilla Smash'))
+table.insert(class.DPSAbilities, common.getAA('Raven Claw'))
 
 table.insert(class.burnAbilities, common.getBestDisc({'Empathic Fury', 'Bestial Fury Discipline'})) -- burn disc
 table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Savage Lord'))
@@ -92,7 +96,7 @@ class.recover_class = function()
             class.paragon:use()
         end
     end
-    if class.isEnabled('PARAGONOTHERS') and class.focusedParagon then
+    if class.isEnabled('PARAGONOTHERS') and class.fParagon then
         local groupSize = mq.TLO.Group.GroupSize()
         if groupSize then
             for i=1,groupSize do
@@ -100,15 +104,15 @@ class.recover_class = function()
                 local memberPctMana = member.PctMana() or 100
                 local memberDistance = member.Distance3D() or 300
                 local memberClass = member.Class.ShortName() or 'WAR'
-                if casterpriests[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.focusedParagon.name)() then
+                if casterpriests[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.name)() then
                     if mq.TLO.Target.ID() ~= member.ID() then
                         member.DoTarget()
                         state.actionTaken = true
-                        state.queuedAction = function() if mq.TLO.Target.ID() == member.ID() then class.focusedParagon:use() return true else return false end end
+                        state.queuedAction = function() if mq.TLO.Target.ID() == member.ID() then class.fParagon:use() return true else return false end end
                         return true
                     end
                     --mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
-                    class.focusedParagon:use()
+                    class.fParagon:use()
                     return true
                 end
             end

@@ -16,7 +16,7 @@ class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs',
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
 
-class.addSpell('heal', {'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
+class.addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
 class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
 class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
 class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'})
@@ -30,6 +30,7 @@ class.addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=
 class.addSpell('panther', {'Talisman of the Panther'})
 class.addSpell('twincast', {'Frostfall Boon'}, {regular=true, tank=true, tot=true})
 class.addSpell('torpor', {'Transcendent Torpor'})
+class.addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
 
 local epic = common.getItem('Blessed Spiritstaff of the Heyokah', {opt='USEEPIC'}) or common.getItem('Crafted Talisman of Fates', {opt='USEEPIC'})
 
@@ -58,6 +59,9 @@ table.insert(class.healAbilities, common.getAA('Union of Spirits', {panic=true, 
 table.insert(class.cures, class.spells.cure)
 table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
 table.insert(class.burnAbilities, epic)
+
+table.insert(class.cures, class.radiant)
+table.insert(class.cures, class.rgc)
 
 class.debuff = common.getAA('Malosinete')
 class.slow = common.getAA('Turgur\'s Swarm') or common.getBestSpell({'Turgur\'s Insects', 'Togor\'s Insects'})

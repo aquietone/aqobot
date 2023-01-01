@@ -108,6 +108,8 @@ EQ item names. Any INI entry which doesn't match the regex is just skipped over 
 
 ---@type Mq
 local mq = require 'mq'
+local timer = require(AQO..'.utils.timer')
+local state = require(AQO..'.state')
 local _, LIP = pcall(require, AQO..'.utils.LIP')
 if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
 local _, Write = pcall(require, AQO..'.utils.Write')
@@ -142,7 +144,10 @@ local loot = {
     Terminate = true,
 }
 loot.logger.prefix = 'lootutils'
-
+loot.state = {
+    looting = false,
+    selling = false,
+}
 -- Internal settings
 local lootData = nil
 local shouldLootMobs = true
@@ -207,7 +212,7 @@ end
 
 local function navToID(spawnID)
     mq.cmdf('/squelch /nav id %d log=off', spawnID)
-    mq.delay(50)
+    --[[mq.delay(50)
     if mq.TLO.Navigation.Active() then
         local startTime = os.time()
         while mq.TLO.Navigation.Active() do
@@ -216,7 +221,7 @@ local function navToID(spawnID)
                 break
             end
         end
-    end
+    end]]
 end
 
 local function addRule(itemName, section, rule)
@@ -267,7 +272,7 @@ local function setupEvents()
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
     mq.event("InventoryFull", "#*#Your inventory appears full!#*#", eventInventoryFull)
     mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
-    mq.event("Forage", "Your forage mastery has enabled you to find something else!", eventForage)
+    mq.event("ForageExtra", "Your forage mastery has enabled you to find something else!", eventForage)
     mq.event("Forage", "You have scrounged up #*#", eventForage)
     mq.event("Novalue", "#*#give you absolutely nothing for the #1#.#*#", eventNovalue)
     --[[mq.event("Lore", "#*#You cannot loot this Lore Item.#*#", eventHandler)]]--
@@ -314,20 +319,26 @@ eventCantLoot = function()
     cantLootID = mq.TLO.Target.ID()
 end
 
+local lootItemTimer = timer:new(1, true)
 local function lootItem(index, doWhat, button)
     loot.logger.Debug('Enter lootItem')
-    if destroyActions[doWhat] then return end
+    if destroyActions[doWhat] then return false end
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
     local itemName = mq.TLO.Corpse.Item(index).Name()
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
+    loot.state.lootItem = corpseItemID
+    lootItemTimer:reset()
+    return true
+    --[[
     mq.delay(5000, function() return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop() end)
     if mq.TLO.Window('ConfirmationDialogBox').Open() then mq.cmd('/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup') end
-    mq.delay(5000, function() return mq.TLO.Cursor() or not mq.TLO.Window('LootWnd').Open() end)
+    mq.delay(5000, function() return mq.TLO.Cursor() ~= nil or not mq.TLO.Window('LootWnd').Open() end)
     mq.delay(100)
     if not mq.TLO.Window('LootWnd').Open() then return end
     if loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax %sing \ay%s\ax', loot.LootChannel, doWhat, itemName) end
     if doWhat == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
+    ]]
 end
 
 local function lootCorpse(corpseID)
@@ -353,7 +364,7 @@ local function lootCorpse(corpseID)
             local stackable = corpseItem.Stackable()
             local freeStack = corpseItem.FreeStack()
             if corpseItem() and not corpseItem.Lore() and (freeSpace > 0 or (stackable and freeStack > 0)) then
-                lootItem(i, getRule(corpseItem), 'leftmouseup')
+                if lootItem(i, getRule(corpseItem), 'leftmouseup') then return end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
@@ -366,14 +377,15 @@ local function lootCorpse(corpseID)
                 if (corpseItem.Lore() and (haveItem or haveItemBank)) or freeSpace == 0 then
                     loot.logger.Warn('Cannot loot lore item')
                 else
-                    lootItem(i, getRule(corpseItem), 'leftmouseup')
+                    if lootItem(i, getRule(corpseItem), 'leftmouseup') then return end
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
-    mq.delay(3000, function() return not mq.TLO.Window('LootWnd').Open() end)
+    --mq.delay(3000, function() return not mq.TLO.Window('LootWnd').Open() end)
+    loot.state.lootingCorpse = nil
     -- if the corpse doesn't poof after looting, there may have been something we weren't able to loot or ignored
     -- mark the corpse as not lootable for a bit so we don't keep trying
     if mq.TLO.Spawn(('corpse id %s'):format(corpseID))() then
@@ -390,7 +402,115 @@ local function corpseLocked(corpseID)
     return true
 end
 
+local goToCorpseTimer = timer:new(3, true)
+local openCorpseTimer = timer:new(3, true)
 loot.lootMobs = function(limit)
+    loot.logger.Debug('Enter lootMobs')
+    if not loot.state.looting then
+        loot.state.looting = true
+        loot.state.lootedCount = 0
+    end
+    if loot.state.corpseToLoot then
+        local corpse = mq.TLO.Spawn('npccorpse id '..loot.state.corpseToLoot)
+        local corpseID = corpse.ID()
+        local corpseDistance = corpse.Distance3D() or 300
+        if corpseID == mq.TLO.Target.ID() and corpseDistance < 15 and not mq.TLO.Window('LootWnd').Open() then
+            mq.cmd('/multiline ; /nav stop ; /timed 5 /loot')
+            loot.state.lootingCorpse = corpseID
+            loot.state.corpseToLoot = nil
+            loot.state.lootedCount = loot.state.lootedCount + 1
+            openCorpseTimer:reset()
+            return true
+        elseif goToCorpseTimer:timer_expired() then
+            loot.state.corpseToLoot = nil
+            loot.state.lootedCount = loot.state.lootedCount + 1
+            return true
+        else
+            return false
+        end
+    elseif loot.state.lootItem then
+        if mq.TLO.Cursor.ID() == loot.state.lootItem then
+            mq.cmd('/autoinv')
+            loot.state.lootItem = nil
+            return
+        elseif lootItemTimer:timer_expired() then
+            loot.state.lootItem = nil
+            return
+        end
+    elseif loot.state.lootingCorpse then
+        if not mq.TLO.Window('LootWnd').Open() then
+            return false
+        elseif openCorpseTimer:timer_expired() then
+            loot.state.lootingCorpse = false
+            return true
+        else
+            local items = mq.TLO.Corpse.Items() or 0
+            loot.logger.Debug(('Loot window open. Items: %s'):format(items))
+            if mq.TLO.Window('LootWnd').Open() and items > 0 then
+                for i=1,items do
+                    local freeSpace = mq.TLO.Me.FreeInventory()
+                    local corpseItem = mq.TLO.Corpse.Item(i)
+                    local stackable = corpseItem.Stackable()
+                    local freeStack = corpseItem.FreeStack()
+                    if corpseItem() and not corpseItem.Lore() and (freeSpace > 0 or (stackable and freeStack > 0)) then
+                        if lootItem(i, getRule(corpseItem), 'leftmouseup') then return end
+                    end
+                    if not mq.TLO.Window('LootWnd').Open() then break end
+                end
+                for i=1,items do
+                    local freeSpace = mq.TLO.Me.FreeInventory()
+                    local corpseItem = mq.TLO.Corpse.Item(i)
+                    if corpseItem() then
+                        local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
+                        local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
+                        if (corpseItem.Lore() and (haveItem or haveItemBank)) or freeSpace == 0 then
+                            loot.logger.Warn('Cannot loot lore item')
+                        else
+                            if lootItem(i, getRule(corpseItem), 'leftmouseup') then return end
+                        end
+                    end
+                    if not mq.TLO.Window('LootWnd').Open() then break end
+                end
+            end
+            loot.state.lootingCorpse = nil
+            mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
+        end
+    else
+        if loot.state.lootedCount == limit then
+            loot.state.looting = false
+            return false
+        end
+        local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.CorpseRadius))()
+        loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
+        local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.MobsTooClose))()
+        -- options for combat looting or looting disabled
+        if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() then return false end -- or mq.TLO.Me.FreeInventory() == 0 then return false end
+        local corpseList = {}
+        for i=1,math.max(deadCount, limit or 0) do
+            local corpse = mq.TLO.NearestSpawn(('%d,'..spawnSearch):format(i, 'npccorpse', loot.CorpseRadius))
+            table.insert(corpseList, corpse)
+            -- why is there a deity check?
+        end
+        local didLoot = false
+        loot.logger.Debug(string.format('Trying to loot %d corpses.', #corpseList))
+        for i=1,#corpseList do
+            local corpse = corpseList[i]
+            local corpseID = corpse.ID()
+            if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id '..tostring(corpseID))() or 100) < 60 then
+                loot.logger.Debug('Moving to corpse ID='..tostring(corpseID))
+                navToID(corpseID)
+                corpse.DoTarget()
+                loot.state.corpseToLoot = corpseID
+                goToCorpseTimer:reset()
+                return true
+            end
+        end
+        loot.state.looting = false
+        return false
+    end
+end
+
+loot.lootMobsOld = function(limit)
     loot.logger.Debug('Enter lootMobs')
     --if mq.TLO.Me.FreeInventory() > 0 then shouldLootMobs = true end
     --if not shouldLootMobs then return false end
@@ -412,9 +532,11 @@ loot.lootMobs = function(limit)
         local corpseID = corpse.ID()
         if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id '..tostring(corpseID))() or 100) < 60 then
             loot.logger.Debug('Moving to corpse ID='..tostring(corpseID))
+            
             navToID(corpseID)
             corpse.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == corpseID end)
+            
+            --mq.delay(100, function() return mq.TLO.Target.ID() == corpseID end)
             lootCorpse(corpseID)
             didLoot = true
             mq.doevents('InventoryFull')
@@ -422,6 +544,7 @@ loot.lootMobs = function(limit)
         end
     end
     loot.logger.Debug('Done with corpse list.')
+    state.looting = false
     return didLoot
 end
 
@@ -457,6 +580,7 @@ eventSell = function(line, itemName)
     end
 end
 
+local goToVendorTimer = timer:new(5, true)
 local function goToVendor()
     if not mq.TLO.Target() then
         loot.logger.Warn('Please target a vendor')
@@ -468,17 +592,19 @@ local function goToVendor()
     if mq.TLO.Target.Distance() > 15 then
         navToID(mq.TLO.Target.ID())
     end
+    loot.state.goToVendor = true
+    goToVendorTimer:reset()
     return true
 end
 
+local openVendorTimer = timer:new(3, true)
 local function openVendor()
     loot.logger.Debug('Opening merchant window')
     mq.cmd('/nomodkey /click right target')
+    loot.state.openVendor = true
+    openVendorTimer:reset()
     loot.logger.Debug('Waiting for merchant window to populate')
-    mq.delay(1000, function() return mq.TLO.Window('MerchantWnd').Open() end)
-    if not mq.TLO.Window('MerchantWnd').Open() then return false end
-    mq.delay(5000, function() return mq.TLO.Merchant.ItemsReceived() end)
-    return mq.TLO.Merchant.ItemsReceived()
+    return true
 end
 
 local NEVER_SELL = {['Diamond Coin']=true, ['Celestial Crest']=true, ['Gold Coin']=true, ['Taelosian Symbols']=true, ['Planar Symbols']=true}
@@ -488,21 +614,110 @@ local function sellToVendor(itemToSell)
         if mq.TLO.Window('MerchantWnd').Open() then
             loot.logger.Info('Selling '..itemToSell)
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
-            mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
-            mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
-            mq.doevents('eventNovalue')
-            if itemNoValue == itemToSell then
-                addRule(itemToSell, itemToSell:sub(1,1), 'Ignore')
-                itemNoValue = nil
-                break
-            end
-            -- TODO: handle vendor not wanting item / item can't be sold
-            mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == '' end)
+            loot.state.sellItem = itemToSell
+            return true
         end
     end
 end
 
 loot.sellStuff = function()
+    if not loot.state.selling then
+        loot.state.selling = true
+        loot.state.sellStart = mq.TLO.Me.Platinum()
+    end
+    if loot.state.goToVendor then
+        local vendorDistance = mq.TLO.Target.Distance3D() or 300
+        if vendorDistance <= 15 then
+            mq.cmd('/squelch /nav stop')
+            loot.state.goToVendor = false
+            openVendor()
+            return true
+        elseif goToVendorTimer:timer_expired() then
+            loot.state.selling = false
+            return true
+        else
+            return false
+        end
+    elseif loot.state.openVendor then
+        if mq.TLO.Merchant.ItemsReceived() then
+            loot.state.openVendor = false
+            loot.state.sellingItems = true
+            return true
+        elseif openVendorTimer:timer_expired() then
+            loot.state.selling = false
+            return true
+        else
+            return false
+        end
+    elseif loot.state.sellItem then
+        if mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == loot.state.sellItem then
+            mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
+            loot.state.soldItem = loot.state.sellItem
+            loot.state.sellItem = nil
+            return true
+        else
+            return false
+        end
+    elseif loot.state.soldItem then
+        if mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == '' then
+            loot.state.soldItem = nil
+            return true
+        else
+            return false
+        end
+    elseif loot.state.sellingItems then
+        print('into selling')
+        local totalPlat = mq.TLO.Me.Platinum()
+        -- sell any top level inventory items that are marked as well, which aren't bags
+        for i=1,10 do
+            local bagSlot = mq.TLO.InvSlot('pack'..i).Item
+            if bagSlot.Container() == 0 then
+                if bagSlot.ID() then
+                    local itemToSell = bagSlot.Name()
+                    local sellRule = getRule(bagSlot)
+                    if sellRule == 'Sell' then if sellToVendor(itemToSell) then return true end end
+                end
+            end
+        end
+        -- sell any items in bags which are marked as sell
+        for i=1,10 do
+            local bagSlot = mq.TLO.InvSlot('pack'..i).Item
+            local containerSize = bagSlot.Container()
+            if containerSize and containerSize > 0 then
+                for j=1,containerSize do
+                    local itemToSell = bagSlot.Item(j).Name()
+                    if itemToSell then
+                        local sellRule = getRule(bagSlot.Item(j))
+                        if sellRule == 'Sell' then
+                            local sellPrice = bagSlot.Item(j).SellPrice() or 0
+                            if sellPrice == 0 then
+                                loot.logger.Warn(string.format('Item \ay%s\ax is set to Sell but has no sell value!', itemToSell))
+                            else
+                                if sellToVendor(itemToSell) then return true end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        if mq.TLO.Window('MerchantWnd').Open() then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
+        local newTotalPlat = mq.TLO.Me.Platinum() - loot.state.sellStart
+        loot.logger.Info(string.format('Total plat value sold: \ag%s\ax', newTotalPlat))
+        loot.state.selling = false
+        return true
+    else
+        if not mq.TLO.Window('MerchantWnd').Open() then
+            if not goToVendor() then
+                loot.state.selling = false
+                return false
+            end
+            return true
+        end
+    end
+    loot.state.selling = false
+end
+
+loot.sellStuffOld = function()
     if not mq.TLO.Window('MerchantWnd').Open() then
         if not goToVendor() then return end
         if not openVendor() then return end
@@ -579,39 +794,60 @@ end
 
 local function bankItem(itemName)
     mq.cmdf('/nomodkey /shiftkey /itemnotify "%s" leftmouseup', itemName)
-    mq.delay(100, function() return mq.TLO.Cursor() end)
-    mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
-    mq.delay(100, function() return not mq.TLO.Cursor() end)
+    loot.state.bankItem = itemName
+    return true
 end
 
 loot.bankStuff = function()
+    if not loot.state.banking then
+        loot.state.banking = true
+    end
     if not mq.TLO.Window('BigBankWnd').Open() then
         loot.logger.Warn('Bank window must be open!')
         return
     end
-    for i=1,10 do
-        local bagSlot = mq.TLO.InvSlot('pack'..i).Item
-        if bagSlot.Container() == 0 then
-            if bagSlot.ID() then
-                local itemToBank = bagSlot.Name()
-                local bankRule = getRule(bagSlot)
-                if bankRule == 'Bank' then bankItem(itemToBank) end
-            end
+    if loot.state.bankItem then
+        if mq.TLO.Cursor() then
+            mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
+            loot.state.bankedItem = loot.state.bankItem
+            loot.state.bankItem = nil
+            return true
+        else
+            return false
         end
-    end
-    -- sell any items in bags which are marked as sell
-    for i=1,10 do
-        local bagSlot = mq.TLO.InvSlot('pack'..i).Item
-        local containerSize = bagSlot.Container()
-        if containerSize and containerSize > 0 then
-            for j=1,containerSize do
-                local itemToBank = bagSlot.Item(j).Name()
-                if itemToBank then
-                    local bankRule = getRule(bagSlot.Item(j))
-                    if bankRule == 'Bank' then bankItem(itemToBank) end
+    elseif loot.state.bankedItem then
+        if mq.TLO.Cursor() then
+            return false
+        else
+            loot.state.bankedItem = nil
+            return true
+        end
+    else
+        for i=1,10 do
+            local bagSlot = mq.TLO.InvSlot('pack'..i).Item
+            if bagSlot.Container() == 0 then
+                if bagSlot.ID() then
+                    local itemToBank = bagSlot.Name()
+                    local bankRule = getRule(bagSlot)
+                    if bankRule == 'Bank' then bankItem(itemToBank) return end
                 end
             end
         end
+        -- sell any items in bags which are marked as sell
+        for i=1,10 do
+            local bagSlot = mq.TLO.InvSlot('pack'..i).Item
+            local containerSize = bagSlot.Container()
+            if containerSize and containerSize > 0 then
+                for j=1,containerSize do
+                    local itemToBank = bagSlot.Item(j).Name()
+                    if itemToBank then
+                        local bankRule = getRule(bagSlot.Item(j))
+                        if bankRule == 'Bank' then bankItem(itemToBank) return end
+                    end
+                end
+            end
+        end
+        loot.state.banking = false
     end
 end
 

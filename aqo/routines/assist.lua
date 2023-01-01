@@ -80,6 +80,19 @@ assist.get_assist_spawn = function()
     return assist_target
 end
 
+assist.force_assist = function(assist_id)
+    if assist_id then
+        state.assist_mob_id = assist_id
+    else
+        local assist_spawn = assist.get_assist_spawn()
+        if assist_spawn == -1 then
+            mq.cmdf('/assist %s', config.CHASETARGET)
+            mq.delay(100)
+            state.assist_mob_id = mq.TLO.Target.ID()
+        end
+    end
+end
+
 local manual_assist_timer = timer:new(3)
 ---Determine whether to begin assisting on a mob.
 ---@param assist_target spawn|nil @The MQ Spawn to be checked, otherwise the main assists target.
@@ -94,23 +107,12 @@ assist.should_assist = function(assist_target)
             return false
         end
     end
-    --[[if assist_target == -1 and manual_assist_timer:timer_expired() then
-        if mq.TLO.Target.Type() ~= 'NPC' then
-            mq.cmdf('/assist %s', config.CHASETARGET)
-            mq.delay(100)
-        end
-        if mq.TLO.Target.Type() == 'NPC' then
-            assist_target = mq.TLO.Target
-        else
-            return false
-        end
-    end]]
     local id = assist_target.ID()
     local hp = assist_target.PctHPs()
     local mob_type = assist_target.Type()
     local mob_x = assist_target.X()
     local mob_y = assist_target.Y()
-    if not id or id == 0 or not hp or hp == 0 or not mob_x or not mob_y then return false end
+    if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
     if mob_type == 'NPC' and hp < config.AUTOASSISTAT then
         if camp.Active and common.check_distance(camp.X, camp.Y, mob_x, mob_y) <= config.CAMPRADIUS then
             return true
@@ -190,7 +192,7 @@ assist.check_target = function(reset_timers)
         if assist.should_assist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
-                state.targetForAssist = function() return mq.TLO.Target.ID() == assist_target.ID() end
+                state.acquireTarget = assist_target.ID()
                 state.queuedAction = function()
                     state.assist_mob_id = assist_target.ID()
                     if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -201,10 +203,8 @@ assist.check_target = function(reset_timers)
                     end
                 end
                 state.actionTaken = true
-                state.targetTimer = timer:new(2)
-                state.targetTimer:reset()
+                state.acquireTargetTimer:reset()
                 return true
-                --mq.delay(100, function() return mq.TLO.Target.ID() == assist_target.ID() end)
             end
             state.assist_mob_id = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -227,20 +227,7 @@ assist.get_combat_position = function()
     if not mq.TLO.Navigation.PathExists('target')() then return end
     mq.cmd('/multiline ; /stick off ; /nav target log=off')
     state.positioning = true
-    state.positioningTimer = timer:new(5)
     state.positioningTimer:reset()
-    --[[mq.delay(100)
-    local position_timer = timer:new(5)
-    while true do
-        if mq.TLO.Target.LineOfSight() then
-            break
-        end
-        if position_timer:timer_expired() then
-            break
-        end
-        mq.delay(100)
-    end
-    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end]]
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
