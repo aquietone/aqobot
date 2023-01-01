@@ -304,7 +304,7 @@ local function find_next_dot_to_cast()
     --if common.is_spell_ready(spells.composite.id, spells.composite.name) then
     --    return spells.composite.id, spells.composite.name
     --end
-    if class.spells.manatap and mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.spells.manatap and state.loop.PctMana < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
     if class.spells.swarm and class.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(class.spells.swarm.name)() and mq.TLO.Spell(class.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
@@ -336,16 +336,16 @@ end
 class.cast = function()
     if mq.TLO.Me.SpellInCooldown() then return false end
     if assist.is_fighting() then
-        if class.OPTS.USEDISPEL.value and mq.TLO.Target.Beneficial() then
+        if class.OPTS.USEDISPEL.value and dispel and mq.TLO.Target.Beneficial() then
             dispel:use()
         end
-        if class.OPTS.DEBUFF.value and class.spells.scentterris and not mq.TLO.Target.Buff(class.spells.scentterris.name)() and mq.TLO.Spell(class.spells.scentterris.name).StacksTarget() then
+        if class.OPTS.DEBUFF.value and scent and class.spells.scentterris and not mq.TLO.Target.Buff(class.spells.scentterris.name)() and mq.TLO.Spell(class.spells.scentterris.name).StacksTarget() then
             scent:use()
             debuff_timer:reset()
         end
         local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
-            if spell.name == class.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+            if tcclick and spell.name == class.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
                 tcclick:use()
             end
             spell:use() -- then cast the dot
@@ -431,7 +431,7 @@ class.burn_class = function()
     local fierce_eye = mq.TLO.Me.Song('Fierce Eye')()
     if fierce_eye then base_crit = base_crit + 15 end
 
-    if mq.TLO.SpawnCount('corpse radius 150')() > 0 then
+    if mq.TLO.SpawnCount('corpse radius 150')() > 0 and wakethedead then
         wakethedead:use()
         mq.delay(1500)
     end
@@ -447,7 +447,7 @@ class.burn_class = function()
         end
     end
 
-    if mq.TLO.Me.PctHPs() > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
+    if lifeburn and dyinggrasp and state.loop.PctHPs > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
         lifeburn:use()
         mq.delay(5)
         dyinggrasp:use()
@@ -486,12 +486,12 @@ end
 class.recover = function()
     -- modrods
     common.check_mana()
-    local pct_mana = mq.TLO.Me.PctMana()
-    if pct_mana < 65 then
+    local pct_mana = state.loop.PctMana
+    if deathbloom and pct_mana < 65 then
         -- death bloom at some %
         deathbloom:use()
     end
-    if mq.TLO.Me.CombatState() == 'COMBAT' then
+    if bloodmagic and mq.TLO.Me.CombatState() == 'COMBAT' then
         if pct_mana < 40 then
             -- blood magic at some %
             bloodmagic:use()
@@ -523,9 +523,9 @@ class.aggro = function()
     if state.emu then return end
     if config.MODE:is_manual_mode() then return end
     if class.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
-            if mq.TLO.Me.PctAggro() >= 90 then
-                if mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
+            if deathseffigy and mq.TLO.Me.PctAggro() >= 90 then
+                if dyinggrasp and state.loop.PctHPs < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
                     dyinggrasp:use()
                 end
                 deathseffigy:use()
@@ -537,7 +537,7 @@ class.aggro = function()
                         mq.cmd('/makemevis')
                     end
                 end
-            elseif mq.TLO.Me.PctAggro() >= 70 then
+            elseif deathpeace and mq.TLO.Me.PctAggro() >= 70 then
                 deathpeace:use()
                 if mq.TLO.Me.Feigning() then
                     check_aggro_timer:reset()

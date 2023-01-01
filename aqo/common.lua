@@ -222,7 +222,7 @@ common.is_fighting_modebased = function()
     elseif mode:is_assist_mode() then
 
     elseif mode:get_name() == 'manual' then
-        if mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if mq.TLO.Group.MainTank.ID() == state.loop.ID then
 
         else
 
@@ -332,10 +332,10 @@ common.is_spell_ready = function(spell, skipCheckTarget)
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
     local spellData = mq.TLO.Spell(spell.name)
-    if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
+    if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and state.loop.PctMana < state.min_mana) then
         return false
     end
-    if spellData.EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (spellData.EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
+    if spellData.EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (spellData.EnduranceCost() > 1000 and state.loop.PctEndurance < state.min_end) then
         return false
     end
     if not skipCheckTarget and spellData.TargetType() == 'Single' then
@@ -586,8 +586,8 @@ end
 ---Attempt to click mod rods if mana is below 75%.
 common.check_mana = function()
     -- modrods
-    local pct_mana = mq.TLO.Me.PctMana()
-    local pct_end = mq.TLO.Me.PctEndurance()
+    local pct_mana = state.loop.PctMana
+    local pct_end = state.loop.PctEndurance
     local group_mana = mq.TLO.Group.LowMana(70)()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 then
@@ -620,7 +620,7 @@ common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sit_timer:timer_expired() then
         if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
-                ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and
+                ((mq.TLO.Me.Class.CanCast() and state.loop.PctMana < 60) or state.loop.PctEndurance < 60) and
                 not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
                 mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() == 0 then
             mq.cmd('/sit')

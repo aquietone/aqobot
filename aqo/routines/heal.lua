@@ -1,8 +1,9 @@
 local mq = require('mq')
+local timer = require(AQO..'.utils.timer')
 local Abilities = require(AQO..'.ability')
 local common = require(AQO..'.common')
 local config = require(AQO..'.configuration')
-local timer = require(AQO..'.utils.timer')
+local state = require(AQO..".state")
 
 local healing = {}
 
@@ -53,12 +54,12 @@ local function getHurt(opts)
     local mostHurtPct = 100
     local mostHurtClass = nil
     local mostHurtDistance = 300
-    local myHP = mq.TLO.Me.PctHPs()
+    local myHP = state.loop.PctHPs
     if myHP < config.PANICHEALPCT then
-        return mq.TLO.Me.ID(), HEAL_TYPES.PANIC
+        return state.loop.ID, HEAL_TYPES.PANIC
     elseif myHP < config.HOTHEALPCT then
         mostHurtName = mq.TLO.Me.CleanName()
-        mostHurtID = mq.TLO.Me.ID()
+        mostHurtID = state.loop.ID
         mostHurtPct = myHP
         mostHurtClass = mq.TLO.Me.Class.ShortName()
         mostHurtDistance = 0
@@ -167,7 +168,7 @@ end
 local function getHeal(healAbilities, healType, whoToHeal)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] then
-            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
+            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
                 elseif heal.type == Abilities.Types.Spell then
@@ -213,7 +214,7 @@ end
 
 healing.healPetOrSelf = function(healAbilities, opts)
     if common.am_i_dead() then return end
-    local myHP = mq.TLO.Me.PctHPs()
+    local myHP = state.loop.PctHPs
     local petHP = mq.TLO.Pet.PctHPs() or 100
     if myHP < 60 then healing.healSelf(healAbilities, opts) end
     if not healEnabled(opts, 'HEALPET') then return end
@@ -236,16 +237,16 @@ healing.healPetOrSelf = function(healAbilities, opts)
 end
 
 healing.healSelf = function(healAbilities, opts)
-    if common.am_i_dead() or mq.TLO.Me.PctHPs() > 60 then return end
+    if common.am_i_dead() or state.loop.PctHPs > 60 then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
             if heal.type == Abilities.Types.Spell then
                 local spell = mq.TLO.Spell(heal.name)
                 if Abilities.canUseSpell(spell, heal.type) then
                     local targetID = mq.TLO.Target.ID()
-                    if spell.TargetType() == 'Single' and targetID ~= mq.TLO.Me.ID() then
+                    if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                         mq.TLO.Me.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+                        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                     end
                     heal:use()
                     if targetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', targetID) end
@@ -256,9 +257,9 @@ healing.healSelf = function(healAbilities, opts)
                     local targetID = mq.TLO.Target.ID()
                     if heal.type == Abilities.Types.AA then
                         local spell = mq.TLO.AltAbility(heal.name).Spell
-                        if spell.TargetType() == 'Single' and targetID ~= mq.TLO.Me.ID() then
+                        if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                             mq.TLO.Me.DoTarget()
-                            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+                            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                         end
                     end
                     heal:use()

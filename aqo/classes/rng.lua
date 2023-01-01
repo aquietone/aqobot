@@ -148,6 +148,11 @@ if state.emu then
     --table.insert(class.selfBuffs, class.spells.strength)
     table.insert(class.combatBuffs, common.getBestDisc({'Trueshot Discipline'}))
     table.insert(class.healAbilities, class.spells.heal)
+    table.insert(class.selfBuffs, class.spells.buffs)
+else
+    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Azia)', {opt=USEUNITYAZIA, checkfor='Devastating Barrage'}))
+    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Beza)', {opt=USEUNITYBEZA, checkfor='Vociferous Blades'}))
+    table.insert(class.selfBuffs, class.spells.rune)
 end
 local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
 --Slot 1: 	Vociferous Blades
@@ -160,7 +165,6 @@ table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW
 local fire = common.getAA('Flaming Arrows')
 table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW'}))
 
-table.insert(class.selfBuffs, class.spells.buffs)
 table.insert(class.selfBuffs, class.spells.dmgbuff)
 
 class.predator = class.spells.predator
@@ -303,7 +307,7 @@ end
 
 local snared_id = 0
 class.cast = function()
-    if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
+    if not state.loop.Invis and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.is_fighting() then
             if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value then
                 class.spells.snare:use()
@@ -352,7 +356,7 @@ end
 -- evasion -- 7min cd, 30sec buff, avoidance
 --local check_aggro_timer = timer:new(10)
 class.aggro = function()
-    if mq.TLO.Me.PctHPs() < 50 then
+    if state.loop.PctHPs < 50 then
         if evasion then evasion:use() end
         if config.MODE:return_to_camp() then
             mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
@@ -360,7 +364,7 @@ class.aggro = function()
     end
     --[[
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 70 then
                 fade:use()
                 check_aggro_timer:reset()
@@ -417,7 +421,7 @@ class.buff_classb = function()
     end
     if chameleon and not mq.TLO.Me.Song(chameleon.name)() and mq.TLO.Me.AltAbilityReady(chameleon.name)() then
         mq.cmd('/mqtar myself')
-        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         chameleon:use()
     end
     if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
@@ -532,7 +536,7 @@ class.assist = function()
         use_opener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
-        if mq.TLO.Me.PctHPs() > 40 then
+        if state.loop.PctHPs > 40 then
             if not class.OPTS.USERANGE.value or not attack_range() then
                 if class.OPTS.USEMELEE.value then assist.attack() end
             end

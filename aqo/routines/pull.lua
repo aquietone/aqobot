@@ -82,11 +82,11 @@ pull.check_pull_conditions = function()
     if common.am_i_dead() then return false end
     if config.GROUPWATCHWHO == 'none' then return true end
     if config.GROUPWATCHWHO == 'self' then
-        if mq.TLO.Me.PctEndurance() < config.MEDENDSTART or mq.TLO.Me.PctMana() < config.MEDMANASTART then
+        if state.loop.PctEndurance < config.MEDENDSTART or state.loop.PctMana < config.MEDMANASTART then
             medding = true
             return false
         end
-        if (mq.TLO.Me.PctEndurance() < config.MEDENDSTOP or mq.TLO.Me.PctMana() < config.MEDMANASTOP) and medding then
+        if (state.loop.PctEndurance < config.MEDENDSTOP or state.loop.PctMana < config.MEDMANASTOP) and medding then
             return false
         else
             medding = false
@@ -242,9 +242,9 @@ local function pull_engage(pull_spawn, pull_func)
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
     local targethp = mq.TLO.Target.PctHPs()
-    --if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
+    --if (tot_id > 0 and tot_id ~= state.loop.ID) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
     if targethp and targethp < 99 then
-        logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pull_mob_id, tot_id, mq.TLO.Me.ID(), targethp)
+        logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pull_mob_id, tot_id, state.loop.ID, targethp)
         -- TODO: clear skip targets
         PULL_TARGET_SKIP[pull_mob_id] = 1
         clear_pull_vars()
@@ -259,7 +259,7 @@ local function pull_engage(pull_spawn, pull_func)
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
         mq.cmd('/attack on')
-        mq.delay(5000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target() end)
+        mq.delay(5000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
     else
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
@@ -275,7 +275,7 @@ local function pull_engage(pull_spawn, pull_func)
             if not mq.TLO.Me.AutoFire() then
                 mq.cmd('/autofire on')
             end
-            mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target() end)
+            mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
         end
     end
     --logger.printf('mob agrod or timed out')
@@ -283,7 +283,7 @@ local function pull_engage(pull_spawn, pull_func)
     if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
     if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
     --mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
-    return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or common.hostile_xtargets() or not mq.TLO.Target()
+    return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target()
 end
 
 local pull_return_timer = timer:new(120)
@@ -320,7 +320,7 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if common.am_i_dead() or anyoneDead() or mq.TLO.Me.PctHPs() < 60 or common.DMZ[mq.TLO.Zone.ID()] then return end
+    if common.am_i_dead() or anyoneDead() or state.loop.PctHPs < 60 or common.DMZ[mq.TLO.Zone.ID()] then return end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
     if not pull_state and (state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
         logger.debug(logger.log_flags.routines.pull, 'returning at weird state')

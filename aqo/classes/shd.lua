@@ -187,7 +187,7 @@ table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
 table.insert(class.petBuffs, class.spells.pethaste)
 
 local function find_next_spell()
-    local myhp = mq.TLO.Me.PctHPs()
+    local myhp = state.loop.PctHPs
     -- aggro
     if config.MODE:is_tank_mode() and class.OPTS.SPELLSET.value == 'standard' and myhp > 70 then
         if state.mob_count > 2 then
@@ -228,7 +228,7 @@ end
 class.cast = function()
     if common.am_i_dead() then return end
     if class.isEnabled('DONTCAST') then return end
-    if not mq.TLO.Me.Invis() then
+    if not state.loop.Invis then
         if assist.is_fighting() then
             local spell = find_next_spell()
             if spell then
@@ -247,7 +247,7 @@ class.mash_class = function()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         -- hate's attraction
         if class.OPTS.USEHATESATTRACTION.value and attraction and mobhp and mobhp > 95 then
             attraction:use()
@@ -256,7 +256,7 @@ class.mash_class = function()
 end
 
 class.burn_class = function()
-    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         if mantle then mantle:use() end
         if carapace then carapace:use() end
         if guardian then guardian:use() end
@@ -266,8 +266,8 @@ class.burn_class = function()
 end
 
 class.ohshit = function()
-    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if flash and mq.TLO.Me.AltAbilityReady(flash.name)() then
                 flash:use()
             elseif class.OPTS.USEDEFLECTION.value and deflection then

@@ -385,9 +385,9 @@ base.cure = function()
         if mq.TLO.Me.CountersCurse() > 0 then
             for _,cure in base.cures do
                 if cure.curse or cure.all and cure:isReady() then
-                    if mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
+                    if mq.TLO.Target.ID() ~= state.loop.ID then
                         mq.cmd('/mqtar')
-                        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+                        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                     end
                     cure:use()
                 end
@@ -436,7 +436,7 @@ local function doMashClickies()
 end
 
 base.mash = function()
-    if common.am_i_dead() or mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if common.am_i_dead() or mq.TLO.Target.ID() == state.loop.ID then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
         if base.mash_class then base.mash_class() end
@@ -449,7 +449,7 @@ base.mash = function()
 end
 
 base.ae = function()
-    if common.am_i_dead() or mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if common.am_i_dead() or mq.TLO.Target.ID() == state.loop.ID then return end
     if not base.isEnabled('USEAOE') then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
@@ -484,7 +484,7 @@ base.find_next_spell = function()
 end
 
 local function castDebuffs()
-    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     if base.isEnabled('USEDISPEL') and mq.TLO.Target.Beneficial() and base.dispel then
         base.dispel:use()
         if base.dispel.type == Abilities.Types.Spell then return true end
@@ -570,13 +570,13 @@ end
 local check_aggro_timer = timer:new(5)
 base.aggro = function()
     if common.am_i_dead() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then return end
-    if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
+    if mq.TLO.Me.CombatState() == 'COMBAT' and state.loop.PctHPs < 50 then
         for _,ability in ipairs(base.defensiveAbilities) do
             if ability:use() and ability.stand then print('FD used, standing') mq.delay(50) mq.cmd('/stand') end
         end
     end
     if base.drop_aggro and config.MODE:get_name() ~= 'manual' and base.OPTS.USEFADE.value and state.mob_count > 0 and check_aggro_timer:timer_expired() then
-        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 75 then
+        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID) and state.loop.PctHPs < 75 then
             base.drop_aggro:use()
             check_aggro_timer:reset()
             mq.delay(1000)
@@ -600,14 +600,14 @@ base.recover = function()
     if base.recover_class then base.recover_class() end
     -- modrods
     common.check_mana()
-    local pct_mana = mq.TLO.Me.PctMana()
-    local pct_end = mq.TLO.Me.PctEndurance()
+    local pct_mana = state.loop.PctMana
+    local pct_end = state.loop.PctEndurance
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     for _,ability in ipairs(base.recoverAbilities) do
         if base.isAbilityEnabled(ability.opt) then
             --if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
-            if ability.mana and pct_mana < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
+            if ability.mana and pct_mana < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
                 useAbility = ability
                 break
             elseif ability.endurance and pct_end < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') then
@@ -626,7 +626,7 @@ base.recover = function()
         if mq.TLO.Me.MaxHPs() < 6000 then return end
         if spell and spell.TargetType() == 'Single' then
             mq.TLO.Me.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         end
         if useAbility:use() then state.actionTaken = true end
     end

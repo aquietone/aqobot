@@ -183,7 +183,7 @@ local selos_timer = timer:new(30)
 local crescendo_timer = timer:new(53)
 local boastful_timer = timer:new(30)
 local synergy_timer = timer:new(18)
-class.item_timer = timer:new(2)
+class.item_timer = timer:new(1)
 
 class.reset_class_timers = function()
     boastful_timer:reset(0)
@@ -253,10 +253,10 @@ local function is_song_ready(spellId, spellName)
     if not spellName then return false end
     local actualSpellName = spellName
     if state.subscription ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
+    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and state.loop.PctMana < state.min_mana) then
         return false
     end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
+    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and state.loop.PctEndurance < state.min_end) then
         return false
     end
     if mq.TLO.Spell(spellName).TargetType() == 'Single' then
@@ -304,7 +304,7 @@ end
 
 class.cast = function()
     if class.OPTS.USETWIST.value then return false end
-    if not mq.TLO.Me.Invis() and class.can_i_sing() and class.item_timer:timer_expired() then
+    if not state.loop.Invis and class.can_i_sing() and class.item_timer:timer_expired() then
         local spell = find_next_song() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             local did_cast = false
@@ -313,14 +313,8 @@ class.cast = function()
             else
                 did_cast = spell:use() -- then cast the dot
             end
-            if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then song_timer:reset() end
+            if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then song_timer:reset() class.item_timer:reset() end
             if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendo_timer:reset() end
-            class.item_timer:reset()
-            if spell.name == (class.spells.selos and class.spells.selos.name) then
-                mq.delay(1000)
-                mq.cmd('/stopsong')
-                selos_timer:reset()
-            end
             return true
         end
     end

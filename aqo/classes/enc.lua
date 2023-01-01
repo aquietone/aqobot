@@ -109,9 +109,9 @@ class.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
 class.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
 if class.spells.synergy then
     if class.spells.synergy.name:find('reap') then
-        class.spells.nuke5 = common.get_best_spell({'Mindrift', 'Mindslash'})
+        class.addSpell('nuke5', {'Mindrift', 'Mindslash'})
     elseif class.spells.synergy.name:find('rift') then
-        class.spells.nuke5 = common.get_best_spell({'Mindslash'})
+        class.addSpell('nuke5', {'Mindslash'})
     end
 end
 if state.emu then
@@ -216,6 +216,8 @@ if state.emu then
     table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
     class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true}
     table.insert(class.singleBuffs, class.spells.procbuff)
+else
+    table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {checkfor='Ward of the Beguiler'}))
 end
 
 --[[
@@ -274,7 +276,7 @@ end
 class.recover = function()
     -- modrods
     common.check_mana()
-    local pct_mana = mq.TLO.Me.PctMana()
+    local pct_mana = state.loop.PctMana
     if gathermana and pct_mana < 50 then
         -- death bloom at some %
         gathermana:use()
@@ -289,14 +291,14 @@ end
 
 local check_aggro_timer = timer:new(10)
 class.aggro = function()
-    if mq.TLO.Me.PctHPs() < 40 and sanguine then
+    if state.loop.PctHPs < 40 and sanguine then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(sanguine.name) then mq.cmd('/autoinventory') end
         local hpcrystal = mq.TLO.FindItem('='..sanguine.name)
         common.use_item(hpcrystal)
     end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
 
             end

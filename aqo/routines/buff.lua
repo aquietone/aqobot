@@ -9,11 +9,19 @@ local buff = {}
 -- xpBuffs = { 42962 /*xp6*/, 42617 /*xp5*/, 42616 /*xp4*/}
 -- gmBuffs = { 34835,35989,35361,25732,34567,36838,43040,36266,36423}
 
+buff.hasBuff = function(spell)
+    local hasBuff = mq.TLO.Me.Buff(spell.name)()
+    if not hasBuff then
+        hasBuff = mq.TLO.Me.Song(spell.name)()
+    end
+    return hasBuff
+end
+
 buff.selfBuff = function(spell)
     if not mq.TLO.Me.Buff(spell.name)() and mq.TLO.Spell(spell.name).Stacks() then
         if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
             mq.cmd('/mqtarget myself')
-            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         end
         return spell:use()
     end
@@ -130,7 +138,7 @@ local function buff_self(base)
                 and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0) then
             if buff.targettype == 'Single' then
                 mq.TLO.Me.DoTarget()
-                mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+                mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
             end
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then return true end

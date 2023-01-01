@@ -22,6 +22,16 @@ local function check_game_state()
         logger.printf('Not in game, stopping aqo.')
         mq.exit()
     end
+    state.loop = {
+        PctHPs = mq.TLO.Me.PctHPs(),
+        PctMana = mq.TLO.Me.PctMana(),
+        PctEndurance = mq.TLO.Me.PctEndurance(),
+        ID = mq.TLO.Me.ID(),
+        Invis = mq.TLO.Me.Invis(),
+        PetName = mq.TLO.Me.Pet.CleanName(),
+        TargetID = mq.TLO.Target.ID(),
+        TargetHP = mq.TLO.Target.PctHPs(),
+    }
 end
 
 ---Display help information for the script.
@@ -231,7 +241,7 @@ local function main()
             end
             if mq.TLO.Me.Hovering() then
                 mq.delay(50)
-            elseif not mq.TLO.Me.Invis() and not common.blocking_window_open() then
+            elseif not state.loop.Invis and not common.blocking_window_open() then
                 -- do active combat assist things when not paused and not invis
                 if mq.TLO.Me.Feigning() and not common.FD_CLASSES[state.class] then
                     mq.cmd('/stand')
@@ -263,7 +273,7 @@ local function main()
                 mq.delay(50)
             end
         else
-            if mq.TLO.Me.Invis() then
+            if state.loop.Invis then
                 -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
                 local pet_target_id = mq.TLO.Pet.Target.ID() or 0
                 if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
