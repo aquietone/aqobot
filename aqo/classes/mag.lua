@@ -27,7 +27,7 @@ class.addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration:
                     'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                     'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
 class.addSpell('petbuff', {'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
-class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
+--class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
 class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summons={'Molten Orb','Lava Orb'}, summonMinimum=1})
 class.addSpell('petds', {'Iceflame Guard'})
 class.addSpell('servant', {'Rampaging Servant'})
@@ -46,7 +46,7 @@ table.insert(class.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
 table.insert(class.burnAbilities, common.getAA('Frenzied Burnout'))
 
 table.insert(class.petBuffs, class.spells.petbuff)
-table.insert(class.petBuffs, class.spells.petstrbuff)
+--table.insert(class.petBuffs, class.spells.petstrbuff)
 table.insert(class.petBuffs, class.spells.petds)
 
 table.insert(class.healAbilities, class.spells.petheal)
@@ -65,7 +65,7 @@ class.debuff = common.getAA('Malosinete')
 
 local standard = {}
 table.insert(standard, class.spells.servant)
-table.insert(standard, class.spells.prenuke)
+--table.insert(standard, class.spells.prenuke)
 table.insert(standard, class.spells.fastfire)
 table.insert(standard, class.spells.firenuke)
 table.insert(standard, class.spells.magicnuke)

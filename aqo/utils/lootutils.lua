@@ -267,7 +267,7 @@ local function setupEvents()
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
     mq.event("InventoryFull", "#*#Your inventory appears full!#*#", eventInventoryFull)
     mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
-    mq.event("Forage", "Your forage mastery has enabled you to find something else!", eventForage)
+    mq.event("ForageExtra", "Your forage mastery has enabled you to find something else!", eventForage)
     mq.event("Forage", "You have scrounged up #*#", eventForage)
     mq.event("Novalue", "#*#give you absolutely nothing for the #1#.#*#", eventNovalue)
     --[[mq.event("Lore", "#*#You cannot loot this Lore Item.#*#", eventHandler)]]--

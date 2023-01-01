@@ -80,6 +80,19 @@ assist.get_assist_spawn = function()
     return assist_target
 end
 
+assist.force_assist = function(assist_id)
+    if assist_id then
+        state.assist_mob_id = assist_id
+    else
+        local assist_spawn = assist.get_assist_spawn()
+        if assist_spawn == -1 then
+            mq.cmdf('/assist %s', config.CHASETARGET)
+            mq.delay(100)
+            state.assist_mob_id = mq.TLO.Target.ID()
+        end
+    end
+end
+
 local manual_assist_timer = timer:new(3)
 ---Determine whether to begin assisting on a mob.
 ---@param assist_target spawn|nil @The MQ Spawn to be checked, otherwise the main assists target.
@@ -110,7 +123,7 @@ assist.should_assist = function(assist_target)
     local mob_type = assist_target.Type()
     local mob_x = assist_target.X()
     local mob_y = assist_target.Y()
-    if not id or id == 0 or not hp or hp == 0 or not mob_x or not mob_y then return false end
+    if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
     if mob_type == 'NPC' and hp < config.AUTOASSISTAT then
         if camp.Active and common.check_distance(camp.X, camp.Y, mob_x, mob_y) <= config.CAMPRADIUS then
             return true

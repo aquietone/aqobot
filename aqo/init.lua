@@ -133,6 +133,16 @@ local function cmd_bind(...)
         else
             logger.printf('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
         end
+    elseif opt == 'tribute' then
+        common.toggleTribute()
+    elseif opt == 'bark' then
+        local repeatstring = ''
+        for i=2,#args do
+            repeatstring = repeatstring .. ' ' .. args[i]
+        end
+        mq.cmdf('/dgga /say %s', repeatstring)
+    elseif opt == 'force' then
+        assist.force_assist(new_value)
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
@@ -215,7 +225,9 @@ local function main()
                 state.tank_mob_id = 0
                 state.assist_mob_id = 0
                 state.pull_mob_id = 0
-                mq.cmd('/squelch /mqtarget clear')
+                if not common.HEALER_CLASSES[state.class] then
+                    mq.cmd('/squelch /mqtarget clear')
+                end
             end
             if mq.TLO.Me.Hovering() then
                 mq.delay(50)

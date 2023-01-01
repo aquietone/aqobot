@@ -137,7 +137,7 @@ end
 
 base.addCommonAbilities = function()
     base.tranquil = common.getAA('Tranquil Blessings')
-    base.radiant = common.getAA('Radiant Cure')
+    base.radiant = common.getAA('Radiant Cure', {all=true})
     base.silent = common.getAA('Silent Casting')
     base.mgb = common.getAA('Mass Group Buff')
 end
@@ -332,7 +332,7 @@ base.setup_events = function()
         mez.setup_events()
     end
     if base.OPTS.USESNARE then
-        mq.event('event_snareimmune', 'Your target is immune to changes in its run speed#*#', base.event_snareimmune)
+        mq.event('event_runspeedimmune', 'Your target is immune to changes in its run speed#*#', base.event_snareimmune)
         mq.event('event_snareimmune', 'Your target is immune to snare spells#*#', base.event_snareimmune)
     end
     if base.tranquil then
@@ -346,7 +346,7 @@ base.setup_events = function()
 end
 
 base.assist = function()
-    if mq.TLO.Navigation.Active() then return end
+    if common.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
     if healers[base.class] and config.ASSIST == 'manual' then return end
     if config.MODE:is_assist_mode() then
         assist.check_target(base.reset_class_timers)
@@ -364,6 +364,7 @@ base.assist = function()
 end
 
 base.tank = function()
+    if common.DMZ[mq.TLO.Zone.ID()] then return end
     tank.find_mob_to_tank()
     tank.tank_mob()
     assist.send_pet()
@@ -380,7 +381,19 @@ base.heal = function()
 end
 
 base.cure = function()
-
+    if mq.TLO.Me.SPA(15)() < 0 then
+        if mq.TLO.Me.CountersCurse() > 0 then
+            for _,cure in base.cures do
+                if cure.curse or cure.all and cure:isReady() then
+                    if mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
+                        mq.cmd('/mqtar')
+                        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+                    end
+                    cure:use()
+                end
+            end
+        end
+    end
 end
 
 local function doCombatLoop(list, burn_type)
@@ -407,13 +420,15 @@ base.mashClickies = {'Molten Orb', 'Lava Orb'}
 local function doMashClickies()
     for _,clicky in ipairs(base.mashClickies) do
         local clickyItem = mq.TLO.FindItem('='..clicky)
-        if clickyItem() and clickyItem.Timer() == '0' then
+        if clickyItem() and clickyItem.Timer() == '0' and (not base.item_timer or base.item_timer:timer_expired()) then
             if mq.TLO.Cursor.Name() == clickyItem.Name() then
                 mq.cmd('/autoinv')
                 mq.delay(50)
                 clickyItem = mq.TLO.FindItem('='..clicky)
             end
+            if base.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
             mq.cmdf('/useitem "%s"', clickyItem.Name())
+            if base.item_timer then base.item_timer:reset() end
             mq.delay(50)
             mq.delay(250, function() return not mq.TLO.Me.Casting() end)
         end

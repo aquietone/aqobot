@@ -416,7 +416,7 @@ end
 function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
     if self:isReady(theItem) then
-        mq.cmd('/stopcast')
+        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(50) return false end
         logger.printf('Use Item: \ag%s\ax', theItem)
         mq.cmdf('/useitem "%s"', theItem)
         mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff

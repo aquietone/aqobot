@@ -24,6 +24,7 @@ class.addSpell('snare', {'Ensnare', 'Snare'})
 class.addSpell('aura', {'Aura of Life', 'Aura of the Grove'})
 class.addSpell('pet', {'Nature Wanderer\'s Behest'})
 class.addSpell('reptile', {'Skin of the Reptile'}, {classes={MNK=true,WAR=true,PAL=true,SHD=true}})
+class.addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
 
 -- Group Spirit of the Black Wolf
 -- Group Spirit of the White Wolf
@@ -86,6 +87,9 @@ table.insert(class.burnAbilities, common.getAA('Nature\'s Boon'))
 table.insert(class.burnAbilities, common.getAA('Nature\'s Blessing'))
 table.insert(class.burnAbilities, common.getAA('Improved Twincast'))
 table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of Nature'))
+
+table.insert(class.cures, class.radiant)
+table.insert(class.cures, class.rgc)
 
 class.debuff = common.getAA('Blessing of Ro')
 

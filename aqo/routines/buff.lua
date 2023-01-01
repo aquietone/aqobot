@@ -137,7 +137,10 @@ local function buff_self(base)
             elseif buff.type == Abilities.Types.Disc then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) return true end
             else
-                buff:use()
+                if not base.item_timer or base.item_timer:timer_expired() then
+                    buff:use()
+                    if base.item_timer then base.item_timer:reset() end
+                end
             end
             if buff.removesong then mq.cmdf('/removebuff %s', buff.removesong) end
         end

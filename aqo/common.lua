@@ -26,6 +26,7 @@ common.DMZ = {
     [203] = 1,
     [279] = 1,
     [151] = 1,
+    [220] = 1,
     [33506] = 1,
 }
 
@@ -147,6 +148,21 @@ common.getItem = function(itemName, options)
     if itemRef() and itemRef.Clicky() then
         if not options then options = {} end
         options.checkfor = itemRef.Clicky.Spell()
+        if itemRef.Clicky.Spell.HasSPA(374)() then
+            for i=1,5 do
+                if itemRef.Clicky.Spell.Attrib(i)() == 374 then
+                    -- mount blessing buff
+                    if not itemRef.Clicky.Spell.Trigger(i).Name():find('Illusion') then
+                        options.checkfor = itemRef.Clicky.Spell.Trigger(i).Name()
+                        options.removesong = itemRef.Clicky.Spell()
+                    else
+                        options.removesong = itemRef.Clicky.Spell.Trigger(i).Name()
+                    end
+                elseif itemRef.Clicky.Spell.Attrib(i)() == 113 then
+                    -- summon mount SPA
+                end
+            end
+        end
         local item = ability.Item:new(itemRef.ID(), itemRef.Name(), itemRef.Clicky.Spell.TargetType(), options)
         return item
     end
@@ -435,6 +451,7 @@ common.use_item = function(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if item_ready(item) then
         logger.printf('Use Item: \ag%s\ax', item)
+        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
         mq.cmdf('/useitem "%s"', item)
         mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true
@@ -628,6 +645,13 @@ common.check_cursor = function()
         logger.debug(logger.log_flags.common.misc, 'Cursor is empty, resetting autoinv_timer')
         autoinv_timer:reset(0)
     end
+end
+
+common.toggleTribute = function()
+    logger.debug(logger.log_flags.common.misc, 'Toggle tribute')
+    mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
+    mq.cmd('/notify TBW_PersonalPage TBWP_ActivateButton leftmouseup')
+    mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
 end
 
 ---Event callback for handling spell resists from mobs
