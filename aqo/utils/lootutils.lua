@@ -108,9 +108,9 @@ EQ item names. Any INI entry which doesn't match the regex is just skipped over 
 
 ---@type Mq
 local mq = require 'mq'
-local _, LIP = pcall(require, AQO..'.utils.LIP')
+local _, LIP = pcall(require, 'utils.LIP')
 if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
-local _, Write = pcall(require, AQO..'.utils.Write')
+local _, Write = pcall(require, 'utils.Write')
 if not Write then print('\arERROR: Write.lua could not be loaded\ax') return end
 
 -- Public default settings, also read in from Loot.ini [Settings] section

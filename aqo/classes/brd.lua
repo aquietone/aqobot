@@ -1,10 +1,10 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local state = require('state')
 
 -- what was this again?
 mq.cmd('/squelch /stick mod 0')

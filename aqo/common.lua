@@ -1,11 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
-local named = require(AQO..'.data.named')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local ability = require(AQO..'.ability')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local named = require('data.named')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local ability = require('ability')
+local config = require('configuration')
+local state = require('state')
 
 local common = {}
 

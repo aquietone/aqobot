@@ -3,12 +3,12 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
-local camp = require(AQO..'.routines.camp')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local mode = require(AQO..'.mode')
-local state = require(AQO..'.state')
-local logger = require(AQO..'.utils.logger')
+local camp = require('routines.camp')
+local common = require('common')
+local config = require('configuration')
+local mode = require('mode')
+local state = require('state')
+local logger = require('utils.logger')
 
 -- GUI Control variables
 local open_gui = true

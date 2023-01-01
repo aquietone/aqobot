@@ -1,4 +1,4 @@
-local logger = require(AQO..'.utils.logger')
+local logger = require('utils.logger')
 
 local mode = {
     modes={},

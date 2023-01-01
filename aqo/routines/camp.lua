@@ -1,10 +1,10 @@
 --- @type Mq
 local mq = require 'mq'
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 local camp = {
     Active=false,

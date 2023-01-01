@@ -1,9 +1,9 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 -- What were these again?
 mq.cmd('/squelch /stick mod -2')

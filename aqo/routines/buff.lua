@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require('mq')
-local Abilities = require(AQO..'.ability')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local Abilities = require('ability')
+local common = require('common')
+local state = require('state')
 
 local buff = {}
 

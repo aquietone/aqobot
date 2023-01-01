@@ -1,6 +1,6 @@
 local mq = require('mq')
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
+local class = require('classes.classbase')
+local common = require('common')
 
 class.class = 'wiz'
 class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}

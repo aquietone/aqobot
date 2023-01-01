@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
+local class = require('classes.classbase')
+local timer = require('utils.timer')
+local common = require('common')
 
 class.class = 'shm'
 class.classOrder = {'heal', 'cure', 'assist', 'cast', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}

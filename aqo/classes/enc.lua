@@ -1,10 +1,10 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local mez = require(AQO..'.routines.mez')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local mez = require('routines.mez')
+local timer = require('utils.timer')
+local common = require('common')
+local state = require('state')
 
 class.class = 'enc'
 class.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}

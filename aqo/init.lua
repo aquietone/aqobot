@@ -4,16 +4,16 @@ local mq = require('mq')
 require 'ImGui'
 
 AQO='aqo'
-local assist = require(AQO..'.routines.assist')
-local camp = require(AQO..'.routines.camp')
-local logger = require(AQO..'.utils.logger')
-local loot = require(AQO..'.utils.lootutils')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local mode = require(AQO..'.mode')
-local state = require(AQO..'.state')
-local ui = require(AQO..'.ui')
+local assist = require('routines.assist')
+local camp = require('routines.camp')
+local logger = require('utils.logger')
+local loot = require('utils.lootutils')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local mode = require('mode')
+local state = require('state')
+local ui = require('ui')
 local aqoclass
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
@@ -179,7 +179,7 @@ local function init()
     if mq.TLO.EverQuest.Server() == 'Project Lazarus' or mq.TLO.EverQuest.Server() == 'EZ (Linux) x4 Exp' then state.emu = true end
     common.set_swap_gem()
 
-    aqoclass = require(AQO..'.classes.'..state.class)
+    aqoclass = require('classes.'..state.class)
     mq.bind(('/%s'):format(state.class), cmd_bind)
 
     aqoclass.load_settings()
@@ -277,6 +277,9 @@ local function main()
                 -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
                 local pet_target_id = mq.TLO.Pet.Target.ID() or 0
                 if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
+            end
+            if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
+                mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
             end
             mq.delay(500)
         end

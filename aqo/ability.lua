@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
-local logger = require(AQO..'.utils.logger')
-local state = require(AQO..'.state')
+local logger = require('utils.logger')
+local state = require('state')
 
 ---@class Ability
 ---@field id number # the ID of this ability

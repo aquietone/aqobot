@@ -1,19 +1,19 @@
 ---@type Mq
 local mq = require 'mq'
-local assist = require(AQO..'.routines.assist')
-local buffing = require(AQO..'.routines.buff')
-local camp = require(AQO..'.routines.camp')
-local healing = require(AQO..'.routines.heal')
-local mez = require(AQO..'.routines.mez')
-local pull = require(AQO..'.routines.pull')
-local tank = require(AQO..'.routines.tank')
-local logger = require(AQO..'.utils.logger')
-local persistence = require(AQO..'.utils.persistence')
-local timer = require(AQO..'.utils.timer')
-local Abilities = require(AQO..'.ability')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local assist = require('routines.assist')
+local buffing = require('routines.buff')
+local camp = require('routines.camp')
+local healing = require('routines.heal')
+local mez = require('routines.mez')
+local pull = require('routines.pull')
+local tank = require('routines.tank')
+local logger = require('utils.logger')
+local persistence = require('utils.persistence')
+local timer = require('utils.timer')
+local Abilities = require('ability')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 local base = {}
 
 -- All possible class routine methods

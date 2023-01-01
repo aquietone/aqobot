@@ -1,13 +1,13 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local assist = require(AQO..'.routines.assist')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
-local ui = require(AQO..'.ui')
+local class = require('classes.classbase')
+local assist = require('routines.assist')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
+local ui = require('ui')
 
 class.class = 'nec'
 class.classOrder = {'assist', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff', 'rest', 'managepet'}
@@ -47,7 +47,7 @@ class.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad
 class.addSpell('magic', {'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'})
 class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'})
 class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'})
-class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze''Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'})
+class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'})
 class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp'})
 class.addSpell('leech', {'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'})
 class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy', 'Ancient: Curse of Mori'})
@@ -81,7 +81,7 @@ class.addSpell('flesh', {'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'})
 class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'})
 class.addSpell('rune', {'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}) -- unused
 class.addSpell('tapproc', {'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}) -- unused
-class.addSpell('defensiveproc', {'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'})
+class.addSpell('defensiveproc', {'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, {classes={WAR=true,PAL=true,SHD=true}})
 class.addSpell('reflect', {'Mirror'})
 class.addSpell('hpbuff', {'Shadow Guard', 'Shield of Maelin'}) -- pre-unity
 -- Pet spells
@@ -156,7 +156,12 @@ table.insert(class.burnAbilities, common.getAA('Silent Casting')) -- song, 12 mi
 table.insert(class.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
 table.insert(class.burnAbilities, common.getAA('Mercurial Torment')) -- buff, 24 minute CD
 table.insert(class.burnAbilities, common.getAA('Heretic\'s Twincast')) -- buff, 15 minute CD
-table.insert(class.burnAbilities, common.getAA('Spire of Necromancy')) -- buff, 7:30 minute CD
+if not state.emu then
+    table.insert(class.burnAbilities, common.getAA('Spire of Necromancy')) -- buff
+else
+    table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of Necromancy')) -- buff, 7:30 minute CD
+    table.insert(class.burnAbilities, common.getAA('Embalmer\'s Carapace'))
+end
 table.insert(class.burnAbilities, common.getAA('Hand of Death')) -- song, 8:30 minute CD
 table.insert(class.burnAbilities, common.getAA('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
 table.insert(class.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
@@ -175,7 +180,11 @@ local pre_burn_AAs = {}
 table.insert(pre_burn_AAs, common.getAA('Focus of Arcanum')) -- buff
 table.insert(pre_burn_AAs, common.getAA('Mercurial Torment')) -- buff
 table.insert(pre_burn_AAs, common.getAA('Heretic\'s Twincast')) -- buff
-table.insert(pre_burn_AAs, common.getAA('Spire of Necromancy')) -- buff
+if not state.emu then
+    table.insert(pre_burn_AAs, common.getAA('Spire of Necromancy')) -- buff
+else
+    table.insert(pre_burn_AAs, common.getAA('Fundament: Third Spire of Necromancy')) -- buff
+end
 
 local tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
@@ -184,6 +193,19 @@ local lifeburn = common.getAA('Life Burn')
 local dyinggrasp = common.getAA('Dying Grasp')
 -- Buffs
 local unity = common.getAA('Mortifier\'s Unity')
+
+if state.emu then
+    table.insert(class.selfBuffs, class.spells.lich)
+    table.insert(class.selfBuffs, class.spells.hpbuff)
+    table.insert(class.singleBuffs, class.spells.defensiveproc)
+    table.insert(class.combatBuffs, common.getAA('Reluctant Benevolence'))
+else
+    table.insert(class.selfBuffs, unity)
+end
+table.insert(class.selfBuffs, class.spells.shield)
+table.insert(class.petBuffs, class.spells.inspire)
+table.insert(class.petBuffs, class.spells.pethaste)
+
 -- Mana Recovery AAs
 local deathbloom = common.getAA('Death Bloom')
 local bloodmagic = common.getAA('Blood Magic')
@@ -192,7 +214,9 @@ local deathpeace = common.getAA('Death Peace')
 local deathseffigy = common.getAA('Death\'s Effigy')
 
 local convergence = common.getAA('Convergence')
+class.rezAbility = convergence
 local dispel = common.getAA('Eradicate Magic')
+class.dispel = dispel
 
 local scent = common.getAA('Scent of Thule')
 local debuff_timer = timer:new(30)
@@ -515,6 +539,10 @@ local function pre_pop_burns()
 end
 
 class.recover = function()
+    if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.name)() then
+        logger.printf('Removing lich to avoid dying!')
+        mq.cmdf('/removebuff %s', class.spells.lich.name)
+    end
     -- modrods
     common.check_mana()
     local pct_mana = state.loop.PctMana
@@ -583,87 +611,6 @@ class.aggro = function()
     end
 end
 
-local rez_timer = timer:new(5)
-class.rez = function()
-    if not class.OPTS.USEREZ.value or not convergence or common.am_i_dead() then return end
-    if not rez_timer:timer_expired() then return end
-    if not mq.TLO.Me.AltAbilityReady(convergence.name)() then return end
-    if mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if mq.TLO.SpawnCount('pccorpse group healer radius 100')() > 0 then
-        mq.TLO.Spawn('pccorpse group healer radius 100').DoTarget()
-        mq.cmd('/corpse')
-        convergence:use()
-        rez_timer:reset()
-        return
-    end
-    if mq.TLO.SpawnCount('pccorpse raid healer radius 100')() > 0 then
-        mq.TLO.Spawn('pccorpse raid healer radius 100').DoTarget()
-        mq.cmd('/corpse')
-        convergence:use()
-        rez_timer:reset()
-        return
-    end
-    if mq.TLO.Group.MainTank() and mq.TLO.Group.MainTank.Dead() then
-        mq.TLO.Group.MainTank.DoTarget()
-        local corpse_x = mq.TLO.Target.X()
-        local corpse_y = mq.TLO.Target.Y()
-        if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) > 100 then return end
-        mq.cmd('/corpse')
-        convergence:use()
-        rez_timer:reset()
-        return
-    end
-    for i=1,5 do
-        if mq.TLO.Group.Member(i)() and mq.TLO.Group.Member(i).Dead() then
-            mq.TLO.Group.Member(i).DoTarget()
-            local corpse_x = mq.TLO.Target.X()
-            local corpse_y = mq.TLO.Target.Y()
-            if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) < 100 then
-                mq.cmd('/corpse')
-                convergence:use()
-                rez_timer:reset()
-                return
-            end
-        end
-    end
-end
-
-class.buff = function()
-    if common.am_i_dead() or mq.TLO.Me.Moving() then return end
-    if class.OPTS.USEBUFFSHIELD.value and class.spells.shield then
-        local tempName = class.spells.shield.name
-        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-        if not mq.TLO.Me.Buff(tempName)() then
-            class.spells.shield:use()
-        end
-    end
-    if class.OPTS.USEINSPIRE.value and class.spells.inspire then
-        local tempName = class.spells.inspire.name
-        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-        if not mq.TLO.Pet.Buff(tempName)() then
-            class.spells.inspire:use()
-        end
-    end
-    common.check_combat_buffs()
-    if not common.clear_to_buff() then return end
-    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if (class.spells.lich and not mq.TLO.Me.Buff(class.spells.lich.name)()) or (class.spells.flesh and not mq.TLO.Me.Buff(class.spells.flesh.name)()) then
-        unity:use()
-    end
-
-    common.check_item_buffs()
-
-    if class.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 then
-        for _,buff in ipairs(buffs.pet) do
-            local tempName = buff.name
-            if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-            if not mq.TLO.Pet.Buff(tempName)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
-                common.swap_and_cast(buff, 13)
-            end
-        end
-    end
-end
-
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
@@ -677,7 +624,6 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.haze, 5)
             common.swap_spell(class.spells.grasp, 6)
             common.swap_spell(class.spells.leech, 7)
-            --common.swap_spell(spells.wounds, 10)
             common.swap_spell(class.spells.decay, 11)
             common.swap_spell(class.spells.synergy, 13)
             state.spellset_loaded = class.OPTS.SPELLSET.value
@@ -689,7 +635,6 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.haze, 5)
             common.swap_spell(class.spells.grasp, 6)
             common.swap_spell(class.spells.leech, 7)
-            common.swap_spell(class.spells.swarm, 10)
             common.swap_spell(class.spells.decay, 11)
             common.swap_spell(class.spells.synergy, 13)
             state.spellset_loaded = class.OPTS.SPELLSET.value
@@ -698,38 +643,30 @@ class.check_spell_set = function()
         set_swap_gems()
     end
     if class.OPTS.SPELLSET.value == 'standard' then
-        if class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
+        if class.isEnabled('USEMANATAP') then
             common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.shield, 12)
-        elseif class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.ignite, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.ignite, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.ignite, 9)
-            common.swap_spell(class.spells.shield, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
+        else
             common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.corruption, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.shield, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.ignite, 8)
+        end
+        if class.isEnabled('USEALLIANCE') then
             common.swap_spell(class.spells.alliance, 9)
+        else
+            if class.isEnabled('USEMANATAP') then
+                common.swap_spell(class.spells.ignite, 9)
+            else
+                common.swap_spell(class.spells.scourge, 9)
+            end
+        end
+        if class.isEnabled('USEBUFFSHIELD') then
             common.swap_spell(class.spells.shield, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.scourge, 12)
+        else
+            if class.isEnabled('USEMANATAP') and class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.ignite, 12)
+            elseif class.isEnabled('USEMANATAP') or class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.scourge, 12)
+            else
+                common.swap_spell(class.spells.corruption, 12)
+            end
         end
         if not class.OPTS.USEWOUNDS then
             common.swap_spell(class.spells.pyrelong, 10)
@@ -737,38 +674,35 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.wounds, 10)
         end
     elseif class.OPTS.SPELLSET.value == 'short' then
-        if class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
+        if class.isEnabled('USEMANATAP') then
             common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.inspire, 12)
-        elseif class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.venin, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.ignite, 9)
-            common.swap_spell(class.spells.venin, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.ignite, 9)
-            common.swap_spell(class.spells.inspire, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
+        else
             common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.venin, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.inspire, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.ignite, 8)
+        end
+        if class.isEnabled('USEALLIANCE') then
             common.swap_spell(class.spells.alliance, 9)
+        else
+            if class.isEnabled('USEMANATAP') then
+                common.swap_spell(class.spells.ignite, 9)
+            else
+                common.swap_spell(class.spells.scourge, 9)
+            end
+        end
+        if class.isEnabled('USEINSPIRE') then
             common.swap_spell(class.spells.inspire, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.venin, 12)
+        else
+            if class.isEnabled('USEMANATAP') and class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.ignite, 12)
+            elseif class.isEnabled('USEMANATAP') or class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.scourge, 12)
+            else
+                common.swap_spell(class.spells.venin, 12)
+            end
+        end
+        if not class.OPTS.USEWOUNDS then
+            common.swap_spell(class.spells.pyrelong, 10)
+        else
+            common.swap_spell(class.spells.swarm, 10)
         end
     end
 end

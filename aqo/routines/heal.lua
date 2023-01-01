@@ -1,9 +1,9 @@
 local mq = require('mq')
-local timer = require(AQO..'.utils.timer')
-local Abilities = require(AQO..'.ability')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..".state")
+local timer = require('utils.timer')
+local Abilities = require('ability')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 local healing = {}
 
@@ -272,15 +272,20 @@ healing.healSelf = function(healAbilities, opts)
 end
 
 local function doRezFor(rezAbility, groupOrRaid)
-    local corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse tank radius 100 noalert 0')
+    local corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
     if not corpse() then
-        corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse healer radius 100 noalert 0')
+        corpse = mq.TLO.Spawn('pccorpse healer radius 100 noalert 0')
         if not corpse() then
             corpse = mq.TLO.Spawn('pccorpse radius 100 noalert 0')
+            if not corpse() then
+                return false
+            end
         end
     end
     local corpseName = corpse.Name()
-    if corpseName and mq.TLO.Raid.Member(corpseName:gsub('\'s corpse.*', ''))() then
+    if not corpseName then return false end
+    corpseName = corpseName:gsub('\'s corpse.*', '')
+    if mq.TLO.Group.Member(corpseName)() or mq.TLO.Raid.Member(corpseName)() then
         corpse.DoTarget()
         mq.delay(100, function() return mq.TLO.Target.ID() == corpse.ID() end)
         if mq.TLO.Target.Type() == 'Corpse' then
@@ -300,6 +305,7 @@ healing.rez = function(rezAbility)
     if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
+    if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
     if reztimer:timer_expired() and mq.TLO.Alert(0)() then mq.cmd('/alert clear 0') end
     if config.REZGROUP then
         if doRezFor(rezAbility, 'group') then return true end
