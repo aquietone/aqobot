@@ -313,7 +313,7 @@ base.event_request = function(line, requester, requested)
         if requested == 'list buffs' then
             local buffList = ''
             for alias,ability in pairs(base.requestAliases) do
-                buffList = ('%s | %s : %s'):format(buffList, alias, base[ability].name)
+                buffList = ('%s | %s : %s'):format(buffList, alias, ability.name)
             end
             mq.cmdf('/t %s %s', requester, buffList)
             return
