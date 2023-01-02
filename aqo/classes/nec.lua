@@ -370,7 +370,10 @@ end
 
 class.find_next_spell = function()
     if try_alliance() then return nil end
-    if cast_synergy() then return nil end
+    if not state.emu then
+        cast_synergy()
+        return nil
+    end
     -- Just cast composite as part of the normal dot rotation, no special handling
     --if common.is_spell_ready(spells.composite.id, spells.composite.name) then
     --    return spells.composite.id, spells.composite.name
@@ -384,7 +387,7 @@ class.find_next_spell = function()
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > class.OPTS.STOPPCT.value and class.isEnabled('USEDOTS') then
         for _,dot in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-            if dot.id == class.spells.combodisease.id then
+            if class.spells.combodisease and dot.id == class.spells.combodisease.id then
                 if (not common.is_target_dotted_with(spells.decay.id, spells.decay.name) or not common.is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodisease.name)() then
                     return dot
                 end
@@ -399,6 +402,9 @@ class.find_next_spell = function()
     end
     if class.isEnabled('USENUKES') and class.spells.venin and mq.TLO.Me.SpellReady(class.spells.venin.name)() and mq.TLO.Spell(class.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.venin
+    end
+    if state.emu then
+        cast_synergy()
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
