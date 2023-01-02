@@ -38,7 +38,7 @@ class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- sel
 class.addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
 class.addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
 
---class.addSpell('armor', {}) -- Phantom Plate comes from?
+class.addSpell('armor', {'Grant Spectral Plate'}) -- targeted, Summon Folded Pack of Spectral Plate
 class.addSpell('weapons', {'Grant Spectral Armaments'}) -- targeted, Summons Folded Pack of Spectral Armaments
 class.addSpell('jewelry', {'Grant Enibik\'s Heirlooms'}) -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
 class.addSpell('belt', {'Summon Crystal Belt'}) -- Summoned: Crystal Belt
@@ -83,6 +83,7 @@ class.addRequestAlias(class.spells.orb, 'orb')
 class.addRequestAlias(class.spells.ds, 'ds')
 class.addRequestAlias(class.spells.weapons, 'arm')
 class.addRequestAlias(class.spells.jewelry, 'jewelry')
+class.addRequestAlias(class.spells.armor, 'armor')
 
 --[[
     "Fire", "Summoned: Fist of Flame",
@@ -93,8 +94,6 @@ class.addRequestAlias(class.spells.jewelry, 'jewelry')
     "Malo", "Summoned: Spear of Maliciousness",
     "Dispel", "Summoned: Wand of Dismissal",
     "Snare", "Summoned: Tendon Carver",
-    Muzzle of Mardu, Folded pack of Spectral Plate and Folded Pack of Enibik's Heirlooms and Gold
-    Folded Pack of Spectral Plate|Grant Spectral Plate
 ]]
 
 class.pull_func = function()

@@ -715,9 +715,15 @@ local function handleRequests()
             logger.printf('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requester)
             table.remove(base.requests, 1)
         else
-            if request.requested:isReady() then
-                local requesterSpawn = mq.TLO.Spawn('='..request.requester)
-                if (requesterSpawn.Distance3D() or 300) < 100 then
+            local requesterSpawn = mq.TLO.Spawn('='..request.requester)
+            if (requesterSpawn.Distance3D() or 300) < 100 then
+                local restoreGem
+                if request.requested.type == Abilities.Types.Spell and not mq.TLO.Me.Gem(request.requested.name)() then
+                    restoreGem = {name=mq.TLO.Me.Gem(state.swapGem)()}
+                    common.swap_spell(request.requested, state.swapGem)
+                    mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.name)() end)
+                end
+                if request.requested:isReady() then
                     local tranquilUsed = '/g Casting'
                     if request.tranquil then
                         if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then
@@ -744,6 +750,9 @@ local function handleRequests()
                     mq.cmdf('%s %s for %s', tranquilUsed, request.requested.name, request.requester)
                     request.requested:use()
                     table.remove(base.requests, 1)
+                end
+                if restoreGem then
+                    common.swap_spell(restoreGem, state.swapGem)
                 end
             end
         end
