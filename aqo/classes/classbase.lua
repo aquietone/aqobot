@@ -543,17 +543,36 @@ base.cast = function()
             local spell = base.find_next_spell()
             if spell then -- if a dot was found
                 if spell.precast then spell.precast() end
-                -- spell.precast
-                --if spell.name == nec.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
-                --    tcclick:use()
-                --end
-                if spell.name == 'Synapsis Spasm' then print('using spasm') end
                 if spell:use() then state.actionTaken = true end -- then cast the dot
                 base.nuketimer:reset()
                 if spell.postcast then spell.postcast() end
             end
         end
         -- nec multi dot stuff
+        if base.isEnabled('MULTIDOT') then
+            local original_target_id = 0
+            if mq.TLO.Target.Type() == 'NPC' then original_target_id = mq.TLO.Target.ID() end
+            local dotted_count = 1
+            for i=1,20 do
+                if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
+                    local xtar_id = mq.TLO.Me.XTarget(i).ID()
+                    local xtar_spawn = mq.TLO.Spawn(xtar_id)
+                    if xtar_id ~= original_target_id and assist.should_assist(xtar_spawn) then
+                        xtar_spawn.DoTarget()
+                        mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
+                        local spell = base.find_next_spell() -- find the first available dot to cast that is missing from the target
+                        if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
+                            spell:use()
+                            dotted_count = dotted_count + 1
+                            if dotted_count >= class.OPTS.MULTICOUNT.value then break end
+                        end
+                    end
+                end
+            end
+            if original_target_id ~= 0 and mq.TLO.Target.ID() ~= original_target_id then
+                mq.cmdf('/mqtar id %s', original_target_id)
+            end
+        end
     end
 end
 

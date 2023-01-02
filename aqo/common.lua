@@ -177,8 +177,7 @@ end
 
 common.set_swap_gem = function()
     if not mq.TLO.Me.Class.CanCast() then return end
-    local aaRank = mq.TLO.Me.AltAbility('Mnemonic Retention').Rank() or 0
-    state.swapGem = 8 + aaRank
+    state.swapGem = mq.TLO.Me.NumGems()
 end
 
 ---Check whether the specified dot is applied to the target.

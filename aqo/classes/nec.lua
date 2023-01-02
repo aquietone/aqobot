@@ -107,12 +107,13 @@ table.insert(standard, class.spells.composite)
 table.insert(standard, class.spells.pyreshort)
 table.insert(standard, class.spells.venom)
 table.insert(standard, class.spells.magic)
-table.insert(standard, class.spells.decay)
+--table.insert(standard, class.spells.decay)
+table.insert(standard, class.spells.combodisease)
 table.insert(standard, class.spells.haze)
 table.insert(standard, class.spells.grasp)
 table.insert(standard, class.spells.fireshadow)
 table.insert(standard, class.spells.leech)
-table.insert(standard, class.spells.grip)
+--table.insert(standard, class.spells.grip)
 table.insert(standard, class.spells.pyrelong)
 table.insert(standard, class.spells.ignite)
 table.insert(standard, class.spells.scourge)
@@ -124,12 +125,13 @@ table.insert(short, class.spells.composite)
 table.insert(short, class.spells.pyreshort)
 table.insert(short, class.spells.venom)
 table.insert(short, class.spells.magic)
-table.insert(short, class.spells.decay)
+--table.insert(short, class.spells.decay)
+table.insert(short, class.spells.combodisease)
 table.insert(short, class.spells.haze)
 table.insert(short, class.spells.grasp)
 table.insert(short, class.spells.fireshadow)
 table.insert(short, class.spells.leech)
-table.insert(short, class.spells.grip)
+--table.insert(short, class.spells.grip)
 table.insert(short, class.spells.pyrelong)
 table.insert(short, class.spells.ignite)
 
@@ -234,6 +236,12 @@ local buffs={
 
 local neccount = 1
 
+class.spells.pyreshort.precast = function()
+    if tcclick and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+        tcclick:use()
+    end
+end
+
 -- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
 local function set_swap_gems()
     swap_gem = mq.TLO.Me.Gem(class.spells.wounds and class.spells.wounds.name or 'unknown')() or
@@ -298,7 +306,8 @@ local function should_swap_dots()
         common.swap_spell(class.spells.wounds, swap_gem or 10)
     end
 
-    local decayName = class.spells.decay and class.spells.decay.name
+    -- Using combo disease spell instead of swapping between grip and decay
+    --[[local decayName = class.spells.decay and class.spells.decay.name
     local gripName = class.spells.grip and class.spells.grip.name
     local decayDuration = mq.TLO.Target.MyBuffDuration(decayName)()
     local gripDuration = mq.TLO.Target.MyBuffDuration(gripName)()
@@ -317,7 +326,7 @@ local function should_swap_dots()
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize decay again
         common.swap_spell(class.spells.decay, swap_gem_dis or 11)
-    end
+    end]]
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
@@ -359,7 +368,7 @@ local function cast_synergy()
     return false
 end
 
-local function find_next_dot_to_cast()
+class.find_next_spell = function()
     if try_alliance() then return nil end
     if cast_synergy() then return nil end
     -- Just cast composite as part of the normal dot rotation, no special handling
@@ -375,12 +384,11 @@ local function find_next_dot_to_cast()
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > class.OPTS.STOPPCT.value and class.isEnabled('USEDOTS') then
         for _,dot in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-            -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
-            -- if spell_id == spells.combodis.id then
-            --     if (not is_target_dotted_with(spells.decay.id, spells.decay.name) or not is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodis.name)() then
-            --         return dot
-            --     end
-            -- else
+            if dot.id == class.spells.combodisease.id then
+                if (not common.is_target_dotted_with(spells.decay.id, spells.decay.name) or not common.is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodisease.name)() then
+                    return dot
+                end
+            end
             if (class.OPTS.USEWOUNDS.value or dot.id ~= class.spells.wounds.id) and common.is_spell_ready(dot) then
                 return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
@@ -405,7 +413,7 @@ class.cast = function()
             scent:use()
             debuff_timer:reset()
         end
-        local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
+        local spell = class.find_next_spell() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             if tcclick and spell.name == class.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
                 tcclick:use()
@@ -424,7 +432,7 @@ class.cast = function()
                     if xtar_id ~= original_target_id and assist.should_assist(xtar_spawn) then
                         xtar_spawn.DoTarget()
                         mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
-                        local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
+                        local spell = class.find_next_spell() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
                             --if not mq.TLO.Me.SpellReady(spell.name)() then break end
                             spell:use()
@@ -631,7 +639,8 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.haze, 5)
             common.swap_spell(class.spells.grasp, 6)
             common.swap_spell(class.spells.leech, 7)
-            common.swap_spell(class.spells.decay, 11)
+            --common.swap_spell(class.spells.decay, 11)
+            common.swap_spell(class.spells.combodisease, 11)
             common.swap_spell(class.spells.synergy, 13)
             state.spellset_loaded = class.OPTS.SPELLSET.value
         elseif class.OPTS.SPELLSET.value == 'short' then
@@ -642,7 +651,8 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.haze, 5)
             common.swap_spell(class.spells.grasp, 6)
             common.swap_spell(class.spells.leech, 7)
-            common.swap_spell(class.spells.decay, 11)
+            --common.swap_spell(class.spells.decay, 11)
+            common.swap_spell(class.spells.combodisease, 11)
             common.swap_spell(class.spells.synergy, 13)
             state.spellset_loaded = class.OPTS.SPELLSET.value
         end
