@@ -33,7 +33,7 @@ end
 mez.do_ae = function(mez_spell, ae_count)
     if state.mob_count >= ae_count and mez_spell then
         if mq.TLO.Me.Gem(mez_spell.name)() and mq.TLO.Me.GemTimer(mez_spell.name)() == 0 then
-            logger.printf('AE Mezzing (MOB_COUNT=%d)', state.mob_count)
+            print(logger.logLine('AE Mezzing (MOB_COUNT=%d)', state.mob_count))
             mez_spell:use()
             mez.init_mez_timers()
             return true
@@ -66,7 +66,7 @@ mez.do_single = function(mez_spell)
                         if assist_spawn == -1 or assist_spawn.ID() ~= id then
                             state.mez_target_name = mob.CleanName()
                             state.mez_target_id = id
-                            logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
+                            print(logger.logLine('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID()))
                             if mez_spell.precast then mez_spell.precast() end
                             mez_spell:use()
                             logger.debug(logger.log_flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
@@ -87,13 +87,13 @@ mez.do_single = function(mez_spell)
 end
 
 mez.event_mezbreak = function(line, mob, breaker)
-    logger.printf('\at%s\ax mez broken by \at%s\ax', mob, breaker)
+    print(logger.logLine('\at%s\ax mez broken by \at%s\ax', mob, breaker))
 end
 
 mez.event_mezimmune = function(line)
     local mez_target_name = state.mez_target_name
     if mez_target_name then
-        logger.printf('Added to MEZ_IMMUNE: \at%s', mez_target_name)
+        print(logger.logLine('Added to MEZ_IMMUNE: \at%s', mez_target_name))
         state.mez_immunes[mez_target_name] = 1
     end
 end
@@ -101,7 +101,7 @@ end
 mez.event_mezresist = function(line, mob)
     local mez_target_name = state.mez_target_name
     if mez_target_name and mob == mez_target_name then
-        logger.printf('MEZ RESIST >>> \at%s\ax <<<', mez_target_name)
+        print(logger.logLine('MEZ RESIST >>> \at%s\ax <<<', mez_target_name))
         state.targets[state.mez_target_id].meztimer:reset(0)
     end
 end

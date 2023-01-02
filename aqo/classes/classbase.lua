@@ -160,9 +160,9 @@ base.addSpell = function(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options)
     base.spells[spellGroup] = foundSpell
     if foundSpell then
-        logger.printf('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id)
+        print(logger.logLine('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id))
     else
-        logger.printf('[%s] Could not find spell!', spellGroup)
+        print(logger.logLine('[%s] Could not find spell!', spellGroup))
     end
 end
 
@@ -179,7 +179,7 @@ base.addClicky = function(clicky)
             table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
         end
         table.insert(base.clickies, clicky)
-        logger.printf('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+        print(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
     end
 end
 
@@ -200,7 +200,7 @@ base.removeClicky = function(itemName)
             for j,entry in ipairs(t) do
                 if entry.name == itemName then
                     table.remove(t, j)
-                    logger.printf('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+                    print(logger.logLine('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
                     return
                 end
             end
@@ -222,7 +222,7 @@ base.load_settings = function()
     if not settings or not settings[base.class] then return end
     for setting,value in pairs(settings[base.class]) do
         if base.OPTS[setting] == nil then
-            logger.printf('Unrecognized setting: %s=%s', setting, value)
+            print(logger.logLine('Unrecognized setting: %s=%s', setting, value))
         else
             base.OPTS[setting].value = value
         end
@@ -308,7 +308,7 @@ base.event_request = function(line, requester, requested)
         if requested:find(' pet$') then
             requested = requested:gsub(' pet', '')
             requester = mq.TLO.Spawn('pc '..requester).Pet.CleanName()
-            printf('Pet Name for request: ', requester)
+            print('Pet Name for request: ', requester)
         end
         if requested == 'list buffs' then
             local buffList = ''
@@ -447,7 +447,7 @@ local function doMashClickies()
 end
 
 base.mash = function()
-    if common.am_i_dead() or mq.TLO.Target.ID() == state.loop.ID then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
         if base.mash_class then base.mash_class() end
@@ -460,7 +460,7 @@ base.mash = function()
 end
 
 base.ae = function()
-    if common.am_i_dead() or mq.TLO.Target.ID() == state.loop.ID then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     if not base.isEnabled('USEAOE') then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
@@ -475,7 +475,7 @@ end
 base.burn = function()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
-    if common.am_i_dead() or (base.can_i_sing and not base.can_i_sing()) then return end
+    if base.can_i_sing and not base.can_i_sing() then return end
     if common.is_burn_condition_met() then
         if base.burn_class then base.burn_class() end
 
@@ -536,7 +536,7 @@ end
 
 base.nuketimer = timer:new(0)
 base.cast = function()
-    if common.am_i_dead() or mq.TLO.Me.SpellInCooldown() then return end
+    if mq.TLO.Me.SpellInCooldown() then return end
     if assist.is_fighting() then
         if castDebuffs() then state.actionTaken = true return end
         if base.nuketimer:timer_expired() then
@@ -577,7 +577,6 @@ base.cast = function()
 end
 
 base.buff = function()
-    if common.am_i_dead() then return end
     if base.can_i_sing and not base.can_i_sing() then return end
     if buffing.buff(base) then state.actionTaken = true end
 end
@@ -599,7 +598,7 @@ end
 
 local check_aggro_timer = timer:new(5)
 base.aggro = function()
-    if common.am_i_dead() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then return end
+    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and state.loop.PctHPs < 50 then
         for _,ability in ipairs(base.defensiveAbilities) do
             if ability:use() and ability.stand then print('FD used, standing') mq.delay(50) mq.cmd('/stand') end
@@ -684,45 +683,41 @@ base.process_cmd = function(opt, new_value)
     if new_value then
         if opt == 'SPELLSET' and base.OPTS.SPELLSET ~= nil then
             if base.SPELLSETS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.SPELLSET.value = new_value
             end
         elseif opt == 'USEEPIC' and base.OPTS.USEEPIC ~= nil then
             if base.EPIC_OPTS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.USEEPIC.value = new_value
             end
         elseif opt == 'AURA1' and base.OPTS.AURA1 ~= nil then
             if base.AURAS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.AURA1.value = new_value
             end
         elseif opt == 'AURA2' and base.OPTS.AURA2 ~= nil then
             if base.AURAS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.AURA2.value = new_value
             end
         elseif base.OPTS[opt] and type(base.OPTS[opt].value) == 'boolean' then
-            if config.BOOL.FALSE[new_value] then
-                logger.printf('Setting %s to: false', opt)
-                if base.OPTS[opt].value ~= nil then base.OPTS[opt].value = false end
-            elseif config.BOOL.TRUE[new_value] then
-                logger.printf('Setting %s to: true', opt)
-                if base.OPTS[opt].value ~= nil then base.OPTS[opt].value = true end
-            end
+            if config.booleans[new_value] == nil then return end
+            base.OPTS[opt].value = config.booleans[new_value]
+            print(logger.logLine('Setting %s to: %s', opt, config.booleans[new_value]))
         elseif base.OPTS[opt] and type(base.OPTS[opt].value) == 'number' then
             if tonumber(new_value) then
-                logger.printf('Setting %s to: %s', opt, tonumber(new_value))
+                print(logger.logLine('Setting %s to: %s', opt, tonumber(new_value)))
                 if base.OPTS[opt].value ~= nil then base.OPTS[opt].value = tonumber(new_value) end
             end
         else
-            logger.printf('Unsupported command line option: %s %s', opt, new_value)
+            print(logger.logLine('Unsupported command line option: %s %s', opt, new_value))
         end
     else
         if base.OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt:lower(), base.OPTS[opt].value)
+            print(logger.logLine('%s: %s', opt:lower(), base.OPTS[opt].value))
         else
-            logger.printf('Unrecognized option: %s', opt)
+            print(logger.logLine('Unrecognized option: %s', opt))
         end
     end
 end
@@ -731,7 +726,7 @@ local function handleRequests()
     if #base.requests > 0 then
         local request = base.requests[1]
         if request.expiration:timer_expired() then
-            logger.printf('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requester)
+            print(logger.logLine('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requester))
             table.remove(base.requests, 1)
         else
             local requesterSpawn = mq.TLO.Spawn('='..request.requester)

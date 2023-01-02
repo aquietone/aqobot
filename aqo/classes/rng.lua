@@ -198,7 +198,7 @@ local function get_ranged_combat_position(radius)
                     local xtars = mq.TLO.SpawnCount(string.format('npc xtarhater loc %d %d %d radius 75', y_off, x_off, z_off))()
                     local allmobs = mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 75', y_off, x_off, z_off))()
                     if allmobs - xtars == 0 then
-                        logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
+                        print(logger.logLine('Found a valid location at %d %d %d', y_off, x_off, z_off))
                         mq.cmdf('/squelch /nav locyxz %d %d %d log=off', y_off, x_off, z_off)
                         mq.delay(1000, function() return mq.TLO.Navigation.Active() end)
                         mq.delay(5000, function() return not mq.TLO.Navigation.Active() end)
@@ -412,7 +412,6 @@ end
 
 local group_buff_timer = timer:new(60)
 class.buff_classb = function()
-    if common.am_i_dead() then return end
     common.check_combat_buffs()
     if brownies and not mq.TLO.Me.Buff(brownies.name)() then
         brownies:use()
@@ -506,7 +505,7 @@ end
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or class.OPTS.BYOS.value then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.shots, 1)

@@ -79,7 +79,6 @@ end
 local medding = false
 local healers = {CLR=true,DRU=true,SHM=true}
 pull.check_pull_conditions = function()
-    if common.am_i_dead() then return false end
     if config.GROUPWATCHWHO == 'none' then return true end
     if config.GROUPWATCHWHO == 'self' then
         if state.loop.PctEndurance < config.MEDENDSTART or state.loop.PctMana < config.MEDMANASTART then
@@ -193,7 +192,7 @@ local function pull_nav_to(pull_spawn)
         clear_pull_vars()
         return false
     end
-    logger.printf('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID())
+    print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
         logger.debug(logger.log_flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pull_mob_id)
         --if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
@@ -224,7 +223,7 @@ local function pull_engage(pull_spawn, pull_func)
     local pull_mob_id = state.pull_mob_id
     local dist3d = pull_spawn.Distance3D()
     if not dist3d then
-        logger.printf('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id)
+        print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id))
         clear_pull_vars()
         return false
     end
@@ -236,7 +235,7 @@ local function pull_engage(pull_spawn, pull_func)
     pull_spawn.DoTarget()
     mq.delay(50, function() return mq.TLO.Target.ID() == pull_spawn.ID() end)
     if not mq.TLO.Target() then
-        logger.printf('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id)
+        print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id))
         clear_pull_vars()
         return false
     end
@@ -244,7 +243,7 @@ local function pull_engage(pull_spawn, pull_func)
     local targethp = mq.TLO.Target.PctHPs()
     --if (tot_id > 0 and tot_id ~= state.loop.ID) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
     if targethp and targethp < 99 then
-        logger.printf('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pull_mob_id, tot_id, state.loop.ID, targethp)
+        print(logger.logLine('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pull_mob_id, tot_id, state.loop.ID, targethp))
         -- TODO: clear skip targets
         PULL_TARGET_SKIP[pull_mob_id] = 1
         clear_pull_vars()
@@ -278,7 +277,7 @@ local function pull_engage(pull_spawn, pull_func)
             mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
         end
     end
-    --logger.printf('mob agrod or timed out')
+    --print(logger.logLine('mob agrod or timed out'))
     if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
     if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
     if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
@@ -289,7 +288,7 @@ end
 local pull_return_timer = timer:new(120)
 ---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
 local function pull_return(noMobs)
-    --logger.printf('Bringing pull target back to camp (%s)', common.PULL_MOB_ID)
+    --print(logger.logLine('Bringing pull target back to camp (%s)', common.PULL_MOB_ID))
     if noMobs and not pull_return_timer:timer_expired() then return end
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 15 then return end
     if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', camp.Y, camp.X, camp.Z))() then
@@ -320,7 +319,7 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if common.am_i_dead() or anyoneDead() or state.loop.PctHPs < 60 or common.DMZ[mq.TLO.Zone.ID()] then return end
+    if anyoneDead() or state.loop.PctHPs < 60 or common.DMZ[mq.TLO.Zone.ID()] then return end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
     if not pull_state and (state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
         logger.debug(logger.log_flags.routines.pull, 'returning at weird state')
@@ -343,7 +342,7 @@ pull.pull_mob = function(pull_func)
     if not pull_state then
         logger.debug(logger.log_flags.routines.pull, 'a pull search can start')
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
-        if common.am_i_dead() or state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets() then return end
+        if state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets() then return end
         if not pull.check_pull_conditions() then return end
         -- find a mob to pull
         logger.debug(logger.log_flags.routines.pull, 'searching for pulls')

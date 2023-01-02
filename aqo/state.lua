@@ -39,7 +39,7 @@ function state.reset_combat_state()
 end
 
 --for k,v in pairs(state.get_all()) do
---    logger.printf('%s: %s', k, v)
+--    print(logger.logLine('%s: %s', k, v))
 --end
 
 return state

@@ -75,9 +75,9 @@ end
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 camp.check_camp = function()
     if not config.MODE:return_to_camp() or not camp.Active then return end
-    if common.am_i_dead() or mq.TLO.Me.Casting() or not common.clear_to_buff() then return end
+    if mq.TLO.Me.Casting() or not common.clear_to_buff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
-        logger.printf('Clearing camp due to zoning.')
+        print(logger.logLine('Clearing camp due to zoning.'))
         camp.Active = false
         return
     end
@@ -163,7 +163,7 @@ camp.set_camp = function(reset)
             camp.PullArcLeft = 0
             camp.PullArcRight = 0
         end
-        logger.printf('Camp set to \ayX: %.02f Y: %.02f Z: %.02f R: %s H: %.02f\ax', camp.X, camp.Y, camp.Z, config.CAMPRADIUS, camp.Heading)
+        print(logger.logLine('Camp set to \ayX: %.02f Y: %.02f Z: %.02f R: %s H: %.02f\ax', camp.X, camp.Y, camp.Z, config.CAMPRADIUS, camp.Heading))
         mq.cmdf('/squelch /maploc size 10 width 1 color 255 0 0 radius %s rcolor 255 0 0 %s %s %s', config.CAMPRADIUS, camp.Y+1, camp.X+1, camp.Z)
     elseif camp.Active then
         camp.Active = false

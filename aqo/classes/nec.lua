@@ -464,7 +464,7 @@ end
 
 local function is_nec_burn_condition_met()
     if class.OPTS.BURNPROC.value and target_has_proliferation() then
-        logger.printf('\arActivating Burns (proliferation proc)\ax')
+        print(logger.logLine('\arActivating Burns (proliferation proc)\ax'))
         state.burn_active_timer:reset()
         state.burn_active = true
         return true
@@ -531,7 +531,7 @@ class.burn_class = function()
 end
 
 local function pre_pop_burns()
-    logger.printf('Pre-burn')
+    print(logger.logLine('Pre-burn'))
     --[[
     |===========================================================================================
     |Item Burn
@@ -561,7 +561,7 @@ end
 
 class.recover = function()
     if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.name)() then
-        logger.printf('Removing lich to avoid dying!')
+        print(logger.logLine('Removing lich to avoid dying!'))
         mq.cmdf('/removebuff %s', class.spells.lich.name)
     end
     -- modrods
@@ -635,7 +635,7 @@ end
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.composite, 1, composite_names)

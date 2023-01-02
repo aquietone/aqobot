@@ -98,13 +98,9 @@ function config.get_all()
     }
 end
 
-config.BOOL = {
-    TRUE={
-        ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
-    },
-    FALSE={
-        ['0']=1, ['false']=1,['off']=1,['FALSE']=1,['OFF']=1,
-    },
+config.booleans = {
+    ['1']=true, ['true']=true,['on']=true,
+    ['0']=false, ['false']=false,['off']=false,
 }
 
 config.aliases = {
@@ -162,16 +158,14 @@ config.getOrSetOption = function(name, current_value, new_value, key)
         if type(current_value) == 'number' then
             config[key] = tonumber(new_value) or current_value
         elseif type(current_value) == 'boolean' then
-            if config.BOOL.TRUE[new_value] then
-                config[key] = true
-            elseif config.BOOL.FALSE[new_value] then
-                config[key] = false
-            end
+            if config.booleans[new_value] == nil then return end
+            config[key] = config.booleans[new_value]
+            print(logger.logLine('Setting %s to: %s', key, config.booleans[new_value]))
         else
             config[key] = new_value
         end
     else
-        logger.printf('%s: %s', name, current_value)
+        print(logger.logLine('%s: %s', name, current_value))
     end
 end
 
@@ -220,22 +214,22 @@ end
 
 function config.add_ignore(zone_short_name, mob_name)
     if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then
-        logger.printf('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name)
+        print(logger.logLine('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
-    logger.printf('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name)
+    print(logger.logLine('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
     config.save_ignores()
 end
 
 function config.remove_ignore(zone_short_name, mob_name)
     if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then
-        logger.printf('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name)
+        print(logger.logLine('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     ignores[zone_short_name:lower()][mob_name] = nil
-    logger.printf('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name)
+    print(logger.logLine('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
     config.save_ignores()
 end
 
@@ -244,7 +238,7 @@ function config.ignores_contains(zone_short_name, mob_name)
 end
 
 --for k,v in pairs(config.get_all()) do
---    logger.printf('%s: %s', k, v)
+--    print(logger.logLine('%s: %s', k, v))
 --end
 
 return config

@@ -133,12 +133,12 @@ common.getBestDisc = function(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
-            logger.printf('Found Disc: %s (%s)', bestDisc.name, bestDisc.id)
+            print(logger.logLine('Found Disc: %s (%s)', bestDisc.name, bestDisc.id))
             local disc = ability.Disc:new(bestDisc.id, bestDisc.name, options)
             return disc
         end
     end
-    logger.printf('[%s] Could not find disc!', discs[1])
+    print(logger.logLine('[%s] Could not find disc!', discs[1]))
     return nil
 end
 
@@ -269,7 +269,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.MODE:get_name() ~= 'chase' then return end
-    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
+    if mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
@@ -449,7 +449,7 @@ end
 common.use_item = function(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if item_ready(item) then
-        logger.printf('Use Item: \ag%s\ax', item)
+        print(logger.logLine('Use Item: \ag%s\ax', item))
         if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
         mq.cmdf('/useitem "%s"', item)
         mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -471,7 +471,7 @@ common.is_burn_condition_met = function(always_condition)
         state.burn_active = false
     end
     if state.burn_now then
-        logger.printf('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
+        print(logger.logLine('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or ''))
         state.burn_active_timer:reset()
         state.burn_active = true
         state.burn_now = false
@@ -485,19 +485,19 @@ common.is_burn_condition_met = function(always_condition)
             state.burn_type = nil
             return true
         elseif config.BURNALLNAMED and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
-            logger.printf('\arActivating Burns (named)\ax')
+            print(logger.logLine('\arActivating Burns (named)\ax'))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
             return true
         elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() >= config.BURNCOUNT then
-            logger.printf('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT)
+            print(logger.logLine('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
             return true
         elseif config.BURNPCT ~= 0 and mq.TLO.Target.PctHPs() < config.BURNPCT then
-            logger.printf('\arActivating Burns (percent HP)\ax')
+            print(logger.logLine('\arActivating Burns (percent HP)\ax'))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
@@ -517,7 +517,7 @@ end
 ---@param gem number @The spell gem index the spell should be memorized in.
 ---@return boolean|nil @Returns true if the spell is memorized in the specified gem, otherwise false.
 common.swap_gem_ready = function(spell_name, gem)
-    return mq.TLO.Me.Gem(gem)() and mq.TLO.Me.Gem(gem).Name() == spell_name
+    return mq.TLO.Me.Gem(gem).Name() == spell_name
 end
 
 ---Swap the specified spell into the specified gem slot.
@@ -525,7 +525,7 @@ end
 ---@param gem number @The gem index to memorize the spell into.
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 common.swap_spell = function(spell, gem, other_names)
-    if not spell or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
@@ -635,7 +635,7 @@ common.check_cursor = function()
     if mq.TLO.Cursor() then
         if autoinv_timer.start_time == 0 then
             autoinv_timer:reset()
-            logger.printf('Dropping cursor item into inventory in 15 seconds')
+            print(logger.logLine('Dropping cursor item into inventory in 15 seconds'))
         elseif autoinv_timer:timer_expired() then
             mq.cmd('/autoinventory')
             autoinv_timer:reset(0)
@@ -663,7 +663,7 @@ end
 
 ---Set common.I_AM_DEAD flag to true in the event of death.
 local function event_dead()
-    logger.printf('HP hit 0. what do!')
+    print(logger.logLine('HP hit 0. what do!'))
     state.i_am_dead = true
     state.reset_combat_state()
     mq.cmd('/multiline ; /nav stop; /stick off;')

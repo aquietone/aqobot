@@ -19,7 +19,7 @@ local aqoclass
 ---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
-        logger.printf('Not in game, stopping aqo.')
+        print(logger.logLine('Not in game, stopping aqo.'))
         mq.exit()
     end
     state.loop = {
@@ -36,8 +36,8 @@ end
 
 ---Display help information for the script.
 local function show_help()
-    logger.printf('AQO Bot 1.0')
-    logger.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', state.class))
+    print(logger.logLine('AQO Bot 1.0'))
+    print(logger.logLine(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', state.class)))
 end
 
 ---Process binding commands.
@@ -50,7 +50,7 @@ local function cmd_bind(...)
     end
 
     local opt = args[1]:lower()
-    local new_value = args[2]
+    local new_value = args[2] and args[2]:lower() or nil
     if opt == 'help' then
         show_help()
     elseif opt == 'debug' then
@@ -74,13 +74,13 @@ local function cmd_bind(...)
                 mq.cmd('/stopcast')
             end
         else
-            if config.BOOL.TRUE[new_value] then
-                state.paused = true
+            if config.booleans[new_value] == nil then return end
+            state.paused = config.booleans[new_value]
+            if state.paused then
                 state.reset_combat_state()
                 mq.cmd('/stopcast')
-            elseif config.BOOL.FALSE[new_value] then
+            else
                 camp.set_camp()
-                state.paused = false
             end
         end
     elseif opt == 'show' then
@@ -92,7 +92,7 @@ local function cmd_bind(...)
             config.MODE = mode.from_string(new_value) or config.MODE
             state.reset_combat_state()
         else
-            logger.printf('Mode: %s', config.MODE:get_name())
+            print(logger.logLine('Mode: %s', config.MODE:get_name()))
         end
         camp.set_camp()
     elseif opt == 'resetcamp' then
@@ -108,11 +108,11 @@ local function cmd_bind(...)
         if new_value and common.ASSISTS[new_value] then
             config.ASSIST = new_value
         end
-        logger.printf('assist: %s', config.ASSIST)
+        print(logger.logLine('assist: %s', config.ASSIST))
     elseif opt == 'ignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            config.add_ignore(zone, new_value)
+            config.add_ignore(zone, args[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
             if target_name then config.add_ignore(zone, target_name) end
@@ -120,7 +120,7 @@ local function cmd_bind(...)
     elseif opt == 'unignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            config.remove_ignore(zone, new_value)
+            config.remove_ignore(zone, args[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
             if target_name then config.remove_ignore(zone, target_name) end
@@ -133,7 +133,7 @@ local function cmd_bind(...)
             aqoclass.addClicky(clicky)
             aqoclass.save_settings()
         else
-            logger.printf('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class)
+            print(logger.logLine('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class))
         end
     elseif opt == 'removeclicky' then
         local itemName = mq.TLO.Cursor()
@@ -141,7 +141,7 @@ local function cmd_bind(...)
             aqoclass.removeClicky(itemName)
             aqoclass.save_settings()
         else
-            logger.printf('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
+            print(logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class))
         end
     elseif opt == 'tribute' then
         common.toggleTribute()
@@ -231,7 +231,7 @@ local function main()
         if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
             mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
         end
-        if not state.paused or not common.in_control() then
+        if not state.paused or not common.in_control() or common.am_i_dead() then
             camp.clean_targets()
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 state.tank_mob_id = 0

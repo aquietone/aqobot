@@ -17,7 +17,6 @@ local camp_buffer = 20
 ---Sets common.TANK_MOB_ID to the ID of the mob to tank.
 tank.find_mob_to_tank = function()
     if state.mob_count == 0 then return end
-    if common.am_i_dead() then state.tank_mob_id = 0 return end
     if state.tank_mob_id > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tank_mob_id == mq.TLO.Target.ID() then
         return
     else
@@ -98,7 +97,6 @@ local stick_timer = timer:new(3)
 ---Tank the mob whose ID is stored in common.TANK_MOB_ID.
 tank.tank_mob = function()
     if state.tank_mob_id == 0 then return end
-    if common.am_i_dead() then return end
     local tank_spawn = mq.TLO.Spawn(state.tank_mob_id)
     if not tank_spawn() or tank_spawn.Type() == 'Corpse' then
         state.tank_mob_id = 0
@@ -125,7 +123,7 @@ tank.tank_mob = function()
     end
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() and not state.dontAttack then
-        logger.printf('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id)
+        print(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id))
         -- /stick snaproll front moveback
         -- /stick mod -2
         mq.cmd('/attack on')

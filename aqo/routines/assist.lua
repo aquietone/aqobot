@@ -152,7 +152,6 @@ end
 ---Sets state.assist_mob_id to 0 or the ID of the mob to assist on.
 ---@param reset_timers function @An optional function to be called to reset combat timers specific to the class calling this function.
 assist.check_target = function(reset_timers)
-    if common.am_i_dead() then return end
     if config.MODE:get_name() ~= 'manual' then
         local assist_target = assist.get_assist_spawn()
         local originalTargetID = mq.TLO.Target.ID()
@@ -208,7 +207,7 @@ assist.check_target = function(reset_timers)
             if mq.TLO.Target.ID() ~= originalTargetID then
                 reset_combat_timers()
                 if reset_timers then reset_timers() end
-                logger.printf('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
+                print(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
             end
         end
     end

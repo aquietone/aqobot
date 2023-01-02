@@ -226,7 +226,6 @@ local function find_next_spell()
 end
 
 class.cast = function()
-    if common.am_i_dead() then return end
     if class.isEnabled('DONTCAST') then return end
     if not state.loop.Invis then
         if assist.is_fighting() then
@@ -317,7 +316,7 @@ end]]
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or class.OPTS.BYOS.value then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.tap1, 1)

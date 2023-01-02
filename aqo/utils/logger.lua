@@ -9,16 +9,34 @@ logger.log_flags = {
     aqo={main=false},
 }
 
----The formatted string and zero or more replacement variables for the formatted string.
----@vararg string
-function logger.printf(...)
-    print(log_prefix..string.format(...)..'\ax')
+function logger.logLine(...)
+    return string.format(log_prefix..string.format(...)..'\ax')
+end
+
+function logger.putLogData(message, key, value, separator)
+    return string.format('%s%s%s=%s', message, separator or ' ', key, value)
+end
+
+function logger.putAllLogData(message, data, separator)
+    for key, value in pairs(data) do
+        message = message .. string.format('%s%s=%s', separator or ' ', key, value)
+    end
+    return message
 end
 
 ---The formatted string and zero or more replacement variables for the formatted string.
 ---@vararg string
 function logger.debug(debug_flag, ...)
-    if debug_flag then logger.printf(...) end
+    if debug_flag then print(logger.logLine(...)) end
 end
+
+--[[
+local msg = logger.logLine('testing %s', '123')
+msg = logger.putLogData(msg, 'a', 'b')
+print(msg)
+local data = {c='d',e=1}
+msg = logger.putAllLogData(msg, data, '\n')
+print(msg)
+]]
 
 return logger

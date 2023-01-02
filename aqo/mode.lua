@@ -67,7 +67,7 @@ mode:new('puller',true,true,false,true,true)
 mode:new('huntertank',true,false,true,true,false)
 
 --for i,mode in ipairs(mode.modes) do
---    logger.printf('modes[%s]: name=%s', i, mode.name)
+--    print(logger.logLine('modes[%s]: name=%s', i, mode.name))
 --end
 
 return mode

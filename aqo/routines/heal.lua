@@ -188,7 +188,6 @@ local function getHeal(healAbilities, healType, whoToHeal)
 end
 
 healing.heal = function(healAbilities, opts)
-    if common.am_i_dead() then return end
     local whoToHeal, typeOfHeal = getHurt(opts)
     if typeOfHeal == HEAL_TYPES.HOT and not healEnabled(opts, 'USEHOT') then return end
     if typeOfHeal == HEAL_TYPES.GROUPHOT and not healEnabled(opts, 'USEGROUPHOT') then return end
@@ -213,7 +212,6 @@ healing.heal = function(healAbilities, opts)
 end
 
 healing.healPetOrSelf = function(healAbilities, opts)
-    if common.am_i_dead() then return end
     local myHP = state.loop.PctHPs
     local petHP = mq.TLO.Pet.PctHPs() or 100
     if myHP < 60 then healing.healSelf(healAbilities, opts) end
@@ -237,7 +235,7 @@ healing.healPetOrSelf = function(healAbilities, opts)
 end
 
 healing.healSelf = function(healAbilities, opts)
-    if common.am_i_dead() or state.loop.PctHPs > 60 then return end
+    if state.loop.PctHPs > 60 then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
             if heal.type == Abilities.Types.Spell then
@@ -300,7 +298,7 @@ local function doRezFor(rezAbility, groupOrRaid)
 end
 
 healing.rez = function(rezAbility)
-    if common.am_i_dead() or not rezAbility then return end
+    if not rezAbility then return end
     if not config.REZINCOMBAT and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
