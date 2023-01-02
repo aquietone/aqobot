@@ -208,6 +208,14 @@ base.removeClicky = function(itemName)
     end
 end
 
+base.addRequestAlias = function(ability, alias)
+    base.requestAliases[alias] = ability
+end
+
+base.getAbilityForAlias = function(alias)
+    return base.requestAliases[alias]
+end
+
 local SETTINGS_FILE = ('%s/aqobot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
 base.load_settings = function()
     local settings = config.load_settings(SETTINGS_FILE)
@@ -258,7 +266,7 @@ base.event_gear = function(line, requester, requested)
     requested = requested:lower()
     local slot = requested:gsub('gear ', '')
     if slot == 'listslots' then
-        mq.cmd('/gu earrings,rings,leftear,rightear,leftfinger,rightfinger,face,head,neck,shoulder,chest,feet,arms,leftwrist,rightwrist,wrists,charm,powersource,mainhand,offhand,ranged,ammo,legs,waist,hands')
+        mq.cmd('/gu earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands')
     elseif slot == 'earrings' then
         local leftear = mq.TLO.Me.Inventory('leftear')
         local rightear = mq.TLO.Me.Inventory('rightear')
@@ -279,11 +287,11 @@ base.event_gear = function(line, requester, requested)
 end
 
 base.event_request = function(line, requester, requested)
+    requested = requested:lower()
+    if requested:find('^gear .+') then
+        return base.event_gear(line, requester, requested)
+    end
     if base.isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
-        requested = requested:lower()
-        if requested:find('^gear .+') then
-            return base.event_gear(line, requester, requested)
-        end
         local tranquil = false
         local mgb = false
         if requested:find('^tranquil') then
@@ -297,21 +305,24 @@ base.event_request = function(line, requester, requested)
         if requested:find(' '..mq.TLO.Me.CleanName():lower()..'$') then
             requested = requested:gsub(' '..mq.TLO.Me.CleanName():lower(),'')
         end
-        if base.requestAliases[requested] then
-            local requested = base[base.requestAliases[requested]]
-            if requested then
-                local expiration = timer:new(15)
-                expiration:reset()
-                table.insert(base.requests, {requester=requester, requested=requested, expiration=expiration, tranquil=tranquil, mgb=mgb})
-            else
-                mq.cmdf('/t %s I dont have that ability!', requester)
-            end
-        elseif requested == 'list buffs' then
+        if requested:find(' pet$') then
+            requested = requested:gsub(' pet', '')
+            requester = mq.TLO.Spawn('pc '..requester).Pet.CleanName()
+            printf('Pet Name for request: ', requester)
+        end
+        if requested == 'list buffs' then
             local buffList = ''
             for alias,ability in pairs(base.requestAliases) do
                 buffList = ('%s | %s : %s'):format(buffList, alias, base[ability].name)
             end
             mq.cmdf('/t %s %s', requester, buffList)
+            return
+        end
+        local requestedAbility = base.getAbilityForAlias(requested)
+        if requestedAbility then
+            local expiration = timer:new(15)
+            expiration:reset()
+            table.insert(base.requests, {requester=requester, requested=requestedAbility, expiration=expiration, tranquil=tranquil, mgb=mgb})
         end
     end
 end
@@ -705,7 +716,7 @@ local function handleRequests()
             table.remove(base.requests, 1)
         else
             if request.requested:isReady() then
-                local requesterSpawn = mq.TLO.Spawn('pc '..request.requester)
+                local requesterSpawn = mq.TLO.Spawn('='..request.requester)
                 if (requesterSpawn.Distance3D() or 300) < 100 then
                     local tranquilUsed = '/g Casting'
                     if request.tranquil then

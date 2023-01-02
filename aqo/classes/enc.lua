@@ -208,8 +208,8 @@ else
     class.kei = class.spells.kei
     class.haste = class.spells.haste
 end
-class.requestAliases.kei = 'kei'
-class.requestAliases.haste = 'haste'
+class.addRequestAlias(class.kei, 'kei')
+class.addRequestAlias(class.haste, 'haste')
 
 table.insert(class.petBuffs, class.spells.pethaste)
 if state.emu then

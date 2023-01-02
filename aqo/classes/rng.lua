@@ -167,10 +167,8 @@ table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW'
 
 table.insert(class.selfBuffs, class.spells.dmgbuff)
 
-class.predator = class.spells.predator
-class.strength = class.spells.strength
-class.requestAliases.predator = 'predator'
-class.requestAliases.strength = 'strength'
+class.addRequestAlias(class.spells.predator, 'predator')
+class.addRequestAlias(class.spells.strength, 'strength')
 
 local ranged_timer = timer:new(5)
 class.reset_class_timers = function()

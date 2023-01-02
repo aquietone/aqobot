@@ -27,7 +27,7 @@ class.addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration:
                     'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                     'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
 class.addSpell('petbuff', {'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
---class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
+class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
 class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summons={'Molten Orb','Lava Orb'}, summonMinimum=1})
 class.addSpell('petds', {'Iceflame Guard'})
 class.addSpell('servant', {'Rampaging Servant'})
@@ -38,6 +38,11 @@ class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- sel
 class.addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
 class.addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
 
+--class.addSpell('armor', {}) -- Phantom Plate comes from?
+class.addSpell('weapons', {'Grant Spectral Armaments'}) -- targeted, Summons Folded Pack of Spectral Armaments
+class.addSpell('jewelry', {'Grant Enibik\'s Heirlooms'}) -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
+class.addSpell('belt', {'Summon Crystal Belt'}) -- Summoned: Crystal Belt
+
 table.insert(class.DPSAbilities, common.getItem('Aged Sarnak Channeler Staff'))
 table.insert(class.DPSAbilities, common.getAA('Force of Elements'))
 table.insert(class.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
@@ -46,7 +51,7 @@ table.insert(class.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
 table.insert(class.burnAbilities, common.getAA('Frenzied Burnout'))
 
 table.insert(class.petBuffs, class.spells.petbuff)
---table.insert(class.petBuffs, class.spells.petstrbuff)
+table.insert(class.petBuffs, class.spells.petstrbuff)
 table.insert(class.petBuffs, class.spells.petds)
 
 table.insert(class.healAbilities, class.spells.petheal)
@@ -59,7 +64,7 @@ table.insert(class.selfBuffs, class.spells.orb)
 table.insert(class.selfBuffs, class.spells.ds)
 table.insert(class.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summons='Summoned: Large Modulation Shard', summonMinimum=1}))
 table.insert(class.combatBuffs, common.getAA('Fire Core'))
---table.insert(class.singleBuffs, class.spells.bigds)
+table.insert(class.singleBuffs, class.spells.bigds)
 
 class.debuff = common.getAA('Malosinete')
 
@@ -74,10 +79,23 @@ class.spellRotations = {
     standard=standard
 }
 
-class.orb = class.spells.orb
-class.requestAliases.orb = 'orb'
-class.ds = class.spells.ds
-class.requestAliases.ds = 'ds'
+class.addRequestAlias(class.spells.orb, 'orb')
+class.addRequestAlias(class.spells.ds, 'ds')
+class.addRequestAlias(class.spells.weapons, 'arm')
+class.addRequestAlias(class.spells.jewelry, 'jewelry')
+
+--[[
+    "Fire", "Summoned: Fist of Flame",
+    "Water", "Summoned: Orb of Chilling Water",
+    "Shield", "Summoned: Buckler of Draining Defense",
+    "Taunt", "Summoned: Short Sword of Warding",
+    "Slow", "Summoned: Mace of Temporal Distortion",
+    "Malo", "Summoned: Spear of Maliciousness",
+    "Dispel", "Summoned: Wand of Dismissal",
+    "Snare", "Summoned: Tendon Carver",
+    Muzzle of Mardu, Folded pack of Spectral Plate and Folded Pack of Enibik's Heirlooms and Gold
+    Folded Pack of Spectral Plate|Grant Spectral Plate
+]]
 
 class.pull_func = function()
     if mq.TLO.Navigation.Active() then mq.cmd('/nav stop') end
