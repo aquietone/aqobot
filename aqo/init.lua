@@ -231,7 +231,7 @@ local function main()
         if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
             mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
         end
-        if not state.paused or not common.in_control() or common.am_i_dead() then
+        if not state.paused and common.in_control() and not common.am_i_dead() then
             camp.clean_targets()
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 state.tank_mob_id = 0
