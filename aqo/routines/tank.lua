@@ -1,10 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
 local camp = require('routines.camp')
-local common = require('common')
-local config = require('configuration')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
 local state = require('state')
 
 local tank = {}
