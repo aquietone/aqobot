@@ -105,7 +105,6 @@ class.recover_class = function()
                 local memberClass = member.Class.ShortName() or 'WAR'
                 if casterpriests[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.name)() then
                     member.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                     class.fParagon:use()
                     return
                 end

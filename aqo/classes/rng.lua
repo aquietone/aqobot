@@ -3,6 +3,7 @@ local mq = require 'mq'
 local class = require('classes.classbase')
 local assist = require('routines.assist')
 local camp = require('routines.camp')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local common = require('common')
@@ -199,9 +200,7 @@ local function get_ranged_combat_position(radius)
                     local allmobs = mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 75', y_off, x_off, z_off))()
                     if allmobs - xtars == 0 then
                         print(logger.logLine('Found a valid location at %d %d %d', y_off, x_off, z_off))
-                        mq.cmdf('/squelch /nav locyxz %d %d %d log=off', y_off, x_off, z_off)
-                        mq.delay(1000, function() return mq.TLO.Navigation.Active() end)
-                        mq.delay(5000, function() return not mq.TLO.Navigation.Active() end)
+                        movement.navToLoc(x_off, y_off, z_off, nil, 5000)
                         return true
                     end
                 end
@@ -243,9 +242,7 @@ local function attack_range()
             end
         end
     end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-    end
+    movement.stop()
     if mq.TLO.Target() then
         if not check_mob_angle() then
             mq.cmd('/squelch /face fast')
@@ -357,7 +354,7 @@ class.aggro = function()
     if state.loop.PctHPs < 50 then
         if evasion then evasion:use() end
         if config.MODE:return_to_camp() then
-            mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
+            movement.navToLoc(camp.X, camp.Y, camp.Z)
         end
     end
     --[[
@@ -467,7 +464,7 @@ class.buff_classb = function()
             if tank_spawn() then
                 if class.spells.ds and spawn_missing_cachedbuff(tank_spawn, class.spells.ds.name) then
                     tank_spawn.DoTarget()
-                    mq.delay(1000) -- time to target and for buffs to be populated
+                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                     if target_missing_buff(class.spells.ds.name) then
                         if common.swap_and_cast(class.spells.ds, 13) then return end
                     end
@@ -482,7 +479,7 @@ class.buff_classb = function()
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
                     if class.spells.buffs and spawn_missing_cachedbuff(group_member, class.spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
-                        mq.delay(1000) -- time to target and for buffs to be populated
+                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                         if target_missing_buff(class.spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
                             if class.spells.buffs:use() then return end
@@ -490,7 +487,7 @@ class.buff_classb = function()
                     end
                     if class.spells.dmgbuff and spawn_missing_cachedbuff(group_member, class.spells.dmgbuff.name) then
                         group_member.DoTarget()
-                        mq.delay(1000) -- time to target and for buffs to be populated
+                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                         if target_missing_buff(class.spells.dmgbuff.name) then
                             if class.spells.dmgbuff:use() then return end
                         end

@@ -8,6 +8,20 @@ local cure = {}
 -- SPA 116 - curse
 -- SPA 369 - corruption
 
+local function cureCounters(toon, buff)
+    local diseaseCounters = 'Me.CountersDisease'
+    local poisonCounters = 'Me.PoisonDisease'
+    local curseCounters = 'Me.CurseDisease'
+    mq.cmdf('/dquery %s -q "%s"', toon, diseaseCounters)
+    mq.cmdf('/dquery %s -q "%s"', toon, poisonCounters)
+    mq.cmdf('/dquery %s -q "%s"', toon, curseCounters)
+    mq.delay(250, function() return mq.TLO.DanNet(toon).QReceived(diseaseCounters)() > 0 and mq.TLO.DanNet(toon).QReceived(poisonCounters)() > 0 and mq.TLO.DanNet(toon).QReceived(curseCounters)() > 0 end)
+    local diseased = mq.TLO.DanNet(toon).Q(diseaseCounters)()
+    local poisoned = mq.TLO.DanNet(toon).Q(poisonCounters)()
+    local cursed = mq.TLO.DanNet(toon).Q(curseCounters)()
+    return {diseaseCounters=diseased, poisonCounters=poisoned, curseCounters=cursed}
+end
+
 cure.selfCure = function(spell)
     local shouldCast = false
     if spell.HasSPA(35)() and mq.TLO.Me.Diseased() and mq.TLO.Me.CountersDisease() > 0 then
@@ -25,7 +39,6 @@ end
 local function needsCure(spell, buffTarget)
     if not buffTarget.BuffsPopulated() then
         buffTarget.DoTarget()
-        mq.delay(100, function() return mq.TLO.Target.ID() == buffTarget.ID() end)
         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
         buffTarget = mq.TLO.Target
     end

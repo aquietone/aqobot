@@ -440,7 +440,6 @@ class.cast = function()
                         mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
                         local spell = class.find_next_spell() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
-                            --if not mq.TLO.Me.SpellReady(spell.name)() then break end
                             spell:use()
                             dotted_count = dotted_count + 1
                             if dotted_count >= class.OPTS.MULTICOUNT.value then break end

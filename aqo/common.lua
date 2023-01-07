@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
 local named = require('data.named')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local ability = require('ability')
@@ -278,16 +279,13 @@ common.check_chase = function()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        if not mq.TLO.Navigation.Active() then
-            if mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.CHASETARGET))() then
-                mq.cmdf('/nav spawn pc =%s | log=off', config.CHASETARGET)
-            else
-                local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
-                if chaseSpawn.LineOfSight() then
-                    mq.cmdf('/moveto id %s', chaseSpawn.ID())
-                end
-            end
+        movement.navToSpawn('pc ='..config.CHASETARGET)
+        --[[
+        local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
+        if chaseSpawn.LineOfSight() then
+            mq.cmdf('/moveto id %s', chaseSpawn.ID())
         end
+        ]]
     end
 end
 
@@ -666,7 +664,7 @@ local function event_dead()
     print(logger.logLine('HP hit 0. what do!'))
     state.i_am_dead = true
     state.reset_combat_state()
-    mq.cmd('/multiline ; /nav stop; /stick off;')
+    movement.stop()
 end
 
 ---Initialize the player death event triggers.

@@ -108,6 +108,7 @@ EQ item names. Any INI entry which doesn't match the regex is just skipped over 
 
 ---@type Mq
 local mq = require 'mq'
+local movement = require('routines.movement')
 local _, LIP = pcall(require, 'utils.LIP')
 if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
 local _, Write = pcall(require, 'utils.Write')
@@ -202,20 +203,6 @@ local function checkCursor()
         currentItem = mq.TLO.Cursor()
         mq.cmd('/autoinv')
         mq.delay(100)
-    end
-end
-
-local function navToID(spawnID)
-    mq.cmdf('/squelch /nav id %d log=off', spawnID)
-    mq.delay(50)
-    if mq.TLO.Navigation.Active() then
-        local startTime = os.time()
-        while mq.TLO.Navigation.Active() do
-            mq.delay(100)
-            if os.difftime(os.time(), startTime) > 5 then
-                break
-            end
-        end
     end
 end
 
@@ -412,9 +399,9 @@ loot.lootMobs = function(limit)
         local corpseID = corpse.ID()
         if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id '..tostring(corpseID))() or 100) < 60 then
             loot.logger.Debug('Moving to corpse ID='..tostring(corpseID))
-            navToID(corpseID)
+            movement.stop()
+            movement.navToID(corpseID, nil, 5000)
             corpse.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == corpseID end)
             lootCorpse(corpseID)
             didLoot = true
             mq.doevents('InventoryFull')
@@ -429,8 +416,8 @@ loot.lootMyCorpse = function()
     mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
     mq.delay(1000)
     if mq.TLO.Target.Type() == 'Corpse' then
-        mq.cmd('/nav target')
-        mq.delay(10000, function() return mq.TLO.Target.Distance3D() < 10 end)
+        movement.navToTarget(nil, 10000)
+        if mq.TLO.Target.Distance3D() or 100 > 10 then return end
         mq.cmd('/loot')
         mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
         if mq.TLO.Window('LootWnd').Open() then
@@ -466,7 +453,7 @@ local function goToVendor()
 
     loot.logger.Info('Doing business with '..vendorName)
     if mq.TLO.Target.Distance() > 15 then
-        navToID(mq.TLO.Target.ID())
+        movement.navToID(mq.TLO.Target.ID(), 'dist=10', 5000)
     end
     return true
 end

@@ -244,7 +244,6 @@ healing.healSelf = function(healAbilities, opts)
                     local targetID = mq.TLO.Target.ID()
                     if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                         mq.TLO.Me.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                     end
                     heal:use()
                     if targetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', targetID) end
@@ -257,7 +256,6 @@ healing.healSelf = function(healAbilities, opts)
                         local spell = mq.TLO.AltAbility(heal.name).Spell
                         if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                             mq.TLO.Me.DoTarget()
-                            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                         end
                     end
                     heal:use()
@@ -285,7 +283,6 @@ local function doRezFor(rezAbility, groupOrRaid)
     corpseName = corpseName:gsub('\'s corpse.*', '')
     if mq.TLO.Group.Member(corpseName)() or mq.TLO.Raid.Member(corpseName)() then
         corpse.DoTarget()
-        mq.delay(100, function() return mq.TLO.Target.ID() == corpse.ID() end)
         if mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/corpse')
             mq.delay(50)

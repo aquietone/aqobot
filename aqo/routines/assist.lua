@@ -1,10 +1,11 @@
 --- @type Mq
 local mq = require 'mq'
 local camp = require('routines.camp')
-local config = require('configuration')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local common = require('common')
+local config = require('configuration')
 local state = require('state')
 
 local assist = {}
@@ -107,23 +108,13 @@ assist.should_assist = function(assist_target)
             return false
         end
     end
-    --[[if assist_target == -1 and manual_assist_timer:timer_expired() then
-        if mq.TLO.Target.Type() ~= 'NPC' then
-            mq.cmdf('/assist %s', config.CHASETARGET)
-            mq.delay(100)
-        end
-        if mq.TLO.Target.Type() == 'NPC' then
-            assist_target = mq.TLO.Target
-        else
-            return false
-        end
-    end]]
     local id = assist_target.ID()
     local hp = assist_target.PctHPs()
     local mob_type = assist_target.Type()
     local mob_x = assist_target.X()
     local mob_y = assist_target.Y()
     if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
+    --print(('%s %s %s %s %s %s %s %s'):format(camp.Active, mob_type, camp.X, camp.Y, mob_x, mob_y, config.CAMPRADIUS, config.AUTOASSISTAT))
     if mob_type == 'NPC' and hp < config.AUTOASSISTAT then
         if camp.Active and common.check_distance(camp.X, camp.Y, mob_x, mob_y) <= config.CAMPRADIUS then
             return true
@@ -196,11 +187,9 @@ assist.check_target = function(reset_timers)
             return
         end
         -- this is a brand new assist target
-        --if mq.TLO.Target.ID() ~= assist_target.ID() and assist.should_assist(assist_target) then
         if assist.should_assist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
-                mq.delay(100, function() return mq.TLO.Target.ID() == assist_target.ID() end)
             end
             state.assist_mob_id = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -217,31 +206,20 @@ end
 assist.get_combat_position = function()
     local target_id = mq.TLO.Target.ID()
     local target_distance = mq.TLO.Target.Distance3D()
+    local max_range_to = mq.TLO.Target.MaxRangeTo() or 0
     if not target_id or target_id == 0 or (target_distance and target_distance > config.CAMPRADIUS) or state.paused then
         return
     end
-    if not mq.TLO.Navigation.PathExists('target')() then return end
-    mq.cmd('/multiline ; /stick off ; /nav target log=off')
-    mq.delay(100)
-    local position_timer = timer:new(5)
-    while true do
-        if mq.TLO.Target.LineOfSight() then
-            break
-        end
-        if position_timer:timer_expired() then
-            break
-        end
-        mq.delay(100)
-    end
-    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
+    movement.navToTarget('dist='..max_range_to, 5000)
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
 assist.check_los = function()
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) then
-        if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists('target')() then
-            mq.cmd('/multiline ; /stick off ; /nav target log=off')
+        local maxRangeTo = mq.TLO.Target.MaxRangeTo()
+        if not mq.TLO.Target.LineOfSight() and maxRangeTo then
+            movement.navToTarget('dist='..maxRangeTo, 5000)
         end
     end
 end
@@ -260,11 +238,13 @@ assist.attack = function(skip_no_los)
     end
     -- check_los may have nav running already.. why separate get_combat_position and check_los???
     if not mq.TLO.Target.LineOfSight() and mq.TLO.Navigation.Active() then return end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-    end
+    movement.stop()
     if config.MODE:get_name() ~= 'manual' and not mq.TLO.Stick.Active() and stick_timer:timer_expired() then
-        mq.cmd('/squelch /stick loose behind moveback 10 uw')
+        -- pin, behindonce, behind, front, !front
+        mq.cmd('/stick snaproll uw')
+        mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
+        local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
+        mq.cmdf('/squelch /stick hold moveback !front %s uw', math.min(maxRangeTo*.75, 25))
         stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then

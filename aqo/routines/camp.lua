@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local common = require('common')
@@ -82,9 +83,7 @@ camp.check_camp = function()
         return
     end
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15 then
-        if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', camp.Y, camp.X, camp.Z))() then
-            mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
-        end
+        movement.navToLoc(camp.X, camp.Y, camp.Z)
     end
 end
 

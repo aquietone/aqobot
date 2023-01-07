@@ -17,8 +17,7 @@ mez.init_mez_timers = function(mez_spell)
         local mob = mq.TLO.Spawn('id '..id)
         if mob() and not state.mez_immunes[mob.CleanName()] then
             mob.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
-            mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+            mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
             if mq.TLO.Target() and mq.TLO.Target.Buff(mez_spell)() then
                 logger.debug(logger.log_flags.routines.mez, 'AEMEZ setting meztimer mob_id %d', id)
                 state.targets[id].meztimer:reset()
@@ -56,8 +55,7 @@ mez.do_single = function(mez_spell)
                     mq.cmd('/attack off')
                     mq.delay(100, function() return not mq.TLO.Me.Combat() end)
                     mob.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
-                    mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                     local pct_hp = mq.TLO.Target.PctHPs()
                     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                         state.targets[id] = nil

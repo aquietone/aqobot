@@ -1,6 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 local class = require('classes.classbase')
+local movement = require('routines.movement')
 local common = require('common')
 
 class.class = 'mag'
@@ -97,7 +98,7 @@ class.addRequestAlias(class.spells.armor, 'armor')
 ]]
 
 class.pull_func = function()
-    if mq.TLO.Navigation.Active() then mq.cmd('/nav stop') end
+    movement.stop()
     mq.cmd('/multiline ; /pet attack ; /pet swarm')
     mq.delay(1000)
 end

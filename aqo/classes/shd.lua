@@ -2,6 +2,7 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local assist = require('routines.assist')
+local movement = require('routines.movement')
 local timer = require('utils.timer')
 local common = require('common')
 local config = require('configuration')
@@ -355,10 +356,7 @@ end
 
 --[[class.pull_func = function()
     if class.spells.challenge then
-        if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
-            mq.cmd('/squelch /nav stop')
-            mq.delay(300)
-        end
+        movement.stop()
         for _=1,3 do
             if mq.TLO.Me.SpellReady(class.spells.terror.name)() then
                 mq.cmdf('/cast %s', class.spells.terror.name)

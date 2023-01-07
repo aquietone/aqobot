@@ -112,15 +112,12 @@ tank.tank_mob = function()
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= tank_spawn.ID() then
         tank_spawn.DoTarget()
-        mq.delay(50, function() return mq.TLO.Target.ID() == tank_spawn.ID() end)
     end
-    if not mq.TLO.Target() then
+    if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then
         state.tank_mob_id = 0
         return
     end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-    end
+    movement.stop()
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() and not state.dontAttack then
         print(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id))

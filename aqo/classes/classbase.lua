@@ -5,6 +5,7 @@ local buffing = require('routines.buff')
 local camp = require('routines.camp')
 local healing = require('routines.heal')
 local mez = require('routines.mez')
+local movement = require('routines.movement')
 local pull = require('routines.pull')
 local tank = require('routines.tank')
 local logger = require('utils.logger')
@@ -270,15 +271,15 @@ base.event_gear = function(line, requester, requested)
     elseif slot == 'earrings' then
         local leftear = mq.TLO.Me.Inventory('leftear')
         local rightear = mq.TLO.Me.Inventory('rightear')
-        mq.cmdf('/gu leftear: %s, rightear: %s', leftear.ItemLink('CLICKABLE')(), rightear.ItemLink('CLICKABLE'))
+        mq.cmdf('/gu leftear: %s, rightear: %s', leftear.ItemLink('CLICKABLE')(), rightear.ItemLink('CLICKABLE')())
     elseif slot == 'rings' then
         local leftfinger = mq.TLO.Me.Inventory('leftfinger')
         local rightfinger = mq.TLO.Me.Inventory('rightfinger')
-        mq.cmdf('/gu leftfinger: %s, rightfinger: %s', leftfinger.ItemLink('CLICKABLE')(), rightfinger.ItemLink('CLICKABLE'))
+        mq.cmdf('/gu leftfinger: %s, rightfinger: %s', leftfinger.ItemLink('CLICKABLE')(), rightfinger.ItemLink('CLICKABLE')())
     elseif slot == 'wrists' then
         local leftwrist = mq.TLO.Me.Inventory('leftwrist')
         local rightwrist = mq.TLO.Me.Inventory('rightwrist')
-        mq.cmdf('/gu leftwrist: %s, rightwrist: %s', leftwrist.ItemLink('CLICKABLE')(), rightwrist.ItemLink('CLICKABLE'))
+        mq.cmdf('/gu leftwrist: %s, rightwrist: %s', leftwrist.ItemLink('CLICKABLE')(), rightwrist.ItemLink('CLICKABLE')())
     else
         if mq.TLO.Me.Inventory(slot)() then
             mq.cmdf('/gu %s: %s', slot, mq.TLO.Me.Inventory(slot).ItemLink('CLICKABLE')())
@@ -475,6 +476,7 @@ end
 base.burn = function()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     if base.can_i_sing and not base.can_i_sing() then return end
     if common.is_burn_condition_met() then
         if base.burn_class then base.burn_class() end
@@ -635,7 +637,6 @@ base.recover = function()
     local useAbility = nil
     for _,ability in ipairs(base.recoverAbilities) do
         if base.isAbilityEnabled(ability.opt) then
-            --if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
             if ability.mana and pct_mana < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
                 useAbility = ability
                 break
@@ -655,7 +656,6 @@ base.recover = function()
         if mq.TLO.Me.MaxHPs() < 6000 then return end
         if spell and spell.TargetType() == 'Single' then
             mq.TLO.Me.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         end
         if useAbility:use() then state.actionTaken = true end
     end
@@ -722,6 +722,20 @@ base.process_cmd = function(opt, new_value)
     end
 end
 
+base.nowCast = function(args)
+    if #args == 3 then
+        local sendTo = args[1]
+        local alias = args[2]
+        local target = args[3]
+        mq.cmdf('/dex %s /nowcast "%s" %s', name, alias, target)
+    elseif #args == 2 then
+        local alias = args[1]
+        local target = args[2]
+        mq.cmd('/stopcast')
+        mq.cmdf('/mqtar id %s', target)
+    end
+end
+
 local function handleRequests()
     if #base.requests > 0 then
         local request = base.requests[1]
@@ -752,14 +766,9 @@ local function handleRequests()
                             if base.mgb:use() then tranquilUsed = '/rs MGB\'ing' end
                         end
                     end
-                    mq.cmd('/multiline ; /nav stop ; /stick off')
-                    --local spell = nil
-                    --if request.requested.type == Abilities.Types.Spell then spell = mq.TLO.Spell(request.requested.name)
-                    --elseif request.requested.type == Abilities.Types.AA then spell = mq.TLO.Me.AltAbility(request.requested.name).Spell end
-                    --if spell and spell.TargetType() == 'Single' then
+                    movement.stop()
                     if request.requested.targettype == 'Single' then
                         requesterSpawn.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == requesterSpawn.ID() end)
                     end
                     mq.cmdf('%s %s for %s', tranquilUsed, request.requested.name, request.requester)
                     request.requested:use()

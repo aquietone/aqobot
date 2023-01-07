@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
 local camp = require('routines.camp')
+local movement = require('routines.movement')
 local common = require('common')
 local config = require('configuration')
 local logger = require('utils.logger')
@@ -185,21 +186,19 @@ end
 ---Navigate to the pull spawn. Stop when it is within bow distance and line of sight, or when within melee distance.
 ---@param pull_spawn MQSpawn @The MQ Spawn to navigate to.
 ---@return boolean @Returns false if the pull spawn became invalid during navigation, otherwise true.
-local function pull_nav_to(pull_spawn)
+local function pull_nav_to(pull_spawn, announce_pull)
     local mob_x = pull_spawn.X()
     local mob_y = pull_spawn.Y()
     if not (mob_x and mob_y) then
         clear_pull_vars()
         return false
     end
-    print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
+    if announce_pull then
+        print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
+    end
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
         logger.debug(logger.log_flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pull_mob_id)
-        --if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
-        if mq.TLO.Navigation.PathExists(string.format('id %d', state.pull_mob_id))() then
-            mq.cmdf('/nav spawn id %d | dist=15 log=off', state.pull_mob_id)
-            mq.delay(100, function() return mq.TLO.Navigation.Active() end)
-        end
+        movement.navToSpawn('id '..state.pull_mob_id, 'dist=15')
     end
     return true
 end
@@ -229,11 +228,10 @@ local function pull_engage(pull_spawn, pull_func)
     end
     if not pull_spawn.LineOfSight() or dist3d > 200 then
         state.pull_in_progress = common.PULL_STATES.APPROACHING
-        pull_nav_to(pull_spawn)
+        pull_nav_to(pull_spawn, false)
         return false
     end
     pull_spawn.DoTarget()
-    mq.delay(50, function() return mq.TLO.Target.ID() == pull_spawn.ID() end)
     if not mq.TLO.Target() then
         print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pull_mob_id))
         clear_pull_vars()
@@ -250,10 +248,7 @@ local function pull_engage(pull_spawn, pull_func)
         return false
     end
     if mq.TLO.Target.Distance3D() < 35 then
-        if mq.TLO.Navigation.Active() then
-            mq.cmd('/squelch /nav stop')
-            mq.delay(100, function() return not mq.TLO.Navigation.Active() end)
-        end
+        movement.stop()
         mq.cmd('/squelch /face fast')
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
@@ -291,11 +286,8 @@ local function pull_return(noMobs)
     --print(logger.logLine('Bringing pull target back to camp (%s)', common.PULL_MOB_ID))
     if noMobs and not pull_return_timer:timer_expired() then return end
     if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 15 then return end
-    if not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(string.format('locyxz %d %d %d', camp.Y, camp.X, camp.Z))() then
-        mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
-        mq.delay(50, function() return mq.TLO.Navigation.Active() end)
-        if noMobs then pull_return_timer:reset() end
-    end
+    movement.navToLoc(camp.X, camp.Y, camp.Z)
+    if noMobs then pull_return_timer:reset() end
 end
 
 local function pullMobOnXTarget()
@@ -319,7 +311,10 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if anyoneDead() or state.loop.PctHPs < 60 or common.DMZ[mq.TLO.Zone.ID()] then return end
+    if anyoneDead() or state.loop.PctHPs < 60 or mq.TLO.Group.Injured(70)() > 0 or common.DMZ[mq.TLO.Zone.ID()] then
+        movement.stop()
+        return
+    end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
     if not pull_state and (state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets()) then
         logger.debug(logger.log_flags.routines.pull, 'returning at weird state')
@@ -328,6 +323,7 @@ pull.pull_mob = function(pull_func)
 
     -- account for any odd pull state discrepancies?
     if (pull_state and state.pull_mob_id == 0) or (state.pull_mob_id ~= 0 and not pull_state) then
+        print('pull_state and pull_mob_id mismatch')
         clear_pull_vars()
         pull_return()
         return
@@ -356,7 +352,7 @@ pull.pull_mob = function(pull_func)
         end
         -- valid pull spawn acquired, begin approach
         state.pull_in_progress = common.PULL_STATES.APPROACHING
-        pull_nav_to(pull_spawn)
+        pull_nav_to(pull_spawn, true)
     elseif pull_state == common.PULL_STATES.APPROACHING then
         local pull_spawn = mq.TLO.Spawn(state.pull_mob_id)
         if pull_approaching(pull_spawn) then

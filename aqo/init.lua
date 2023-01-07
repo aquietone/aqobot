@@ -6,6 +6,7 @@ require 'ImGui'
 AQO='aqo'
 local assist = require('routines.assist')
 local camp = require('routines.camp')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local loot = require('utils.lootutils')
 local timer = require('utils.timer')
@@ -153,6 +154,8 @@ local function cmd_bind(...)
         mq.cmdf('/dgga /say %s', repeatstring)
     elseif opt == 'force' then
         assist.force_assist(new_value)
+    elseif opt == 'nowcast' then
+        aqoclass.nowCast(args)
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
@@ -162,9 +165,16 @@ local function zoned()
     state.reset_combat_state()
     if state.currentZone == mq.TLO.Zone.ID() then
         -- evac'd
+        camp.set_camp()
+        movement.stop()
     end
     state.currentZone = mq.TLO.Zone.ID()
     mq.cmd('/pet ghold on')
+    if not state.paused and config.MODE:is_pull_mode() then
+        config.MODE = mode.from_string('manual')
+        camp.set_camp()
+        movement.stop()
+    end
 end
 
 local lootMyBody = false
@@ -222,11 +232,12 @@ local function main()
         state.actionTaken = false
         check_game_state()
 
-        if not mq.TLO.Target() and (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then
+        if not mq.TLO.Target() then
             state.assist_mob_id = 0
             state.tank_mob_id = 0
-            state.pull_mob_id = 0
-            mq.cmd('/multiline ; /attack off; /autofire off;')
+            if (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then
+                mq.cmd('/multiline ; /attack off; /autofire off;')
+            end
         end
         if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
             mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
@@ -236,7 +247,6 @@ local function main()
             if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                 state.tank_mob_id = 0
                 state.assist_mob_id = 0
-                state.pull_mob_id = 0
                 if not common.HEALER_CLASSES[state.class] then
                     mq.cmd('/squelch /mqtarget clear')
                 end
