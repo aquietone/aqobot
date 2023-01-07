@@ -107,7 +107,7 @@ local buffclasses = {clr=true,dru=true,enc=true,shm=true,mag=true,rng=true,bst=t
 local healers = {clr=true,dru=true,shm=true}
 base.addCommonOptions = function()
     if base.SPELLSETS then
-        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.SPELLSETS, nil, 'combobox')
+        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.SPELLSETS, 'The spell set to be used', 'combobox')
         base.addOption('BYOS', 'BYOS', true, nil, 'Bring your own spells', 'checkbox')
     end
     base.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')

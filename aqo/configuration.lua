@@ -49,6 +49,51 @@ local config = {
     MAINTANK = false,
 }
 
+config.tips = {
+    MODE = '',
+    CHASETARGET = '',
+    CHASEDISTANCE = '',
+    CAMPRADIUS = '',
+    ASSIST = '',
+    AUTOASSISTAT = '',
+    SWITCHWITHMA = '',
+
+    RECOVERPCT = '',
+
+    HEALPCT = '',
+    PANICHEALPCT = '',
+    GROUPHEALPCT = '',
+    GROUPHEALMIN = '',
+    HOTHEALPCT = '',
+    REZGROUP = '',
+    REZRAID = '',
+    REZINCOMBAT = '',
+    PRIORITYTARGET = '',
+
+    BURNALWAYS = '',
+    BURNPCT = '',
+    BURNALLNAMED = '',
+    BURNCOUNT = '',
+    USEGLYPH = '',
+    USEINTENSITY = '',
+
+    PULLRADIUS = '',
+    PULLHIGH = '',
+    PULLLOW = '',
+    PULLARC = '',
+    PULLMINLEVEL = '',
+    PULLMAXLEVEL = '',
+    GROUPWATCHWHO = '',
+    MEDMANASTART = '',
+    MEDMANASTOP = '',
+    MEDENDSTART = '',
+    MEDENDSTOP = '',
+
+    LOOTMOBS = '',
+
+    MAINTANK = '',
+}
+
 local ignores = {}
 
 function config.get_all()

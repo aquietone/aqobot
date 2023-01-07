@@ -37,8 +37,39 @@ end
 
 ---Display help information for the script.
 local function show_help()
-    print(logger.logLine('AQO Bot 1.0'))
-    print(logger.logLine(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', state.class)))
+    local output = logger.logLine('AQO Bot 1.0\n')
+    --print(logger.logLine(('Commands:\n- /cls help\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank\n- /cls resetcamp'):gsub('cls', state.class)))
+    output = output .. ('\ayCommands:\aw\n- /cls help\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank\n- /cls resetcamp'):gsub('cls', state.class)
+    output = output .. ('\n- /%s addclicky <mash|burn|buff|heal> -- Adds the currently held item to the clicky group specified'):format(state.class)
+    output = output .. ('\n- /%s removeclicky -- Removes the currently held item from clickies'):format(state.class)
+    output = output .. ('\n- /%s ignore -- Adds the targeted mob to the ignore list for the current zone'):format(state.class)
+    output = output .. ('\n- /%s unignore -- Removes the targeted mob from the ignore list for the current zone'):format(state.class)
+    output = output .. ('\n- /%s sell -- Sells items marked to be sold to the targeted or already opened vendor'):format(state.class)
+    output = output .. ('\n- /%s update -- Downloads the latest source zip'):format(state.class)
+    output = output .. ('\n- /%s docs -- Launches the documentation site in a browser window'):format(state.class)
+    local prefix = '\n- /'..state.class..' '
+    output = output .. '\n\ayGeneric Configuration\aw'
+    for key,value in pairs(config) do
+        local valueType = type(value)
+        if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
+            output = output .. prefix .. key .. ' <' .. valueType .. '> -- '..config.tips[key]
+        end
+    end
+    output = output .. '\n\ayClass Configuration\aw'
+    for key,value in pairs(aqoclass.OPTS) do
+        local valueType = type(value.value)
+        if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
+            output = output .. prefix .. key .. ' <' .. valueType .. '>'--' -- '..value.tip
+            if value.tip then output = output .. ' -- '..value.tip end
+        end
+    end
+    output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands'
+    output = output .. '\n\ayBuff Begging:\aw /tell <name> <alias> -- Aliases: '
+    for alias,_ in pairs(aqoclass.requestAliases) do
+        output = output .. alias .. ', '
+    end
+    output = output .. '\ax'
+    print(output)
 end
 
 ---Process binding commands.
@@ -54,6 +85,8 @@ local function cmd_bind(...)
     local new_value = args[2] and args[2]:lower() or nil
     if opt == 'help' then
         show_help()
+    elseif opt == 'restart' then
+        mq.cmd('/multiline ; /lua stop aqo ; /timed 5 /lua run aqo')
     elseif opt == 'debug' then
         local section = args[2]
         local subsection = args[3]
@@ -156,6 +189,10 @@ local function cmd_bind(...)
         assist.force_assist(new_value)
     elseif opt == 'nowcast' then
         aqoclass.nowCast(args)
+    elseif opt == 'update' then
+        os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/lazarus.zip')
+    elseif opt == 'docs' then
+        os.execute('start https://aquietone.github.io/docs/aqobot')
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
@@ -189,6 +226,7 @@ local function init()
     if mq.TLO.EverQuest.Server() == 'Project Lazarus' or mq.TLO.EverQuest.Server() == 'EZ (Linux) x4 Exp' then state.emu = true end
     common.set_swap_gem()
 
+    mq.bind('/aqo', cmd_bind)
     aqoclass = require('classes.'..state.class)
     mq.bind(('/%s'):format(state.class), cmd_bind)
 

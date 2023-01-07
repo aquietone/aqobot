@@ -234,6 +234,8 @@ local buffs={
     },
 }
 
+class.addRequestAlias(class.spells.defensiveproc, 'defensiveproc')
+
 local neccount = 1
 
 class.spells.pyreshort.precast = function()
