@@ -1,3 +1,4 @@
+--- @type Mq
 local mq = require('mq')
 local class = require('classes.classbase')
 local common = require('common')

@@ -128,8 +128,8 @@ assist.should_assist = function(assist_target)
     end
 end
 
-local send_pet_timer = timer:new(5)
-local stick_timer = timer:new(3)
+local send_pet_timer = timer:new(2)
+local stick_timer = timer:new(1)
 
 ---Reset common combat timers to 0.
 local function reset_combat_timers()
@@ -240,11 +240,13 @@ assist.attack = function(skip_no_los)
     if not mq.TLO.Target.LineOfSight() and mq.TLO.Navigation.Active() then return end
     movement.stop()
     if config.MODE:get_name() ~= 'manual' and not mq.TLO.Stick.Active() and stick_timer:timer_expired() then
+        mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
-        mq.cmd('/stick snaproll uw')
-        mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
+        --mq.cmd('/stick snaproll uw')
+        --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
         local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
-        mq.cmdf('/squelch /stick hold moveback !front %s uw', math.min(maxRangeTo*.75, 25))
+        --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        mq.cmdf('/squelch /stick moveback behind %s uw', math.min(maxRangeTo*.75, 25))
         stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then

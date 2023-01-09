@@ -1,3 +1,4 @@
+--- @type Mq
 local mq = require('mq')
 local timer = require('utils.timer')
 local Abilities = require('ability')

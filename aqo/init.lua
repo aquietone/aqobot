@@ -190,9 +190,9 @@ local function cmd_bind(...)
     elseif opt == 'nowcast' then
         aqoclass.nowCast(args)
     elseif opt == 'update' then
-        os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/lazarus.zip')
+        os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     elseif opt == 'docs' then
-        os.execute('start https://aquietone.github.io/docs/aqobot')
+        os.execute('start https://aquietone.github.io/docs/aqobot/classes/'..state.class)
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end

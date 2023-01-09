@@ -1,3 +1,4 @@
+--- @type Mq
 local mq = require('mq')
 
 local defaultNavOptions = 'log=off'
