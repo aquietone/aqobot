@@ -108,11 +108,12 @@ EQ item names. Any INI entry which doesn't match the regex is just skipped over 
 
 ---@type Mq
 local mq = require 'mq'
-local timer = require(AQO..'.utils.timer')
-local state = require(AQO..'.state')
-local _, LIP = pcall(require, AQO..'.utils.LIP')
+local timer = require('utils.timer')
+local state = require('state')
+local movement = require('routines.movement')
+local _, LIP = pcall(require, 'utils.LIP')
 if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
-local _, Write = pcall(require, AQO..'.utils.Write')
+local _, Write = pcall(require, 'utils.Write')
 if not Write then print('\arERROR: Write.lua could not be loaded\ax') return end
 
 -- Public default settings, also read in from Loot.ini [Settings] section
@@ -199,7 +200,7 @@ local function checkCursor()
         -- can't do anything if there's nowhere to put the item, either due to no free inventory space
         -- or no slot of appropriate size
         if mq.TLO.Me.FreeInventory() == 0 or mq.TLO.Cursor() == currentItem then
-            mq.cmdf('/dga /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName())
+            if loot.ReportLoot then mq.cmdf('/dga /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
             mq.cmd('/autoinv')
             --shouldLootMobs = false
             return
@@ -208,20 +209,6 @@ local function checkCursor()
         mq.cmd('/autoinv')
         mq.delay(100)
     end
-end
-
-local function navToID(spawnID)
-    mq.cmdf('/squelch /nav id %d log=off', spawnID)
-    --[[mq.delay(50)
-    if mq.TLO.Navigation.Active() then
-        local startTime = os.time()
-        while mq.TLO.Navigation.Active() do
-            mq.delay(100)
-            if os.difftime(os.time(), startTime) > 5 then
-                break
-            end
-        end
-    end]]
 end
 
 local function addRule(itemName, section, rule)
@@ -344,7 +331,7 @@ end
 local function lootCorpse(corpseID)
     loot.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
-    if mq.TLO.Me.FreeInventory() == 0 then mq.cmdf('/squelch /dga /squelch /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
+    if mq.TLO.Me.FreeInventory() == 0 and loot.ReportLoot then mq.cmdf('/squelch /dga /squelch /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
     mq.cmd('/loot')
     mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
     mq.doevents('CantLoot')
@@ -498,7 +485,8 @@ loot.lootMobs = function(limit)
             local corpseID = corpse.ID()
             if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id '..tostring(corpseID))() or 100) < 60 then
                 loot.logger.Debug('Moving to corpse ID='..tostring(corpseID))
-                navToID(corpseID)
+                movement.stop()
+                movement.navToID(corpseID)
                 corpse.DoTarget()
                 loot.state.corpseToLoot = corpseID
                 goToCorpseTimer:reset()
@@ -552,8 +540,8 @@ loot.lootMyCorpse = function()
     mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
     mq.delay(1000)
     if mq.TLO.Target.Type() == 'Corpse' then
-        mq.cmd('/nav target')
-        mq.delay(10000, function() return mq.TLO.Target.Distance3D() < 10 end)
+        movement.navToTarget(nil, 10000)
+        if mq.TLO.Target.Distance3D() or 100 > 10 then return end
         mq.cmd('/loot')
         mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
         if mq.TLO.Window('LootWnd').Open() then

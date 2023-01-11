@@ -1,11 +1,9 @@
 --- @type Mq
 local mq = require('mq')
---- @type ImGui
-local imgui = require 'ImGui'
 
-AQO='aqoplugin'
 local assist = require('routines.assist')
 local camp = require('routines.camp')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local loot = require('utils.lootutils')
 local common = require('common')
@@ -36,15 +34,56 @@ plugin.suspended = false
 ---Check if the current game state is not INGAME, and exit the script if it is.
 local function check_game_state()
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
-        logger.printf('Not in game, stopping aqo.')
+        printf(logger.logLine('Not in game, stopping aqo.'))
         mq.exit()
     end
+    state.loop = {
+        PctHPs = mq.TLO.Me.PctHPs(),
+        PctMana = mq.TLO.Me.PctMana(),
+        PctEndurance = mq.TLO.Me.PctEndurance(),
+        ID = mq.TLO.Me.ID(),
+        Invis = mq.TLO.Me.Invis(),
+        PetName = mq.TLO.Me.Pet.CleanName(),
+        TargetID = mq.TLO.Target.ID(),
+        TargetHP = mq.TLO.Target.PctHPs(),
+    }
 end
 
 ---Display help information for the script.
 local function show_help()
-    logger.printf('AQO Bot 1.0')
-    logger.printf(('Commands:\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|1|2\n- /cls resetcamp\n- /cls help'):gsub('cls', state.class))
+    local output = logger.logLine('AQO Bot 1.0\n')
+    --print(logger.logLine(('Commands:\n- /cls help\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank\n- /cls resetcamp'):gsub('cls', state.class)))
+    output = output .. ('\ayCommands:\aw\n- /cls help\n- /cls burnnow\n- /cls pause on|1|off|0\n- /cls show|hide\n- /cls mode 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank\n- /cls resetcamp'):gsub('cls', state.class)
+    output = output .. ('\n- /%s addclicky <mash|burn|buff|heal> -- Adds the currently held item to the clicky group specified'):format(state.class)
+    output = output .. ('\n- /%s removeclicky -- Removes the currently held item from clickies'):format(state.class)
+    output = output .. ('\n- /%s ignore -- Adds the targeted mob to the ignore list for the current zone'):format(state.class)
+    output = output .. ('\n- /%s unignore -- Removes the targeted mob from the ignore list for the current zone'):format(state.class)
+    output = output .. ('\n- /%s sell -- Sells items marked to be sold to the targeted or already opened vendor'):format(state.class)
+    output = output .. ('\n- /%s update -- Downloads the latest source zip'):format(state.class)
+    output = output .. ('\n- /%s docs -- Launches the documentation site in a browser window'):format(state.class)
+    local prefix = '\n- /'..state.class..' '
+    output = output .. '\n\ayGeneric Configuration\aw'
+    for key,value in pairs(config) do
+        local valueType = type(value)
+        if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
+            output = output .. prefix .. key .. ' <' .. valueType .. '> -- '..config.tips[key]
+        end
+    end
+    output = output .. '\n\ayClass Configuration\aw'
+    for key,value in pairs(aqoclass.OPTS) do
+        local valueType = type(value.value)
+        if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
+            output = output .. prefix .. key .. ' <' .. valueType .. '>'--' -- '..value.tip
+            if value.tip then output = output .. ' -- '..value.tip end
+        end
+    end
+    output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands'
+    output = output .. '\n\ayBuff Begging:\aw /tell <name> <alias> -- Aliases: '
+    for alias,_ in pairs(aqoclass.requestAliases) do
+        output = output .. alias .. ', '
+    end
+    output = output .. '\ax'
+    print(output)
 end
 
 ---Process binding commands.
@@ -58,9 +97,11 @@ function plugin:aqocmd(line)
     end
 
     local opt = args[1]:lower()
-    local new_value = args[2]
+    local new_value = args[2] and args[2]:lower() or nil
     if opt == 'help' then
         show_help()
+    elseif opt == 'restart' then
+        mq.cmd('/multiline ; /lua stop aqo ; /timed 5 /lua run aqo')
     elseif opt == 'debug' then
         local section = args[2]
         local subsection = args[3]
@@ -84,13 +125,13 @@ function plugin:aqocmd(line)
                 mq.cmd('/stopcast')
             end
         else
-            if config.BOOL.TRUE[new_value] then
-                state.paused = true
+            if config.booleans[new_value] == nil then return end
+            state.paused = config.booleans[new_value]
+            if state.paused then
                 state.reset_combat_state()
                 mq.cmd('/stopcast')
-            elseif config.BOOL.FALSE[new_value] then
+            else
                 camp.set_camp()
-                state.paused = false
             end
         end
     elseif opt == 'show' then
@@ -102,7 +143,7 @@ function plugin:aqocmd(line)
             config.MODE = mode.from_string(new_value) or config.MODE
             state.reset_combat_state()
         else
-            logger.printf('Mode: %s', config.MODE:get_name())
+            printf(logger.logLine('Mode: %s', config.MODE:get_name()))
         end
         camp.set_camp()
     elseif opt == 'resetcamp' then
@@ -118,11 +159,11 @@ function plugin:aqocmd(line)
         if new_value and common.ASSISTS[new_value] then
             config.ASSIST = new_value
         end
-        logger.printf('assist: %s', config.ASSIST)
+        printf(logger.logLine('assist: %s', config.ASSIST))
     elseif opt == 'ignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            config.add_ignore(zone, new_value)
+            config.add_ignore(zone, arg[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
             if target_name then config.add_ignore(zone, target_name) end
@@ -130,7 +171,7 @@ function plugin:aqocmd(line)
     elseif opt == 'unignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            config.remove_ignore(zone, new_value)
+            config.remove_ignore(zone, arg[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
             if target_name then config.remove_ignore(zone, target_name) end
@@ -143,7 +184,7 @@ function plugin:aqocmd(line)
             aqoclass.addClicky(clicky)
             aqoclass.save_settings()
         else
-            logger.printf('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class)
+            printf(logger.logLine('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class))
         end
     elseif opt == 'removeclicky' then
         local itemName = mq.TLO.Cursor()
@@ -151,7 +192,7 @@ function plugin:aqocmd(line)
             aqoclass.removeClicky(itemName)
             aqoclass.save_settings()
         else
-            logger.printf('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
+            printf(logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class))
         end
     elseif opt == 'tribute' then
         common.toggleTribute()
@@ -163,6 +204,12 @@ function plugin:aqocmd(line)
         mq.cmdf('/dgga /say %s', repeatstring)
     elseif opt == 'force' then
         assist.force_assist(new_value)
+    elseif opt == 'nowcast' then
+        aqoclass.nowCast(args)
+    elseif opt == 'update' then
+        os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
+    elseif opt == 'docs' then
+        os.execute('start https://aquietone.github.io/docs/aqobot/classes/'..state.class)
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
@@ -182,7 +229,7 @@ local function init()
     if mq.TLO.EverQuest.Server() == 'Project Lazarus' or mq.TLO.EverQuest.Server() == 'EZ (Linux) x4 Exp' then state.emu = true end
     common.set_swap_gem()
 
-    aqoclass = require(AQO..'.classes.'..state.class)
+    aqoclass = require('classes.'..state.class)
 
     aqoclass.load_settings()
     aqoclass.setup_events()
@@ -235,6 +282,7 @@ end
 function plugin:InitializePlugin()
     printf("%s::Initializing version %f", self.name, self.version)
 
+    self:addcommand("/aqo", self.aqocmd)
     self:addcommand("/"..mq.TLO.Me.Class.ShortName():lower(), self.aqocmd)
     self:addtype("aqo", self.aqotype)
     self:addtlo("AQO", self.AQO)
@@ -290,24 +338,15 @@ local frameCount = 0
 ---
 ---@param self Plugin optionally specify a self plugin
 function plugin:OnPulse()
-    if frameCount == 0 then
-        frameCount = frameCount + 1
-    elseif frameCount == 10 then
-        frameCount = 0
-        return
-    else
-        frameCount = frameCount + 1
-        return
-    end
     if self.suspended then return end
     if not self.PulseTimer then
         self.PulseTimer = os.clock()
     end
-    if os.clock() > self.PulseTimer then
+    --[[if os.clock() > self.PulseTimer then
         -- Wait 5 seconds before running again
         self.PulseTimer = os.clock() + 5
         printf("%s::OnPulse()", self.name)
-    end
+    end]]
 
     -- Async state handling
     if loot.state.looting then loot.lootMobs() return end
@@ -318,29 +357,41 @@ function plugin:OnPulse()
     if not state.handleMemSpell() then return end
     if not state.handleCastingState() then return end
     if not state.handleQueuedAction() then return end
-
-    mq.doevents()
+    if frameCount == 0 then
+        frameCount = frameCount + 1
+    elseif frameCount == 10 then
+        frameCount = 0
+        return
+    else
+        frameCount = frameCount + 1
+        return
+    end
+    --mq.doevents()
     state.actionTaken = false
     check_game_state()
 
-    if not mq.TLO.Target() and (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then
+    if not mq.TLO.Target() then
         state.assist_mob_id = 0
         state.tank_mob_id = 0
-        state.pull_mob_id = 0
-        mq.cmd('/multiline ; /attack off; /autofire off;')
+        if (mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire()) then
+            mq.cmd('/multiline ; /attack off; /autofire off;')
+        end
     end
-
-    if not state.paused then
+    if state.class == 'nec' and state.loop.PctHPs < 40 and aqoclass.spells.lich then
+        mq.cmdf('/removebuff %s', aqoclass.spells.lich.name)
+    end
+    if not state.paused and common.in_control() and not common.am_i_dead() then
         camp.clean_targets()
         if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' and not common.HEALER_CLASSES[state.class] then
             state.tank_mob_id = 0
             state.assist_mob_id = 0
-            state.pull_mob_id = 0
-            mq.cmd('/squelch /mqtarget clear')
+            if not common.HEALER_CLASSES[state.class] then
+                mq.cmd('/squelch /mqtarget clear')
+            end
         end
         if mq.TLO.Me.Hovering() then
 
-        elseif not mq.TLO.Me.Invis() and not common.blocking_window_open() then
+        elseif not state.loop.Invis and not common.blocking_window_open() then
             -- do active combat assist things when not paused and not invis
             if mq.TLO.Me.Feigning() and not common.FD_CLASSES[state.class] then
                 mq.cmd('/stand')
@@ -370,7 +421,7 @@ function plugin:OnPulse()
             common.rest()
         end
     else
-        if mq.TLO.Me.Invis() then
+        if state.loop.Invis then
             -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
             local pet_target_id = mq.TLO.Pet.Target.ID() or 0
             if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
@@ -401,7 +452,7 @@ function plugin:OnIncomingChat(Line, Color)
     elseif Line:find('You regain .* experience from resurrection') then
         print('rez message')
     elseif Line:find(".* tells the .*, 'di'") then
-        aqoclass.event_request('', 'nimco', 'di')
+        aqoclass.event_request('', '', 'di')
     end
 	return false
 end
@@ -460,9 +511,16 @@ function plugin:OnZoned()
     state.reset_combat_state()
     if state.currentZone == mq.TLO.Zone.ID() then
         -- evac'd
+        camp.set_camp()
+        movement.stop()
     end
     state.currentZone = mq.TLO.Zone.ID()
     mq.cmd('/pet ghold on')
+    if not state.paused and config.MODE:is_pull_mode() then
+        config.MODE = mode.from_string('manual')
+        camp.set_camp()
+        movement.stop()
+    end
     plugin.suspended = false
 end
 
@@ -476,15 +534,6 @@ end
 ---
 ---@param self Plugin optionally specify a self plugin
 function plugin:OnUpdateImGui()
-    --[[if not self.is_open or mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
-        return
-    end
-    local is_drawn = false
-    self.is_open, is_drawn = imgui.Begin('AQO##testing', self.is_open)
-    if is_drawn then
-
-    end
-    ImGui.End()]]
     ui.main()
 end
 

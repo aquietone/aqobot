@@ -1,4 +1,4 @@
-local logger = require(AQO..'.utils.logger')
+local logger = require('utils.logger')
 
 local mode = {
     modes={},
@@ -67,7 +67,7 @@ mode:new('puller',true,true,false,true,true)
 mode:new('huntertank',true,false,true,true,false)
 
 --for i,mode in ipairs(mode.modes) do
---    logger.printf('modes[%s]: name=%s', i, mode.name)
+--    printf(logUtils.logger('modes[%s]: name=%s', i, mode.name))
 --end
 
 return mode

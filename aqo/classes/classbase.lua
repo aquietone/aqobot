@@ -1,19 +1,20 @@
 ---@type Mq
 local mq = require 'mq'
-local assist = require(AQO..'.routines.assist')
-local buffing = require(AQO..'.routines.buff')
-local camp = require(AQO..'.routines.camp')
-local healing = require(AQO..'.routines.heal')
-local mez = require(AQO..'.routines.mez')
-local pull = require(AQO..'.routines.pull')
-local tank = require(AQO..'.routines.tank')
-local logger = require(AQO..'.utils.logger')
-local persistence = require(AQO..'.utils.persistence')
-local timer = require(AQO..'.utils.timer')
-local Abilities = require(AQO..'.ability')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local assist = require('routines.assist')
+local buffing = require('routines.buff')
+local camp = require('routines.camp')
+local healing = require('routines.heal')
+local mez = require('routines.mez')
+local movement = require('routines.movement')
+local pull = require('routines.pull')
+local tank = require('routines.tank')
+local logger = require('utils.logger')
+local persistence = require('utils.persistence')
+local timer = require('utils.timer')
+local Abilities = require('ability')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 local base = {}
 
 -- All possible class routine methods
@@ -102,11 +103,11 @@ end
 
 local casterpriests = {clr=true,shm=true,dru=true,mag=true,nec=true,enc=true,wiz=true}
 local petclasses = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=true}
-local buffclasses = {clr=true,dru=true,enc=true,shm=true,mag=true,rng=true,bst=true}
+local buffclasses = {clr=true,dru=true,enc=true,shm=true,mag=true,rng=true,bst=true,nec=true}
 local healers = {clr=true,dru=true,shm=true}
 base.addCommonOptions = function()
     if base.SPELLSETS then
-        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.SPELLSETS, nil, 'combobox')
+        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.SPELLSETS, 'The spell set to be used', 'combobox')
         base.addOption('BYOS', 'BYOS', true, nil, 'Bring your own spells', 'checkbox')
     end
     base.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
@@ -160,9 +161,9 @@ base.addSpell = function(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options)
     base.spells[spellGroup] = foundSpell
     if foundSpell then
-        logger.printf('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id)
+        printf(logger.logLine('[%s] Found spell: %s (%s)', spellGroup, foundSpell.name, foundSpell.id))
     else
-        logger.printf('[%s] Could not find spell!', spellGroup)
+        printf(logger.logLine('[%s] Could not find spell!', spellGroup))
     end
 end
 
@@ -179,7 +180,7 @@ base.addClicky = function(clicky)
             table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
         end
         table.insert(base.clickies, clicky)
-        logger.printf('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+        printf(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
     end
 end
 
@@ -200,12 +201,20 @@ base.removeClicky = function(itemName)
             for j,entry in ipairs(t) do
                 if entry.name == itemName then
                     table.remove(t, j)
-                    logger.printf('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+                    printf(logger.logLine('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
                     return
                 end
             end
         end
     end
+end
+
+base.addRequestAlias = function(ability, alias)
+    base.requestAliases[alias] = ability
+end
+
+base.getAbilityForAlias = function(alias)
+    return base.requestAliases[alias]
 end
 
 local SETTINGS_FILE = ('%s/aqobot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName())
@@ -214,7 +223,7 @@ base.load_settings = function()
     if not settings or not settings[base.class] then return end
     for setting,value in pairs(settings[base.class]) do
         if base.OPTS[setting] == nil then
-            logger.printf('Unrecognized setting: %s=%s', setting, value)
+            printf(logger.logLine('Unrecognized setting: %s=%s', setting, value))
         else
             base.OPTS[setting].value = value
         end
@@ -258,19 +267,19 @@ base.event_gear = function(line, requester, requested)
     requested = requested:lower()
     local slot = requested:gsub('gear ', '')
     if slot == 'listslots' then
-        mq.cmd('/gu earrings,rings,leftear,rightear,leftfinger,rightfinger,face,head,neck,shoulder,chest,feet,arms,leftwrist,rightwrist,wrists,charm,powersource,mainhand,offhand,ranged,ammo,legs,waist,hands')
+        mq.cmd('/gu earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands')
     elseif slot == 'earrings' then
         local leftear = mq.TLO.Me.Inventory('leftear')
         local rightear = mq.TLO.Me.Inventory('rightear')
-        mq.cmdf('/gu leftear: %s, rightear: %s', leftear.ItemLink('CLICKABLE')(), rightear.ItemLink('CLICKABLE'))
+        mq.cmdf('/gu leftear: %s, rightear: %s', leftear.ItemLink('CLICKABLE')(), rightear.ItemLink('CLICKABLE')())
     elseif slot == 'rings' then
         local leftfinger = mq.TLO.Me.Inventory('leftfinger')
         local rightfinger = mq.TLO.Me.Inventory('rightfinger')
-        mq.cmdf('/gu leftfinger: %s, rightfinger: %s', leftfinger.ItemLink('CLICKABLE')(), rightfinger.ItemLink('CLICKABLE'))
+        mq.cmdf('/gu leftfinger: %s, rightfinger: %s', leftfinger.ItemLink('CLICKABLE')(), rightfinger.ItemLink('CLICKABLE')())
     elseif slot == 'wrists' then
         local leftwrist = mq.TLO.Me.Inventory('leftwrist')
         local rightwrist = mq.TLO.Me.Inventory('rightwrist')
-        mq.cmdf('/gu leftwrist: %s, rightwrist: %s', leftwrist.ItemLink('CLICKABLE')(), rightwrist.ItemLink('CLICKABLE'))
+        mq.cmdf('/gu leftwrist: %s, rightwrist: %s', leftwrist.ItemLink('CLICKABLE')(), rightwrist.ItemLink('CLICKABLE')())
     else
         if mq.TLO.Me.Inventory(slot)() then
             mq.cmdf('/gu %s: %s', slot, mq.TLO.Me.Inventory(slot).ItemLink('CLICKABLE')())
@@ -279,11 +288,11 @@ base.event_gear = function(line, requester, requested)
 end
 
 base.event_request = function(line, requester, requested)
+    requested = requested:lower()
+    if requested:find('^gear .+') then
+        return base.event_gear(line, requester, requested)
+    end
     if base.isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
-        requested = requested:lower()
-        if requested:find('^gear .+') then
-            return base.event_gear(line, requester, requested)
-        end
         local tranquil = false
         local mgb = false
         if requested:find('^tranquil') then
@@ -297,21 +306,24 @@ base.event_request = function(line, requester, requested)
         if requested:find(' '..mq.TLO.Me.CleanName():lower()..'$') then
             requested = requested:gsub(' '..mq.TLO.Me.CleanName():lower(),'')
         end
-        if base.requestAliases[requested] then
-            requested = base[base.requestAliases[requested]]
-            if requested then
-                local expiration = timer:new(15)
-                expiration:reset()
-                table.insert(base.requests, {requester=requester, requested=requested, expiration=expiration, tranquil=tranquil, mgb=mgb})
-            else
-                mq.cmdf('/t %s I dont have that ability!', requester)
-            end
-        elseif requested == 'list buffs' then
+        if requested:find(' pet$') then
+            requested = requested:gsub(' pet', '')
+            requester = mq.TLO.Spawn('pc '..requester).Pet.CleanName()
+            print('Pet Name for request: ', requester)
+        end
+        if requested == 'list buffs' then
             local buffList = ''
             for alias,ability in pairs(base.requestAliases) do
-                buffList = ('%s | %s : %s'):format(buffList, alias, base[ability].name)
+                buffList = ('%s | %s : %s'):format(buffList, alias, ability.name)
             end
             mq.cmdf('/t %s %s', requester, buffList)
+            return
+        end
+        local requestedAbility = base.getAbilityForAlias(requested)
+        if requestedAbility then
+            local expiration = timer:new(15)
+            expiration:reset()
+            table.insert(base.requests, {requester=requester, requested=requestedAbility, expiration=expiration, tranquil=tranquil, mgb=mgb})
         end
     end
 end
@@ -384,9 +396,9 @@ base.cure = function()
         if mq.TLO.Me.CountersCurse() > 0 then
             for _,cure in base.cures do
                 if cure.curse or cure.all and cure:isReady() then
-                    if mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
+                    if mq.TLO.Target.ID() ~= state.loop.ID then
                         mq.cmd('/mqtar')
-                        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+                        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                     end
                     cure:use()
                 end
@@ -424,6 +436,7 @@ local function doMashClickies()
                 mq.cmd('/autoinv')
                 return
             end
+            state.resetCastingState()
             state.casting = common.getItem(clickyItem.Name())
             if base.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
             mq.cmdf('/useitem "%s"', clickyItem.Name())
@@ -437,7 +450,7 @@ local function doMashClickies()
 end
 
 base.mash = function()
-    if common.am_i_dead() or mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
         if base.mash_class then base.mash_class() end
@@ -451,7 +464,7 @@ base.mash = function()
 end
 
 base.ae = function()
-    if common.am_i_dead() or mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     if not base.isEnabled('USEAOE') then return end
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) or (cur_mode:is_manual_mode() and mq.TLO.Me.Combat()) then
@@ -466,7 +479,8 @@ end
 base.burn = function()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
-    if common.am_i_dead() or (base.can_i_sing and not base.can_i_sing()) then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
+    if base.can_i_sing and not base.can_i_sing() then return end
     if common.is_burn_condition_met() then
         if base.burn_class then base.burn_class() end
 
@@ -486,7 +500,7 @@ base.find_next_spell = function()
 end
 
 local function castDebuffs()
-    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if mq.TLO.Target.ID() == state.loop.ID then return end
     if base.isEnabled('USEDISPEL') and mq.TLO.Target.Beneficial() and base.dispel then
         base.dispel:use()
         if base.dispel.type == Abilities.Types.Spell then return true end
@@ -527,28 +541,49 @@ end
 
 base.nuketimer = timer:new(0)
 base.cast = function()
-    if common.am_i_dead() or mq.TLO.Me.SpellInCooldown() then return end
+    if mq.TLO.Me.SpellInCooldown() then return end
     if assist.is_fighting() then
         if castDebuffs() then state.actionTaken = true return end
         if base.nuketimer:timer_expired() then
             local spell = base.find_next_spell()
             if spell then -- if a dot was found
                 if spell.precast then spell.precast() end
-                -- spell.precast
-                --if spell.name == nec.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
-                --    tcclick:use()
-                --end
                 if spell:use() then state.actionTaken = true end -- then cast the dot
                 base.nuketimer:reset()
                 if spell.postcast then spell.postcast() end
             end
         end
         -- nec multi dot stuff
+        --[[
+        if base.isEnabled('MULTIDOT') then
+            local original_target_id = 0
+            if mq.TLO.Target.Type() == 'NPC' then original_target_id = mq.TLO.Target.ID() end
+            local dotted_count = 1
+            for i=1,20 do
+                if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
+                    local xtar_id = mq.TLO.Me.XTarget(i).ID()
+                    local xtar_spawn = mq.TLO.Spawn(xtar_id)
+                    if xtar_id ~= original_target_id and assist.should_assist(xtar_spawn) then
+                        xtar_spawn.DoTarget()
+                        mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
+                        local spell = base.find_next_spell() -- find the first available dot to cast that is missing from the target
+                        if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
+                            spell:use()
+                            dotted_count = dotted_count + 1
+                            if dotted_count >= class.OPTS.MULTICOUNT.value then break end
+                        end
+                    end
+                end
+            end
+            if original_target_id ~= 0 and mq.TLO.Target.ID() ~= original_target_id then
+                mq.cmdf('/mqtar id %s', original_target_id)
+            end
+        end
+        ]]
     end
 end
 
 base.buff = function()
-    if common.am_i_dead() then return end
     if base.can_i_sing and not base.can_i_sing() then return end
     if buffing.buff(base) then state.actionTaken = true end
 end
@@ -570,14 +605,14 @@ end
 
 local check_aggro_timer = timer:new(5)
 base.aggro = function()
-    if common.am_i_dead() or config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then return end
-    if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Me.PctHPs() < 50 then
+    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' and state.loop.PctHPs < 50 then
         for _,ability in ipairs(base.defensiveAbilities) do
             if ability:use() and ability.stand then print('FD used, standing') mq.delay(50) mq.cmd('/stand') end
         end
     end
     if base.drop_aggro and config.MODE:get_name() ~= 'manual' and base.OPTS.USEFADE.value and state.mob_count > 0 and check_aggro_timer:timer_expired() then
-        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID()) and mq.TLO.Me.PctHPs() < 75 then
+        if ((mq.TLO.Target() and mq.TLO.Me.PctAggro() >= 70) or mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID) and state.loop.PctHPs < 75 then
             base.drop_aggro:use()
             check_aggro_timer:reset()
             --mq.delay(1000)
@@ -601,14 +636,13 @@ base.recover = function()
     if base.recover_class then base.recover_class() end
     -- modrods
     common.check_mana()
-    local pct_mana = mq.TLO.Me.PctMana()
-    local pct_end = mq.TLO.Me.PctEndurance()
+    local pct_mana = state.loop.PctMana
+    local pct_end = state.loop.PctEndurance
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     for _,ability in ipairs(base.recoverAbilities) do
         if base.isAbilityEnabled(ability.opt) then
-            --if ability.mana and pct_mana < ability.threshold and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
-            if ability.mana and pct_mana < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
+            if ability.mana and pct_mana < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() ~= 'ACTIVE') then
                 useAbility = ability
                 break
             elseif ability.endurance and pct_end < config.RECOVERPCT and (ability.combat or combat_state ~= 'COMBAT') then
@@ -630,7 +664,6 @@ base.recover = function()
             state.actionTaken = true
             state.queuedAction = function() if mq.TLO.Target.ID() == mq.TLO.Me.ID() then useAbility:use() return true else return false end end
             return
-            --mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
         end
         if useAbility:use() then state.actionTaken = true end
     end
@@ -658,46 +691,56 @@ base.process_cmd = function(opt, new_value)
     if new_value then
         if opt == 'SPELLSET' and base.OPTS.SPELLSET ~= nil then
             if base.SPELLSETS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                printf(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.SPELLSET.value = new_value
             end
         elseif opt == 'USEEPIC' and base.OPTS.USEEPIC ~= nil then
             if base.EPIC_OPTS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                printf(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.USEEPIC.value = new_value
             end
         elseif opt == 'AURA1' and base.OPTS.AURA1 ~= nil then
             if base.AURAS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                printf(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.AURA1.value = new_value
             end
         elseif opt == 'AURA2' and base.OPTS.AURA2 ~= nil then
             if base.AURAS[new_value] then
-                logger.printf('Setting %s to: %s', opt, new_value)
+                printf(logger.logLine('Setting %s to: %s', opt, new_value))
                 base.OPTS.AURA2.value = new_value
             end
         elseif base.OPTS[opt] and type(base.OPTS[opt].value) == 'boolean' then
-            if config.BOOL.FALSE[new_value] then
-                logger.printf('Setting %s to: false', opt)
-                if base.OPTS[opt].value ~= nil then base.OPTS[opt].value = false end
-            elseif config.BOOL.TRUE[new_value] then
-                logger.printf('Setting %s to: true', opt)
-                if base.OPTS[opt].value ~= nil then base.OPTS[opt].value = true end
-            end
+            if config.booleans[new_value] == nil then return end
+            base.OPTS[opt].value = config.booleans[new_value]
+            print(logger.logLine('Setting %s to: %s', opt, config.booleans[new_value]))
         elseif base.OPTS[opt] and type(base.OPTS[opt].value) == 'number' then
             if tonumber(new_value) then
-                logger.printf('Setting %s to: %s', opt, tonumber(new_value))
+                printf(logger.logLine('Setting %s to: %s', opt, tonumber(new_value)))
                 if base.OPTS[opt].value ~= nil then base.OPTS[opt].value = tonumber(new_value) end
             end
         else
-            logger.printf('Unsupported command line option: %s %s', opt, new_value)
+            printf(logger.logLine('Unsupported command line option: %s %s', opt, new_value))
         end
     else
         if base.OPTS[opt] ~= nil then
-            logger.printf('%s: %s', opt:lower(), base.OPTS[opt].value)
+            printf(logger.logLine('%s: %s', opt:lower(), base.OPTS[opt].value))
         else
-            logger.printf('Unrecognized option: %s', opt)
+            printf(logger.logLine('Unrecognized option: %s', opt))
         end
+    end
+end
+
+base.nowCast = function(args)
+    if #args == 3 then
+        local sendTo = args[1]
+        local alias = args[2]
+        local target = args[3]
+        mq.cmdf('/dex %s /nowcast "%s" %s', name, alias, target)
+    elseif #args == 2 then
+        local alias = args[1]
+        local target = args[2]
+        mq.cmd('/stopcast')
+        mq.cmdf('/mqtar id %s', target)
     end
 end
 
@@ -705,12 +748,19 @@ local function handleRequests()
     if #base.requests > 0 then
         local request = base.requests[1]
         if request.expiration:timer_expired() then
-            logger.printf('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requester)
+            printf(logger.logLine('Request timer expired for \ag%s\ax from \at%s\at', request.requested.name, request.requester))
             table.remove(base.requests, 1)
         else
-            if request.requested:isReady() then
-                local requesterSpawn = mq.TLO.Spawn('pc '..request.requester)
-                if (requesterSpawn.Distance3D() or 300) < 100 then
+            local requesterSpawn = mq.TLO.Spawn('='..request.requester)
+            if (requesterSpawn.Distance3D() or 300) < 100 then
+                --TODO mem'ing spells stateful
+                --[[local restoreGem
+                if request.requested.type == Abilities.Types.Spell and not mq.TLO.Me.Gem(request.requested.name)() then
+                    restoreGem = {name=mq.TLO.Me.Gem(state.swapGem)()}
+                    common.swap_spell(request.requested, state.swapGem)
+                    mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.name)() end)
+                end]]
+                if request.requested:isReady() then
                     local tranquilUsed = '/g Casting'
                     if request.tranquil then
                         if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then
@@ -725,20 +775,17 @@ local function handleRequests()
                             if base.mgb:use() then tranquilUsed = '/rs MGB\'ing' end
                         end
                     end
-                    mq.cmd('/multiline ; /nav stop ; /stick off')
-                    --local spell = nil
-                    --if request.requested.type == Abilities.Types.Spell then spell = mq.TLO.Spell(request.requested.name)
-                    --elseif request.requested.type == Abilities.Types.AA then spell = mq.TLO.Me.AltAbility(request.requested.name).Spell end
-                    --if spell and spell.TargetType() == 'Single' then
+                    movement.stop()
                     if request.requested.targettype == 'Single' then
                         if mq.TLO.Target.ID() ~= requesterSpawn.ID() then
                             requesterSpawn.DoTarget()
                             state.actionTaken = true
-                            logger.printf("requested action queued")
+                            printf(logger.logLine("requested action queued"))
                             state.queuedAction = function()
                                     if mq.TLO.Target.ID() == mq.TLO.Me.ID() then
                                         mq.cmdf('/g %s %s for %s', tranquilUsed, request.requested.name, request.requester)
                                         request.requested:use()
+                                        state.resetCastingState()
                                         state.actionTaken = true
                                         state.casting = request.requested
                                         table.remove(base.requests, 1)
@@ -749,12 +796,16 @@ local function handleRequests()
                                 end
                             return true
                         end
-                        mq.delay(100, function() return mq.TLO.Target.ID() == requesterSpawn.ID() end)
                     end
                     mq.cmdf('%s %s for %s', tranquilUsed, request.requested.name, request.requester)
                     request.requested:use()
                     table.remove(base.requests, 1)
                 end
+                --[[
+                if restoreGem then
+                    common.swap_spell(restoreGem, state.swapGem)
+                end
+                ]]
             end
         end
     end

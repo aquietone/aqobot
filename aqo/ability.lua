@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require('mq')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local state = require(AQO..'.state')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local state = require('state')
 
 ---@class Ability
 ---@field id number # the ID of this ability
@@ -40,6 +40,7 @@ local state = require(AQO..'.state')
 ---@field aggro? boolean # flag to indicate if the ability is for getting aggro, like taunt
 ---@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
 ---@field tot? boolean # flag to indicate if spell is target-of-target
+---@field removesong? string # name of buff / song to remove after cast
 local Ability = {
     id=0,
     name = '',
@@ -90,6 +91,7 @@ local Ability = {
     stand = nil,
 
     tot = nil,
+    removesong = nil,
 }
 
 ---@enum Ability.Types
@@ -177,14 +179,6 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
     return result, requireTarget
 end
 
----Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
----@return boolean @Returns true if not under any loss of control effects, false otherwise.
-local function in_control()
-    return not (mq.TLO.Me.Dead() or mq.TLO.Me.Ducking() or mq.TLO.Me.Charmed() or
-            mq.TLO.Me.Stunned() or mq.TLO.Me.Silenced() or mq.TLO.Me.Feigning() or
-            mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
-end
-
 function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
     if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
         if logger.log_flags.common.cast then
@@ -192,7 +186,7 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
         end
         return false
     end
-    if not in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then
+    if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then
         if logger.log_flags.common.cast then
             logger.debug(logger.log_flags.common.cast, ('Not in control or moving (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
         end
@@ -252,11 +246,12 @@ function Spell:use()
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
         if requiresTarget then
-            logger.printf('Casting \ag%s\ax on \at%s\ax', self.name, mq.TLO.Target.CleanName())
+            printf(logger.logLine('Casting \ag%s\ax on \at%s\ax', self.name, mq.TLO.Target.CleanName()))
         else
-            logger.printf('Casting \ag%s\ax', self.name)
+            printf(logger.logLine('Casting \ag%s\ax', self.name))
         end
         mq.cmdf('/cast "%s"', self.name)
+        state.resetCastingState()
         state.casting = self
         state.actionTaken = true
         state[self.name] = timer:new(2)
@@ -304,14 +299,17 @@ function Disc:use(overwrite)
     local spell = mq.TLO.Spell(self.name)
     if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
-            logger.printf('Use Disc: \ag%s\ax', self.name)
+            printf(logger.logLine('Use Disc: \ag%s\ax', self.name))
             if self.name:find('Composite') then
                 mq.cmdf('/disc %s', self.id)
             else
                 mq.cmdf('/disc %s', self.name)
             end
-            state.casting = self
-            state.actionTaken = true
+            if spell.CastTime() > 0 then
+                state.resetCastingState()
+                state.casting = self
+                state.actionTaken = true
+            end
             state[self.name] = timer:new(2)
             state[self.name]:reset()
             return true
@@ -322,8 +320,9 @@ function Disc:use(overwrite)
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
-            logger.printf('Use Disc: \ag%s\ax', self.name)
+            printf(logger.logLine('Use Disc: \ag%s\ax', self.name))
             mq.cmdf('/disc %s', self.name)
+            state.resetCastingState()
             state.casting = self
             state.actionTaken = true
             state[self.name] = timer:new(2)
@@ -371,10 +370,13 @@ end
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 function AA:use()
     if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady() then
-        logger.printf('Use AA: \ag%s\ax', self.name)
+        printf(logger.logLine('Use AA: \ag%s\ax', self.name))
         mq.cmdf('/alt activate %d', self.id)
-        state.casting = self
-        state.actionTaken = true
+        if mq.TLO.AltAbility(self.name).Spell.CastTime() > 0 then
+            state.resetCastingState()
+            state.casting = self
+            state.actionTaken = true
+        end
         state[self.name] = timer:new(2)
         state[self.name]:reset()
         return true
@@ -413,11 +415,15 @@ end
 function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
     if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady(theItem) then
-        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(50) return false end
-        logger.printf('Use Item: \ag%s\ax', theItem)
+        local castTime = theItem.Clicky.Spell.CastTime()
+        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(1) end
+        printf(logger.logLine('Use Item: \ag%s\ax', theItem))
         mq.cmdf('/useitem "%s"', theItem)
-        state.casting = self
-        state.actionTaken = true
+        if castTime > 0 then
+            state.resetCastingState()
+            state.casting = self
+            state.actionTaken = true
+        end
         state[self.name] = timer:new(2)
         state[self.name]:reset()
         return true
@@ -446,9 +452,10 @@ end
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 function Skill:use()
     if self:isReady() then
+        printf(logger.logLine('Use Ability: \ag%s\ax', self.name))
         mq.cmdf('/doability "%s"', self.name)
-        state.casting = self
-        state.actionTaken = true
+        --state.casting = self
+        --state.actionTaken = true
         state[self.name] = timer:new(2)
         state[self.name]:reset()
         return true

@@ -1,10 +1,10 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local mez = require(AQO..'.routines.mez')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local mez = require('routines.mez')
+local timer = require('utils.timer')
+local common = require('common')
+local state = require('state')
 
 class.class = 'enc'
 class.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}
@@ -14,29 +14,29 @@ class.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, di
 
 class.addCommonOptions()
 class.addCommonAbilities()
-class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, nil, 'combobox')
-class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, nil, 'combobox')
+class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, 'The first aura to keep up', 'combobox')
+class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, 'The second aura to keep up', 'combobox')
 class.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
-class.addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, '', 'checkbox')
-class.addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, '', 'checkbox')
-class.addOption('USECHAOTIC', 'Use Chaotic', true, nil, '', 'checkbox')
-class.addOption('USECHARM', 'Use Charm', false, nil, '', 'checkbox')
-class.addOption('USEDOT', 'Use DoT', true, nil, '', 'checkbox')
-class.addOption('USEHASTE', 'Buff Haste', true, nil, '', 'checkbox')
-class.addOption('MEZST', 'Use Mez', true, nil, '', 'checkbox')
-class.addOption('MEZAE', 'Use AE Mez', true, nil, '', 'checkbox')
+class.addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, 'Toggle interrupting current spell casts to cast mez', 'checkbox')
+class.addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, 'Toggle use of tash prior to attempting to mez mobs', 'checkbox')
+class.addOption('USECHAOTIC', 'Use Chaotic', true, nil, 'Toggle use of Chaotic mez line', 'checkbox')
+class.addOption('USECHARM', 'Use Charm', false, nil, 'Attempt to maintain a charm pet instead of using a regular pet', 'checkbox')
+class.addOption('USEDOT', 'Use DoT', true, nil, 'Toggle use of DoTs', 'checkbox')
+class.addOption('USEHASTE', 'Buff Haste', true, nil, 'Toggle use of haste buff line', 'checkbox')
+class.addOption('MEZST', 'Use Mez', true, nil, 'Use single target mez on adds within camp radius', 'checkbox')
+class.addOption('MEZAE', 'Use AE Mez', true, nil, 'Use AE Mez if 3 or more mobs are within camp radius', 'checkbox')
 class.addOption('MEZAECOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
-class.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, '', 'checkbox')
-class.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, '', 'checkbox')
-class.addOption('USENUKES', 'Use Nuke', true, nil, '', 'checkbox')
-class.addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, '', 'checkbox')
-class.addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, '', 'checkbox')
-class.addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, '', 'checkbox')
-class.addOption('USESLOW', 'Use Slow', false, nil, '', 'checkbox')
-class.addOption('USESLOWAOE', 'Use Slow AOE', true, nil, '', 'checkbox')
-class.addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, '', 'checkbox')
-class.addOption('USEDEBUFF', 'Use Tash', false, nil, '', 'checkbox')
-class.addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, '', 'checkbox')
+class.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, 'Toggle use of Mind over Matter', 'checkbox')
+class.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, 'Toggle use of Nights Terror buff line', 'checkbox')
+class.addOption('USENUKES', 'Use Nuke', true, nil, 'Toggle use of nukes', 'checkbox')
+class.addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, 'Toggle use of Phantasmal', 'checkbox')
+class.addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, 'Toggle use of Replication buff line', 'checkbox')
+class.addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, 'Toggle use of Shield of Fate', 'checkbox')
+class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle use of single target slow ability', 'checkbox')
+class.addOption('USESLOWAOE', 'Use Slow AOE', true, nil, 'Toggle use of AOE slow ability', 'checkbox')
+class.addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, 'Toggle use of Spell Guard', 'checkbox')
+class.addOption('USEDEBUFF', 'Use Tash', false, nil, 'Toggle use of single target tash ability', 'checkbox')
+class.addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, 'Toggle use of AOE tash ability', 'checkbox')
 class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
 
 class.addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
@@ -109,9 +109,9 @@ class.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
 class.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
 if class.spells.synergy then
     if class.spells.synergy.name:find('reap') then
-        class.spells.nuke5 = common.get_best_spell({'Mindrift', 'Mindslash'})
+        class.addSpell('nuke5', {'Mindrift', 'Mindslash'})
     elseif class.spells.synergy.name:find('rift') then
-        class.spells.nuke5 = common.get_best_spell({'Mindslash'})
+        class.addSpell('nuke5', {'Mindslash'})
     end
 end
 if state.emu then
@@ -208,14 +208,16 @@ else
     class.kei = class.spells.kei
     class.haste = class.spells.haste
 end
-class.requestAliases.kei = 'kei'
-class.requestAliases.haste = 'haste'
+class.addRequestAlias(class.kei, 'kei')
+class.addRequestAlias(class.haste, 'haste')
 
 table.insert(class.petBuffs, class.spells.pethaste)
 if state.emu then
     table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
     class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true}
     table.insert(class.singleBuffs, class.spells.procbuff)
+else
+    table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {checkfor='Ward of the Beguiler'}))
 end
 
 --[[
@@ -274,7 +276,7 @@ end
 class.recover = function()
     -- modrods
     common.check_mana()
-    local pct_mana = mq.TLO.Me.PctMana()
+    local pct_mana = state.loop.PctMana
     if gathermana and pct_mana < 50 then
         -- death bloom at some %
         gathermana:use()
@@ -289,14 +291,14 @@ end
 
 local check_aggro_timer = timer:new(10)
 class.aggro = function()
-    if mq.TLO.Me.PctHPs() < 40 and sanguine then
+    if state.loop.PctHPs < 40 and sanguine then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(sanguine.name) then mq.cmd('/autoinventory') end
         local hpcrystal = mq.TLO.FindItem('='..sanguine.name)
         common.use_item(hpcrystal)
     end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 90 then
 
             end
@@ -315,7 +317,7 @@ end
 
 -- group guards - legion of liako / xetheg
 class.buff_unused = function()
-    if common.am_i_dead() or mq.TLO.Me.Moving() then return end
+    if mq.TLO.Me.Moving() then return end
 -- now buffs:
 -- - class.spells.guard (shield of inevitability - quick-refresh, strong direct damage spell guard and melee-strike rune combined into one.)
 -- - class.spells.stunaerune (polyluminous rune - quick-refresh, damage absorption rune with a PB AE stun once consumed.)
@@ -401,7 +403,7 @@ end
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or class.OPTS.BYOS.value then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.tash, 1)

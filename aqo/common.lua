@@ -1,11 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local named = require(AQO..'.data.named')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local ability = require(AQO..'.ability')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local named = require('data.named')
+local movement = require('routines.movement')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local ability = require('ability')
+local config = require('configuration')
+local state = require('state')
 
 local common = {}
 
@@ -135,12 +136,12 @@ common.getBestDisc = function(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
-            logger.printf('Found Disc: %s (%s)', bestDisc.name, bestDisc.id)
+            printf(logger.logLine('Found Disc: %s (%s)', bestDisc.name, bestDisc.id))
             local disc = ability.Disc:new(bestDisc.id, bestDisc.name, options)
             return disc
         end
     end
-    logger.printf('[%s] Could not find disc!', discs[1])
+    printf(logger.logLine('[%s] Could not find disc!', discs[1]))
     return nil
 end
 
@@ -179,8 +180,7 @@ end
 
 common.set_swap_gem = function()
     if not mq.TLO.Me.Class.CanCast() then return end
-    local aaRank = mq.TLO.Me.AltAbility('Mnemonic Retention').Rank() or 0
-    state.swapGem = 8 + aaRank
+    state.swapGem = mq.TLO.Me.NumGems()
 end
 
 ---Check whether the specified dot is applied to the target.
@@ -224,7 +224,7 @@ common.is_fighting_modebased = function()
     elseif mode:is_assist_mode() then
 
     elseif mode:get_name() == 'manual' then
-        if mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if mq.TLO.Group.MainTank.ID() == state.loop.ID then
 
         else
 
@@ -272,7 +272,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.MODE:get_name() ~= 'chase' then return end
-    if common.am_i_dead() or mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
+    if mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
@@ -281,16 +281,13 @@ common.check_chase = function()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        if not mq.TLO.Navigation.Active() then
-            if mq.TLO.Navigation.PathExists(string.format('spawn pc =%s', config.CHASETARGET))() then
-                mq.cmdf('/nav spawn pc =%s | log=off', config.CHASETARGET)
-            else
-                local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
-                if chaseSpawn.LineOfSight() then
-                    mq.cmdf('/moveto id %s', chaseSpawn.ID())
-                end
-            end
+        movement.navToSpawn('pc ='..config.CHASETARGET)
+        --[[
+        local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
+        if chaseSpawn.LineOfSight() then
+            mq.cmdf('/moveto id %s', chaseSpawn.ID())
         end
+        ]]
     end
 end
 
@@ -334,10 +331,10 @@ common.is_spell_ready = function(spell, skipCheckTarget)
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
     local spellData = mq.TLO.Spell(spell.name)
-    if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and mq.TLO.Me.PctMana() < state.min_mana) then
+    if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and state.loop.PctMana < state.min_mana) then
         return false
     end
-    if spellData.EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (spellData.EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.min_end) then
+    if spellData.EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (spellData.EnduranceCost() > 1000 and state.loop.PctEndurance < state.min_end) then
         return false
     end
     if not skipCheckTarget and spellData.TargetType() == 'Single' then
@@ -415,7 +412,7 @@ common.can_use_spell = function(spell, type)
     if not spell() then return false end
     local result = true
     if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
-    if not common.in_control() or (state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving())) then result = false end
+    if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then result = false end
     if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then result = false end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
     if state.class ~= 'brd' then
@@ -453,7 +450,7 @@ common.use_item = function(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if item_ready(item) then
         state.casting = common.getItem(item.Name())
-        logger.printf('Use Item: \ag%s\ax', item)
+        printf(logger.logLine('Use Item: \ag%s\ax', item))
         if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
         mq.cmdf('/useitem "%s"', item)
         state.actionTaken = true
@@ -477,7 +474,7 @@ common.is_burn_condition_met = function(always_condition)
         state.burn_active = false
     end
     if state.burn_now then
-        logger.printf('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
+        printf(logger.logLine('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or ''))
         state.burn_active_timer:reset()
         state.burn_active = true
         state.burn_now = false
@@ -491,19 +488,19 @@ common.is_burn_condition_met = function(always_condition)
             state.burn_type = nil
             return true
         elseif config.BURNALLNAMED and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
-            logger.printf('\arActivating Burns (named)\ax')
+            printf(logger.logLine('\arActivating Burns (named)\ax'))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
             return true
         elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() >= config.BURNCOUNT then
-            logger.printf('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT)
+            printf(logger.logLine('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
             return true
         elseif config.BURNPCT ~= 0 and mq.TLO.Target.PctHPs() < config.BURNPCT then
-            logger.printf('\arActivating Burns (percent HP)\ax')
+            printf(logger.logLine('\arActivating Burns (percent HP)\ax'))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
@@ -523,7 +520,7 @@ end
 ---@param gem number @The spell gem index the spell should be memorized in.
 ---@return boolean|nil @Returns true if the spell is memorized in the specified gem, otherwise false.
 common.swap_gem_ready = function(spell_name, gem)
-    return mq.TLO.Me.Gem(gem)() and mq.TLO.Me.Gem(gem).Name() == spell_name
+    return mq.TLO.Me.Gem(gem).Name() == spell_name
 end
 
 ---Swap the specified spell into the specified gem slot.
@@ -531,7 +528,7 @@ end
 ---@param gem number @The gem index to memorize the spell into.
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 common.swap_spell = function(spell, gem, other_names)
-    if not spell or not gem or common.am_i_dead() or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
@@ -591,8 +588,8 @@ local modrods = {['Summoned: Dazzling Modulation Shard']=true,['Sickle of Umbral
 ---Attempt to click mod rods if mana is below 75%.
 common.check_mana = function()
     -- modrods
-    local pct_mana = mq.TLO.Me.PctMana()
-    local pct_end = mq.TLO.Me.PctEndurance()
+    local pct_mana = state.loop.PctMana
+    local pct_end = state.loop.PctEndurance
     local group_mana = mq.TLO.Group.LowMana(70)()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 then
@@ -625,7 +622,7 @@ common.rest = function()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sit_timer:timer_expired() then
         if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
-                ((mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < 60) or mq.TLO.Me.PctEndurance() < 60) and
+                ((mq.TLO.Me.Class.CanCast() and state.loop.PctMana < 60) or state.loop.PctEndurance < 60) and
                 not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
                 mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() == 0 then
             mq.cmd('/sit')
@@ -641,7 +638,7 @@ common.check_cursor = function()
     if mq.TLO.Cursor() then
         if autoinv_timer.start_time == 0 then
             autoinv_timer:reset()
-            logger.printf('Dropping cursor item into inventory in 15 seconds')
+            printf(logger.logLine('Dropping cursor item into inventory in 15 seconds'))
         elseif autoinv_timer:timer_expired() then
             mq.cmd('/autoinventory')
             autoinv_timer:reset(0)
@@ -652,7 +649,7 @@ common.check_cursor = function()
     end
 end
 
-common.toggleTribute = function()^M
+common.toggleTribute = function()
     logger.debug(logger.log_flags.common.misc, 'Toggle tribute')
     mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
     mq.cmd('/notify TBW_PersonalPage TBWP_ActivateButton leftmouseup')
@@ -669,10 +666,10 @@ end
 
 ---Set common.I_AM_DEAD flag to true in the event of death.
 local function event_dead()
-    logger.printf('HP hit 0. what do!')
+    printf(logger.logLine('HP hit 0. what do!'))
     state.i_am_dead = true
     state.reset_combat_state()
-    mq.cmd('/multiline ; /nav stop; /stick off;')
+    movement.stop()
 end
 
 ---Initialize the player death event triggers.

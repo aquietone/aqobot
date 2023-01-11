@@ -1,7 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
+local class = require('classes.classbase')
+local common = require('common')
 
 class.class = 'clr'
 class.classOrder = {'cure', 'heal', 'assist', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
@@ -76,16 +76,13 @@ table.insert(class.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {check
 
 class.rezAbility = common.getAA('Blessing of Resurrection')
 
-class.aego = class.spells.aego
-class.requestAliases.aego = 'aego'
-class.di = class.spells.di
-class.requestAliases.di = 'di'
-class.requestAliases.radiant = 'radiant'
-class.spellhaste = class.spells.spellhaste
-class.requestAliases.spellhaste = 'spellhaste'
+class.addRequestAlias(class.spells.aego, 'aego')
+class.addRequestAlias(class.spells.spellhaste, 'spellhaste')
+class.addRequestAlias(class.spells.di, 'di')
+class.addRequestAlias(class.radiant, 'radiant')
 class.cr = common.getAA('Celestial Regeneration')
-class.requestAliases.cr = 'cr'
+class.addRequestAlias(class.cr, 'cr')
 class.focusedcr = common.getAA('Focused Celestial Regeneration')
-class.requestAliases.focusedcr = 'focusedcr'
+class.addRequestAlias(class.focusedcr, 'focusedcr')
 
 return class

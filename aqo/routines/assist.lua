@@ -1,11 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local camp = require(AQO..'.routines.camp')
-local config = require(AQO..'.configuration')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local camp = require('routines.camp')
+local movement = require('routines.movement')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 local assist = {}
 
@@ -126,8 +127,8 @@ assist.should_assist = function(assist_target)
     end
 end
 
-local send_pet_timer = timer:new(5)
-local stick_timer = timer:new(3)
+local send_pet_timer = timer:new(2)
+local stick_timer = timer:new(1)
 
 ---Reset common combat timers to 0.
 local function reset_combat_timers()
@@ -141,7 +142,6 @@ end
 ---Sets state.assist_mob_id to 0 or the ID of the mob to assist on.
 ---@param reset_timers function @An optional function to be called to reset combat timers specific to the class calling this function.
 assist.check_target = function(reset_timers)
-    if common.am_i_dead() then return end
     if config.MODE:get_name() ~= 'manual' then
         local assist_target = assist.get_assist_spawn()
         local originalTargetID = mq.TLO.Target.ID()
@@ -188,7 +188,6 @@ assist.check_target = function(reset_timers)
             return
         end
         -- this is a brand new assist target
-        --if mq.TLO.Target.ID() ~= assist_target.ID() and assist.should_assist(assist_target) then
         if assist.should_assist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
@@ -199,7 +198,7 @@ assist.check_target = function(reset_timers)
                     if mq.TLO.Target.ID() ~= originalTargetID then
                         reset_combat_timers()
                         if reset_timers then reset_timers() end
-                        logger.printf('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
+                        printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
                     end
                 end
                 state.actionTaken = true
@@ -211,7 +210,7 @@ assist.check_target = function(reset_timers)
             if mq.TLO.Target.ID() ~= originalTargetID then
                 reset_combat_timers()
                 if reset_timers then reset_timers() end
-                logger.printf('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
+                printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
             end
         end
     end
@@ -221,11 +220,11 @@ end
 assist.get_combat_position = function()
     local target_id = mq.TLO.Target.ID()
     local target_distance = mq.TLO.Target.Distance3D()
+    local max_range_to = mq.TLO.Target.MaxRangeTo() or 0
     if not target_id or target_id == 0 or (target_distance and target_distance > config.CAMPRADIUS) or state.paused then
         return
     end
-    if not mq.TLO.Navigation.PathExists('target')() then return end
-    mq.cmd('/multiline ; /stick off ; /nav target log=off')
+    movement.navToTarget('dist='..max_range_to*.6)
     state.positioning = true
     state.positioningTimer:reset()
 end
@@ -234,8 +233,11 @@ end
 assist.check_los = function()
     local cur_mode = config.MODE
     if (cur_mode:is_tank_mode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:is_assist_mode() and assist.should_assist()) then
-        if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists('target')() then
-            mq.cmd('/multiline ; /stick off ; /nav target log=off')
+        local maxRangeTo = mq.TLO.Target.MaxRangeTo()
+        if not mq.TLO.Target.LineOfSight() and maxRangeTo then
+            movement.navToTarget('dist='..maxRangeTo*.6)
+            state.positioning = true
+            state.positioningTimer:reset()
         end
     end
 end
@@ -255,11 +257,15 @@ assist.attack = function(skip_no_los)
     end
     -- check_los may have nav running already.. why separate get_combat_position and check_los???
     if not mq.TLO.Target.LineOfSight() and mq.TLO.Navigation.Active() then return end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-    end
+    movement.stop()
     if config.MODE:get_name() ~= 'manual' and not mq.TLO.Stick.Active() and stick_timer:timer_expired() then
-        mq.cmd('/squelch /stick loose behind moveback 10 uw')
+        mq.cmd('/squelch /face fast')
+        -- pin, behindonce, behind, front, !front
+        --mq.cmd('/stick snaproll uw')
+        --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
+        local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
+        --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        mq.cmdf('/squelch /stick moveback behind %s uw', math.min(maxRangeTo*.75, 25))
         stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then

@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
+local class = require('classes.classbase')
+local timer = require('utils.timer')
+local common = require('common')
 
 class.class = 'shm'
 class.classOrder = {'heal', 'cure', 'assist', 'cast', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}
@@ -71,24 +71,9 @@ table.insert(class.recoverAbilities, class.spells.canni)
 
 table.insert(class.defensiveAbilities, common.getAA('Ancestral Guard'))
 
-class.radiant = common.getAA('Radiant Cure')
-class.requestAliases.radiant = 'radiant'
-class.torpor = class.spells.torpor
-class.requestAliases.torpor = 'torpor'
+class.addRequestAlias(class.radiant, 'radiant')
+class.addRequestAlias(class.spells.torpor, 'torpor')
 
 class.nuketimer = timer:new(3)
-
-class.cure = function()
---[[    local groupSize = mq.TLO.Group.GroupSize()
-    if not groupSize then
-        return
-    end
-    for i=0,groupSize-1 do
-        local member = mq.TLO.Group.Member(i)
-        if (member.Poisoned() or member.Diseased()) then
-            
-        end
-    end]]
-end
 
 return class

@@ -1,5 +1,5 @@
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
+local class = require('classes.classbase')
+local common = require('common')
 
 class.class = 'mnk'
 class.classOrder = {'assist', 'heal', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
@@ -9,12 +9,12 @@ class.addCommonAbilities()
 class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox')
 
 table.insert(class.DPSAbilities, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
-table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))
-table.insert(class.DPSAbilities, common.getSkill('Tiger Claw'))
 table.insert(class.DPSAbilities, common.getBestDisc({'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}))
 table.insert(class.DPSAbilities, common.getAA('Five Point Palm'))
 --table.insert(class.DPSAbilities, common.getAA('Stunning Kick'))
 table.insert(class.DPSAbilities, common.getAA('Eye Gouge'))
+table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))
+table.insert(class.DPSAbilities, common.getSkill('Tiger Claw'))
 
 table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of the Sensei'))
 table.insert(class.burnAbilities, common.getBestDisc({'Speed Focus Discipline'}))

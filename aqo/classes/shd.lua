@@ -1,11 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local assist = require(AQO..'.routines.assist')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local assist = require('routines.assist')
+local movement = require('routines.movement')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 mq.cmd('/squelch /stick mod -2')
 mq.cmd('/squelch /stick set delaystrafe on')
@@ -187,7 +188,7 @@ table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
 table.insert(class.petBuffs, class.spells.pethaste)
 
 local function find_next_spell()
-    local myhp = mq.TLO.Me.PctHPs()
+    local myhp = state.loop.PctHPs
     -- aggro
     if config.MODE:is_tank_mode() and class.OPTS.SPELLSET.value == 'standard' and myhp > 70 then
         if state.mob_count > 2 then
@@ -226,9 +227,8 @@ local function find_next_spell()
 end
 
 class.cast = function()
-    if common.am_i_dead() then return end
     if class.isEnabled('DONTCAST') then return end
-    if not mq.TLO.Me.Invis() then
+    if not state.loop.Invis then
         if assist.is_fighting() then
             local spell = find_next_spell()
             if spell then
@@ -247,7 +247,7 @@ class.mash_class = function()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         -- hate's attraction
         if class.OPTS.USEHATESATTRACTION.value and attraction and mobhp and mobhp > 95 then
             attraction:use()
@@ -256,7 +256,7 @@ class.mash_class = function()
 end
 
 class.burn_class = function()
-    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         if mantle then mantle:use() end
         if carapace then carapace:use() end
         if guardian then guardian:use() end
@@ -266,8 +266,8 @@ class.burn_class = function()
 end
 
 class.ohshit = function()
-    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if flash and mq.TLO.Me.AltAbilityReady(flash.name)() then
                 flash:use()
             elseif class.OPTS.USEDEFLECTION.value and deflection then
@@ -317,7 +317,7 @@ end]]
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or class.OPTS.BYOS.value then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.tap1, 1)
@@ -356,10 +356,7 @@ end
 
 --[[class.pull_func = function()
     if class.spells.challenge then
-        if mq.TLO.Me.Moving() or mq.TLO.Navigation.Active() then
-            mq.cmd('/squelch /nav stop')
-            mq.delay(300)
-        end
+        movement.stop()
         for _=1,3 do
             if mq.TLO.Me.SpellReady(class.spells.terror.name)() then
                 mq.cmdf('/cast %s', class.spells.terror.name)

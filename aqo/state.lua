@@ -1,6 +1,6 @@
 local mq = require('mq')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
 
 local state = {
     debug = false,
@@ -116,7 +116,7 @@ state.restoreGem = nil
 function state.handleMemSpell()
     if state.memSpell then
         if mq.TLO.Me.SpellReady(state.memSpell.name)() then
-            printf('Memorized spell is ready: %s', state.memSpell.name)
+            printf(logger.logLine('Memorized spell is ready: %s', state.memSpell.name))
             state.resetMemSpellState()
             return true
         elseif state.memSpellTimer:timer_expired() then
@@ -144,11 +144,11 @@ function state.handleCastingState()
     if state.casting then
         if not mq.TLO.Me.Casting() then
             if state.fizzled then
-                logger.printf('Fizzled casting %s', state.casting.name)
+                printf(logger.logLine('Fizzled casting %s', state.casting.name))
             elseif state.interrupted then
-                logger.printf('Interrupted casting %s', state.casting.name)
-            else
-                logger.printf('Finished casting %s', state.casting.name)
+                printf(logger.logLine('Interrupted casting %s', state.casting.name))
+            --else
+            --    printf(logger.logLine('Finished casting %s', state.casting.name))
             end
             state.resetCastingState()
             return true
@@ -187,7 +187,7 @@ function state.handleLootingState()
 end
 
 --for k,v in pairs(state.get_all()) do
---    logger.printf('%s: %s', k, v)
+--    printf(logger.logLine('%s: %s', k, v))
 --end
 
 return state

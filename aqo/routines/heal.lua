@@ -1,8 +1,10 @@
+--- @type Mq
 local mq = require('mq')
-local Abilities = require(AQO..'.ability')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local timer = require(AQO..'.utils.timer')
+local timer = require('utils.timer')
+local Abilities = require('ability')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 local healing = {}
 
@@ -53,12 +55,12 @@ local function getHurt(opts)
     local mostHurtPct = 100
     local mostHurtClass = nil
     local mostHurtDistance = 300
-    local myHP = mq.TLO.Me.PctHPs()
+    local myHP = state.loop.PctHPs
     if myHP < config.PANICHEALPCT then
-        return mq.TLO.Me.ID(), HEAL_TYPES.PANIC
+        return state.loop.ID, HEAL_TYPES.PANIC
     elseif myHP < config.HOTHEALPCT then
         mostHurtName = mq.TLO.Me.CleanName()
-        mostHurtID = mq.TLO.Me.ID()
+        mostHurtID = state.loop.ID
         mostHurtPct = myHP
         mostHurtClass = mq.TLO.Me.Class.ShortName()
         mostHurtDistance = 0
@@ -167,7 +169,7 @@ end
 local function getHeal(healAbilities, healType, whoToHeal)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] then
-            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
+            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
                 elseif heal.type == Abilities.Types.Spell then
@@ -187,7 +189,6 @@ local function getHeal(healAbilities, healType, whoToHeal)
 end
 
 healing.heal = function(healAbilities, opts)
-    if common.am_i_dead() then return end
     local whoToHeal, typeOfHeal = getHurt(opts)
     if typeOfHeal == HEAL_TYPES.HOT and not healEnabled(opts, 'USEHOT') then return end
     if typeOfHeal == HEAL_TYPES.GROUPHOT and not healEnabled(opts, 'USEGROUPHOT') then return end
@@ -212,8 +213,7 @@ healing.heal = function(healAbilities, opts)
 end
 
 healing.healPetOrSelf = function(healAbilities, opts)
-    if common.am_i_dead() then return end
-    local myHP = mq.TLO.Me.PctHPs()
+    local myHP = state.loop.PctHPs
     local petHP = mq.TLO.Pet.PctHPs() or 100
     if myHP < 60 then healing.healSelf(healAbilities, opts) end
     if not healEnabled(opts, 'HEALPET') then return end
@@ -236,16 +236,15 @@ healing.healPetOrSelf = function(healAbilities, opts)
 end
 
 healing.healSelf = function(healAbilities, opts)
-    if common.am_i_dead() or mq.TLO.Me.PctHPs() > 60 then return end
+    if state.loop.PctHPs > 60 then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
             if heal.type == Abilities.Types.Spell then
                 local spell = mq.TLO.Spell(heal.name)
                 if Abilities.canUseSpell(spell, heal.type) then
                     local targetID = mq.TLO.Target.ID()
-                    if spell.TargetType() == 'Single' and targetID ~= mq.TLO.Me.ID() then
+                    if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                         mq.TLO.Me.DoTarget()
-                        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
                     end
                     heal:use()
                     if targetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', targetID) end
@@ -256,9 +255,8 @@ healing.healSelf = function(healAbilities, opts)
                     local targetID = mq.TLO.Target.ID()
                     if heal.type == Abilities.Types.AA then
                         local spell = mq.TLO.AltAbility(heal.name).Spell
-                        if spell.TargetType() == 'Single' and targetID ~= mq.TLO.Me.ID() then
+                        if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                             mq.TLO.Me.DoTarget()
-                            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
                         end
                     end
                     heal:use()
@@ -271,17 +269,21 @@ healing.healSelf = function(healAbilities, opts)
 end
 
 local function doRezFor(rezAbility, groupOrRaid)
-    local corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse tank radius 100 noalert 0')
+    local corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
     if not corpse() then
-        corpse = mq.TLO.Spawn(groupOrRaid..' pccorpse healer radius 100 noalert 0')
+        corpse = mq.TLO.Spawn('pccorpse healer radius 100 noalert 0')
         if not corpse() then
             corpse = mq.TLO.Spawn('pccorpse radius 100 noalert 0')
+            if not corpse() then
+                return false
+            end
         end
     end
     local corpseName = corpse.Name()
-    if corpseName and mq.TLO.Raid.Member(corpseName:gsub('\'s corpse.*', ''))() then
+    if not corpseName then return false end
+    corpseName = corpseName:gsub('\'s corpse.*', '')
+    if mq.TLO.Group.Member(corpseName)() or mq.TLO.Raid.Member(corpseName)() then
         corpse.DoTarget()
-        mq.delay(100, function() return mq.TLO.Target.ID() == corpse.ID() end)
         if mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/corpse')
             mq.delay(50)
@@ -294,11 +296,12 @@ local function doRezFor(rezAbility, groupOrRaid)
 end
 
 healing.rez = function(rezAbility)
-    if common.am_i_dead() or not rezAbility then return end
+    if not rezAbility then return end
     if not config.REZINCOMBAT and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
+    if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
     if reztimer:timer_expired() and mq.TLO.Alert(0)() then mq.cmd('/alert clear 0') end
     if config.REZGROUP then
         if doRezFor(rezAbility, 'group') then return true end

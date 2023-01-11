@@ -1,11 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local camp = require(AQO..'.routines.camp')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local state = require(AQO..'.state')
+local camp = require('routines.camp')
+local movement = require('routines.movement')
+local common = require('common')
+local config = require('configuration')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local state = require('state')
 
 local tank = {}
 
@@ -17,7 +18,6 @@ local camp_buffer = 20
 ---Sets common.TANK_MOB_ID to the ID of the mob to tank.
 tank.find_mob_to_tank = function()
     if state.mob_count == 0 then return end
-    if common.am_i_dead() then state.tank_mob_id = 0 return end
     if state.tank_mob_id > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tank_mob_id == mq.TLO.Target.ID() then
         return
     else
@@ -98,7 +98,6 @@ local stick_timer = timer:new(3)
 ---Tank the mob whose ID is stored in common.TANK_MOB_ID.
 tank.tank_mob = function()
     if state.tank_mob_id == 0 then return end
-    if common.am_i_dead() then return end
     local tank_spawn = mq.TLO.Spawn(state.tank_mob_id)
     if not tank_spawn() or tank_spawn.Type() == 'Corpse' then
         state.tank_mob_id = 0
@@ -114,18 +113,15 @@ tank.tank_mob = function()
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= tank_spawn.ID() then
         tank_spawn.DoTarget()
-        mq.delay(50, function() return mq.TLO.Target.ID() == tank_spawn.ID() end)
     end
-    if not mq.TLO.Target() then
+    if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then
         state.tank_mob_id = 0
         return
     end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-    end
+    movement.stop()
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() and not state.dontAttack then
-        logger.printf('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id)
+        printf(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id))
         -- /stick snaproll front moveback
         -- /stick mod -2
         mq.cmd('/attack on')

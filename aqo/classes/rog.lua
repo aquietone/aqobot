@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require('mq')
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local common = require('common')
+local state = require('state')
 
 class.class = 'rog'
 class.classOrder = {'assist', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}

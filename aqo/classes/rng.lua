@@ -1,13 +1,14 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local assist = require(AQO..'.routines.assist')
-local camp = require(AQO..'.routines.camp')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local assist = require('routines.assist')
+local camp = require('routines.camp')
+local movement = require('routines.movement')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 mq.cmd('/squelch /stick mod 0')
 
@@ -148,6 +149,11 @@ if state.emu then
     --table.insert(class.selfBuffs, class.spells.strength)
     table.insert(class.combatBuffs, common.getBestDisc({'Trueshot Discipline'}))
     table.insert(class.healAbilities, class.spells.heal)
+    table.insert(class.selfBuffs, class.spells.buffs)
+else
+    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Azia)', {opt='USEUNITYAZIA', checkfor='Devastating Barrage'}))
+    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Beza)', {opt='USEUNITYBEZA', checkfor='Vociferous Blades'}))
+    table.insert(class.selfBuffs, class.spells.rune)
 end
 local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
 --Slot 1: 	Vociferous Blades
@@ -160,13 +166,10 @@ table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW
 local fire = common.getAA('Flaming Arrows')
 table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW'}))
 
-table.insert(class.selfBuffs, class.spells.buffs)
 table.insert(class.selfBuffs, class.spells.dmgbuff)
 
-class.predator = class.spells.predator
-class.strength = class.spells.strength
-class.requestAliases.predator = 'predator'
-class.requestAliases.strength = 'strength'
+class.addRequestAlias(class.spells.predator, 'predator')
+class.addRequestAlias(class.spells.strength, 'strength')
 
 local ranged_timer = timer:new(5)
 class.reset_class_timers = function()
@@ -196,10 +199,8 @@ local function get_ranged_combat_position(radius)
                     local xtars = mq.TLO.SpawnCount(string.format('npc xtarhater loc %d %d %d radius 75', y_off, x_off, z_off))()
                     local allmobs = mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 75', y_off, x_off, z_off))()
                     if allmobs - xtars == 0 then
-                        logger.printf('Found a valid location at %d %d %d', y_off, x_off, z_off)
-                        mq.cmdf('/squelch /nav locyxz %d %d %d log=off', y_off, x_off, z_off)
-                        mq.delay(1000, function() return mq.TLO.Navigation.Active() end)
-                        mq.delay(5000, function() return not mq.TLO.Navigation.Active() end)
+                        print(logger.logLine('Found a valid location at %d %d %d', y_off, x_off, z_off))
+                        movement.navToLoc(x_off, y_off, z_off, nil, 5000)
                         return true
                     end
                 end
@@ -241,9 +242,7 @@ local function attack_range()
             end
         end
     end
-    if mq.TLO.Navigation.Active() then
-        mq.cmd('/squelch /nav stop')
-    end
+    movement.stop()
     if mq.TLO.Target() then
         if not check_mob_angle() then
             mq.cmd('/squelch /face fast')
@@ -303,7 +302,7 @@ end
 
 local snared_id = 0
 class.cast = function()
-    if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
+    if not state.loop.Invis and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.is_fighting() then
             if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value then
                 class.spells.snare:use()
@@ -352,15 +351,15 @@ end
 -- evasion -- 7min cd, 30sec buff, avoidance
 --local check_aggro_timer = timer:new(10)
 class.aggro = function()
-    if mq.TLO.Me.PctHPs() < 50 then
+    if state.loop.PctHPs < 50 then
         if evasion then evasion:use() end
         if config.MODE:return_to_camp() then
-            mq.cmdf('/nav locyxz %d %d %d log=off', camp.Y, camp.X, camp.Z)
+            movement.navToLoc(camp.X, camp.Y, camp.Z)
         end
     end
     --[[
     if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
             if mq.TLO.Me.PctAggro() >= 70 then
                 fade:use()
                 check_aggro_timer:reset()
@@ -410,14 +409,13 @@ end
 
 local group_buff_timer = timer:new(60)
 class.buff_classb = function()
-    if common.am_i_dead() then return end
     common.check_combat_buffs()
     if brownies and not mq.TLO.Me.Buff(brownies.name)() then
         brownies:use()
     end
     if chameleon and not mq.TLO.Me.Song(chameleon.name)() and mq.TLO.Me.AltAbilityReady(chameleon.name)() then
         mq.cmd('/mqtar myself')
-        mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         chameleon:use()
     end
     if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
@@ -466,7 +464,7 @@ class.buff_classb = function()
             if tank_spawn() then
                 if class.spells.ds and spawn_missing_cachedbuff(tank_spawn, class.spells.ds.name) then
                     tank_spawn.DoTarget()
-                    mq.delay(1000) -- time to target and for buffs to be populated
+                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                     if target_missing_buff(class.spells.ds.name) then
                         if common.swap_and_cast(class.spells.ds, 13) then return end
                     end
@@ -481,7 +479,7 @@ class.buff_classb = function()
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
                     if class.spells.buffs and spawn_missing_cachedbuff(group_member, class.spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
-                        mq.delay(1000) -- time to target and for buffs to be populated
+                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                         if target_missing_buff(class.spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
                             if class.spells.buffs:use() then return end
@@ -489,7 +487,7 @@ class.buff_classb = function()
                     end
                     if class.spells.dmgbuff and spawn_missing_cachedbuff(group_member, class.spells.dmgbuff.name) then
                         group_member.DoTarget()
-                        mq.delay(1000) -- time to target and for buffs to be populated
+                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                         if target_missing_buff(class.spells.dmgbuff.name) then
                             if class.spells.dmgbuff:use() then return end
                         end
@@ -504,7 +502,7 @@ end
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() or class.OPTS.BYOS.value then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.shots, 1)
@@ -532,7 +530,7 @@ class.assist = function()
         use_opener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
-        if mq.TLO.Me.PctHPs() > 40 then
+        if state.loop.PctHPs > 40 then
             if not class.OPTS.USERANGE.value or not attack_range() then
                 if class.OPTS.USEMELEE.value then assist.attack() end
             end

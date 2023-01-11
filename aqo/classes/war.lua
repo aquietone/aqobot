@@ -1,9 +1,9 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 -- What were these again?
 mq.cmd('/squelch /stick mod -2')
@@ -120,9 +120,9 @@ if state.emu then
 end
 
 class.ohshit_class = function()
-    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
+    if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         resurgence:use()
-        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if config.MODE:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if flash and mq.TLO.Me.CombatAbilityReady(flash.name)() then
                 flash:use()
             elseif class.OPTS.USEFORTITUDE.value then

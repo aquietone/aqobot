@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require('mq')
-local Abilities = require(AQO..'.ability')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local Abilities = require('ability')
+local common = require('common')
+local state = require('state')
 
 local buff = {}
 
@@ -13,7 +13,7 @@ buff.selfBuff = function(spell)
     if not mq.TLO.Me.Buff(spell.name)() and mq.TLO.Spell(spell.name).Stacks() then
         if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
             mq.cmd('/mqtarget myself')
-            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         end
         return spell:use()
     end
@@ -22,7 +22,6 @@ end
 buff.needsBuff = function(spell, buffTarget)
     if not buffTarget.BuffsPopulated() then
         buffTarget.DoTarget()
-        mq.delay(100, function() return mq.TLO.Target.ID() == buffTarget.ID() end)
         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
         buffTarget = mq.TLO.Target
     end
@@ -130,7 +129,6 @@ local function buff_self(base)
                 and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0) then
             if buff.targettype == 'Single' then
                 mq.TLO.Me.DoTarget()
-                mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
             end
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then return true end
@@ -147,6 +145,17 @@ local function buff_self(base)
     end
 end
 
+local function will_land_other(toon, buff)
+    local hasBuffQ = ('Me.Buff[%s]'):format(buff)
+    local willLandQ = ('Spell[%s].WillLand'):format(buff)
+    mq.cmdf('/dquery %s -q "%s"', toon, willLandQ)
+    mq.cmdf('/dquery %s -q "hasBuffQ"', toon, hasBuffQ)
+    mq.delay(250, function() return mq.TLO.DanNet(toon).QReceived(willLandQ)() > 0 and mq.TLO.DanNet(toon).QReceived(hasBuffQ)() end)
+    local willLand = mq.TLO.DanNet(toon).Q(willLandQ)()
+    local hasBuff = mq.TLO.DanNet(toon).Q(hasBuffQ)()
+    return willLand > 0 and hasBuff
+end
+
 local function buff_single(base)
     local groupSize = mq.TLO.Group.Members() or 0
     for i=1,groupSize do
@@ -156,7 +165,6 @@ local function buff_single(base)
         for _,buff in ipairs(base.singleBuffs) do
             if base.isAbilityEnabled(buff.opt) and buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.name)() and not member.Buff(buff.name)() and not member.Dead() and memberDistance < 100 then
                 member.DoTarget()
-                mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                 if not mq.TLO.Target.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksTarget() then
                     if buff:use() then return true end

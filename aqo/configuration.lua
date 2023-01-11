@@ -1,8 +1,8 @@
 --- @type Mq
 local mq = require 'mq'
-local logger = require(AQO..'.utils.logger')
-local persistence = require(AQO..'.utils.persistence')
-local modes = require(AQO..'.mode')
+local logger = require('utils.logger')
+local persistence = require('utils.persistence')
+local modes = require('mode')
 
 local config = {
     MODE = modes.from_string('manual'),
@@ -47,6 +47,51 @@ local config = {
     LOOTMOBS = true,
 
     MAINTANK = false,
+}
+
+config.tips = {
+    MODE = '',
+    CHASETARGET = 'Name of the person to chase in chase mode. Its using an exact match spawn search for PC\'s only',
+    CHASEDISTANCE = 'Distance threshold to trigger chasing the chase target',
+    CAMPRADIUS = 'The radius within which you will assist on mobs',
+    ASSIST = 'Who to assist. Group MA, Raid MA 1, 2 or 3',
+    AUTOASSISTAT = 'Mob Percent HP to begin assisting',
+    SWITCHWITHMA = 'Swap targets if the MA swaps targets',
+
+    RECOVERPCT = 'Percent mana or endurance to trigger recover abilities',
+
+    HEALPCT = 'The Percent HP to begin casting normal heals on a character',
+    PANICHEALPCT = 'The Percent HP to begin casting panic heals on a character',
+    GROUPHEALPCT = 'The Percent HP to begin casting group heals',
+    GROUPHEALMIN = 'The number of group members which must be injured to begin casting group heals',
+    HOTHEALPCT = 'The Percent HP to begin casting HoTs on a character',
+    REZGROUP = 'Toggle rezzing of group members',
+    REZRAID = 'Toggle rezzing of raid members',
+    REZINCOMBAT = 'Toggle use of rez abilities during combat',
+    PRIORITYTARGET = 'For EMU, where group main tank role is unreliable, assign a character name to treat like the main tank',
+
+    BURNALWAYS = 'Burn routine is always entered and burn abilities are used as available. Its not great, it doesn\'t attempt to line up CDs or anything',
+    BURNPCT = 'Same as Burn Always, but only after mob HP is below this percent',
+    BURNALLNAMED = 'Enter burn routine when ${Target.Named} is true. Kinda sucks with ToL zones since so many akhevan trash mobs return true',
+    BURNCOUNT = 'Enter burn routine when greater than or equal to this number of mobs are within camp radius',
+    USEGLYPH = 'Toggle use of Glyph of Destruction on burns',
+    USEINTENSITY = 'Toggle use of Intensity of the Resolute Veteran AA on burns',
+
+    PULLRADIUS = 'The radius within which you will pull mobs when in a puller role',
+    PULLHIGH = 'The upper Z radius for pulling mobs when in a puller role',
+    PULLLOW = 'The lower Z radius for pulling mobs when in a puller role',
+    PULLARC = 'The pull arc, centered around the direction the character is currently facing, to pull mobs from',
+    PULLMINLEVEL = 'The minimum level mob to pull when in a puller role',
+    PULLMAXLEVEL = 'The maxmimum level mob to pull when in a puller role',
+    GROUPWATCHWHO = 'Who to watch mana/endurance for, to decide whether to hold pulls and med',
+    MEDMANASTART = 'The Percent Mana to begin medding at',
+    MEDMANASTOP = 'The Percent Mana to stop medding at',
+    MEDENDSTART = 'The Percent Endurance to begin medding at',
+    MEDENDSTOP = 'The Percent Endurance to stop medding at',
+
+    LOOTMOBS = 'Toggle looting of mob corpses on or off for emu',
+
+    MAINTANK = 'Toggle use of tanking abilities in case main tank role doesn\'t work, like on emu',
 }
 
 local ignores = {}
@@ -98,13 +143,9 @@ function config.get_all()
     }
 end
 
-config.BOOL = {
-    TRUE={
-        ['1']=1, ['true']=1,['on']=1,['TRUE']=1,['ON']=1,
-    },
-    FALSE={
-        ['0']=1, ['false']=1,['off']=1,['FALSE']=1,['OFF']=1,
-    },
+config.booleans = {
+    ['1']=true, ['true']=true,['on']=true,
+    ['0']=false, ['false']=false,['off']=false,
 }
 
 config.aliases = {
@@ -162,16 +203,14 @@ config.getOrSetOption = function(name, current_value, new_value, key)
         if type(current_value) == 'number' then
             config[key] = tonumber(new_value) or current_value
         elseif type(current_value) == 'boolean' then
-            if config.BOOL.TRUE[new_value] then
-                config[key] = true
-            elseif config.BOOL.FALSE[new_value] then
-                config[key] = false
-            end
+            if config.booleans[new_value] == nil then return end
+            config[key] = config.booleans[new_value]
+            print(logger.logLine('Setting %s to: %s', key, config.booleans[new_value]))
         else
             config[key] = new_value
         end
     else
-        logger.printf('%s: %s', name, current_value)
+        printf(logger.logLine('%s: %s', name, current_value))
     end
 end
 
@@ -220,22 +259,22 @@ end
 
 function config.add_ignore(zone_short_name, mob_name)
     if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then
-        logger.printf('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name)
+        printf(logger.logLine('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
-    logger.printf('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name)
+    printf(logger.logLine('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
     config.save_ignores()
 end
 
 function config.remove_ignore(zone_short_name, mob_name)
     if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then
-        logger.printf('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name)
+        printf(logger.logLine('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     ignores[zone_short_name:lower()][mob_name] = nil
-    logger.printf('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name)
+    printf(logger.logLine('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
     config.save_ignores()
 end
 
@@ -244,7 +283,7 @@ function config.ignores_contains(zone_short_name, mob_name)
 end
 
 --for k,v in pairs(config.get_all()) do
---    logger.printf('%s: %s', k, v)
+--    printf(logger.logLine('%s: %s', k, v))
 --end
 
 return config

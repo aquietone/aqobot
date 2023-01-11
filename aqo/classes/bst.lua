@@ -1,8 +1,8 @@
 ---@type Mq
 local mq = require('mq')
-local class = require(AQO..'.classes.classbase')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
+local class = require('classes.classbase')
+local common = require('common')
+local state = require('state')
 
 class.class = 'bst'
 class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
@@ -78,8 +78,8 @@ class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
 class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
 table.insert(class.recoverAbilities, class.fParagon)
 
-class.requestAliases.fparagon = 'fParagon'
-class.requestAliases.paragon = 'paragon'
+class.addRequestAlias(class.fParagon, 'fparagon')
+class.addRequestAlias(class.paragon, 'paragon')
 
 local casterpriests = {clr=true,shm=true,dru=true,mag=true,nec=true,enc=true,wiz=true,shd=true}
 class.recover_class = function()
@@ -111,7 +111,6 @@ class.recover_class = function()
                         state.queuedAction = function() if mq.TLO.Target.ID() == member.ID() then class.fParagon:use() return true else return false end end
                         return true
                     end
-                    --mq.delay(100, function() return mq.TLO.Target.ID() == member.ID() end)
                     class.fParagon:use()
                     return true
                 end

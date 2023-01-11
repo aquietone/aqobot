@@ -1,12 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local assist = require(AQO..'.routines.assist')
-local camp = require(AQO..'.routines.camp')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local state = require(AQO..'.state')
-local config = require(AQO..'.configuration')
+local assist = require('routines.assist')
+local camp = require('routines.camp')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
 
 local mez = {}
 
@@ -17,8 +17,7 @@ mez.init_mez_timers = function(mez_spell)
         local mob = mq.TLO.Spawn('id '..id)
         if mob() and not state.mez_immunes[mob.CleanName()] then
             mob.DoTarget()
-            mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
-            mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+            mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
             if mq.TLO.Target() and mq.TLO.Target.Buff(mez_spell)() then
                 logger.debug(logger.log_flags.routines.mez, 'AEMEZ setting meztimer mob_id %d', id)
                 state.targets[id].meztimer:reset()
@@ -33,7 +32,7 @@ end
 mez.do_ae = function(mez_spell, ae_count)
     if state.mob_count >= ae_count and mez_spell then
         if mq.TLO.Me.Gem(mez_spell.name)() and mq.TLO.Me.GemTimer(mez_spell.name)() == 0 then
-            logger.printf('AE Mezzing (MOB_COUNT=%d)', state.mob_count)
+            printf(logger.logLine('AE Mezzing (MOB_COUNT=%d)', state.mob_count))
             mez_spell:use()
             mez.init_mez_timers()
             return true
@@ -56,8 +55,7 @@ mez.do_single = function(mez_spell)
                     mq.cmd('/attack off')
                     mq.delay(100, function() return not mq.TLO.Me.Combat() end)
                     mob.DoTarget()
-                    mq.delay(100, function() return mq.TLO.Target.ID() == mob.ID() end)
-                    mq.delay(200, function() return mq.TLO.Target.BuffsPopulated() end)
+                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                     local pct_hp = mq.TLO.Target.PctHPs()
                     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                         state.targets[id] = nil
@@ -66,7 +64,7 @@ mez.do_single = function(mez_spell)
                         if assist_spawn == -1 or assist_spawn.ID() ~= id then
                             state.mez_target_name = mob.CleanName()
                             state.mez_target_id = id
-                            logger.printf('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
+                            printf(logger.logLine('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID()))
                             if mez_spell.precast then mez_spell.precast() end
                             mez_spell:use()
                             logger.debug(logger.log_flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
@@ -87,13 +85,13 @@ mez.do_single = function(mez_spell)
 end
 
 mez.event_mezbreak = function(line, mob, breaker)
-    logger.printf('\at%s\ax mez broken by \at%s\ax', mob, breaker)
+    printf(logger.logLine('\at%s\ax mez broken by \at%s\ax', mob, breaker))
 end
 
 mez.event_mezimmune = function(line)
     local mez_target_name = state.mez_target_name
     if mez_target_name then
-        logger.printf('Added to MEZ_IMMUNE: \at%s', mez_target_name)
+        printf(logger.logLine('Added to MEZ_IMMUNE: \at%s', mez_target_name))
         state.mez_immunes[mez_target_name] = 1
     end
 end
@@ -101,7 +99,7 @@ end
 mez.event_mezresist = function(line, mob)
     local mez_target_name = state.mez_target_name
     if mez_target_name and mob == mez_target_name then
-        logger.printf('MEZ RESIST >>> \at%s\ax <<<', mez_target_name)
+        printf(logger.logLine('MEZ RESIST >>> \at%s\ax <<<', mez_target_name))
         state.targets[state.mez_target_id].meztimer:reset(0)
     end
 end

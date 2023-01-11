@@ -1,16 +1,16 @@
 --- @type Mq
 local mq = require 'mq'
-local class = require(AQO..'.classes.classbase')
-local assist = require(AQO..'.routines.assist')
-local logger = require(AQO..'.utils.logger')
-local timer = require(AQO..'.utils.timer')
-local common = require(AQO..'.common')
-local config = require(AQO..'.configuration')
-local state = require(AQO..'.state')
-local ui = require(AQO..'.ui')
+local class = require('classes.classbase')
+local assist = require('routines.assist')
+local logger = require('utils.logger')
+local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
+local state = require('state')
+local ui = require('ui')
 
 class.class = 'nec'
-class.classOrder = {'assist', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff', 'rest', 'managepet'}
+class.classOrder = {'assist', 'mash', 'cast', 'burn', 'aggro', 'recover', 'rez', 'buff', 'rest', 'managepet'}
 
 class.SPELLSETS = {standard=1,short=1}
 class.addCommonOptions()
@@ -26,46 +26,68 @@ class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicat
 class.addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbox')
 class.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox')
 class.addOption('MULTICOUNT', 'Multi DoT #', 3, nil, 'Number of mobs to rotate through when multi-dot is enabled', 'inputint')
+class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
+class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs, in case mobs are just dying too fast', 'checkbox')
 
-class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm'})
-class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds'})
-class.addSpell('fireshadow', {'Scalding Shadow', 'Broiling Shadow'})
-class.addSpell('pyreshort', {'Pyre of Va Xakra', 'Pyre of Klraggek'})
-class.addSpell('pyrelong', {'Pyre of the Neglected', 'Pyre of the Wretched'})
-class.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Poison Bolt'})
-class.addSpell('magic', {'Extinction', 'Oblivion'})
-class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay'})
-class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim'})
-class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze'})
-class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp'})
-class.addSpell('leech', {'Twilight Leech', 'Frozen Leech'})
-class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect'})
-class.addSpell('scourge', {'Scourge of Destiny'})
-class.addSpell('corruption', {'Decomposition', 'Miasma'})
+class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'})
+class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'})
+class.addSpell('fireshadow', {'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'})
+class.addSpell('pyreshort', {'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'})
+class.addSpell('pyrelong', {'Pyre of the Neglected', 'Pyre of the Wretched', 'Pyre of the Fereth', 'Pyre of the Lost', 'Pyre of the Forsaken', 'Pyre of the Piq\'a', 'Pyre of the Bereft', 'Pyre of the Forgotten', 'Pyre of Mori', 'Night Fire'})
+class.addSpell('venom', {'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad Venom', 'Glistenwing Venom', 'Binaesa Venom', 'Naeya Venom', 'Argendev\'s Venom', 'Slitheren Venom', 'Chaos Venom', 'Blood of Thule'})
+class.addSpell('magic', {'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'})
+class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'})
+class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'})
+class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'})
+class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Fang of Death'})
+class.addSpell('leech', {'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'})
+class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy', 'Ancient: Curse of Mori'})
+class.addSpell('scourge', {'Scourge of Destiny', 'Scourge of Fates'})
+class.addSpell('corruption', {'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'})
+-- Lifetaps
+class.addSpell('tapee', {'Soulflay', 'Soulgouge', 'Soulsiphon', 'Soulrend', 'Soulrip', 'Soulspike'}) -- unused
+class.addSpell('tap', {'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak'}) -- unused
+class.addSpell('tapsummon', {'Vollmondnacht Orb', 'Dusternacht Orb', 'Dunkelnacht Orb', 'Finsternacht Orb', 'Shadow Orb'}) -- unused
 -- Wounds proc
-class.addSpell('proliferation', {'Infected Proliferation', 'Septic Proliferation'})
--- combo dot, outdated
---combodis', {'Danvid\'s Grip of Decay'},
+class.addSpell('proliferation', {'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'})
+-- combo dots
+class.addSpell('combodisease', {'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'})
+class.addSpell('chaotic', {'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}) -- unused
+-- sphere
+class.addSpell('sphere', {'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}) -- unused
 -- Alliance
-class.addSpell('alliance', {'Malevolent Coalition', 'Malevolent Covenant'})
+class.addSpell('alliance', {'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'})
 -- Nukes
-class.addSpell('synergy', {'Proclamation for Blood', 'Assert for Blood'})
-class.addSpell('venin', {'Embalming Venin', 'Searing Venin', 'Lifespike'})
+class.addSpell('synergy', {'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'})
+class.addSpell('venin', {'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin'})
 -- Debuffs
-class.addSpell('scentterris', {'Scent of Terris'})
-class.addSpell('scentmortality', {'Scent of The Grave', 'Scent of Mortality'})
+class.addSpell('scentterris', {'Scent of Terris'}) -- AA only
+class.addSpell('scentmortality', {'Scent of The Grave', 'Scent of Mortality', 'Scent of Extinction', 'Scent of Dread', 'Scent of Nightfall', 'Scent of Doom', 'Scent of Gloom', 'Scent of Midnight'})
+class.addSpell('snare', {'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness'}) -- unused
 -- Mana Drain
-class.addSpell('manatap', {'Mind Atrophy', 'Mind Erosion'})
+class.addSpell('manatap', {'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'})
 -- Buffs
-class.addSpell('lich', {'Lunaside', 'Gloomside'})
-class.addSpell('flesh', {'Flesh to Venom'})
-class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny'})
+class.addSpell('lich', {'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'})
+class.addSpell('flesh', {'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'})
+class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'})
+class.addSpell('rune', {'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}) -- unused
+class.addSpell('tapproc', {'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}) -- unused
+class.addSpell('defensiveproc', {'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, {classes={WAR=true,PAL=true,SHD=true}})
+class.addSpell('reflect', {'Mirror'})
+class.addSpell('hpbuff', {'Shadow Guard', 'Shield of Maelin'}) -- pre-unity
 -- Pet spells
-class.addSpell('pet', {'Unrelenting Assassin', 'Restless Assassin'})
-class.addSpell('pethaste', {'Sigil of Undeath', 'Sigil of Decay'})
+class.addSpell('pet', {'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'})
+class.addSpell('pethaste', {'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'})
+class.addSpell('petheal', {'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve'}) -- unused
+class.addSpell('petaegis', {'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}) -- unused
+class.addSpell('petshield', {'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}) -- unused
 class.addSpell('petillusion', {'Form of Mottled Bone'})
-class.addSpell('inspire', {'Inspire Ally', 'Incite Ally'})
-class.addSpell('swarm', {'Call Skeleton Mass', 'Call Skeleton Horde'})
+class.addSpell('inspire', {'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'})
+class.addSpell('swarm', {'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'})
+
+--class.addSpell('hot', {'Pact of Destiny', 'Pact of Fate'}) -- HoT
+-- Death Rune ???
+-- Emu nuke things? 'Fang of Death' -- triggered by ancient: curse of mori, 'Visceral Vexation'
 
 -- entries in the dots table are pairs of {spell id, spell name} in priority order
 local standard = {}
@@ -74,12 +96,13 @@ table.insert(standard, class.spells.composite)
 table.insert(standard, class.spells.pyreshort)
 table.insert(standard, class.spells.venom)
 table.insert(standard, class.spells.magic)
-table.insert(standard, class.spells.decay)
+--table.insert(standard, class.spells.decay)
+table.insert(standard, class.spells.combodisease)
 table.insert(standard, class.spells.haze)
 table.insert(standard, class.spells.grasp)
 table.insert(standard, class.spells.fireshadow)
 table.insert(standard, class.spells.leech)
-table.insert(standard, class.spells.grip)
+--table.insert(standard, class.spells.grip)
 table.insert(standard, class.spells.pyrelong)
 table.insert(standard, class.spells.ignite)
 table.insert(standard, class.spells.scourge)
@@ -91,12 +114,13 @@ table.insert(short, class.spells.composite)
 table.insert(short, class.spells.pyreshort)
 table.insert(short, class.spells.venom)
 table.insert(short, class.spells.magic)
-table.insert(short, class.spells.decay)
+--table.insert(short, class.spells.decay)
+table.insert(standard, class.spells.combodisease)
 table.insert(short, class.spells.haze)
 table.insert(short, class.spells.grasp)
 table.insert(short, class.spells.fireshadow)
 table.insert(short, class.spells.leech)
-table.insert(short, class.spells.grip)
+--table.insert(short, class.spells.grip)
 table.insert(short, class.spells.pyrelong)
 table.insert(short, class.spells.ignite)
 
@@ -125,7 +149,12 @@ table.insert(class.burnAbilities, common.getAA('Silent Casting')) -- song, 12 mi
 table.insert(class.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
 table.insert(class.burnAbilities, common.getAA('Mercurial Torment')) -- buff, 24 minute CD
 table.insert(class.burnAbilities, common.getAA('Heretic\'s Twincast')) -- buff, 15 minute CD
-table.insert(class.burnAbilities, common.getAA('Spire of Necromancy')) -- buff, 7:30 minute CD
+if not state.emu then
+    table.insert(class.burnAbilities, common.getAA('Spire of Necromancy')) -- buff
+else
+    table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of Necromancy')) -- buff, 7:30 minute CD
+    table.insert(class.burnAbilities, common.getAA('Embalmer\'s Carapace'))
+end
 table.insert(class.burnAbilities, common.getAA('Hand of Death')) -- song, 8:30 minute CD
 table.insert(class.burnAbilities, common.getAA('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
 table.insert(class.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
@@ -144,7 +173,11 @@ local pre_burn_AAs = {}
 table.insert(pre_burn_AAs, common.getAA('Focus of Arcanum')) -- buff
 table.insert(pre_burn_AAs, common.getAA('Mercurial Torment')) -- buff
 table.insert(pre_burn_AAs, common.getAA('Heretic\'s Twincast')) -- buff
-table.insert(pre_burn_AAs, common.getAA('Spire of Necromancy')) -- buff
+if not state.emu then
+    table.insert(pre_burn_AAs, common.getAA('Spire of Necromancy')) -- buff
+else
+    table.insert(pre_burn_AAs, common.getAA('Fundament: Third Spire of Necromancy')) -- buff
+end
 
 local tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
@@ -153,6 +186,20 @@ local lifeburn = common.getAA('Life Burn')
 local dyinggrasp = common.getAA('Dying Grasp')
 -- Buffs
 local unity = common.getAA('Mortifier\'s Unity')
+
+if state.emu then
+    table.insert(class.selfBuffs, class.spells.lich)
+    table.insert(class.selfBuffs, class.spells.hpbuff)
+    table.insert(class.selfBuffs, common.getAA('Gift of the Grave', {removesong='Gift of the Grave Effect'}))
+    table.insert(class.singleBuffs, class.spells.defensiveproc)
+    table.insert(class.combatBuffs, common.getAA('Reluctant Benevolence'))
+else
+    table.insert(class.selfBuffs, unity)
+end
+table.insert(class.selfBuffs, class.spells.shield)
+table.insert(class.petBuffs, class.spells.inspire)
+table.insert(class.petBuffs, class.spells.pethaste)
+
 -- Mana Recovery AAs
 local deathbloom = common.getAA('Death Bloom')
 local bloodmagic = common.getAA('Blood Magic')
@@ -161,7 +208,9 @@ local deathpeace = common.getAA('Death Peace')
 local deathseffigy = common.getAA('Death\'s Effigy')
 
 local convergence = common.getAA('Convergence')
+class.rezAbility = convergence
 local dispel = common.getAA('Eradicate Magic')
+class.dispel = dispel
 
 local scent = common.getAA('Scent of Thule')
 local debuff_timer = timer:new(30)
@@ -174,7 +223,15 @@ local buffs={
     },
 }
 
+class.addRequestAlias(class.spells.defensiveproc, 'defensiveproc')
+
 local neccount = 1
+
+class.spells.pyreshort.precast = function()
+    if tcclick and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+        tcclick:use()
+    end
+end
 
 -- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
 local function set_swap_gems()
@@ -240,7 +297,8 @@ local function should_swap_dots()
         common.swap_spell(class.spells.wounds, swap_gem or 10)
     end
 
-    local decayName = class.spells.decay and class.spells.decay.name
+    -- Using combo disease spell instead of swapping between grip and decay
+    --[[local decayName = class.spells.decay and class.spells.decay.name
     local gripName = class.spells.grip and class.spells.grip.name
     local decayDuration = mq.TLO.Target.MyBuffDuration(decayName)()
     local gripDuration = mq.TLO.Target.MyBuffDuration(gripName)()
@@ -259,7 +317,7 @@ local function should_swap_dots()
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize decay again
         common.swap_spell(class.spells.decay, swap_gem_dis or 11)
-    end
+    end]]
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
@@ -282,9 +340,13 @@ local function try_alliance()
 end
 
 local function cast_synergy()
-    if class.spells.synergy and not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.name)() then
+    if class.isEnabled('USENUKES') and class.spells.synergy and not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.name)() then
         if mq.TLO.Spell(class.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
+        end
+        if state.emu then
+            class.spells.synergy:use()
+            return true
         end
         -- don't bother with proc'ing synergy until we've got most dots applied
         if mq.TLO.Target.MyBuff(class.spells.pyreshort and class.spells.pyreshort.name)() and
@@ -297,28 +359,30 @@ local function cast_synergy()
     return false
 end
 
-local function find_next_dot_to_cast()
+class.find_next_spell = function()
     if try_alliance() then return nil end
-    if cast_synergy() then return nil end
+    if not state.emu then
+        cast_synergy()
+        return nil
+    end
     -- Just cast composite as part of the normal dot rotation, no special handling
     --if common.is_spell_ready(spells.composite.id, spells.composite.name) then
     --    return spells.composite.id, spells.composite.name
     --end
-    if class.spells.manatap and mq.TLO.Me.PctMana() < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.spells.manatap and state.loop.PctMana < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
-    if class.spells.swarm and class.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(class.spells.swarm.name)() and mq.TLO.Spell(class.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.spells.swarm and mq.TLO.Me.SpellReady(class.spells.swarm.name)() and mq.TLO.Spell(class.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.swarm
     end
     local pct_hp = mq.TLO.Target.PctHPs()
-    if pct_hp and pct_hp > class.OPTS.STOPPCT.value then
+    if pct_hp and pct_hp > class.OPTS.STOPPCT.value and class.isEnabled('USEDOTS') then
         for _,dot in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-            -- ToL has no combo disease dot spell, so the 2 disease dots are just in the normal rotation now.
-            -- if spell_id == spells.combodis.id then
-            --     if (not is_target_dotted_with(spells.decay.id, spells.decay.name) or not is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodis.name)() then
-            --         return dot
-            --     end
-            -- else
+            if class.spells.combodisease and dot.id == class.spells.combodisease.id then
+                if (not common.is_target_dotted_with(class.pells.decay.id, class.spells.decay.name) or not common.is_target_dotted_with(class.spells.grip.id, class.spells.grip.name)) and mq.TLO.Me.SpellReady(class.spells.combodisease.name)() then
+                    return dot
+                end
+            end
             if (class.OPTS.USEWOUNDS.value or dot.id ~= class.spells.wounds.id) and common.is_spell_ready(dot) then
                 return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
@@ -327,8 +391,11 @@ local function find_next_dot_to_cast()
     if class.spells.manatap and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
-    if class.spells.venin and class.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(class.spells.venin.name)() and mq.TLO.Spell(class.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.isEnabled('USENUKES') and class.spells.venin and class.OPTS.SPELLSET.value == 'short' and mq.TLO.Me.SpellReady(class.spells.venin.name)() and mq.TLO.Spell(class.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.venin
+    end
+    if state.emu then
+        cast_synergy()
     end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
@@ -336,16 +403,16 @@ end
 class.cast = function()
     if mq.TLO.Me.SpellInCooldown() then return false end
     if assist.is_fighting() then
-        if class.OPTS.USEDISPEL.value and mq.TLO.Target.Beneficial() then
+        if class.OPTS.USEDISPEL.value and dispel and mq.TLO.Target.Beneficial() then
             dispel:use()
         end
-        if class.OPTS.DEBUFF.value and class.spells.scentterris and not mq.TLO.Target.Buff(class.spells.scentterris.name)() and mq.TLO.Spell(class.spells.scentterris.name).StacksTarget() then
+        if class.OPTS.DEBUFF.value and scent and class.spells.scentterris and not mq.TLO.Target.Buff(class.spells.scentterris.name)() and mq.TLO.Spell(class.spells.scentterris.name).StacksTarget() then
             scent:use()
             debuff_timer:reset()
         end
-        local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
+        local spell = class.find_next_spell() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
-            if spell.name == class.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+            if tcclick and spell.name == class.spells.pyreshort.name and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
                 tcclick:use()
             end
             spell:use() -- then cast the dot
@@ -362,9 +429,8 @@ class.cast = function()
                     if xtar_id ~= original_target_id and assist.should_assist(xtar_spawn) then
                         xtar_spawn.DoTarget()
                         mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
-                        local spell = find_next_dot_to_cast() -- find the first available dot to cast that is missing from the target
+                        local spell = class.find_next_spell() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
-                            --if not mq.TLO.Me.SpellReady(spell.name)() then break end
                             spell:use()
                             dotted_count = dotted_count + 1
                             if dotted_count >= class.OPTS.MULTICOUNT.value then break end
@@ -388,7 +454,7 @@ end
 
 local function is_nec_burn_condition_met()
     if class.OPTS.BURNPROC.value and target_has_proliferation() then
-        logger.printf('\arActivating Burns (proliferation proc)\ax')
+        printf(logger.logLine('\arActivating Burns (proliferation proc)\ax'))
         state.burn_active_timer:reset()
         state.burn_active = true
         return true
@@ -431,7 +497,7 @@ class.burn_class = function()
     local fierce_eye = mq.TLO.Me.Song('Fierce Eye')()
     if fierce_eye then base_crit = base_crit + 15 end
 
-    if mq.TLO.SpawnCount('corpse radius 150')() > 0 then
+    if wakethedead and mq.TLO.SpawnCount('corpse radius 150')() > 0 then
         wakethedead:use()
         mq.delay(1500)
     end
@@ -447,7 +513,7 @@ class.burn_class = function()
         end
     end
 
-    if mq.TLO.Me.PctHPs() > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
+    if lifeburn and dyinggrasp and state.loop.PctHPs > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
         lifeburn:use()
         mq.delay(5)
         dyinggrasp:use()
@@ -455,7 +521,7 @@ class.burn_class = function()
 end
 
 local function pre_pop_burns()
-    logger.printf('Pre-burn')
+    printf(logger.logLine('Pre-burn'))
     --[[
     |===========================================================================================
     |Item Burn
@@ -484,14 +550,18 @@ local function pre_pop_burns()
 end
 
 class.recover = function()
+    if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.name)() then
+        print(logger.logLine('Removing lich to avoid dying!'))
+        mq.cmdf('/removebuff %s', class.spells.lich.name)
+    end
     -- modrods
     common.check_mana()
-    local pct_mana = mq.TLO.Me.PctMana()
-    if pct_mana < 65 then
+    local pct_mana = state.loop.PctMana
+    if deathbloom and pct_mana < 65 then
         -- death bloom at some %
         deathbloom:use()
     end
-    if mq.TLO.Me.CombatState() == 'COMBAT' then
+    if bloodmagic and mq.TLO.Me.CombatState() == 'COMBAT' then
         if pct_mana < 40 then
             -- blood magic at some %
             bloodmagic:use()
@@ -523,9 +593,9 @@ class.aggro = function()
     if state.emu then return end
     if config.MODE:is_manual_mode() then return end
     if class.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or check_aggro_timer:timer_expired() then
-            if mq.TLO.Me.PctAggro() >= 90 then
-                if mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
+            if deathseffigy and mq.TLO.Me.PctAggro() >= 90 then
+                if dyinggrasp and state.loop.PctHPs < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
                     dyinggrasp:use()
                 end
                 deathseffigy:use()
@@ -537,7 +607,7 @@ class.aggro = function()
                         mq.cmd('/makemevis')
                     end
                 end
-            elseif mq.TLO.Me.PctAggro() >= 70 then
+            elseif deathpeace and mq.TLO.Me.PctAggro() >= 70 then
                 deathpeace:use()
                 if mq.TLO.Me.Feigning() then
                     check_aggro_timer:reset()
@@ -552,91 +622,10 @@ class.aggro = function()
     end
 end
 
-local rez_timer = timer:new(5)
-class.rez = function()
-    if not class.OPTS.USEREZ.value or not convergence or common.am_i_dead() then return end
-    if not rez_timer:timer_expired() then return end
-    if not mq.TLO.Me.AltAbilityReady(convergence.name)() then return end
-    if mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if mq.TLO.SpawnCount('pccorpse group healer radius 100')() > 0 then
-        mq.TLO.Spawn('pccorpse group healer radius 100').DoTarget()
-        mq.cmd('/corpse')
-        convergence:use()
-        rez_timer:reset()
-        return
-    end
-    if mq.TLO.SpawnCount('pccorpse raid healer radius 100')() > 0 then
-        mq.TLO.Spawn('pccorpse raid healer radius 100').DoTarget()
-        mq.cmd('/corpse')
-        convergence:use()
-        rez_timer:reset()
-        return
-    end
-    if mq.TLO.Group.MainTank() and mq.TLO.Group.MainTank.Dead() then
-        mq.TLO.Group.MainTank.DoTarget()
-        local corpse_x = mq.TLO.Target.X()
-        local corpse_y = mq.TLO.Target.Y()
-        if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) > 100 then return end
-        mq.cmd('/corpse')
-        convergence:use()
-        rez_timer:reset()
-        return
-    end
-    for i=1,5 do
-        if mq.TLO.Group.Member(i)() and mq.TLO.Group.Member(i).Dead() then
-            mq.TLO.Group.Member(i).DoTarget()
-            local corpse_x = mq.TLO.Target.X()
-            local corpse_y = mq.TLO.Target.Y()
-            if corpse_x and corpse_y and common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), corpse_x, corpse_y) < 100 then
-                mq.cmd('/corpse')
-                convergence:use()
-                rez_timer:reset()
-                return
-            end
-        end
-    end
-end
-
-class.buff = function()
-    if common.am_i_dead() or mq.TLO.Me.Moving() then return end
-    if class.OPTS.USEBUFFSHIELD.value and class.spells.shield then
-        local tempName = class.spells.shield.name
-        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-        if not mq.TLO.Me.Buff(tempName)() then
-            class.spells.shield:use()
-        end
-    end
-    if class.OPTS.USEINSPIRE.value and class.spells.inspire then
-        local tempName = class.spells.inspire.name
-        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-        if not mq.TLO.Pet.Buff(tempName)() then
-            class.spells.inspire:use()
-        end
-    end
-    common.check_combat_buffs()
-    if not common.clear_to_buff() then return end
-    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-    if (class.spells.lich and not mq.TLO.Me.Buff(class.spells.lich.name)()) or (class.spells.flesh and not mq.TLO.Me.Buff(class.spells.flesh.name)()) then
-        unity:use()
-    end
-
-    common.check_item_buffs()
-
-    if class.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 then
-        for _,buff in ipairs(buffs.pet) do
-            local tempName = buff.name
-            if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-            if not mq.TLO.Pet.Buff(tempName)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
-                common.swap_and_cast(buff, 13)
-            end
-        end
-    end
-end
-
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or common.am_i_dead() then return end
+    if not common.clear_to_buff() or mq.TLO.Me.Moving() then return end
     if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
         if class.OPTS.SPELLSET.value == 'standard' then
             common.swap_spell(class.spells.composite, 1, composite_names)
@@ -646,8 +635,8 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.haze, 5)
             common.swap_spell(class.spells.grasp, 6)
             common.swap_spell(class.spells.leech, 7)
-            --common.swap_spell(spells.wounds, 10)
-            common.swap_spell(class.spells.decay, 11)
+            --common.swap_spell(class.spells.decay, 11)
+            common.swap_spell(class.spells.combodisease, 11)
             common.swap_spell(class.spells.synergy, 13)
             state.spellset_loaded = class.OPTS.SPELLSET.value
         elseif class.OPTS.SPELLSET.value == 'short' then
@@ -658,8 +647,8 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.haze, 5)
             common.swap_spell(class.spells.grasp, 6)
             common.swap_spell(class.spells.leech, 7)
-            common.swap_spell(class.spells.swarm, 10)
-            common.swap_spell(class.spells.decay, 11)
+            --common.swap_spell(class.spells.decay, 11)
+            common.swap_spell(class.spells.combodisease, 11)
             common.swap_spell(class.spells.synergy, 13)
             state.spellset_loaded = class.OPTS.SPELLSET.value
         end
@@ -667,38 +656,30 @@ class.check_spell_set = function()
         set_swap_gems()
     end
     if class.OPTS.SPELLSET.value == 'standard' then
-        if class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
+        if class.isEnabled('USEMANATAP') then
             common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.shield, 12)
-        elseif class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.ignite, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.ignite, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.ignite, 9)
-            common.swap_spell(class.spells.shield, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
+        else
             common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.corruption, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.shield, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.ignite, 8)
+        end
+        if class.isEnabled('USEALLIANCE') then
             common.swap_spell(class.spells.alliance, 9)
+        else
+            if class.isEnabled('USEMANATAP') then
+                common.swap_spell(class.spells.ignite, 9)
+            else
+                common.swap_spell(class.spells.scourge, 9)
+            end
+        end
+        if class.isEnabled('USEBUFFSHIELD') then
             common.swap_spell(class.spells.shield, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEBUFFSHIELD.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.scourge, 12)
+        else
+            if class.isEnabled('USEMANATAP') and class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.ignite, 12)
+            elseif class.isEnabled('USEMANATAP') or class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.scourge, 12)
+            else
+                common.swap_spell(class.spells.corruption, 12)
+            end
         end
         if not class.OPTS.USEWOUNDS then
             common.swap_spell(class.spells.pyrelong, 10)
@@ -706,38 +687,35 @@ class.check_spell_set = function()
             common.swap_spell(class.spells.wounds, 10)
         end
     elseif class.OPTS.SPELLSET.value == 'short' then
-        if class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
+        if class.isEnabled('USEMANATAP') then
             common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.inspire, 12)
-        elseif class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.venin, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.ignite, 9)
-            common.swap_spell(class.spells.venin, 12)
-        elseif class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.manatap, 8)
-            common.swap_spell(class.spells.ignite, 9)
-            common.swap_spell(class.spells.inspire, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
+        else
             common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.venin, 12)
-        elseif not class.OPTS.USEMANATAP.value and not class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.scourge, 9)
-            common.swap_spell(class.spells.inspire, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.ignite, 8)
+        end
+        if class.isEnabled('USEALLIANCE') then
             common.swap_spell(class.spells.alliance, 9)
+        else
+            if class.isEnabled('USEMANATAP') then
+                common.swap_spell(class.spells.ignite, 9)
+            else
+                common.swap_spell(class.spells.scourge, 9)
+            end
+        end
+        if class.isEnabled('USEINSPIRE') then
             common.swap_spell(class.spells.inspire, 12)
-        elseif not class.OPTS.USEMANATAP.value and class.OPTS.USEALLIANCE.value and not class.OPTS.USEINSPIRE.value then
-            common.swap_spell(class.spells.ignite, 8)
-            common.swap_spell(class.spells.alliance, 9)
-            common.swap_spell(class.spells.venin, 12)
+        else
+            if class.isEnabled('USEMANATAP') and class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.ignite, 12)
+            elseif class.isEnabled('USEMANATAP') or class.isEnabled('USEALLIANCE') then
+                common.swap_spell(class.spells.scourge, 12)
+            else
+                common.swap_spell(class.spells.venin, 12)
+            end
+        end
+        if not class.OPTS.USEWOUNDS then
+            common.swap_spell(class.spells.pyrelong, 10)
+        else
+            common.swap_spell(class.spells.swarm, 10)
         end
     end
 end
