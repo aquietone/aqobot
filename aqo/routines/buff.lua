@@ -117,7 +117,7 @@ local function buff_auras(base)
                     common.swap_spell(restore_gem, state.swapGem)
                 end
             elseif buff.type == Abilities.Types.Disc then
-                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
+                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) end
             elseif buff.type == Abilities.Types.AA then
                 buff:use()
             end
@@ -141,7 +141,7 @@ local function buff_self(base)
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then return true end
             elseif buff.type == Abilities.Types.Disc then
-                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) return true end
+                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) return true end
             else
                 if not base.item_timer or base.item_timer:timer_expired() then
                     buff:use()

@@ -311,7 +311,7 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if anyoneDead() or state.loop.PctHPs < 60 or mq.TLO.Group.Injured(70)() > 0 or common.DMZ[mq.TLO.Zone.ID()] then
+    if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or common.DMZ[mq.TLO.Zone.ID()] then
         movement.stop()
         return
     end

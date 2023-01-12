@@ -99,7 +99,7 @@ local meleedot = {
 -- synergy, mezst, mezae
 
 local emuancient = {
-    class.spells.selos, class.spells.overhaste, class.spells.pulse, class.spells.bardhaste, class.spells.spiteful, class.spells.chantflame
+    class.spells.selos, class.spells.overhaste, class.spells.pulse, class.spells.bardhaste, class.spells.suffering, class.spells.chantflame
 }
 
 local emuaura65 = {

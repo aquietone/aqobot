@@ -151,8 +151,8 @@ if state.emu then
     table.insert(class.healAbilities, class.spells.heal)
     table.insert(class.selfBuffs, class.spells.buffs)
 else
-    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Azia)', {opt=USEUNITYAZIA, checkfor='Devastating Barrage'}))
-    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Beza)', {opt=USEUNITYBEZA, checkfor='Vociferous Blades'}))
+    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Azia)', {opt='USEUNITYAZIA', checkfor='Devastating Barrage'}))
+    table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Beza)', {opt='USEUNITYBEZA', checkfor='Vociferous Blades'}))
     table.insert(class.selfBuffs, class.spells.rune)
 end
 local unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')

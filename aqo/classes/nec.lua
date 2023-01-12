@@ -390,7 +390,7 @@ class.find_next_spell = function()
     if pct_hp and pct_hp > class.OPTS.STOPPCT.value and class.isEnabled('USEDOTS') then
         for _,dot in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
             if class.spells.combodisease and dot.id == class.spells.combodisease.id then
-                if (not common.is_target_dotted_with(spells.decay.id, spells.decay.name) or not common.is_target_dotted_with(spells.grip.id, spells.grip.name)) and mq.TLO.Me.SpellReady(spells.combodisease.name)() then
+                if (not common.is_target_dotted_with(class.spells.decay.id, class.spells.decay.name) or not common.is_target_dotted_with(class.spells.grip.id, class.spells.grip.name)) and mq.TLO.Me.SpellReady(class.spells.combodisease.name)() then
                     return dot
                 end
             end
