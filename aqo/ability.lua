@@ -285,7 +285,8 @@ end
 ---Determine whether an disc is ready, including checking whether the character is currently capable.
 ---@return boolean @Returns true if the disc is ready to be used, otherwise false.
 function Disc:isReady()
-    if mq.TLO.Me.CombatAbility(self.name)() and mq.TLO.Me.CombatAbilityTimer(self.name)() == '0' and mq.TLO.Me.CombatAbilityReady(self.name)() then
+    --if mq.TLO.Me.CombatAbility(self.name)() and mq.TLO.Me.CombatAbilityTimer(self.name)() == '0' and mq.TLO.Me.CombatAbilityReady(self.name)() then
+    if mq.TLO.Me.CombatAbilityReady(self.name)() then
         local spell = mq.TLO.Spell(self.name)
         return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)--true
     else

@@ -253,7 +253,7 @@ local function pull_engage(pull_spawn, pull_func)
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0
         mq.cmd('/attack on')
-        mq.delay(5000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
+        state.pull_in_progress = common.PULL_STATES.WAIT_FOR_AGGRO
     else
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
@@ -269,13 +269,18 @@ local function pull_engage(pull_spawn, pull_func)
             if not mq.TLO.Me.AutoFire() then
                 mq.cmd('/autofire on')
             end
-            mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
+            state.pull_in_progress = common.PULL_STATES.WAIT_FOR_AGGRO
         end
     end
+end
+
+local function pull_wait_for_aggro()
     --printf(logger.logLine('mob agrod or timed out'))
-    if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
-    if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
-    if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
+    if mq.TLO.Me.CombatState() == 'COMBAT' then
+        if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
+        if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
+        if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
+    end
     --mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
     return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target()
 end
@@ -311,7 +316,7 @@ end
 ---@param pull_func function @The function to use to ranged pull.
 pull.pull_mob = function(pull_func)
     local pull_state = state.pull_in_progress
-    if anyoneDead() or mq.TLO.Me.PctHPs() < 60 or mq.TLO.Group.Injured(70)() > 0 or common.DMZ[mq.TLO.Zone.ID()] then
+    if anyoneDead() or mq.TLO.Me.PctHPs() < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or common.DMZ[mq.TLO.Zone.ID()] then
         movement.stop()
         return
     end
@@ -360,7 +365,9 @@ pull.pull_mob = function(pull_func)
         end
     elseif pull_state == common.PULL_STATES.ENGAGING then
         local pull_spawn = mq.TLO.Spawn(state.pull_mob_id)
-        if pull_engage(pull_spawn, pull_func) then
+        pull_engage(pull_spawn, pull_func)
+    elseif pull_state == common.PULL_STATES.WAIT_FOR_AGGRO then
+        if pull_wait_for_aggro() then
             -- successfully agro'd the mob, or something else agro'd in the process
             if config.MODE:return_to_camp() and camp.Active then
                 state.pull_in_progress = common.PULL_STATES.RETURNING

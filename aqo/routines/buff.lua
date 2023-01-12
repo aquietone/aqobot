@@ -13,7 +13,7 @@ buff.selfBuff = function(spell)
     if not mq.TLO.Me.Buff(spell.name)() and mq.TLO.Spell(spell.name).Stacks() then
         if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
             mq.cmd('/mqtarget myself')
-            mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
+            -- TODO: queued action?
         end
         return spell:use()
     end
@@ -109,7 +109,7 @@ local function buff_auras(base)
                     common.swap_spell(restore_gem, state.swapGem)
                 end
             elseif buff.type == Abilities.Types.Disc then
-                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) end
+                if buff:use() then return true end--mq.delay(3000, function() return mq.TLO.Me.Casting() ~= nil end) end
             elseif buff.type == Abilities.Types.AA then
                 buff:use()
             end
@@ -133,7 +133,7 @@ local function buff_self(base)
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then return true end
             elseif buff.type == Abilities.Types.Disc then
-                if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() end) return true end
+                if buff:use() then return true end--mq.delay(3000, function() return mq.TLO.Me.Casting() ~= nil end) return true end
             else
                 if not base.item_timer or base.item_timer:timer_expired() then
                     buff:use()

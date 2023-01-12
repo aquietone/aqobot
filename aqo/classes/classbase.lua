@@ -330,6 +330,7 @@ end
 
 base.event_tranquil = function()
     if mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Raid.Members() > 0 then
+        -- TODO: queued action
         mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
         if base.tranquil:use() then mq.cmd('/rs Tranquil Blessings used') end
     end
@@ -398,7 +399,7 @@ base.cure = function()
                 if cure.curse or cure.all and cure:isReady() then
                     if mq.TLO.Target.ID() ~= state.loop.ID then
                         mq.cmd('/mqtar')
-                        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
+                        -- TODO: queued action?
                     end
                     cure:use()
                 end

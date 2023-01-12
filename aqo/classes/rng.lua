@@ -415,7 +415,7 @@ class.buff_classb = function()
     end
     if chameleon and not mq.TLO.Me.Song(chameleon.name)() and mq.TLO.Me.AltAbilityReady(chameleon.name)() then
         mq.cmd('/mqtar myself')
-        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
+        -- TODO: queued action?
         chameleon:use()
     end
     if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
@@ -464,6 +464,7 @@ class.buff_classb = function()
             if tank_spawn() then
                 if class.spells.ds and spawn_missing_cachedbuff(tank_spawn, class.spells.ds.name) then
                     tank_spawn.DoTarget()
+                    -- TODO: queued action?
                     mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                     if target_missing_buff(class.spells.ds.name) then
                         if common.swap_and_cast(class.spells.ds, 13) then return end
@@ -479,6 +480,7 @@ class.buff_classb = function()
                 if group_member() and group_member.Class.ShortName() ~= 'RNG' then
                     if class.spells.buffs and spawn_missing_cachedbuff(group_member, class.spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
                         group_member.DoTarget()
+                        -- TODO: queued action?
                         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                         if target_missing_buff(class.spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
                             -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
@@ -487,6 +489,7 @@ class.buff_classb = function()
                     end
                     if class.spells.dmgbuff and spawn_missing_cachedbuff(group_member, class.spells.dmgbuff.name) then
                         group_member.DoTarget()
+                        -- TODO: queued action?
                         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                         if target_missing_buff(class.spells.dmgbuff.name) then
                             if class.spells.dmgbuff:use() then return end

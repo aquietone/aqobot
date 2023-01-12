@@ -19,7 +19,7 @@ common.PET_CLASSES = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=
 common.BUFF_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true,pal=true}
 common.HEALER_CLASSES = {clr=true,dru=true,shm=true}
 common.FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true}
-common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
+common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,WAIT_FOR_AGGRO=5,RETURNING=6,WAITING=7}
 common.DMZ = {
     [344] = 1, -- Guild Lobby
     [345] = 1, -- Guild Hall
