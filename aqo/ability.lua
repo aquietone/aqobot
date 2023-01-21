@@ -3,11 +3,22 @@ local mq = require('mq')
 local logger = require('utils.logger')
 local state = require('state')
 
+---@enum AbilityTypes
+AbilityTypes = {
+    Spell = 1,
+    Disc = 2,
+    AA = 3,
+    Item = 4,
+    Skill = 5,
+}
+
 ---@class Ability
 ---@field id number # the ID of this ability
 ---@field name string # the name of this ability
----@field type Ability.Type # spell, aa, disc, item, skill
+---@field type AbilityTypes # spell, aa, disc, item, skill
 ---@field targettype? string # The target type for the ability
+---@field casttime? number # The cast time of the spell or clicky
+---@field duration? number # The duration in seconds of the spell or clicky
 ---@field opt? string # configuration option to check is enabled before using this ability
 ---@field delay? number # time in MS to delay after using an ability, primarily for swarm pets that take time to spawn after activation
 ---@field threshold? number # number of mobs to be on aggro before using an AE ability, or % mana/end to begin using recover abilities
@@ -43,69 +54,13 @@ local state = require('state')
 local Ability = {
     id=0,
     name = '',
-    type = 1,
-    targettype = nil,
-    opt = nil,
-
-    delay = nil,
-
-    -- AE number or start recovery percent
-    threshold = nil,
-
-    -- recovery conditions
-    combat = nil,
-    ooc = nil,
-    minhp = nil,
-    mana = nil,
-    endurance = nil,
-
-    quick = nil,
-    long = nil,
-
-    -- healing percents
-    me = nil,
-    pet = nil,
-    self = nil,
-    group = nil,
-    pct = nil,
-    regular = nil,
-    panic = nil,
-
-    classes = nil,
-    checkfor = nil,
-    skipifbuff = nil,
-
-    -- name of summoned item like Ethereal Arrows
-    summons = nil,
-    summonMinimum = nil,
-    summonComponent = nil,
-
-    precast = nil,
-    postcast = nil,
-
-    usebelowpct = nil,
-    maxdistance = nil,
-    aggro = nil,
-
-    stand = nil,
-
-    tot = nil,
-    removesong = nil,
-}
-
----@enum Ability.Types
-Ability.Types = {
-    Spell = 1,
-    Disc = 2,
-    AA = 3,
-    Item = 4,
-    Skill = 5,
+    type = AbilityTypes.Spell,
 }
 
 ---Initialize a new ability istance.
 ---@param ID number|nil #
 ---@param name string|nil #
----@param type Ability.Type #
+---@param type AbilityTypes #
 ---@param targettype string|nil #
 ---@param options table|nil #
 ---@return Ability #
@@ -179,7 +134,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
 end
 
 function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
-    if abilityType == Ability.Types.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
+    if abilityType == AbilityTypes.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
         if logger.log_flags.common.cast then
             logger.debug(logger.log_flags.common.cast, ('Spell not ready (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
         end
@@ -191,7 +146,7 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
         end
         return false
     end
-    if abilityType ~= Ability.Types.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then
+    if abilityType ~= AbilityTypes.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then
         if logger.log_flags.common.cast then
             logger.debug(logger.log_flags.common.cast, ('Not enough mana or endurance (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
         end
@@ -232,7 +187,7 @@ end
 ---@param options table|nil #
 ---@return Ability #
 function Spell:new(ID, name, targettype, options)
-    local spell = Ability:new(ID, name, Ability.Types.Spell, targettype, options)
+    local spell = Ability:new(ID, name, AbilityTypes.Spell, targettype, options)
     setmetatable(spell, self)
     self.__index = self
     return spell
@@ -280,7 +235,7 @@ local Disc = {}
 ---@param options table|nil #
 ---@return Ability #
 function Disc:new(ID, name, options)
-    local disc = Ability:new(ID, name, Ability.Types.Disc, nil, options)
+    local disc = Ability:new(ID, name, AbilityTypes.Disc, nil, options)
     setmetatable(disc, self)
     self.__index = self
     return disc
@@ -348,7 +303,7 @@ local AA = {}
 ---@param options table|nil #
 ---@return Ability #
 function AA:new(ID, name, targettype, options)
-    local aa = Ability:new(ID, name, Ability.Types.AA, targettype, options)
+    local aa = Ability:new(ID, name, AbilityTypes.AA, targettype, options)
     setmetatable(aa, self)
     self.__index = self
     return aa
@@ -390,7 +345,7 @@ local Item = {}
 ---@param options table|nil #
 ---@return Ability #
 function Item:new(ID, name, targettype, options)
-    local item = Ability:new(ID, name, Ability.Types.Item, targettype, options)
+    local item = Ability:new(ID, name, AbilityTypes.Item, targettype, options)
     setmetatable(item, self)
     self.__index = self
     return item
@@ -414,7 +369,26 @@ function Item:use()
         if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(1) end
         print(logger.logLine('Use Item: \ag%s\ax', theItem))
         mq.cmdf('/useitem "%s"', theItem)
-        mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        if self.targettype == 'Single' and self.casttime > 0 then
+            mq.delay(250+self.casttime, function() return not mq.TLO.Target() end)
+            if not mq.TLO.Target() then mq.cmd('/squelch /stopcast') end
+        else
+            mq.delay(500+theItem.CastTime())
+        end
+        --[[if self.targettype == 'Single' and self.casttime > 0 then
+            mq.delay(100)
+            printf('in single target item click with cast time %s %s', self.targettype, mq.TLO.Me.Casting())
+            while mq.TLO.Me.Casting() do
+                if self.targettype == 'Single' and not mq.TLO.Target() then
+                    print('stopping cast why')
+                    mq.cmd('/stopcast')
+                    break
+                end
+                mq.delay(10)
+            end
+        else]]
+            --mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
+        --end
         return true
     end
     return false
@@ -428,7 +402,7 @@ local Skill = {}
 ---@param options table|nil #
 ---@return Ability #
 function Skill:new(name, options)
-    local skill = Ability:new(nil, name, Ability.Types.Skill, nil, options)
+    local skill = Ability:new(nil, name, AbilityTypes.Skill, nil, options)
     setmetatable(skill, self)
     self.__index = self
     return skill
@@ -449,7 +423,7 @@ function Skill:use()
 end
 
 return {
-    Types=Ability.Types,
+    Types=AbilityTypes,
     canUseSpell=Ability.canUseSpell,
     Spell=Spell,
     Disc=Disc,

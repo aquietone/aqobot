@@ -2,6 +2,7 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local assist = require('routines.assist')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local common = require('common')
@@ -39,6 +40,8 @@ class.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox')
 class.addOption('MULTICOUNT', 'Multi DoT #', 3, nil, 'Number of mobs to rotate through when multi-dot is enabled', 'inputint')
 class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
 class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs, in case mobs are just dying too fast', 'checkbox')
+class.addOption('USELICH', 'Use Lich', true, nil, 'Toggle use of lich, incase you\'re just farming and don\'t really need it', 'checkbox')
+class.addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox')
 
 class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'})
 class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'})
@@ -50,9 +53,9 @@ class.addSpell('magic', {'Extinction', 'Oblivion', 'Inevitable End', 'Annihilati
 class.addSpell('decay', {'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'})
 class.addSpell('grip', {'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'})
 class.addSpell('haze', {'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'})
-class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Fang of Death'})
+class.addSpell('grasp', {'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Ancient: Curse of Mori', 'Fang of Death'})
 class.addSpell('leech', {'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'})
-class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy', 'Ancient: Curse of Mori'})
+class.addSpell('ignite', {'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'})
 class.addSpell('scourge', {'Scourge of Destiny', 'Scourge of Fates'})
 class.addSpell('corruption', {'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'})
 -- Lifetaps
@@ -78,7 +81,7 @@ class.addSpell('snare', {'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing D
 -- Mana Drain
 class.addSpell('manatap', {'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'})
 -- Buffs
-class.addSpell('lich', {'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'})
+class.addSpell('lich', {'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, {opt='USELICH'})
 class.addSpell('flesh', {'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'})
 class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'})
 class.addSpell('rune', {'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}) -- unused
@@ -380,7 +383,7 @@ class.find_next_spell = function()
     --if common.is_spell_ready(spells.composite.id, spells.composite.name) then
     --    return spells.composite.id, spells.composite.name
     --end
-    if class.spells.manatap and state.loop.PctMana < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.isEnabled('USEMANATAP') and class.spells.manatap and state.loop.PctMana < 40 and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
     if class.spells.swarm and mq.TLO.Me.SpellReady(class.spells.swarm.name)() and mq.TLO.Spell(class.spells.swarm.name).Mana() < mq.TLO.Me.CurrentMana() then
@@ -399,7 +402,7 @@ class.find_next_spell = function()
             end
         end
     end
-    if class.spells.manatap and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
+    if class.isEnabled('USEMANATAP') and class.spells.manatap and mq.TLO.Me.SpellReady(class.spells.manatap.name)() and mq.TLO.Spell(class.spells.manatap.name).Mana() < mq.TLO.Me.CurrentMana() then
         return class.spells.manatap
     end
     if class.isEnabled('USENUKES') and class.spells.venin and mq.TLO.Me.SpellReady(class.spells.venin.name)() and mq.TLO.Spell(class.spells.venin.name).Mana() < mq.TLO.Me.CurrentMana() then
@@ -420,6 +423,13 @@ class.cast = function()
         if class.OPTS.DEBUFF.value and scent and class.spells.scentterris and not mq.TLO.Target.Buff(class.spells.scentterris.name)() and mq.TLO.Spell(class.spells.scentterris.name).StacksTarget() then
             scent:use()
             debuff_timer:reset()
+        end
+        for _,clicky in ipairs(class.castClickies) do
+            if (clicky.duration == 0 or not mq.TLO.Target.Buff(clicky.checkfor)()) and
+                    (clicky.casttime == 0 or not mq.TLO.Me.Moving()) then
+                --movement.stop()
+                if clicky:use() then return end
+            end
         end
         local spell = class.find_next_spell() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found

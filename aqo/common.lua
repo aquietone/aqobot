@@ -28,6 +28,7 @@ common.DMZ = {
     [279] = 1,
     [151] = 1,
     [220] = 1,
+    [386] = 1,
     [33506] = 1,
 }
 
@@ -148,7 +149,10 @@ common.getItem = function(itemName, options)
     local itemRef = mq.TLO.FindItem('='..itemName)
     if itemRef() and itemRef.Clicky() then
         if not options then options = {} end
-        options.checkfor = itemRef.Clicky.Spell()
+        local spell = itemRef.Clicky.Spell
+        options.checkfor = spell.Name()
+        options.casttime = itemRef.CastTime()
+        options.duration = spell.Duration.TotalSeconds()
         if itemRef.Clicky.Spell.HasSPA(374)() then
             for i=1,5 do
                 if itemRef.Clicky.Spell.Attrib(i)() == 374 then
@@ -240,6 +244,10 @@ common.check_distance = function(x1, y1, x2, y2)
     return math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
 end
 
+common.check_distance_3d = function(x, y, z)
+    return math.sqrt((x * mq.TLO.Me.X()) + (y * mq.TLO.Me.Y()) + (z * mq.TLO.Me.Z()))
+end
+
 ---Determine whether currently alive or dead.
 ---@return boolean @Returns true if currently dead, false otherwise.
 common.am_i_dead = function()
@@ -270,7 +278,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
     if config.MODE:get_name() ~= 'chase' then return end
-    if mq.TLO.Stick.Active() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
+    if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()

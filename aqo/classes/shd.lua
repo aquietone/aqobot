@@ -232,11 +232,7 @@ class.cast = function()
         if assist.is_fighting() then
             local spell = find_next_spell()
             if spell then
-                if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
-                    spell:use()
-                else
-                    spell:use()
-                end
+                spell:use()
                 return true
             end
         end

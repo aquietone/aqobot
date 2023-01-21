@@ -235,14 +235,19 @@ local function attack_range()
         return
     end
     local dist3d = mq.TLO.Target.Distance3D()
+    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     if not state.emu then
         if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
             if not get_ranged_combat_position(40) then
                 return false
             end
         end
+    else
+        local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
+        --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
     end
-    movement.stop()
+    --movement.stop()
     if mq.TLO.Target() then
         if not check_mob_angle() then
             mq.cmd('/squelch /face fast')
@@ -308,6 +313,13 @@ class.cast = function()
                 class.spells.snare:use()
                 snared_id = mq.TLO.Target.ID()
                 return true
+            end
+            for _,clicky in ipairs(class.castClickies) do
+                if (clicky.duration > 0 and mq.TLO.Target.Buff(clicky.checkfor)()) or
+                        (clicky.casttime >= 0 and mq.TLO.Me.Moving()) then
+                    movement.stop()
+                    if clicky:use() then return end
+                end
             end
             local spell = find_next_spell()
             if spell then

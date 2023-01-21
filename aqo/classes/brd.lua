@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
 local class = require('classes.classbase')
+local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local common = require('common')
@@ -43,10 +44,10 @@ class.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Be
 class.addSpell('composite', {'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}) -- DD+melee dmg bonus + small heal
 class.addSpell('aria', {'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru', }) -- spell dmg, overhaste, flurry, triple atk
 class.addSpell('warmarch', {'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}) -- haste, atk, ds
-class.addSpell('arcane', {'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad'}) -- spell dmg proc
-class.addSpell('suffering', {'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Song of the Storm'}) -- melee dmg proc
+class.addSpell('arcane', {'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad', 'Arcane Aria'}) -- spell dmg proc
+class.addSpell('suffering', {'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Storm Blade', 'Song of the Storm'}) -- melee dmg proc
 class.addSpell('spiteful', {'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}) -- AC
-class.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}) -- heal focus + regen
+class.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}) -- heal focus + regen
 class.addSpell('sonata', {'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}) -- spell shield, AC, dmg mitigation
 class.addSpell('dirge', {'Dirge of the Restless', 'Dirge of Lost Horizons'}) -- spell+melee dmg mitigation
 class.addSpell('firenukebuff', {'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Rizlona\'s Fire', 'Rizlona\'s Embers'}) -- inc fire DD
@@ -99,7 +100,7 @@ local meleedot = {
 -- synergy, mezst, mezae
 
 local emuancient = {
-    class.spells.selos, class.spells.overhaste, class.spells.pulse, class.spells.bardhaste, class.spells.suffering, class.spells.chantflame
+    class.spells.selos, class.spells.overhaste, class.spells.pulse, class.spells.bardhaste, class.spells.suffering, class.spells.arcane--class.spells.chantflame
 }
 
 local emuaura65 = {
@@ -277,10 +278,10 @@ local function is_song_ready(spellId, spellName)
         return true
     else
         local cast_time = mq.TLO.Spell(spellName).MyCastTime()
-        if songDuration < cast_time + 2500 then
+        if songDuration < cast_time +500 then
             logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
         end
-        return songDuration < cast_time + 2500
+        return songDuration < cast_time + 500
     end
 end
 
@@ -305,6 +306,13 @@ end
 class.cast = function()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.can_i_sing() and class.item_timer:timer_expired() then
+        for _,clicky in ipairs(class.castClickies) do
+            if (clicky.duration > 0 and mq.TLO.Target.Buff(clicky.checkfor)()) or
+                    (clicky.casttime >= 0 and mq.TLO.Me.Moving()) then
+                movement.stop()
+                if clicky:use() then return end
+            end
+        end
         local spell = find_next_song() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             local did_cast = false

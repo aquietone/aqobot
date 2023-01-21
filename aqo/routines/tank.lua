@@ -118,7 +118,8 @@ tank.tank_mob = function()
         state.tank_mob_id = 0
         return
     end
-    movement.stop()
+    --movement.stop()
+    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() and not state.dontAttack then
         print(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tank_mob_id))

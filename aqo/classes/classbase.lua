@@ -69,6 +69,7 @@ base.requests = {}
 base.requestAliases = {}
 
 base.clickies = {}
+base.castClickies = {}
 
 --base.slow
 --base.aeslow
@@ -174,8 +175,13 @@ base.addClicky = function(clicky)
             table.insert(base.burnAbilities, common.getItem(clicky.name))
         elseif clicky.clickyType == 'mash' then
             table.insert(base.DPSAbilities, common.getItem(clicky.name))
+        elseif clicky.clickyType == 'cast' then
+            table.insert(base.castClickies, common.getItem(clicky.name))
         elseif clicky.clickyType == 'heal' then
             table.insert(base.healAbilities, common.getItem(clicky.name))
+        elseif clicky.clickyType == 'mana' then
+        elseif clicky.clickyType == 'dispel' then
+        elseif clicky.clickyType == 'cure' then
         elseif clicky.clickyType == 'buff' then
             table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
         end
@@ -193,6 +199,11 @@ base.removeClicky = function(itemName)
                 t = base.burnAbilities
             elseif clicky.clickyType == 'mash' then
                 t = base.DPSAbilities
+            elseif clicky.clickyType == 'cast' then
+                t = base.castClickies
+            elseif clicky.clickyType == 'mana' then
+            elseif clicky.clickyType == 'dispel' then
+            elseif clicky.clickyType == 'cure' then
             elseif clicky.clickyType == 'heal' then
                 t = base.healAbilities
             elseif clicky.clickyType == 'buff' then
@@ -542,6 +553,13 @@ base.cast = function()
     if assist.is_fighting() then
         if castDebuffs() then state.actionTaken = true return end
         if base.nuketimer:timer_expired() then
+            for _,clicky in ipairs(base.castClickies) do
+                if (clicky.duration > 0 and mq.TLO.Target.Buff(clicky.checkfor)()) or
+                        (clicky.casttime >= 0 and mq.TLO.Me.Moving()) then
+                    movement.stop()
+                    if clicky:use() then return end
+                end
+            end
             local spell = base.find_next_spell()
             if spell then -- if a dot was found
                 if spell.precast then spell.precast() end
@@ -626,11 +644,13 @@ base.ohshit = function()
     if base.ohshitclass then base.ohshit_class() end
 end
 
+local healClickies = {'Orb of Shadows'}
 base.recover = function()
     if common.DMZ[mq.TLO.Zone.ID()] or (mq.TLO.Me.Level() == 70 and mq.TLO.Me.MaxHPs() < 6000) or mq.TLO.Me.Buff('Resurrection Sickness')() then return end
     if base.recover_class then base.recover_class() end
     -- modrods
     common.check_mana()
+    local pct_hp = state.loop.PctHPs
     local pct_mana = state.loop.PctMana
     local pct_end = state.loop.PctEndurance
     local combat_state = mq.TLO.Me.CombatState()

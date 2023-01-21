@@ -109,10 +109,10 @@ EQ item names. Any INI entry which doesn't match the regex is just skipped over 
 ---@type Mq
 local mq = require 'mq'
 local movement = require('routines.movement')
-local _, LIP = pcall(require, 'utils.LIP')
-if not LIP then print('\arERROR: LIP.lua could not be loaded\ax') return end
-local _, Write = pcall(require, 'utils.Write')
-if not Write then print('\arERROR: Write.lua could not be loaded\ax') return end
+local success, LIP = pcall(require, 'lib.LIP')
+if not success then printf('\arERROR: LIP.lua could not be loaded\n%s\ax', LIP) return end
+local success, Write = pcall(require, 'lib.Write')
+if not success then printf('\arERROR: Write.lua could not be loaded\n%s\ax', Write) return end
 
 -- Public default settings, also read in from Loot.ini [Settings] section
 local loot = {

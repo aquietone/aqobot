@@ -318,9 +318,13 @@ end
 local function draw_body()
     if ImGui.BeginTabBar('##tabbar') then
         if ImGui.BeginTabItem('General') then
-            ImGui.PushItemWidth(item_width)
-            draw_assist_tab()
-            ImGui.PopItemWidth()
+            if ImGui.BeginChild('General', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                ImGui.PushItemWidth(item_width)
+                draw_assist_tab()
+                ImGui.PopItemWidth()
+                ImGui.EndTabItem()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         --[[if ImGui.BeginTabItem('Camp') then
@@ -330,29 +334,43 @@ local function draw_body()
             ImGui.EndTabItem()
         end]]
         if ImGui.BeginTabItem('Skills') then
+            if ImGui.BeginChild('Skills', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
                 ImGui.PushItemWidth(item_width)
                 draw_skills_tab()
                 ImGui.PopItemWidth()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if state.class  == 'clr' or state.class == 'shm' or state.class == 'dru' then
             if ImGui.BeginTabItem('Heal') then
-                ImGui.PushItemWidth(item_width)
-                draw_heal_tab()
-                ImGui.PopItemWidth()
+                if ImGui.BeginChild('Heal', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                    ImGui.PushItemWidth(item_width)
+                    draw_heal_tab()
+                    ImGui.PopItemWidth()
+                    ImGui.EndTabItem()
+                end
+                ImGui.EndChild()
                 ImGui.EndTabItem()
             end
         end
         if ImGui.BeginTabItem('Burn') then
-            ImGui.PushItemWidth(item_width)
-            draw_burn_tab()
-            ImGui.PopItemWidth()
+            if ImGui.BeginChild('Burn', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                ImGui.PushItemWidth(item_width)
+                draw_burn_tab()
+                ImGui.PopItemWidth()
+                ImGui.EndTabItem()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         if ImGui.BeginTabItem('Pull') then
+            if ImGui.BeginChild('Pull', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
                 ImGui.PushItemWidth(item_width)
                 draw_pull_tab()
                 ImGui.PopItemWidth()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         --[[if ImGui.BeginTabItem('Loot') then
@@ -362,9 +380,13 @@ local function draw_body()
             ImGui.EndTabItem()
         end]]
         if ImGui.BeginTabItem('Debug') then
-            ImGui.PushItemWidth(item_width)
-            draw_debug_tab()
-            ImGui.PopItemWidth()
+            if ImGui.BeginChild('Debug', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                ImGui.PushItemWidth(item_width)
+                draw_debug_tab()
+                ImGui.PopItemWidth()
+                ImGui.EndTabItem()
+            end
+            ImGui.EndChild()
             ImGui.EndTabItem()
         end
         ImGui.EndTabBar()
@@ -439,6 +461,13 @@ ui.main = function()
     push_styles()
     open_gui, should_draw_gui = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), open_gui, 0)
     if should_draw_gui then
+        local width, length = ImGui.GetWindowSize()
+        if width < 330 then
+            ImGui.SetNextWindowSize(330, length)
+        end
+        if length < 400 then
+            ImGui.SetNextWindowSize(width, 400)
+        end
         draw_header()
         draw_body()
     end

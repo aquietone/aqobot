@@ -248,7 +248,8 @@ local function pull_engage(pull_spawn, pull_func)
         return false
     end
     if mq.TLO.Target.Distance3D() < 35 then
-        movement.stop()
+        --movement.stop()
+        if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
         mq.cmd('/squelch /face fast')
         mq.cmd('/squelch /stick front loose moveback 10')
         -- /stick mod 0

@@ -150,13 +150,17 @@ assist.check_target = function(reset_timers)
         -- if mobs are on xtarget and 3sec timer is expired, try a manual assist to get target
         -- if the toon already has an npc on target (like something is hitting them), then that appears like the assist target too...
         if assist_target == -1 then
-            if manual_assist_timer:timer_expired() and mq.TLO.Me.XTarget() > 0 then
-                mq.cmdf('/assist %s', config.CHASETARGET)
-                mq.delay(100)
-                manual_assist_timer:reset()
-            end
-            if mq.TLO.Target.Type() == 'NPC' then
-                assist_target = mq.TLO.Target
+            if mq.TLO.Me.XTarget() > 0 then
+                if manual_assist_timer:timer_expired() or not mq.TLO.Target() then
+                    mq.cmdf('/assist %s', config.CHASETARGET)
+                    mq.delay(100)
+                    manual_assist_timer:reset()
+                end
+                if mq.TLO.Target.Type() == 'NPC' then
+                    assist_target = mq.TLO.Target
+                else
+                    return
+                end
             else
                 return
             end
@@ -231,14 +235,17 @@ assist.attack = function(skip_no_los)
         if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
         return
     end
-    if not mq.TLO.Target.LineOfSight() and not mq.TLO.Navigation.Active() then
-        -- incase this is called during bard song, to avoid mq.delay inside mq.delay
-        if skip_no_los then return end
-        assist.get_combat_position()
+    if not mq.TLO.Target.LineOfSight() then
+        if not mq.TLO.Navigation.Active() then
+            -- incase this is called during bard song, to avoid mq.delay inside mq.delay
+            if skip_no_los then return end
+            assist.get_combat_position()
+        else
+            return
+        end
     end
-    -- check_los may have nav running already.. why separate get_combat_position and check_los???
-    if not mq.TLO.Target.LineOfSight() and mq.TLO.Navigation.Active() then return end
-    movement.stop()
+    --movement.stop()
+    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     if config.MODE:get_name() ~= 'manual' and not mq.TLO.Stick.Active() and stick_timer:timer_expired() then
         mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
@@ -246,7 +253,7 @@ assist.attack = function(skip_no_los)
         --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
         local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
         --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
-        mq.cmdf('/squelch /stick moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
         stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then

@@ -47,6 +47,9 @@ local function show_help()
     output = output .. ('\n- /%s sell -- Sells items marked to be sold to the targeted or already opened vendor'):format(state.class)
     output = output .. ('\n- /%s update -- Downloads the latest source zip'):format(state.class)
     output = output .. ('\n- /%s docs -- Launches the documentation site in a browser window'):format(state.class)
+    output = output .. ('\n- /%s wiki -- Launches the Lazarus wiki in a browser window'):format(state.class)
+    output = output .. ('\n- /%s wiki -- Launches the Lazarus Bazaar in a browser window'):format(state.class)
+    output = output .. ('\n- /%s manastone -- Spam manastone to get some mana back'):format(state.class)
     local prefix = '\n- /'..state.class..' '
     output = output .. '\n\ayGeneric Configuration\aw'
     for key,value in pairs(config) do
@@ -193,6 +196,19 @@ local function cmd_bind(...)
         os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     elseif opt == 'docs' then
         os.execute('start https://aquietone.github.io/docs/aqobot/classes/'..state.class)
+    elseif opt == 'wiki' then
+        os.execute('start https://www.lazaruseq.com/Wiki/index.php/Main_Page')
+    elseif opt == 'baz' then
+        os.execute('start https://www.lazaruseq.com/Magelo/index.php?page=bazaar')
+    elseif opt == 'manastone' then
+        local manastone = mq.TLO.FindItem('Manastone')
+        if not manastone() then return end
+        local manastoneTimer = timer:new(5)
+        manastoneTimer:reset()
+        while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
+            mq.cmd('/useitem Manastone')
+            if manastoneTimer:timer_expired() then break end
+        end
     else
         aqoclass.process_cmd(opt:upper(), new_value)
     end
