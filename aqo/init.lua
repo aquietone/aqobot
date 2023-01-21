@@ -35,6 +35,22 @@ local function check_game_state()
     }
 end
 
+local function detect_raid_or_group()
+    if not config.AUTODETECTRAID then return end
+    if mq.TLO.Raid.Members() > 0 then
+        if config.ASSIST == 'group' and mq.TLO.Group.Leader() ~= mq.TLO.Me.CleanName() then
+            config.ASSIST = 'manual'
+            config.CHASETARGET = mq.TLO.Group.Leader()
+            config.BURNALWAYS = false
+            config.BURNCOUNT = 100
+        end
+    else
+        if config.ASSIST == 'manual' then
+            config.ASSIST = 'group'
+        end
+    end
+end
+
 ---Display help information for the script.
 local function show_help()
     local output = logger.logLine('AQO Bot 1.0\n')
@@ -180,6 +196,10 @@ local function cmd_bind(...)
         else
             print(logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class))
         end
+    elseif opt == 'invis' then
+        if aqoclass.invis then
+            aqoclass.invis()
+        end
     elseif opt == 'tribute' then
         common.toggleTribute()
     elseif opt == 'bark' then
@@ -285,6 +305,7 @@ local function main()
         mq.doevents()
         state.actionTaken = false
         check_game_state()
+        detect_raid_or_group()
 
         if not mq.TLO.Target() then
             state.assist_mob_id = 0
@@ -321,6 +342,7 @@ local function main()
                     end
                     if config.LOOTMOBS and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then
                         state.actionTaken = loot.lootMobs()
+                        if state.lootBeforePull then state.lootBeforePull = false end
                     end
                 end
                 if not state.actionTaken then

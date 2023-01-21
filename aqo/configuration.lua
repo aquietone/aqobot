@@ -32,6 +32,7 @@ local config = {
     USEGLYPH = false,
     USEINTENSITY = false,
 
+    PULLWITH = 'melee',
     PULLRADIUS = 100,
     PULLHIGH = 25,
     PULLLOW = 25,
@@ -47,6 +48,7 @@ local config = {
     LOOTMOBS = true,
 
     MAINTANK = false,
+    AUTODETECTRAID = true,
 }
 
 config.tips = {
@@ -77,6 +79,7 @@ config.tips = {
     USEGLYPH = 'Toggle use of Glyph of Destruction on burns',
     USEINTENSITY = 'Toggle use of Intensity of the Resolute Veteran AA on burns',
 
+    PULLWITH = 'How to pull mobs. May be one of melee, ranged, spell',
     PULLRADIUS = 'The radius within which you will pull mobs when in a puller role',
     PULLHIGH = 'The upper Z radius for pulling mobs when in a puller role',
     PULLLOW = 'The lower Z radius for pulling mobs when in a puller role',
@@ -92,6 +95,7 @@ config.tips = {
     LOOTMOBS = 'Toggle looting of mob corpses on or off for emu',
 
     MAINTANK = 'Toggle use of tanking abilities in case main tank role doesn\'t work, like on emu',
+    AUTODETECTRAID = 'Toggle auto-detecting when in raid and setting appropriate assist settings',
 }
 
 local ignores = {}
@@ -125,6 +129,7 @@ function config.get_all()
         USEGLYPH = config.USEGLYPH,
         USEINTENSITY = config.USEINTENSITY,
 
+        PULLWITH = config.PULLWITH,
         PULLRADIUS = config.PULLRADIUS,
         PULLHIGH = config.PULLHIGH,
         PULLLOW = config.PULLLOW,
@@ -140,6 +145,7 @@ function config.get_all()
         LOOTMOBS = config.LOOTMOBS,
 
         MAINTANK = config.MAINTANK,
+        AUTODETECTRAID = config.AUTODETECTRAID,
     }
 end
 
@@ -179,6 +185,7 @@ config.aliases = {
     medendstart = 'MEDENDSTART',
     medendstop = 'MEDENDSTOP',
 
+    pullwith = 'PULLWITH',
     radius = 'PULLRADIUS',
     pullarc = 'PULLARC',
     levelmin = 'PULLMINLEVEL',
@@ -188,6 +195,7 @@ config.aliases = {
     groupwatch = 'GROUPWATCHWHO',
 
     maintank = 'MAINTANK',
+    autodetectraid = 'AUTODETECTRAID',
 
     lootmobs = 'LOOTMOBS',
 }

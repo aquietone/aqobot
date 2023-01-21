@@ -10,6 +10,11 @@ local state = require('state')
 
 local pull = {}
 
+local aqoclass = nil
+pull.set_class_funcs = function(class)
+    aqoclass = class
+end
+
 -- Pull Functions
 
 local PULL_TARGET_SKIP = {}
@@ -79,7 +84,21 @@ end
 
 local medding = false
 local healers = {CLR=true,DRU=true,SHM=true}
+local holdPullTimer = timer:new(5)
+local holdPulls = false
 pull.check_pull_conditions = function()
+    if mq.TLO.Group.Members() then
+        for i=1,mq.TLO.Group.Members() do
+            local member = mq.TLO.Group.Member(i)
+            if member() then
+                if (member.Distance3D() or 300) > 150 then
+                    -- group member not nearby, hold pulls until they catch up
+                    if not holdPulls then holdPullTimer:reset() holdPulls = true end
+                    return false
+                end
+            end
+        end
+    end
     if config.GROUPWATCHWHO == 'none' then return true end
     if config.GROUPWATCHWHO == 'self' then
         if state.loop.PctEndurance < config.MEDENDSTART or state.loop.PctMana < config.MEDMANASTART then
@@ -95,7 +114,12 @@ pull.check_pull_conditions = function()
     if mq.TLO.Group.Members() then
         for i=1,mq.TLO.Group.Members() do
             local member = mq.TLO.Group.Member(i)
-            if member then
+            if member() then
+                if (member.Distance3D() or 300) > 150 then
+                    -- group member not nearby, hold pulls until they catch up
+                    if not holdPulls then holdPullTimer:reset() holdPulls = true end
+                    return false
+                end
                 local pctmana = member.PctMana()
                 if member.Dead() then
                     return false
@@ -260,24 +284,46 @@ local function pull_engage(pull_spawn, pull_func)
             mq.cmd('/attack off')
             mq.delay(100)
         end
-        local ranged_item = mq.TLO.InvSlot('ranged').Item
-        if pull_func then
-            pull_func()
-        elseif ranged_item() and ranged_item.Damage() > 0 then
-            mq.cmd('/squelch /face fast')
-            mq.cmd('/autofire on')
-            mq.delay(1000)
-            if not mq.TLO.Me.AutoFire() then
-                mq.cmd('/autofire on')
+        if config.PULLWITH == 'item' then
+            local pull_item = nil
+            for _,clicky in ipairs(aqoclass.pullClickies) do
+                if mq.TLO.Me.ItemReady(clicky.name)() then
+                    pull_item = clicky
+                    break
+                end
             end
-            mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
+            if pull_item then
+                movement.stop()
+                mq.delay(50)
+                pull_item:use()
+                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
+            end
+        elseif config.PULLWITH == 'ranged' then
+            local ranged_item = mq.TLO.InvSlot('ranged').Item
+            local ammo_item = mq.TLO.InvSlot('ammo').Item
+            if ranged_item() and ranged_item.Damage() > 0 and ammo_item() and ammo_item.Damage() > 0 then
+                mq.cmd('/squelch /face fast')
+                mq.cmd('/autofire on')
+                mq.delay(1000)
+                if not mq.TLO.Me.AutoFire() then
+                    mq.cmd('/autofire on')
+                end
+                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
+            end
+        elseif config.PULLWITH == 'spell' then
+            if mq.TLO.Me.SpellReady(aqoclass.pullSpell)() then
+                movement.stop()
+                mq.delay(50)
+                aqoclass.pullSpell:use()
+                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target() end)
+            end
+        elseif config.PULLWITH == 'custom' and pull_func then
+            pull_func()
         end
     end
-    --print(logger.logLine('mob agrod or timed out'))
     if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
     if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
     if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
-    --mq.cmd('/multiline ; /attack off; /autofire off; /stick off;')
     return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostile_xtargets() or not mq.TLO.Target()
 end
 
@@ -340,7 +386,23 @@ pull.pull_mob = function(pull_func)
         logger.debug(logger.log_flags.routines.pull, 'a pull search can start')
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
         if state.assist_mob_id ~= 0 or state.tank_mob_id ~= 0 or common.hostile_xtargets() then return end
-        if not pull.check_pull_conditions() then return end
+        if not pull.check_pull_conditions() then
+            if holdPulls and holdPullTimer:timer_expired() then
+                local furthest = 0
+                local furthestID = 0
+                for i=1,mq.TLO.Group.Members() do
+                    local member = mq.TLO.Group.Member(i)
+                    if member() and (member.Distance3D() or 0) > furthest then
+                        furthest = member.Distance3D()
+                        furthestID = member.ID()
+                    end
+                end
+                movement.navToID(furthestID, 'dist=10')
+            end
+            return
+        elseif holdPulls then
+            holdPulls = false
+        end
         -- find a mob to pull
         logger.debug(logger.log_flags.routines.pull, 'searching for pulls')
         local pull_mob_id = pull.pull_radar()

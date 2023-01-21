@@ -140,8 +140,11 @@ local function draw_assist_tab()
     config.CAMPRADIUS = ui.draw_input_int('Camp Radius', '##campradius', config.CAMPRADIUS, 'Camp radius to assist within')
     config.CHASETARGET = ui.draw_input_text('Chase Target', '##chasetarget', config.CHASETARGET, 'Chase Target')
     config.CHASEDISTANCE = ui.draw_input_int('Chase Distance', '##chasedist', config.CHASEDISTANCE, 'Distance to follow chase target')
-    config.MAINTANK = ui.draw_check_box('Main Tank', '##maintank', config.MAINTANK, 'Am i main tank')
-    config.LOOTMOBS = ui.draw_check_box('Loot Mobs', '##lootmobs', config.LOOTMOBS, 'Loot corpses')
+    if state.emu then
+        config.MAINTANK = ui.draw_check_box('Main Tank', '##maintank', config.MAINTANK, 'Am i main tank')
+        config.LOOTMOBS = ui.draw_check_box('Loot Mobs', '##lootmobs', config.LOOTMOBS, 'Loot corpses')
+        config.AUTODETECTRAID = ui.draw_check_box('Auto-Detect Raid', '##detectraid', config.LOOTMOBS, 'Set raid assist settings automatically if in a raid')
+    end
 
     if current_camp_radius ~= config.CAMPRADIUS then
         camp.set_camp()
@@ -236,6 +239,8 @@ local function draw_pull_tab()
     local yOffset = y
     local maxY = yOffset
     local _, yAvail = ImGui.GetContentRegionAvail()
+    config.PULLWITH = ui.draw_combo_box('Pull With', config.PULLWITH, common.PULL_WITH, true, xOffset, yOffset)
+    xOffset, yOffset, maxY = ui.get_next_xy(y, yAvail, xOffset, yOffset, maxY)
     local current_radius = config.PULLRADIUS
     local current_pullarc = config.PULLARC
     config.PULLRADIUS = ui.draw_input_int('Pull Radius', '##pullrad', config.PULLRADIUS, 'Radius to pull mobs within', xOffset, yOffset)

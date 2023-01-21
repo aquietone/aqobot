@@ -214,7 +214,7 @@ assist.get_combat_position = function()
     if not target_id or target_id == 0 or (target_distance and target_distance > config.CAMPRADIUS) or state.paused then
         return
     end
-    movement.navToTarget('dist='..max_range_to, 5000)
+    movement.navToTarget(nil, 5000)
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
@@ -253,7 +253,11 @@ assist.attack = function(skip_no_los)
         --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
         local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
         --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
-        mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        if config.ASSIST == 'manual' then
+            mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        else
+            mq.cmdf('/squelch /stick !front uw')
+        end
         stick_timer:reset()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then

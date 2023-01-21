@@ -375,6 +375,14 @@ class.hold = function()
     end
 end
 
+class.invis = function()
+    mq.cmd('/stopcast')
+    mq.delay(1)
+    mq.cmd('/cast "selo\'s song of travel"')
+    mq.delay(3500, function() return mq.TLO.Me.Invis() end)
+    state.loop.Invis = true
+end
+
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 local check_spell_timer = timer:new(30)
 class.check_spell_set = function()

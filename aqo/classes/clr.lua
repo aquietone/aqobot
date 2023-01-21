@@ -28,6 +28,8 @@ class.addSpell('hotgroup', {'Elixir of Divinity'}, {opt='USEHOTGROUP', grouphot=
 class.addSpell('aego', {'Hand of Conviction', 'Hand of Virtue'})
 class.addSpell('di', {'Divine Intervention'})
 class.addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
+class.addSpell('stun', {'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Stun'})
+class.addSpell('aestun', {'Silent Dictation'})
 
 local standard = {}
 

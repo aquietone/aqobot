@@ -103,12 +103,16 @@ tank.tank_mob = function()
         state.tank_mob_id = 0
         return
     end
-    if not tank_mob_in_range(tank_spawn) or not tank_spawn.LineOfSight() then
+    if not tank_mob_in_range(tank_spawn) then
         ---- los around benches and junk
         --if config.MODE:get_name() == 'huntertank' and not mq.TLO.Navigation.Active() then
         --    mq.cmdf('/nav id %s | log=off', state.tank_mob_id)
         --end
         state.tank_mob_id = 0
+        return
+    end
+    if not tank_spawn.LineOfSight() then
+        movement.navToTarget(nil, 2000)
         return
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= tank_spawn.ID() then

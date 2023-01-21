@@ -93,8 +93,7 @@ The following events are used:
     - eventNovalue - #*#give you absolutely nothing for the #1#.#*#
         Warn and move on when attempting to sell an item which the merchant will not buy.
 
-This script depends on having LIP.lua and Write.lua in your lua/lib folder.
-    https://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
+This script depends on having Write.lua in your lua/lib folder.
     https://gitlab.com/Knightly1/knightlinc/-/blob/master/Write.lua 
 
 This does not include the buy routines from ninjadvloot. It does include the sell routines
@@ -102,15 +101,11 @@ but lootly sell routines seem more robust than the code that was in ninjadvloot.
 The forage event handling also does not handle fishing events like ninjadvloot did.
 There is also no flag for combat looting. It will only loot if no mobs are within the radius.
 
-One last note, LIP.lua at the link above uses a regex for reading the INI file which does not cover all valid
-EQ item names. Any INI entry which doesn't match the regex is just skipped over when reading the file.
 ]]
 
 ---@type Mq
 local mq = require 'mq'
 local movement = require('routines.movement')
-local success, LIP = pcall(require, 'lib.LIP')
-if not success then printf('\arERROR: LIP.lua could not be loaded\n%s\ax', LIP) return end
 local success, Write = pcall(require, 'lib.Write')
 if not success then printf('\arERROR: Write.lua could not be loaded\n%s\ax', Write) return end
 
@@ -121,7 +116,7 @@ local loot = {
     LootFile = mq.configDir .. '/Loot.ini',
     AddNewSales = true,
     LootForage = true,
-    LootMobs = true,
+    DoLoot = true,
     CorpseRadius = 50,
     MobsTooClose = 40,
     ReportLoot = true,
@@ -145,16 +140,14 @@ local loot = {
 loot.logger.prefix = 'lootutils'
 
 -- Internal settings
-local lootData = nil
-local shouldLootMobs = true
+local lootData = {}
 local doSell = false
 local cantLootList = {}
 local cantLootID = 0
 
 -- Constants
 local spawnSearch = '%s radius %d zradius 25'
-local keepActions = {Keep=true, Bank=true, Sell=true}
-local destroyActions = {Destroy=true, Ignore=true}
+local shouldLootActions = {Keep=true, Bank=true, Sell=true, Destroy=true, Ignore=false}
 local validActions = {keep='Keep',bank='Bank',sell='Sell',ignore='Ignore',destroy='Destroy'}
 local saveOptionTypes = {string=1,number=1,boolean=1}
 
@@ -164,15 +157,10 @@ local eventForage, eventSell, eventCantLoot
 
 -- UTILITIES
 
-local function fileExists(fileName)
-    local f = io.open(fileName, 'r')
-    if f ~= nil then io.close(f) return true else return false end
-end
-
 local function writeSettings()
     for option,value in pairs(loot) do
-        local optionType = type(option)
-        if saveOptionTypes[optionType] then
+        local valueType = type(value)
+        if saveOptionTypes[valueType] then
             mq.cmdf('/ini "%s" "%s" "%s" "%s"', loot.LootFile, 'Settings', option, value)
         end
     end
@@ -189,15 +177,32 @@ local function split(input, sep)
     return t
 end
 
+local function loadSettings()
+    local iniSettings = mq.TLO.Ini.File(loot.LootFile).Section('Settings')
+    local keyCount = iniSettings.Key.Count()
+    for i=1,keyCount do
+        local key = iniSettings.Key.KeyAtIndex(i)()
+        local value = iniSettings.Key(key).Value()
+        if key == 'Version' then
+            loot[key] = value
+        elseif value == 'true' or value == 'false' then
+            loot[key] = value == 'true' and true or false
+        elseif tonumber(value) then
+            loot[key] = tonumber(value)
+        else
+            loot[key] = value
+        end
+    end
+end
+
 local function checkCursor()
     local currentItem = nil
     while mq.TLO.Cursor() do
         -- can't do anything if there's nowhere to put the item, either due to no free inventory space
         -- or no slot of appropriate size
         if mq.TLO.Me.FreeInventory() == 0 or mq.TLO.Cursor() == currentItem then
-            if loot.ReportLoot then mq.cmdf('/dga /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
+            if loot.SpamLootInfo then loot.logger.Debug('Inventory full, item stuck on cursor') end
             mq.cmd('/autoinv')
-            --shouldLootMobs = false
             return
         end
         currentItem = mq.TLO.Cursor()
@@ -214,26 +219,26 @@ local function addRule(itemName, section, rule)
     mq.cmdf('/ini "%s" "%s" "%s" "%s"', loot.LootFile, section, itemName, rule)
 end
 
+local function lookupIniLootRule(section, key)
+    return mq.TLO.Ini.File(loot.LootFile).Section(section).Key(key).Value()
+end
+
 local function getRule(item)
     local itemName = item.Name()
     local lootDecision = 'Keep'
     local tradeskill = item.Tradeskills()
-    local sellPrice = item.SellPrice() or 0
+    local sellPrice = item.Value() and item.Value()/1000 or 0
     local stackable = item.Stackable()
-    if not lootData then return lootDecision end
     local firstLetter = itemName:sub(1,1):upper()
-    if lootData['Global'] then
-        for _,rule in pairs(lootData['Global']) do
-            if rule:find(itemName) then
-                lootDecision,_ = rule:gsub(itemName..'|','')
-                return lootDecision
-            end
-        end
-    end
-    if not lootData[firstLetter] or not lootData[firstLetter][itemName] then
+    local stackSize = item.StackSize()
+
+    lootData[firstLetter] = lootData[firstLetter] or {}
+    lootData[firstLetter][itemName] = lootData[firstLetter][itemName] or lookupIniLootRule(firstLetter, itemName)
+    if lootData[firstLetter][itemName] == 'NULL' then
         if tradeskill then lootDecision = 'Bank' end
         if sellPrice < loot.MinSellPrice then lootDecision = 'Ignore' end
         if not stackable and loot.StackableOnly then lootDecision = 'Ignore' end
+        if loot.StackPlatValue > 0 and sellPrice*stackSize < loot.StackPlatValue then lootDecision = 'Ignore' end
         addRule(itemName, firstLetter, lootDecision)
     end
     return lootData[firstLetter][itemName]
@@ -254,8 +259,10 @@ local function setupEvents()
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
     mq.event("InventoryFull", "#*#Your inventory appears full!#*#", eventInventoryFull)
     mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
-    mq.event("ForageExtra", "Your forage mastery has enabled you to find something else!", eventForage)
-    mq.event("Forage", "You have scrounged up #*#", eventForage)
+    if loot.LootForage then
+        mq.event("ForageExtras", "Your forage mastery has enabled you to find something else!", eventForage)
+        mq.event("Forage", "You have scrounged up #*#", eventForage)
+    end
     mq.event("Novalue", "#*#give you absolutely nothing for the #1#.#*#", eventNovalue)
     --[[mq.event("Lore", "#*#You cannot loot this Lore Item.#*#", eventHandler)]]--
 end
@@ -268,10 +275,7 @@ local function commandHandler(...)
         if args[1] == 'sell' and not loot.Terminate then
             doSell = true
         elseif args[1] == 'reload' then
-            lootData = LIP.load(loot.LootFile)
-            --for option, value in pairs(lootData.Settings) do
-            --    loot[option] = value
-            --end
+            lootData = {}
             loot.logger.Info("Reloaded Loot File")
         elseif args[1] == 'bank' then
             loot.bankStuff()
@@ -303,7 +307,7 @@ end
 
 local function lootItem(index, doWhat, button)
     loot.logger.Debug('Enter lootItem')
-    if destroyActions[doWhat] then return end
+    if not shouldLootActions[doWhat] then return end
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
     local itemName = mq.TLO.Corpse.Item(index).Name()
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
@@ -320,9 +324,12 @@ end
 local function lootCorpse(corpseID)
     loot.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
-    if mq.TLO.Me.FreeInventory() == 0 and loot.ReportLoot then mq.cmdf('/squelch /dga /squelch /popcustom 5 FULL BAGS ON %s', mq.TLO.Me.CleanName()) end
-    mq.cmd('/loot')
-    mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
+    if mq.TLO.Me.FreeInventory() <= loot.SaveBagSlots and loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax My bags are full, I can\'t loot anymore!\ay%s\ax', loot.LootChannel) end
+    for i=1,3 do
+        mq.cmd('/loot')
+        mq.delay(1000, function() return mq.TLO.Window('LootWnd').Open() end)
+        if mq.TLO.Window('LootWnd').Open() then break end
+    end
     mq.doevents('CantLoot')
     mq.delay(3000, function() return cantLootID > 0 or mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
@@ -330,17 +337,23 @@ local function lootCorpse(corpseID)
         cantLootList[corpseID] = os.time()
         return
     end
-    mq.delay(1000, function() local items = mq.TLO.Corpse.Items() return items and items > 0 end)
+    mq.delay(1000, function() return (mq.TLO.Corpse.Items() or 0) > 0 end)
     local items = mq.TLO.Corpse.Items() or 0
     loot.logger.Debug(('Loot window open. Items: %s'):format(items))
+    local corpseName = mq.TLO.Corpse.Name()
     if mq.TLO.Window('LootWnd').Open() and items > 0 then
+        local noDropItems = {}
         for i=1,items do
             local freeSpace = mq.TLO.Me.FreeInventory()
             local corpseItem = mq.TLO.Corpse.Item(i)
             local stackable = corpseItem.Stackable()
             local freeStack = corpseItem.FreeStack()
-            if corpseItem() and not corpseItem.Lore() and (freeSpace > 0 or (stackable and freeStack > 0)) then
-                lootItem(i, getRule(corpseItem), 'leftmouseup')
+            if not corpseItem.NoDrop() then
+                if corpseItem() and not corpseItem.Lore() and (freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0)) then
+                    lootItem(i, getRule(corpseItem), 'leftmouseup')
+                end
+            else
+                table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
@@ -350,13 +363,34 @@ local function lootCorpse(corpseID)
             if corpseItem() then
                 local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
                 local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
-                if (corpseItem.Lore() and (haveItem or haveItemBank)) or freeSpace == 0 then
-                    loot.logger.Warn('Cannot loot lore item')
+                if not corpseItem.NoDrop() then
+                    if corpseItem.Lore() and (haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots) then
+                        if loot.ReportLoot then
+                            mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax I already have lore item \ay%s\ax, I can\'t loot another!\ax', loot.LootChannel, corpseItem.Name())
+                        else
+                            loot.logger.Warn('Cannot loot lore item')
+                        end
+                    elseif freeSpace <= loot.SaveBagSlots then
+                        if loot.ReportLoot then
+                            mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax My bags are full, I can\'t loot anymore! \ay%s\ax', loot.LootChannel, corpseItem.Name())
+                        else
+                            if loot.SpamLootInfo then loot.logger.Warn('Inventory full, cannot loot anymore') end
+                        end
+                    else
+                        lootItem(i, getRule(corpseItem), 'leftmouseup')
+                    end
                 else
-                    lootItem(i, getRule(corpseItem), 'leftmouseup')
+                    table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
+        end
+        if #noDropItems > 0 then
+            local noDropList = '/gu NoDrop Items (%s - %s)'
+            for _,noDropItem in ipairs(noDropItems) do
+                noDropList = noDropList .. noDropItem
+            end
+            mq.cmdf(noDropList, corpseName, corpseID)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
@@ -385,7 +419,7 @@ loot.lootMobs = function(limit)
     loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
     local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.MobsTooClose))()
     -- options for combat looting or looting disabled
-    if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() then return false end -- or mq.TLO.Me.FreeInventory() == 0 then return false end
+    if deadCount == 0 or ((mobsNearby > 0 or mq.TLO.Me.Combat()) and not loot.CombatLooting) then return false end
     local corpseList = {}
     for i=1,math.max(deadCount, limit or 0) do
         local corpse = mq.TLO.NearestSpawn(('%d,'..spawnSearch):format(i, 'npccorpse', loot.CorpseRadius))
@@ -405,7 +439,6 @@ loot.lootMobs = function(limit)
             lootCorpse(corpseID)
             didLoot = true
             mq.doevents('InventoryFull')
-            --if not shouldLootMobs then break end
         end
     end
     loot.logger.Debug('Done with corpse list.')
@@ -436,6 +469,11 @@ end
 eventSell = function(line, itemName)
     local firstLetter = itemName:sub(1,1):upper()
     if lootData[firstLetter] and lootData[firstLetter][itemName] == 'Sell' then return end
+    if lookupIniLootRule(firstLetter, itemName) == 'Sell' then
+        lootData[firstLetter] = lootData[firstLetter] or {}
+        lootData[firstLetter][itemName] = 'Sell'
+        return
+    end
     if loot.AddNewSales then
         loot.logger.Info(string.format('Setting %s to Sell', itemName))
         if not lootData[firstLetter] then lootData[firstLetter] = {} end
@@ -517,7 +555,7 @@ loot.sellStuff = function()
                 if itemToSell then
                     local sellRule = getRule(bagSlot.Item(j))
                     if sellRule == 'Sell' then
-                        local sellPrice = bagSlot.Item(j).SellPrice() or 0
+                        local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value()/1000 or 0
                         if sellPrice == 0 then
                             loot.logger.Warn(string.format('Item \ay%s\ax is set to Sell but has no sell value!', itemToSell))
                         else
@@ -617,19 +655,19 @@ eventForage = function()
         local ruleAmount = forageRule[2] -- how many of the item should be kept
         local currentItemAmount = mq.TLO.FindItemCount('='..foragedItem)()
         -- >= because .. does finditemcount not count the item on the cursor?
-        if destroyActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
+        if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
             if mq.TLO.Cursor.Name() == foragedItem then
-                loot.logger.Info('Destroying foraged item '..foragedItem)
+                if loot.LootForageSpam then loot.logger.Info('Destroying foraged item '..foragedItem) end
                 mq.cmd('/destroy')
                 mq.delay(500)
             end
         -- will a lore item we already have even show up on cursor?
         -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
-        elseif (keepActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
-            loot.logger.Info('Keeping foraged item '..foragedItem)
+        elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
+            if loot.LootForageSpam then loot.logger.Info('Keeping foraged item '..foragedItem) end
             mq.cmd('/autoinv')
         else
-            loot.logger.Warn('Unable to process item '..foragedItem)
+            if loot.LootForageSpam then loot.logger.Warn('Unable to process item '..foragedItem) end
             break
         end
         mq.delay(50)
@@ -651,12 +689,11 @@ local function processArgs(args)
 end
 
 local function init(args)
-    if not fileExists(loot.LootFile) then
+    local iniFile = mq.TLO.Ini.File(loot.LootFile)
+    if not (iniFile.Exists() and iniFile.Section('Settings').Exists()) then
         writeSettings()
-    end
-    lootData = LIP.load(loot.LootFile)
-    for option, value in pairs(lootData.Settings) do
-        loot[option] = value
+    else
+        loadSettings()
     end
 
     setupEvents()
@@ -667,7 +704,7 @@ end
 init({...})
 
 while not loot.Terminate do
-    loot.lootMobs()
+    if loot.DoLoot then loot.lootMobs() end
     if doSell then loot.sellStuff() doSell = false end
     mq.delay(1000)
 end

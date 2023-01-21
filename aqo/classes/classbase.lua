@@ -16,6 +16,7 @@ local common = require('common')
 local config = require('configuration')
 local state = require('state')
 local base = {}
+pull.set_class_funcs(base)
 
 -- All possible class routine methods
 base.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,rez=1,recover=1,managepet=1}
@@ -70,6 +71,8 @@ base.requestAliases = {}
 
 base.clickies = {}
 base.castClickies = {}
+
+base.pullClickies = {}
 
 --base.slow
 --base.aeslow
@@ -184,6 +187,8 @@ base.addClicky = function(clicky)
         elseif clicky.clickyType == 'cure' then
         elseif clicky.clickyType == 'buff' then
             table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
+        elseif clicky.clickyType == 'pull' then
+            table.insert(base.pullClickies, common.getItem(clicky.name))
         end
         table.insert(base.clickies, clicky)
         print(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
@@ -208,6 +213,8 @@ base.removeClicky = function(itemName)
                 t = base.healAbilities
             elseif clicky.clickyType == 'buff' then
                 t = base.selfBuffs
+            elseif clicky.clickyType == 'pull' then
+                t = base.pullClickies
             end
             for j,entry in ipairs(t) do
                 if entry.name == itemName then
@@ -802,8 +809,30 @@ local function handleRequests()
     end
 end
 
+local healclickies = {'Sanguine Mind Crystal III', 'Distillate of Divine Healing X', 'Orb of Shadows'}
+local hotclickies = {'Distillate of Celestial Healing X'}
+local function lifesupport()
+    if mq.TLO.Me.CombatState() == 'COMBAT' and not state.loop.Invis and not mq.TLO.Me.Casting() and mq.TLO.Me.Standing() and state.loop.PctHPs < 60 then
+        for _,healclicky in ipairs(healclickies) do
+            local item = mq.TLO.FindItem(healclicky)
+            if item() and mq.TLO.Me.ItemReady(healclicky)() then
+                print(logger.logline('Use Item: \ag%s\ax', healclicky))
+                local castTime = item.CastTime()
+                mq.cmdf('/useitem "%s"', healclicky)
+                mq.delay(250+(castTime or 0), function() return not mq.TLO.Me.ItemReady(healclicky)() end)
+                state.loop.PctHPs = mq.TLO.Me.PctHPs()
+                if state.loop.PctHPs > 75 then return end
+            end
+        end
+    end
+end
+
 base.main_loop = function()
+    if config.LOOTMOBS and state.assist_mob_id > 0 and not state.lootBeforePull then
+        state.lootBeforePull = true
+    end
     if not state.pull_in_progress then
+        lifesupport()
         -- get mobs in camp
         camp.mob_radar()
         if config.MODE:is_tank_mode() then
@@ -821,7 +850,7 @@ base.main_loop = function()
         end
         handleRequests()
     end
-    if config.MODE:is_pull_mode() and not base.hold() then
+    if config.MODE:is_pull_mode() and not base.hold() and not state.lootBeforePull then
         pull.pull_mob(base.pull_func)
     end
 end

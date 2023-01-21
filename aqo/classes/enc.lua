@@ -153,7 +153,7 @@ table.insert(class.burnAbilities, common.getAA('Chromatic Haze')) -- 15min CD
 table.insert(class.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
 table.insert(class.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
 
-table.insert(class.DPSAbilities, common.getItem('Aged Shissar Focus Staff'))
+--table.insert(class.DPSAbilities, common.getItem('Aged Shissar Focus Staff'))
 
 --table.insert(AAs, getAAid_and_name('Glyph of Destruction (115+)'))
 --table.insert(AAs, getAAid_and_name('Intensity of the Resolute'))

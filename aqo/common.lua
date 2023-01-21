@@ -11,6 +11,7 @@ local state = require('state')
 local common = {}
 
 common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1,manual=1}
+common.PULL_WITH = {melee=1,ranged=1,spell=1,item=1,custom=1}
 common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
 common.TANK_CLASSES = {war=true,shd=true,pal=true}
 common.MELEE_CLASSES = {ber=true,mnk=true,rog=true}
@@ -287,13 +288,14 @@ common.check_chase = function()
     if not chase_x or not chase_y then return end
     if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        movement.navToSpawn('pc ='..config.CHASETARGET)
-        --[[
-        local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
-        if chaseSpawn.LineOfSight() then
-            mq.cmdf('/moveto id %s', chaseSpawn.ID())
+        if not movement.navToSpawn('pc ='..config.CHASETARGET) then
+            local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
+            if not mq.TLO.Navigation.Active() and chaseSpawn.LineOfSight() then
+                mq.cmdf('/moveto id %s', chaseSpawn.ID())
+                mq.delay(1000)
+                mq.cmd('/keypress FORWARD')
+            end
         end
-        ]]
     end
 end
 

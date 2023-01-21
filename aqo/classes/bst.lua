@@ -79,6 +79,7 @@ table.insert(class.recoverAbilities, class.fParagon)
 
 class.addRequestAlias(class.fParagon, 'fparagon')
 class.addRequestAlias(class.paragon, 'paragon')
+class.addRequestAlias(class.spells.groupregen, 'rejuv')
 
 local casterpriests = {clr=true,shm=true,dru=true,mag=true,nec=true,enc=true,wiz=true,shd=true}
 class.recover_class = function()
