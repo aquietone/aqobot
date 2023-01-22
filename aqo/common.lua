@@ -221,7 +221,7 @@ common.clear_to_buff = function()
 end
 
 common.is_fighting_modebased = function()
-    local mode = config.MODE
+    local mode = config.MODE.value
     if mode:is_tank_mode() then
 
     elseif mode:is_assist_mode() then
@@ -278,18 +278,18 @@ end
 
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 common.check_chase = function()
-    if config.MODE:get_name() ~= 'chase' then return end
+    if config.MODE.value:get_name() ~= 'chase' then return end
     if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
-    local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET)
+    local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET.value)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
     local chase_x = chase_spawn.X()
     local chase_y = chase_spawn.Y()
     if not chase_x or not chase_y then return end
-    if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE then
+    if common.check_distance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE.value then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        if not movement.navToSpawn('pc ='..config.CHASETARGET) then
-            local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET)
+        if not movement.navToSpawn('pc ='..config.CHASETARGET.value) then
+            local chaseSpawn = mq.TLO.Spawn('pc '..config.CHASETARGET.value)
             if not mq.TLO.Navigation.Active() and chaseSpawn.LineOfSight() then
                 mq.cmdf('/moveto id %s', chaseSpawn.ID())
                 mq.delay(1000)
@@ -486,25 +486,25 @@ common.is_burn_condition_met = function(always_condition)
         return true
     elseif mq.TLO.Me.CombatState() == 'COMBAT' or common.hostile_xtargets() then
         local zone_sn = mq.TLO.Zone.ShortName():lower()
-        if config.BURNALWAYS then
+        if config.BURNALWAYS.value then
             if always_condition and not always_condition() then
                 return false
             end
             state.burn_type = nil
             return true
-        elseif config.BURNALLNAMED and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
+        elseif config.BURNALLNAMED.value and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
             print(logger.logLine('\arActivating Burns (named)\ax'))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
             return true
-        elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() >= config.BURNCOUNT then
-            print(logger.logLine('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT))
+        elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() >= config.BURNCOUNT.value then
+            print(logger.logLine('\arActivating Burns (mob count > %d)\ax', config.BURNCOUNT.value))
             state.burn_active_timer:reset()
             state.burn_active = true
             state.burn_type = nil
             return true
-        elseif config.BURNPCT ~= 0 and mq.TLO.Target.PctHPs() < config.BURNPCT then
+        elseif config.BURNPCT.value ~= 0 and mq.TLO.Target.PctHPs() < config.BURNPCT.value then
             print(logger.logLine('\arActivating Burns (percent HP)\ax'))
             state.burn_active_timer:reset()
             state.burn_active = true
@@ -619,6 +619,17 @@ common.check_mana = function()
     if feather() and group_mana and group_mana > 2 and not mq.TLO.Me.Song(feather.Spell.Name())() then
         common.use_item(feather)
     end
+
+    --[[if state.emu then
+        local manastone = mq.TLO.FindItem('Manastone')
+        if manastone() and pct_mana < 75 and state.loop.PctHPs > 50 then
+            local manastoneTimer = timer:new(1)
+            manastoneTimer:reset()
+            while mq.TLO.Me.PctHPs() > 30 and not manastoneTimer:timer_expired() do
+                mq.cmd('/useitem manastone')
+            end
+        end
+    end]]
 end
 
 local sit_timer = timer:new(10)
@@ -629,7 +640,7 @@ common.rest = function()
         if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
                 ((mq.TLO.Me.Class.CanCast() and state.loop.PctMana < 60) or state.loop.PctEndurance < 60) and
                 not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
-                mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS))() == 0 then
+                mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() == 0 then
             mq.cmd('/sit')
             sit_timer:reset()
         end
@@ -659,33 +670,6 @@ common.toggleTribute = function()
     mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
     mq.cmd('/notify TBW_PersonalPage TBWP_ActivateButton leftmouseup')
     mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
-end
-
----Event callback for handling spell resists from mobs
----@param line any
----@param target_name any
----@param spell_name any
-local function event_resist(line, target_name, spell_name)
-    if mq.TLO.Target.CleanName() == target_name then
-        state.resists[spell_name] = (state.resists[spell_name] or 0) + 1
-        print(logger.logLine('%s resisted spell %s, resist count = %s', target_name, spell_name, state.resists[spell_name]))
-    end
-end
-
----Set common.I_AM_DEAD flag to true in the event of death.
-local function event_dead()
-    print(logger.logLine('HP hit 0. what do!'))
-    state.i_am_dead = true
-    state.reset_combat_state()
-    movement.stop()
-end
-
----Initialize the player death event triggers.
-common.setup_events = function()
-    mq.event('event_dead_released', '#*#Returning to Bind Location#*#', event_dead)
-    mq.event('event_dead', 'You died.', event_dead)
-    mq.event('event_dead_slain', 'You have been slain by#*#', event_dead)
-    mq.event('event_resist', '#1# resisted your #2#!', event_resist)
 end
 
 return common

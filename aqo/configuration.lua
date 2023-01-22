@@ -1,208 +1,239 @@
 --- @type Mq
 local mq = require 'mq'
+local lists = require('data.lists')
 local logger = require('utils.logger')
 local persistence = require('utils.persistence')
 local modes = require('mode')
 
 local config = {
-    MODE = modes.from_string('manual'),
-    CHASETARGET = '',
-    CHASEDISTANCE = 30,
-    CAMPRADIUS = 60,
-    ASSIST = 'group',
-    AUTOASSISTAT = 98,
-    SWITCHWITHMA = true,
+    SETTINGS_FILE = ('%s/aqobot_%s_%s.lua'):format(mq.configDir, mq.TLO.EverQuest.Server(), mq.TLO.Me.CleanName()),
 
-    RECOVERPCT = 70,
+    -- General settings
+    MODE = {
+        value = modes.from_string('manual'),
+        tip = 'The mode to run as: 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank',
+        alias = 'mode',
+    },
+    CHASETARGET = {
+        value = '',
+        tip = 'Name of the person to chase in chase mode. Its using an exact match spawn search for PC\'s only',
+        alias = 'chasetarget',
+    },
+    CHASEDISTANCE = {
+        value = 30,
+        tip = 'Distance threshold to trigger chasing the chase target',
+        alias = 'chasedistance',
+    },
+    CAMPRADIUS = {
+        value = 60,
+        tip = 'The radius within which you will assist on mobs',
+        alias = 'campradius',
+    },
+    ASSIST = {
+        value = 'group',
+        tip = 'Who to assist. Group MA, Raid MA 1, 2 or 3',
+        alias = 'mode',
+    },
+    AUTOASSISTAT = {
+        value = 98,
+        tip = 'Mob Percent HP to begin assisting',
+        alias = 'autoassistat',
+    },
+    SWITCHWITHMA = {
+        value = true,
+        tip = 'Swap targets if the MA swaps targets',
+        alias = 'switchwithma',
+    },
+    RECOVERPCT = {
+        value = 70,
+        tip = 'Percent mana or endurance to trigger recover abilities',
+        alias = 'recoverpct',
+    },
 
-    HEALPCT = 75,
-    PANICHEALPCT = 30,
-    GROUPHEALPCT = 75,
-    GROUPHEALMIN = 3,
-    HOTHEALPCT = 90,
-    REZGROUP = true,
-    REZRAID = true,
-    REZINCOMBAT = false,
-    PRIORITYTARGET = '',
+    -- Heal settings
+    HEALPCT = {
+        value = 75,
+        tip = 'The Percent HP to begin casting normal heals on a character',
+        alias = 'healpct',
+    },
+    PANICHEALPCT = {
+        value = 30,
+        tip = 'The Percent HP to begin casting panic heals on a character',
+        alias = 'panichealpct',
+    },
+    GROUPHEALPCT = {
+        value = 75,
+        tip = 'The Percent HP to begin casting group heals',
+        alias = 'grouphealpct',
+    },
+    GROUPHEALMIN = {
+        value = 3,
+        tip = 'The number of group members which must be injured to begin casting group heals',
+        alias = 'grouphealmin',
+    },
+    HOTHEALPCT = {
+        value = 90,
+        tip = 'The Percent HP to begin casting HoTs on a character',
+        alias = 'hothealpct',
+    },
+    REZGROUP = {
+        value = true,
+        tip = 'Toggle rezzing of group members',
+        alias = 'rezgroup',
+    },
+    REZRAID = {
+        value = true,
+        tip = 'Toggle rezzing of raid members',
+        alias = 'rezraid',
+    },
+    REZINCOMBAT = {
+        value = false,
+        tip = 'Toggle use of rez abilities during combat',
+        alias = 'rezincombat',
+    },
+    PRIORITYTARGET = {
+        value = '',
+        tip = 'For EMU, where group main tank role is unreliable, assign a character name to treat like the main tank',
+        alias = 'prioritytarget',
+    },
 
-    BURNALWAYS = false,
-    BURNPCT = 0,
-    BURNALLNAMED = false,
-    BURNCOUNT = 5,
-    USEGLYPH = false,
-    USEINTENSITY = false,
+    -- Burn settings
+    BURNALWAYS = {
+        value = false,
+        tip = 'Burn routine is always entered and burn abilities are used as available. Its not great, it doesn\'t attempt to line up CDs or anything',
+        alias = 'burnalways',
+    },
+    BURNPCT = {
+        value = 0,
+        tip = 'Same as Burn Always, but only after mob HP is below this percent',
+        alias = 'burnpercent',
+    },
+    BURNALLNAMED = {
+        value = false,
+        tip = 'Enter burn routine when ${Target.Named} is true. Kinda sucks with ToL zones since so many akhevan trash mobs return true',
+        alias = 'burnallnamed',
+    },
+    BURNCOUNT = {
+        value = 5,
+        tip = 'Enter burn routine when greater than or equal to this number of mobs are within camp radius',
+        alias = 'burncount',
+    },
+    USEGLYPH = {
+        value = false,
+        tip = 'Toggle use of Glyph of Destruction on burns',
+        alias = 'useglyph',
+    },
+    USEINTENSITY = {
+        value = false,
+        tip = 'Toggle use of Intensity of the Resolute Veteran AA on burns',
+        alias = 'useintensity',
+    },
 
-    PULLWITH = 'melee',
-    PULLRADIUS = 100,
-    PULLHIGH = 25,
-    PULLLOW = 25,
-    PULLARC = 360,
-    PULLMINLEVEL = 0,
-    PULLMAXLEVEL = 0,
-    GROUPWATCHWHO = 'healer',
-    MEDMANASTART = 5,
-    MEDMANASTOP = 30,
-    MEDENDSTART = 5,
-    MEDENDSTOP = 30,
+    -- Pull settings
+    PULLWITH = {
+        value = 'melee',
+        tip = 'How to pull mobs. May be one of melee, ranged, spell',
+        alias = 'pullwith',
+    },
+    PULLRADIUS = {
+        value = 100,
+        tip = 'The radius within which you will pull mobs when in a puller role',
+        alias = 'radius',
+    },
+    PULLHIGH = {
+        value = 25,
+        tip = 'The upper Z radius for pulling mobs when in a puller role',
+        alias = 'zhigh',
+    },
+    PULLLOW = {
+        value = 25,
+        tip = 'The lower Z radius for pulling mobs when in a puller role',
+        alias = 'zlow',
+    },
+    PULLARC = {
+        value = 360,
+        tip = 'The pull arc, centered around the direction the character is currently facing, to pull mobs from',
+        alias = 'pullarc',
+    },
+    PULLMINLEVEL = {
+        value = 0,
+        tip = 'The minimum level mob to pull when in a puller role',
+        alias = 'levelmin',
+    },
+    PULLMAXLEVEL = {
+        value = 0,
+        tip = 'The maxmimum level mob to pull when in a puller role',
+        alias = 'levelmax',
+    },
+    GROUPWATCHWHO = {
+        value = 'healer',
+        tip = 'Who to watch mana/endurance for, to decide whether to hold pulls and med',
+        alias = 'groupwatch',
+    },
+    MEDMANASTART = {
+        value = 5,
+        tip = 'The Percent Mana to begin medding at',
+        alias = 'medmanastart',
+    },
+    MEDMANASTOP = {
+        value = 30,
+        tip = 'The Percent Mana to stop medding at',
+        alias = 'medmanastop',
+    },
+    MEDENDSTART = {
+        value = 5,
+        tip = 'The Percent Endurance to begin medding at',
+        alias = 'medendstart',
+    },
+    MEDENDSTOP = {
+        value = 30,
+        tip = 'The Percent Endurance to stop medding at',
+        alias = 'medendstop',
+    },
 
-    LOOTMOBS = true,
+    -- Other settings
+    LOOTMOBS = {
+        value = true,
+        tip = 'Toggle looting of mob corpses on or off for emu',
+        alias = 'lootmobs',
+    },
 
-    MAINTANK = false,
-    AUTODETECTRAID = false,
-    RESISTSTOPCOUNT = 3,
+    MAINTANK = {
+        value = false,
+        tip = 'Toggle use of tanking abilities in case main tank role doesn\'t work, like on emu',
+        alias = 'maintank',
+    },
+    AUTODETECTRAID = {
+        value = false,
+        tip = 'Toggle auto-detecting when in raid and setting appropriate assist settings',
+        alias = 'autodetectraid',
+    },
+    RESISTSTOPCOUNT = {
+        value = 3,
+        tip = 'The number of resists after which to stop trying casting a spell on a mob',
+        alias = 'resiststopcount',
+    },
 }
 
-config.tips = {
-    MODE = '',
-    CHASETARGET = 'Name of the person to chase in chase mode. Its using an exact match spawn search for PC\'s only',
-    CHASEDISTANCE = 'Distance threshold to trigger chasing the chase target',
-    CAMPRADIUS = 'The radius within which you will assist on mobs',
-    ASSIST = 'Who to assist. Group MA, Raid MA 1, 2 or 3',
-    AUTOASSISTAT = 'Mob Percent HP to begin assisting',
-    SWITCHWITHMA = 'Swap targets if the MA swaps targets',
-
-    RECOVERPCT = 'Percent mana or endurance to trigger recover abilities',
-
-    HEALPCT = 'The Percent HP to begin casting normal heals on a character',
-    PANICHEALPCT = 'The Percent HP to begin casting panic heals on a character',
-    GROUPHEALPCT = 'The Percent HP to begin casting group heals',
-    GROUPHEALMIN = 'The number of group members which must be injured to begin casting group heals',
-    HOTHEALPCT = 'The Percent HP to begin casting HoTs on a character',
-    REZGROUP = 'Toggle rezzing of group members',
-    REZRAID = 'Toggle rezzing of raid members',
-    REZINCOMBAT = 'Toggle use of rez abilities during combat',
-    PRIORITYTARGET = 'For EMU, where group main tank role is unreliable, assign a character name to treat like the main tank',
-
-    BURNALWAYS = 'Burn routine is always entered and burn abilities are used as available. Its not great, it doesn\'t attempt to line up CDs or anything',
-    BURNPCT = 'Same as Burn Always, but only after mob HP is below this percent',
-    BURNALLNAMED = 'Enter burn routine when ${Target.Named} is true. Kinda sucks with ToL zones since so many akhevan trash mobs return true',
-    BURNCOUNT = 'Enter burn routine when greater than or equal to this number of mobs are within camp radius',
-    USEGLYPH = 'Toggle use of Glyph of Destruction on burns',
-    USEINTENSITY = 'Toggle use of Intensity of the Resolute Veteran AA on burns',
-
-    PULLWITH = 'How to pull mobs. May be one of melee, ranged, spell',
-    PULLRADIUS = 'The radius within which you will pull mobs when in a puller role',
-    PULLHIGH = 'The upper Z radius for pulling mobs when in a puller role',
-    PULLLOW = 'The lower Z radius for pulling mobs when in a puller role',
-    PULLARC = 'The pull arc, centered around the direction the character is currently facing, to pull mobs from',
-    PULLMINLEVEL = 'The minimum level mob to pull when in a puller role',
-    PULLMAXLEVEL = 'The maxmimum level mob to pull when in a puller role',
-    GROUPWATCHWHO = 'Who to watch mana/endurance for, to decide whether to hold pulls and med',
-    MEDMANASTART = 'The Percent Mana to begin medding at',
-    MEDMANASTOP = 'The Percent Mana to stop medding at',
-    MEDENDSTART = 'The Percent Endurance to begin medding at',
-    MEDENDSTOP = 'The Percent Endurance to stop medding at',
-
-    LOOTMOBS = 'Toggle looting of mob corpses on or off for emu',
-
-    MAINTANK = 'Toggle use of tanking abilities in case main tank role doesn\'t work, like on emu',
-    AUTODETECTRAID = 'Toggle auto-detecting when in raid and setting appropriate assist settings',
-    RESISTSTOPCOUNT = 'The number of resists after which to stop trying casting a spell on a mob',
-}
-
-local ignores = {}
-
-function config.get_all()
-    return {
-        MODE = config.MODE:get_name(),
-        CHASETARGET = config.CHASETARGET,
-        CHASEDISTANCE = config.CHASEDISTANCE,
-        CAMPRADIUS = config.CAMPRADIUS,
-        ASSIST = config.ASSIST,
-        AUTOASSISTAT = config.AUTOASSISTAT,
-        SWITCHWITHMA = config.SWITCHWITHMA,
-
-        RECOVERPCT = config.RECOVERPCT,
-
-        HEALPCT = config.HEALPCT,
-        PANICHEALPCT = config.PANICHEALPCT,
-        GROUPHEALPCT = config.GROUPHEALPCT,
-        GROUPHEALMIN = config.GROUPHEALMIN,
-        HOTHEALPCT = config.HOTHEALPCT,
-        REZGROUP = config.REZGROUP,
-        REZRAID = config.REZRAID,
-        REZINCOMBAT = config.REZINCOMBAT,
-        PRIORITYTARGET = config.PRIORITYTARGET,
-
-        BURNALWAYS = config.BURNALWAYS,
-        BURNPCT = config.BURNPCT,
-        BURNALLNAMED = config.BURNALLNAMED,
-        BURNCOUNT = config.BURNCOUNT,
-        USEGLYPH = config.USEGLYPH,
-        USEINTENSITY = config.USEINTENSITY,
-
-        PULLWITH = config.PULLWITH,
-        PULLRADIUS = config.PULLRADIUS,
-        PULLHIGH = config.PULLHIGH,
-        PULLLOW = config.PULLLOW,
-        PULLARC = config.PULLARC,
-        PULLMINLEVEL = config.PULLMINLEVEL,
-        PULLMAXLEVEL = config.PULLMAXLEVEL,
-        GROUPWATCHWHO = config.GROUPWATCHWHO,
-        MEDMANASTART = config.MEDMANASTART,
-        MEDMANASTOP = config.MEDMANASTOP,
-        MEDENDSTART = config.MEDENDSTART,
-        MEDENDSTOP = config.MEDENDSTOP,
-
-        LOOTMOBS = config.LOOTMOBS,
-
-        MAINTANK = config.MAINTANK,
-        AUTODETECTRAID = config.AUTODETECTRAID,
-        RESISTSTOPCOUNT = config.RESISTSTOPCOUNT,
-    }
+function config.getNameForAlias(alias)
+    for key,cfg in pairs(config) do
+        if type(cfg) == 'table' and cfg.alias == alias then return key end
+    end
 end
 
-config.booleans = {
-    ['1']=true, ['true']=true,['on']=true,
-    ['0']=false, ['false']=false,['off']=false,
-}
-
-config.aliases = {
-    campradius = 'CAMPRADIUS',
-    autoassistat = 'AUTOASSISTAT',
-    chasedistance = 'CHASEDISTANCE',
-    chasetarget = 'CHASETARGET',
-    switchwithma = 'SWITCHWITHMA',
-
-    burnpercent = 'BURNPCT',
-    burncount = 'BURNCOUNT',
-    burnalways = 'BURNALWAYS',
-    burnallnamed = 'BURNALLNAMED',
-    useintensity = 'USEINTENSITY',
-    useglyph = 'USEGLYPH',
-
-    recoverpct = 'RECOVERPCT',
-
-    healpct = 'HEALPCT',
-    panichealpct = 'PANICHEALPCT',
-    grouphealpct = 'GROUPHEALPCT',
-    grouphealmin = 'GROUPHEALMIN',
-    hothealpct = 'HOTHEALPCT',
-    rezgroup = 'REZGROUP',
-    rezraid = 'REZRAID',
-    rezincombat = 'REZINCOMBAT',
-    prioritytarget = 'PRIORITYTARGET',
-
-    medmanastart = 'MEDMANASTART',
-    medmanastop = 'MEDMANASTOP',
-    medendstart = 'MEDENDSTART',
-    medendstop = 'MEDENDSTOP',
-
-    pullwith = 'PULLWITH',
-    radius = 'PULLRADIUS',
-    pullarc = 'PULLARC',
-    levelmin = 'PULLMINLEVEL',
-    levelmax = 'PULLMAXLEVEL',
-    zlow = 'PULLLOW',
-    zhigh = 'PULLHIGH',
-    groupwatch = 'GROUPWATCHWHO',
-
-    maintank = 'MAINTANK',
-    autodetectraid = 'AUTODETECTRAID',
-    resiststopcount = 'RESISTSTOPCOUNT',
-
-    lootmobs = 'LOOTMOBS',
-}
+function config.getAll()
+    local configMap = {}
+    for key,cfg in pairs(config) do
+        if type(config[key]) == 'table' then
+            if key == 'MODE' then
+                configMap[key] = cfg.value:get_name()
+            else
+                configMap[key] = cfg.value
+            end
+        end
+    end
+    return configMap
+end
 
 ---Get or set the specified configuration option. Currently applies to pull settings only.
 ---@param name string @The name of the setting.
@@ -213,13 +244,13 @@ config.getOrSetOption = function(name, current_value, new_value, key)
     if config[key] == nil then return end
     if new_value then
         if type(current_value) == 'number' then
-            config[key] = tonumber(new_value) or current_value
+            config[key].value = tonumber(new_value) or current_value
         elseif type(current_value) == 'boolean' then
-            if config.booleans[new_value] == nil then return end
-            config[key] = config.booleans[new_value]
-            print(logger.logLine('Setting %s to: %s', key, config.booleans[new_value]))
+            if lists.booleans[new_value] == nil then return end
+            config[key].value = lists.booleans[new_value]
+            print(logger.logLine('Setting %s to: %s', key, lists.booleans[new_value]))
         else
-            config[key] = new_value
+            config[key].value = new_value
         end
     else
         print(logger.logLine('%s: %s', name, current_value))
@@ -234,6 +265,21 @@ function config.file_exists(file_name)
     if f ~= nil then io.close(f) return true else return false end
 end
 
+---Load common settings from settings file
+---@return table|nil @Returns a table containing the loaded settings file content.
+function config.load_settings()
+    if not config.file_exists(config.SETTINGS_FILE) then return nil end
+    local settings = assert(loadfile(config.SETTINGS_FILE))()
+    if not settings or not settings.common then return settings end
+    for setting,value in pairs(settings.common) do
+        config[setting].value = value
+    end
+    if settings.common.MODE ~= nil then config.MODE.value = modes.from_string(settings.common.MODE) end
+    return settings
+end
+
+local ignores = {}
+
 ---Load mob ignore lists file
 function config.load_ignores()
     local ignore_file = ('%s/%s'):format(mq.configDir, 'aqo_ignore.lua')
@@ -245,20 +291,6 @@ end
 function config.save_ignores()
     local ignore_file = ('%s/%s'):format(mq.configDir, 'aqo_ignore.lua')
     persistence.store(ignore_file, ignores)
-end
-
----Load common settings from settings file
----@param settings_file string @The name of the settings file to load.
----@return table|nil @Returns a table containing the loaded settings file content.
-function config.load_settings(settings_file)
-    if not config.file_exists(settings_file) then return nil end
-    local settings = assert(loadfile(settings_file))()
-    if not settings or not settings.common then return settings end
-    for setting,value in pairs(settings.common) do
-        config[setting] = value
-    end
-    if settings.common.MODE ~= nil then config.MODE = modes.from_string(settings.common.MODE) end
-    return settings
 end
 
 function config.get_ignores(zone_short_name)
@@ -293,9 +325,5 @@ end
 function config.ignores_contains(zone_short_name, mob_name)
     return ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name]
 end
-
---for k,v in pairs(config.get_all()) do
---    print(logger.logLine('%s: %s', k, v))
---end
 
 return config

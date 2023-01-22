@@ -6,6 +6,10 @@ local spawnNavOptions = '| log=off'
 
 local movement = {}
 
+function movement.init(aqo)
+
+end
+
 local function canNav(input)
     return not mq.TLO.Navigation.Active() and mq.TLO.Navigation.PathExists(input)()
 end

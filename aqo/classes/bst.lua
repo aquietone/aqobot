@@ -1,89 +1,95 @@
 ---@type Mq
 local mq = require('mq')
 local class = require('classes.classbase')
+local lists = require('data.lists')
 local common = require('common')
 
-class.class = 'bst'
-class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
+function class.init(_aqo)
+    class.initBase(_aqo)
+    class.load_settings()
+    class.setup_events()
 
-class.SPELLSETS = {standard=1}
-class.addCommonOptions()
-class.addCommonAbilities()
-class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
-class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
-class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox')
-class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
-class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
+    class.class = 'bst'
+    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
 
-class.addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
-class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}) -- pet haste
-class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}) -- pet buff
-class.addSpell('petheal', {'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
-class.addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
-class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
-class.addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
-class.addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
-class.addSpell('panther', {'Growl of the Panther'})
-class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}) -- group buff
-class.addSpell('grouphp', {'Spiritual Vitality'})
-class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
-class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
+    class.SPELLSETS = {standard=1}
+    class.addCommonOptions()
+    class.addCommonAbilities()
+    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
+    class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
+    class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox')
+    class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
+    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
 
-local standard = {}
-table.insert(standard, class.spells.swarmpet)
-table.insert(standard, class.spells.nuke)
-table.insert(standard, class.spells.dot)
+    class.addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
+    class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}) -- pet haste
+    class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}) -- pet buff
+    class.addSpell('petheal', {'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
+    class.addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
+    class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
+    class.addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
+    class.addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
+    class.addSpell('panther', {'Growl of the Panther'})
+    class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}) -- group buff
+    class.addSpell('grouphp', {'Spiritual Vitality'})
+    class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
+    class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
 
-class.spellRotations = {
-    standard=standard
-}
+    local standard = {}
+    table.insert(standard, class.spells.swarmpet)
+    table.insert(standard, class.spells.nuke)
+    table.insert(standard, class.spells.dot)
 
-table.insert(class.DPSAbilities, common.getSkill('Kick'))
-table.insert(class.DPSAbilities, common.getBestDisc({'Rake'}))
-table.insert(class.DPSAbilities, common.getAA('Feral Swipe'))
-table.insert(class.DPSAbilities, common.getAA('Chameleon Strike'))
-table.insert(class.DPSAbilities, common.getAA('Bite of the Asp'))
-table.insert(class.DPSAbilities, common.getAA('Roar of Thunder'))
-table.insert(class.DPSAbilities, common.getAA('Gorilla Smash'))
-table.insert(class.DPSAbilities, common.getAA('Raven Claw'))
+    class.spellRotations = {
+        standard=standard
+    }
 
-table.insert(class.burnAbilities, common.getBestDisc({'Empathic Fury', 'Bestial Fury Discipline'})) -- burn disc
-table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Savage Lord'))
-table.insert(class.burnAbilities, common.getAA('Frenzy of Spirit'))
-table.insert(class.burnAbilities, common.getAA('Bestial Bloodrage'))
-table.insert(class.burnAbilities, common.getAA('Group Bestial Alignment'))
-table.insert(class.burnAbilities, common.getAA('Bestial Alignment', {skipifbuff='Group Bestial Alignment'}))
-table.insert(class.burnAbilities, common.getAA('Attack of the Warders', {delay=1500}))
+    table.insert(class.DPSAbilities, common.getSkill('Kick'))
+    table.insert(class.DPSAbilities, common.getBestDisc({'Rake'}))
+    table.insert(class.DPSAbilities, common.getAA('Feral Swipe'))
+    table.insert(class.DPSAbilities, common.getAA('Chameleon Strike'))
+    table.insert(class.DPSAbilities, common.getAA('Bite of the Asp'))
+    table.insert(class.DPSAbilities, common.getAA('Roar of Thunder'))
+    table.insert(class.DPSAbilities, common.getAA('Gorilla Smash'))
+    table.insert(class.DPSAbilities, common.getAA('Raven Claw'))
 
-table.insert(class.healAbilities, class.spells.heal)
-table.insert(class.healAbilities, class.spells.petheal)
+    table.insert(class.burnAbilities, common.getBestDisc({'Empathic Fury', 'Bestial Fury Discipline'})) -- burn disc
+    table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Savage Lord'))
+    table.insert(class.burnAbilities, common.getAA('Frenzy of Spirit'))
+    table.insert(class.burnAbilities, common.getAA('Bestial Bloodrage'))
+    table.insert(class.burnAbilities, common.getAA('Group Bestial Alignment'))
+    table.insert(class.burnAbilities, common.getAA('Bestial Alignment', {skipifbuff='Group Bestial Alignment'}))
+    table.insert(class.burnAbilities, common.getAA('Attack of the Warders', {delay=1500}))
 
-table.insert(class.selfBuffs, class.spells.groupregen)
-table.insert(class.selfBuffs, class.spells.grouphp)
-table.insert(class.selfBuffs, class.spells.fero)
-table.insert(class.selfBuffs, class.spells.panther)
-table.insert(class.selfBuffs, common.getAA('Gelid Rending'))
-table.insert(class.selfBuffs, common.getAA('Pact of the Wurine'))
-table.insert(class.selfBuffs, common.getAA('Protection of the Warder'))
-table.insert(class.selfBuffs, common.getItem('Gloves of the Crimson Sigil', {checkfor='Call of Fire'}))
+    table.insert(class.healAbilities, class.spells.heal)
+    table.insert(class.healAbilities, class.spells.petheal)
 
-table.insert(class.singleBuffs, class.spells.fero)
-table.insert(class.singleBuffs, class.spells.feralvigor)
+    table.insert(class.selfBuffs, class.spells.groupregen)
+    table.insert(class.selfBuffs, class.spells.grouphp)
+    table.insert(class.selfBuffs, class.spells.fero)
+    table.insert(class.selfBuffs, class.spells.panther)
+    table.insert(class.selfBuffs, common.getAA('Gelid Rending'))
+    table.insert(class.selfBuffs, common.getAA('Pact of the Wurine'))
+    table.insert(class.selfBuffs, common.getAA('Protection of the Warder'))
+    table.insert(class.selfBuffs, common.getItem('Gloves of the Crimson Sigil', {checkfor='Call of Fire'}))
 
-table.insert(class.petBuffs, class.spells.pethaste)
-table.insert(class.petBuffs, class.spells.petbuff)
-table.insert(class.petBuffs, common.getItem('Savage Lord\'s Totem', {checkfor='Savage Wildcaller\'s Blessing'}))
-table.insert(class.petBuffs, common.getAA('Taste of Blood', {checkfor='Blood Frenzy'}))
+    table.insert(class.singleBuffs, class.spells.fero)
+    table.insert(class.singleBuffs, class.spells.feralvigor)
 
-class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
-class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
-table.insert(class.recoverAbilities, class.fParagon)
+    table.insert(class.petBuffs, class.spells.pethaste)
+    table.insert(class.petBuffs, class.spells.petbuff)
+    table.insert(class.petBuffs, common.getItem('Savage Lord\'s Totem', {checkfor='Savage Wildcaller\'s Blessing'}))
+    table.insert(class.petBuffs, common.getAA('Taste of Blood', {checkfor='Blood Frenzy'}))
 
-class.addRequestAlias(class.fParagon, 'fparagon')
-class.addRequestAlias(class.paragon, 'paragon')
-class.addRequestAlias(class.spells.groupregen, 'rejuv')
+    class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
+    class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
+    table.insert(class.recoverAbilities, class.fParagon)
 
-local casterpriests = {clr=true,shm=true,dru=true,mag=true,nec=true,enc=true,wiz=true,shd=true}
+    class.addRequestAlias(class.fParagon, 'fparagon')
+    class.addRequestAlias(class.paragon, 'paragon')
+    class.addRequestAlias(class.spells.groupregen, 'rejuv')
+end
+
 class.recover_class = function()
     local lowmana = mq.TLO.Group.LowMana(50)() or 0
     local groupSize = mq.TLO.Group.Members() or 0
@@ -107,10 +113,10 @@ class.recover_class = function()
                 local memberPctMana = member.PctMana() or 100
                 local memberDistance = member.Distance3D() or 300
                 local memberClass = member.Class.ShortName() or 'WAR'
-                if casterpriests[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.name)() then
+                if lists.manaClasses[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.name)() then
                     member.DoTarget()
                     class.fParagon:use()
-                    if originalTargetID > 0 then mq.cmdf('/mqtar id %s', originalTargetID) else mq.cmd('/mqtar clear') end
+                    if originalTargetID > 0 then mq.cmdf('/mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
                     return
                 end
             end

@@ -1,4 +1,3 @@
-local logger = require('utils.logger')
 local timer = require('utils.timer')
 
 local state = {
@@ -39,9 +38,5 @@ function state.reset_combat_state()
     state.mez_target_id = 0
     state.resists = {}
 end
-
---for k,v in pairs(state.get_all()) do
---    print(logger.logLine('%s: %s', k, v))
---end
 
 return state

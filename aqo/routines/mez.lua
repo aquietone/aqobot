@@ -10,6 +10,10 @@ local config = require('configuration')
 
 local mez = {}
 
+function mez.init(aqo)
+
+end
+
 ---Scan mobs in camp and reset mez timers to current time
 mez.init_mez_timers = function(mez_spell)
     camp.mob_radar()

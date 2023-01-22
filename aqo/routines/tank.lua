@@ -10,6 +10,10 @@ local state = require('state')
 
 local tank = {}
 
+function tank.init(aqo)
+
+end
+
 local camp_buffer = 20
 
 --- Tank Functions
@@ -73,8 +77,8 @@ local function tank_mob_in_range(tank_spawn)
     local mob_x = tank_spawn.X()
     local mob_y = tank_spawn.Y()
     if not mob_x or not mob_y then return false end
-    local camp_radius = config.CAMPRADIUS
-    if config.MODE:return_to_camp() and camp.Active then
+    local camp_radius = config.CAMPRADIUS.value
+    if config.MODE.value:return_to_camp() and camp.Active then
         local dist = common.check_distance(camp.X, camp.Y, mob_x, mob_y)
         if dist < camp_radius then
             return true
@@ -105,7 +109,7 @@ tank.tank_mob = function()
     end
     if not tank_mob_in_range(tank_spawn) then
         ---- los around benches and junk
-        --if config.MODE:get_name() == 'huntertank' and not mq.TLO.Navigation.Active() then
+        --if config.MODE.value:get_name() == 'huntertank' and not mq.TLO.Navigation.Active() then
         --    mq.cmdf('/nav id %s | log=off', state.tank_mob_id)
         --end
         state.tank_mob_id = 0
@@ -134,7 +138,7 @@ tank.tank_mob = function()
     elseif state.dontAttack and state.enrageTimer:timer_expired() then
         state.dontAttack = false
     end
-    if mq.TLO.Me.Combat() and stick_timer:timer_expired() and not mq.TLO.Stick.Active() and config.MODE:get_name() ~= 'manual' then
+    if mq.TLO.Me.Combat() and stick_timer:timer_expired() and not mq.TLO.Stick.Active() and config.MODE.value:get_name() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')
         stick_timer:reset()
     end

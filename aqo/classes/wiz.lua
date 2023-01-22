@@ -3,24 +3,30 @@ local mq = require('mq')
 local class = require('classes.classbase')
 local common = require('common')
 
-class.class = 'wiz'
-class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+function class.init(_aqo)
+    class.initBase(_aqo)
+    class.load_settings()
+    class.setup_events()
 
-class.SPELLSETS = {standard=1}
+    class.class = 'wiz'
+    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
-class.addCommonOptions()
-class.addCommonAbilities()
+    class.SPELLSETS = {standard=1}
 
-class.addSpell('nuke1', {'Draught of Ro', 'Pillar of Fire'})
---class.addSpell('nuke2', {'Fire Spiral of Al\'Kabor'})
+    class.addCommonOptions()
+    class.addCommonAbilities()
 
-table.insert(class.DPSAbilities, common.getAA('Force of Will'))
-local standard = {}
-table.insert(standard, class.spells.nuke1)
---table.insert(standard, class.spells.nuke2)
+    class.addSpell('nuke1', {'Draught of Ro', 'Pillar of Fire'})
+    --class.addSpell('nuke2', {'Fire Spiral of Al\'Kabor'})
 
-class.spellRotations = {
-    standard=standard
-}
+    table.insert(class.DPSAbilities, common.getAA('Force of Will'))
+    local standard = {}
+    table.insert(standard, class.spells.nuke1)
+    --table.insert(standard, class.spells.nuke2)
+
+    class.spellRotations = {
+        standard=standard
+    }
+end
 
 return class

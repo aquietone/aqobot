@@ -1,20 +1,26 @@
 local class = require('classes.classbase')
 local common = require('common')
 
-class.class = 'pal'
-class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+function class.init(_aqo)
+    class.initBase(_aqo)
+    class.load_settings()
+    class.setup_events()
 
-class.SPELLSETS = {standard=1}
+    class.class = 'pal'
+    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
 
-class.addCommonOptions()
-class.addCommonAbilities()
+    class.SPELLSETS = {standard=1}
 
-local standard = {}
+    class.addCommonOptions()
+    class.addCommonAbilities()
 
-class.spellRotations = {
-    standard=standard
-}
+    local standard = {}
 
-table.insert(class.DPSAbilities, common.getSkill('Kick'))
+    class.spellRotations = {
+        standard=standard
+    }
+
+    table.insert(class.DPSAbilities, common.getSkill('Kick'))
+end
 
 return class

@@ -6,8 +6,9 @@ local state = require('state')
 
 local buff = {}
 
--- xpBuffs = { 42962 /*xp6*/, 42617 /*xp5*/, 42616 /*xp4*/}
--- gmBuffs = { 34835,35989,35361,25732,34567,36838,43040,36266,36423}
+function buff.init(aqo)
+
+end
 
 buff.hasBuff = function(spell)
     local hasBuff = mq.TLO.Me.Buff(spell.name)()
@@ -142,7 +143,7 @@ local function buff_self(base)
             end
             if buff.type == Abilities.Types.Spell then
                 if common.swap_and_cast(buff, state.swapGem) then
-                    if originalTargetID == 0 then mq.cmdf('/mqtar clear') end
+                    if originalTargetID == 0 then mq.cmdf('/squelch /mqtar clear') end
                     return true
                 end
             elseif buff.type == Abilities.Types.Disc then
