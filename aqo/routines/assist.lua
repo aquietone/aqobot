@@ -198,6 +198,7 @@ assist.check_target = function(reset_timers)
             state.assist_mob_id = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
             if mq.TLO.Target.ID() ~= originalTargetID then
+                state.resists = {}
                 reset_combat_timers()
                 if reset_timers then reset_timers() end
                 print(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))

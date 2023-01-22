@@ -392,12 +392,13 @@ class.find_next_spell = function()
     local pct_hp = mq.TLO.Target.PctHPs()
     if pct_hp and pct_hp > class.OPTS.STOPPCT.value and class.isEnabled('USEDOTS') then
         for _,dot in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-            if class.spells.combodisease and dot.id == class.spells.combodisease.id then
+            local resistCount = (state.resists[dot.name] and state.resists[dot.name]) or 0
+            if class.spells.combodisease and dot.id == class.spells.combodisease.id and resistCount < config.RESISTSTOPCOUNT then
                 if (not common.is_target_dotted_with(class.spells.decay.id, class.spells.decay.name) or not common.is_target_dotted_with(class.spells.grip.id, class.spells.grip.name)) and mq.TLO.Me.SpellReady(class.spells.combodisease.name)() then
                     return dot
                 end
             end
-            if (class.OPTS.USEWOUNDS.value or dot.id ~= class.spells.wounds.id) and common.is_spell_ready(dot) then
+            if (class.OPTS.USEWOUNDS.value or not class.spells.wounds or dot.id ~= class.spells.wounds.id) and common.is_spell_ready(dot) and resistCount < config.RESISTSTOPCOUNT then
                 return dot -- if is_dot_ready returned true then return this dot as the dot we should cast
             end
         end
@@ -437,6 +438,7 @@ class.cast = function()
                 tcclick:use()
             end
             spell:use() -- then cast the dot
+            mq.doevents('event_resist')
         end
 
         if class.OPTS.MULTIDOT.value then

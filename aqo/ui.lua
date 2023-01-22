@@ -140,10 +140,11 @@ local function draw_assist_tab()
     config.CAMPRADIUS = ui.draw_input_int('Camp Radius', '##campradius', config.CAMPRADIUS, 'Camp radius to assist within')
     config.CHASETARGET = ui.draw_input_text('Chase Target', '##chasetarget', config.CHASETARGET, 'Chase Target')
     config.CHASEDISTANCE = ui.draw_input_int('Chase Distance', '##chasedist', config.CHASEDISTANCE, 'Distance to follow chase target')
+    config.RESISTSTOPCOUNT = ui.draw_input_int('Resist Stop Count', '##resiststopcount', config.RESISTSTOPCOUNT, 'The number of resists after which to stop trying casting a spell on a mob')
     if state.emu then
         config.MAINTANK = ui.draw_check_box('Main Tank', '##maintank', config.MAINTANK, 'Am i main tank')
         config.LOOTMOBS = ui.draw_check_box('Loot Mobs', '##lootmobs', config.LOOTMOBS, 'Loot corpses')
-        config.AUTODETECTRAID = ui.draw_check_box('Auto-Detect Raid', '##detectraid', config.LOOTMOBS, 'Set raid assist settings automatically if in a raid')
+        config.AUTODETECTRAID = ui.draw_check_box('Auto-Detect Raid', '##detectraid', config.AUTODETECTRAID, 'Set raid assist settings automatically if in a raid')
     end
 
     if current_camp_radius ~= config.CAMPRADIUS then

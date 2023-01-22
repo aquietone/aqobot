@@ -27,8 +27,10 @@ class.addSpell('panther', {'Growl of the Panther'})
 class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}) -- group buff
 class.addSpell('grouphp', {'Spiritual Vitality'})
 class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
+class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
 
 local standard = {}
+table.insert(standard, class.spells.swarmpet)
 table.insert(standard, class.spells.nuke)
 table.insert(standard, class.spells.dot)
 
@@ -96,6 +98,7 @@ class.recover_class = function()
             class.paragon:use()
         end
     end
+    local originalTargetID = 0
     if class.isEnabled('PARAGONOTHERS') and class.fParagon then
         local groupSize = mq.TLO.Group.GroupSize()
         if groupSize then
@@ -107,6 +110,7 @@ class.recover_class = function()
                 if casterpriests[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.name)() then
                     member.DoTarget()
                     class.fParagon:use()
+                    if originalTargetID > 0 then mq.cmdf('/mqtar id %s', originalTargetID) else mq.cmd('/mqtar clear') end
                     return
                 end
             end

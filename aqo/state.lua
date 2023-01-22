@@ -22,6 +22,7 @@ local state = {
     mez_target_name = nil,
     mez_target_id = 0,
     subscription = 'GOLD',
+    resists = {},
 }
 
 function state.reset_combat_state()
@@ -36,6 +37,7 @@ function state.reset_combat_state()
     state.mob_count_nopet = 0
     state.mez_target_name = nil
     state.mez_target_id = 0
+    state.resists = {}
 end
 
 --for k,v in pairs(state.get_all()) do

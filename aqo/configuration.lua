@@ -48,7 +48,8 @@ local config = {
     LOOTMOBS = true,
 
     MAINTANK = false,
-    AUTODETECTRAID = true,
+    AUTODETECTRAID = false,
+    RESISTSTOPCOUNT = 3,
 }
 
 config.tips = {
@@ -96,6 +97,7 @@ config.tips = {
 
     MAINTANK = 'Toggle use of tanking abilities in case main tank role doesn\'t work, like on emu',
     AUTODETECTRAID = 'Toggle auto-detecting when in raid and setting appropriate assist settings',
+    RESISTSTOPCOUNT = 'The number of resists after which to stop trying casting a spell on a mob',
 }
 
 local ignores = {}
@@ -146,6 +148,7 @@ function config.get_all()
 
         MAINTANK = config.MAINTANK,
         AUTODETECTRAID = config.AUTODETECTRAID,
+        RESISTSTOPCOUNT = config.RESISTSTOPCOUNT,
     }
 end
 
@@ -196,6 +199,7 @@ config.aliases = {
 
     maintank = 'MAINTANK',
     autodetectraid = 'AUTODETECTRAID',
+    resiststopcount = 'RESISTSTOPCOUNT',
 
     lootmobs = 'LOOTMOBS',
 }

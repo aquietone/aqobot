@@ -127,6 +127,7 @@ local function buff_auras(base)
 end
 
 local function buff_self(base)
+    local originalTargetID = 0
     for _,buff in ipairs(base.selfBuffs) do
         local buffName = buff.name -- TODO: buff name may not match AA or item name
         if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
@@ -136,10 +137,14 @@ local function buff_self(base)
                 and mq.TLO.Spell(buff.checkfor or buff.name).Stacks()
                 and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0) then
             if buff.targettype == 'Single' then
+                originalTargetID = mq.TLO.Target.ID()
                 mq.TLO.Me.DoTarget()
             end
             if buff.type == Abilities.Types.Spell then
-                if common.swap_and_cast(buff, state.swapGem) then return true end
+                if common.swap_and_cast(buff, state.swapGem) then
+                    if originalTargetID == 0 then mq.cmdf('/mqtar clear') end
+                    return true
+                end
             elseif buff.type == Abilities.Types.Disc then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) return true end
             else

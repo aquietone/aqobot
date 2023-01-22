@@ -510,7 +510,8 @@ base.find_next_spell = function()
     -- alliance
     -- synergy
     for _,spell in ipairs(base.spellRotations[base.OPTS.SPELLSET.value]) do
-        if common.is_spell_ready(spell) and (base.isAbilityEnabled(spell.opt)) then return spell end
+        local resistCount = state.resists[spell.name] or 0
+        if common.is_spell_ready(spell) and base.isAbilityEnabled(spell.opt) and resistCount < config.RESISTSTOPCOUNT then return spell end
     end
 end
 
@@ -572,6 +573,7 @@ base.cast = function()
                 if spell.precast then spell.precast() end
                 if spell:use() then state.actionTaken = true end -- then cast the dot
                 base.nuketimer:reset()
+                mq.doevents('event_resist')
                 if spell.postcast then spell.postcast() end
             end
         end
@@ -591,7 +593,7 @@ base.cast = function()
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
                             spell:use()
                             dotted_count = dotted_count + 1
-                            if dotted_count >= class.OPTS.MULTICOUNT.value then break end
+                            if dotted_count >= base.OPTS.MULTICOUNT.value then break end
                         end
                     end
                 end
@@ -681,10 +683,13 @@ base.recover = function()
             spell = mq.TLO.Me.AltAbility(useAbility.name).Spell
         end
         if mq.TLO.Me.MaxHPs() < 6000 then return end
-        if spell and spell.TargetType() == 'Single' then
+        local originalTargetID = 0
+        if spell and spell.TargetType() == 'Single' and mq.TLO.Target.ID() ~= state.loop.ID then
+            originalTargetID = mq.TLO.Target.ID()
             mq.TLO.Me.DoTarget()
         end
         if useAbility:use() then state.actionTaken = true end
+        if originalTargetID > 0 then mq.cmdf('/mqtar id %s', originalTargetID) else mq.cmd('/mqtar clear') end
     end
 end
 
@@ -816,7 +821,7 @@ local function lifesupport()
         for _,healclicky in ipairs(healclickies) do
             local item = mq.TLO.FindItem(healclicky)
             if item() and mq.TLO.Me.ItemReady(healclicky)() then
-                print(logger.logline('Use Item: \ag%s\ax', healclicky))
+                print(logger.logLine('Use Item: \ag%s\ax', healclicky))
                 local castTime = item.CastTime()
                 mq.cmdf('/useitem "%s"', healclicky)
                 mq.delay(250+(castTime or 0), function() return not mq.TLO.Me.ItemReady(healclicky)() end)

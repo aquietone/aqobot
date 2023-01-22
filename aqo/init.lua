@@ -3,7 +3,6 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
-AQO='aqo'
 local assist = require('routines.assist')
 local camp = require('routines.camp')
 local movement = require('routines.movement')
@@ -32,13 +31,15 @@ local function check_game_state()
         PetName = mq.TLO.Me.Pet.CleanName(),
         TargetID = mq.TLO.Target.ID(),
         TargetHP = mq.TLO.Target.PctHPs(),
+        PetID = mq.TLO.Pet.ID()
     }
 end
 
 local function detect_raid_or_group()
     if not config.AUTODETECTRAID then return end
     if mq.TLO.Raid.Members() > 0 then
-        if config.ASSIST == 'group' and mq.TLO.Group.Leader() ~= mq.TLO.Me.CleanName() then
+        local leader = mq.TLO.Group.Leader() or nil
+        if config.ASSIST == 'group' and leader and leader ~= mq.TLO.Me.CleanName() then
             config.ASSIST = 'manual'
             config.CHASETARGET = mq.TLO.Group.Leader()
             config.BURNALWAYS = false
@@ -220,6 +221,10 @@ local function cmd_bind(...)
         os.execute('start https://www.lazaruseq.com/Wiki/index.php/Main_Page')
     elseif opt == 'baz' then
         os.execute('start https://www.lazaruseq.com/Magelo/index.php?page=bazaar')
+    elseif opt == 'door' then
+        mq.cmd('/dgga /doortarget')
+        mq.delay(50)
+        mq.cmd('/dgga /click left door')
     elseif opt == 'manastone' then
         local manastone = mq.TLO.FindItem('Manastone')
         if not manastone() then return end
@@ -253,6 +258,12 @@ end
 local lootMyBody = false
 local function rezzed()
     lootMyBody = true
+end
+
+local function movecloser()
+    if config.MODE:is_assist_mode() and not state.paused then
+        movement.navToTarget(nil, 1000)
+    end
 end
 
 local function init()
@@ -289,6 +300,8 @@ local function init()
     if state.emu then
         mq.event('rezzed', 'You regain #*# experience from resurrection', rezzed)
     end
+    mq.event('CannotSee', '#*#cannot see your target#*#', movecloser)
+    mq.event('TooFar', '#*#too far away from your target#*#', movecloser)
     --loot.logger.loglevel = 'debug'
 end
 
@@ -326,6 +339,9 @@ local function main()
                     mq.cmd('/squelch /mqtarget clear')
                 end
             end
+            if not mq.TLO.Me.Casting() and state.loop.PetID > 0 and mq.TLO.Target.ID() == state.loop.PetID then
+                mq.cmd('/squelch /mqtarget clear')
+            end
             if mq.TLO.Me.Hovering() then
                 mq.delay(50)
             elseif not state.loop.Invis and not common.blocking_window_open() then
@@ -335,9 +351,8 @@ local function main()
                 end
                 common.check_cursor()
                 if state.emu then
-                    if lootMyBody and mq.TLO.Me.Buff('Resurrection Sickness')() then
+                    if mq.TLO.Spawn('corpse '..mq.TLO.Me.CleanName())() then
                         loot.lootMyCorpse()
-                        lootMyBody = false
                         state.actionTaken = true
                     end
                     if config.LOOTMOBS and mq.TLO.Me.CombatState() ~= 'COMBAT' and not state.pull_in_progress then

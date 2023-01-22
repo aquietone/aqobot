@@ -666,7 +666,10 @@ end
 ---@param target_name any
 ---@param spell_name any
 local function event_resist(line, target_name, spell_name)
-
+    if mq.TLO.Target.CleanName() == target_name then
+        state.resists[spell_name] = (state.resists[spell_name] or 0) + 1
+        print(logger.logLine('%s resisted spell %s, resist count = %s', target_name, spell_name, state.resists[spell_name]))
+    end
 end
 
 ---Set common.I_AM_DEAD flag to true in the event of death.
