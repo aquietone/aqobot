@@ -42,4 +42,8 @@ lists.booleans = {
     ['0']=false, ['false']=false,['off']=false,
 }
 
+lists.ignoreBuff = {
+    
+}
+
 return lists

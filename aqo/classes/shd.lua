@@ -9,22 +9,15 @@ local config = require('configuration')
 local state = require('state')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
+    class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
+    class.SPELLSETS = {standard=1,dps=1}
+    class.initBase(_aqo, 'shd')
 
     mq.cmd('/squelch /stick mod -2')
     mq.cmd('/squelch /stick set delaystrafe on')
 
-    class.class = 'shd'
-    class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
-
-    class.SPELLSETS = {standard=1,dps=1}
-
     -- theft of agony
     -- decrepit skin
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, '', 'checkbox')
     class.addOption('USEPROJECTION', 'Use Projection', true, nil, '', 'checkbox')
     class.addOption('USEAZIA', 'Use Unity Azia', true, nil, '', 'checkbox', 'USEBEZA')
@@ -81,7 +74,7 @@ function class.init(_aqo)
     --['']=common.get_best_spell({'Remorseless Demeanor'})
 
     local function mobsMissingAggro()
-        if state.mob_count >= 2 then
+        if state.mobCount >= 2 then
             local xtar_aggro_count = 0
             for i=1,13 do
                 local xtar = mq.TLO.Me.XTarget(i)
@@ -93,8 +86,8 @@ function class.init(_aqo)
         end
     end
 
-    if class.spells.aeterror then class.spells.aeterror.condition = function() return config.MODE.value:is_tank_mode() and state.loop.PctHPs > 70 and mobsMissingAggro() end end
-    local aggroCondition = function() return config.MODE.value:is_tank_mode() and state.loop.PctHPs > 70 end
+    if class.spells.aeterror then class.spells.aeterror.condition = function() return config.MODE.value:isTankMode() and state.loop.PctHPs > 70 and mobsMissingAggro() end end
+    local aggroCondition = function() return config.MODE.value:isTankMode() and state.loop.PctHPs > 70 end
     if class.spells.challenge then class.spells.challenge.condition = aggroCondition end
     if class.spells.terror then class.spells.terror.condition = aggroCondition end
     local lifetapCondition = function() return state.loop.PctHPs < 85 end
@@ -215,56 +208,14 @@ function class.init(_aqo)
     table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
     table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
     table.insert(class.petBuffs, class.spells.pethaste)
+    class.pullSpell = class.spells.terror
 end
 
---[[local function find_next_spell()
-    local myhp = state.loop.PctHPs
-    -- aggro
-    if config.MODE.value:is_tank_mode() and class.OPTS.SPELLSET.value == 'standard' and myhp > 70 then
-        if mobsMissingAggro() and common.is_spell_ready(class.spells['aeterror']) then return class.spells['aeterror'] end
-        if common.is_spell_ready(class.spells['challenge']) then return class.spells['challenge'] end
-        if common.is_spell_ready(class.spells['terror']) then return class.spells['terror'] end
-    end
-    if common.is_spell_ready(class.spells['bitetap']) then return class.spells['bitetap'] end
-    -- taps
-    if common.is_spell_ready(class.spells['composite']) then return class.spells['composite'] end
-    if myhp < 80 then
-        if common.is_spell_ready(class.spells['largetap']) then return class.spells['largetap'] end
-    end
-    if myhp < 85 then
-        if common.is_spell_ready(class.spells['tap1']) then return class.spells['tap1'] end
-    end
-    if common.is_spell_ready(class.spells['spear']) then return class.spells['spear'] end
-    --if not mq.TLO.Me.Buff('Gift of Namdrows')() and common.is_spell_ready(class.spells['tap2']) then return class.spells['tap2'] end
-    if common.is_spell_ready(class.spells.tap2) then return class.spells.tap2 end
-    if common.is_spell_ready(class.spells['dottap']) then return class.spells['dottap'] end
-    if common.is_spell_ready(class.spells['acdebuff']) then return class.spells['acdebuff'] end
-    if config.MODE.value:is_assist_mode() and class.OPTS.SPELLSET.value == 'dps' then
-        if common.is_spell_ready(class.spells['poison']) then return class.spells['poison'] end
-        if common.is_spell_ready(class.spells['disease']) then return class.spells['disease'] end
-        if common.is_spell_ready(class.spells['corruption']) then return class.spells['corruption'] end
-    end
-    return nil -- we found no missing dot that was ready to cast, so return nothing
-end
-
-class.cast = function()
-    if class.isEnabled('DONTCAST') then return end
-    if not state.loop.Invis then
-        if assist.is_fighting() then
-            local spell = find_next_spell()
-            if spell then
-                spell:use()
-                return true
-            end
-        end
-    end
-end]]
-
-class.mash_class = function()
+class.mashClass = function()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if config.MODE.value:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+    if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         -- hate's attraction
         if class.OPTS.USEHATESATTRACTION.value and class.attraction and mobhp and mobhp > 95 then
             class.attraction:use()
@@ -272,8 +223,8 @@ class.mash_class = function()
     end
 end
 
-class.burn_class = function()
-    if config.MODE.value:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+class.burnClass = function()
+    if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         if class.mantle then class.mantle:use() end
         if class.carapace then class.carapace:use() end
         if class.guardian then class.guardian:use() end
@@ -284,7 +235,7 @@ end
 
 class.ohshit = function()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if config.MODE.value:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.AltAbilityReady(class.flash.name)() then
                 class.flash:use()
             elseif class.OPTS.USEDEFLECTION.value and class.deflection then
@@ -295,83 +246,47 @@ class.ohshit = function()
     end
 end
 
-local function missing_unity_buffs(name)
-    local spell = mq.TLO.Spell(name)
-    for i=1,spell.NumEffects() do
-        local trigger_spell = spell.Trigger(i)
-        if not mq.TLO.Me.Buff(trigger_spell.Name())() and mq.TLO.Spell(trigger_spell.Name()).Stacks() then return true end
-    end
-    return false
-end
-
---[[class.buff_class = function()
-    -- stance, disruption, skin
-    if class.spells.stance and not mq.TLO.Me.Buff(class.spells.stance.name)() then
-        if class.spells.stance:use() then return end
-    end
-    if class.spells.skin and not mq.TLO.Me.Buff(class.spells.skin.name)() then
-        if class.spells.skin:use() then return end
-    end
-
-    if class.OPTS.USEDISRUPTION.value and class.spells.disruption and not mq.TLO.Me.Buff(class.spells.disruption.name)() then
-        if common.swap_and_cast(class.spells.disruption, 13) then return end
-    end
-
-    if not class.OPTS.USEBEZA.value and buffazia and missing_unity_buffs(buffazia.name) then
-        if buffazia:use() then return end
-    end
-    if class.OPTS.USEBEZA.value and buffbeza and missing_unity_buffs(buffbeza.name) then
-        if buffbeza:use() then return end
-    end
-
-    if class.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 and class.spells.pethaste then
-        if not mq.TLO.Pet.Buff(class.spells.pethaste.name)() and mq.TLO.Spell(class.spells.pethaste.name).StacksPet() and mq.TLO.Spell(class.spells.pethaste.name).Mana() < mq.TLO.Me.CurrentMana() then
-            common.swap_and_cast(class.spells.pethaste, 13)
-        end
-    end
-end]]
-
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
-local check_spell_timer = timer:new(30)
-class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+local checkSpellTimer = timer:new(30)
+class.checkSpellSet = function()
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
+    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then
-            common.swap_spell(class.spells.tap1, 1)
-            common.swap_spell(class.spells.tap2, 2)
-            common.swap_spell(class.spells.largetap, 3)
-            common.swap_spell(class.spells.composite, 4, composite_names)
-            common.swap_spell(class.spells.spear, 5)
-            common.swap_spell(class.spells.terror, 6)
-            common.swap_spell(class.spells.aeterror, 7)
-            common.swap_spell(class.spells.dottap, 8)
-            common.swap_spell(class.spells.challenge, 9)
-            common.swap_spell(class.spells.bitetap, 10)
-            common.swap_spell(class.spells.stance, 11)
-            common.swap_spell(class.spells.skin, 12)
-            common.swap_spell(class.spells.acdebuff, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.tap1, 1)
+            common.swapSpell(class.spells.tap2, 2)
+            common.swapSpell(class.spells.largetap, 3)
+            common.swapSpell(class.spells.composite, 4, composite_names)
+            common.swapSpell(class.spells.spear, 5)
+            common.swapSpell(class.spells.terror, 6)
+            common.swapSpell(class.spells.aeterror, 7)
+            common.swapSpell(class.spells.dottap, 8)
+            common.swapSpell(class.spells.challenge, 9)
+            common.swapSpell(class.spells.bitetap, 10)
+            common.swapSpell(class.spells.stance, 11)
+            common.swapSpell(class.spells.skin, 12)
+            common.swapSpell(class.spells.acdebuff, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         elseif class.OPTS.SPELLSET.value == 'dps' then
-            common.swap_spell(class.spells.tap1, 1)
-            common.swap_spell(class.spells.tap2, 2)
-            common.swap_spell(class.spells.largetap, 3)
-            common.swap_spell(class.spells.composite, 4, composite_names)
-            common.swap_spell(class.spells.spear, 5)
-            common.swap_spell(class.spells.corruption, 6)
-            common.swap_spell(class.spells.poison, 7)
-            common.swap_spell(class.spells.dottap, 8)
-            common.swap_spell(class.spells.disease, 9)
-            common.swap_spell(class.spells.bitetap, 10)
-            common.swap_spell(class.spells.stance, 11)
-            common.swap_spell(class.spells.skin, 12)
-            common.swap_spell(class.spells.acdebuff, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.tap1, 1)
+            common.swapSpell(class.spells.tap2, 2)
+            common.swapSpell(class.spells.largetap, 3)
+            common.swapSpell(class.spells.composite, 4, composite_names)
+            common.swapSpell(class.spells.spear, 5)
+            common.swapSpell(class.spells.corruption, 6)
+            common.swapSpell(class.spells.poison, 7)
+            common.swapSpell(class.spells.dottap, 8)
+            common.swapSpell(class.spells.disease, 9)
+            common.swapSpell(class.spells.bitetap, 10)
+            common.swapSpell(class.spells.stance, 11)
+            common.swapSpell(class.spells.skin, 12)
+            common.swapSpell(class.spells.acdebuff, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         end
-        check_spell_timer:reset()
+        checkSpellTimer:reset()
     end
 end
 
---[[class.pull_func = function()
+--[[class.pullCustom = function()
     if class.spells.challenge then
         movement.stop()
         for _=1,3 do

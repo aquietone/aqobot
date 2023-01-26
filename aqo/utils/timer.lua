@@ -23,20 +23,20 @@ end
 
 ---Return the current time in seconds.
 ---@return number @Returns a number representing the current time in seconds.
-function Timer.current_time()
+function Timer.currentTime()
     return os.time()
 end
 
 ---Reset the start time value to the current time.
 ---@param to_value? number @The value to reset the timer to.
 function Timer:reset(to_value)
-    self.start_time = to_value or Timer.current_time()
+    self.start_time = to_value or Timer.currentTime()
 end
 
 ---Check whether the specified timer has passed its expiration.
 ---@return boolean @Returns true if the timer has expired, otherwise false.
-function Timer:timer_expired()
-    if os.difftime(Timer.current_time(), self.start_time) > self.expiration then
+function Timer:timerExpired()
+    if os.difftime(Timer.currentTime(), self.start_time) > self.expiration then
         return true
     else
         return false
@@ -45,17 +45,17 @@ end
 
 ---Get the time remaining before the timer expires.
 ---@return number @Returns the number of seconds remaining until the timer expires.
-function Timer:time_remaining()
-    return self.expiration - os.difftime(Timer.current_time(), self.start_time)
+function Timer:timeRemaining()
+    return self.expiration - os.difftime(Timer.currentTime(), self.start_time)
 end
 
 
 --[[local mq = require('mq')
-local my_timer = Timer:new(10)
+local myTimer = Timer:new(10)
 
 -- by default, timer begins expired because initial start time is 0, so this loop ends immediately
 while true do
-    if my_timer:timer_expired() then
+    if myTimer:timerExpired() then
         print('timer expired')
         break
     else
@@ -65,13 +65,13 @@ while true do
 end
 
 -- reset sets start time to current time, so it will take full expiration time after that
-my_timer:reset()
+myTimer:reset()
 while true do
-    if my_timer:timer_expired() then
+    if myTimer:timerExpired() then
         print('timer expired')
         break
     else
-        print(my_timer:time_remaining())
+        print(myTimer:timeRemaining())
     end
     mq.delay(1000)
 end]]--

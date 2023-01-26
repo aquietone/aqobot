@@ -7,12 +7,13 @@ local commands = {}
 function commands.init(_aqo)
     aqo = _aqo
 
-    mq.bind('/aqo', commands.cmd_bind)
-    mq.bind(('/%s'):format(aqo.state.class), commands.cmd_bind)
+    mq.bind('/aqo', commands.commandHandler)
+    mq.bind(('/%s'):format(aqo.state.class), commands.commandHandler)
+    mq.bind('/nowcast', commands.nowcastHandler)
 end
 
 ---Display help information for the script.
-local function show_help()
+local function showHelp()
     local prefix = '\n- /'..aqo.state.class..' '
     local output = aqo.logger.logLine('AQO Bot 1.0\n')
     output = output .. '\ayCommands:\aw'
@@ -58,10 +59,10 @@ end
 
 ---Process binding commands.
 ---@vararg string @The input given to the bind command.
-function commands.cmd_bind(...)
+function commands.commandHandler(...)
     local args = {...}
     if not args[1] then
-        show_help()
+        showHelp()
         return
     end
 
@@ -69,19 +70,19 @@ function commands.cmd_bind(...)
     local new_value = args[2] and args[2]:lower() or nil
     local configName = aqo.config.getNameForAlias(opt)
     if opt == 'help' then
-        show_help()
+        showHelp()
     elseif opt == 'restart' then
         mq.cmd('/multiline ; /lua stop aqo ; /timed 5 /lua run aqo')
     elseif opt == 'debug' then
         local section = args[2]
         local subsection = args[3]
-        if aqo.logger.log_flags[section] and aqo.logger.log_flags[section][subsection] ~= nil then
-            aqo.logger.log_flags[section][subsection] = not aqo.logger.log_flags[section][subsection]
+        if aqo.logger.flags[section] and aqo.logger.flags[section][subsection] ~= nil then
+            aqo.logger.flags[section][subsection] = not aqo.logger.flags[section][subsection]
         end
     elseif opt == 'sell' and not new_value then
         aqo.loot.sellStuff()
     elseif opt == 'burnnow' then
-        aqo.state.burn_now = true
+        aqo.state.burnNow = true
         if new_value == 'quick' or new_value == 'long' then
             aqo.state.burn_type = new_value
         end
@@ -91,36 +92,36 @@ function commands.cmd_bind(...)
         if not new_value then
             aqo.state.paused = not aqo.state.paused
             if aqo.state.paused then
-                aqo.state.reset_combat_state()
+                aqo.state.resetCombatState()
                 mq.cmd('/stopcast')
             end
         else
             if aqo.lists.booleans[new_value] == nil then return end
             aqo.state.paused = aqo.lists.booleans[new_value]
             if aqo.state.paused then
-                aqo.state.reset_combat_state()
+                aqo.state.resetCombatState()
                 mq.cmd('/stopcast')
             else
-                aqo.camp.set_camp()
+                aqo.camp.setCamp()
             end
         end
     elseif opt == 'show' then
-        aqo.ui.toggle_gui(true)
+        aqo.ui.toggleGUI(true)
     elseif opt == 'hide' then
-        aqo.ui.toggle_gui(false)
+        aqo.ui.toggleGUI(false)
     elseif opt == 'mode' then
         if new_value then
-            aqo.config.MODE.value = aqo.mode.from_string(new_value) or aqo.config.MODE.value
-            aqo.state.reset_combat_state()
+            aqo.config.MODE.value = aqo.mode.fromString(new_value) or aqo.config.MODE.value
+            aqo.state.resetCombatState()
         else
-            print(aqo.logger.logLine('Mode: %s', aqo.config.MODE.value:get_name()))
+            print(aqo.logger.logLine('Mode: %s', aqo.config.MODE.value:getName()))
         end
-        aqo.camp.set_camp()
+        aqo.camp.setCamp()
     elseif opt == 'resetcamp' then
-        aqo.camp.set_camp(true)
+        aqo.camp.setCamp(true)
     elseif opt == 'campradius' or opt == 'radius' or opt == 'pullarc' then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
-        aqo.camp.set_camp()
+        aqo.camp.setCamp()
     elseif configName then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
     elseif opt == 'groupwatch' and aqo.common.GROUP_WATCH_OPTS[new_value] then
@@ -133,18 +134,18 @@ function commands.cmd_bind(...)
     elseif opt == 'ignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            aqo.config.add_ignore(zone, args[2]) -- use not lowercased value
+            aqo.config.addIgnore(zone, args[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
-            if target_name then aqo.config.add_ignore(zone, target_name) end
+            if target_name then aqo.config.addIgnore(zone, target_name) end
         end
     elseif opt == 'unignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            aqo.config.remove_ignore(zone, args[2]) -- use not lowercased value
+            aqo.config.removeIgnore(zone, args[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
-            if target_name then aqo.config.remove_ignore(zone, target_name) end
+            if target_name then aqo.config.removeIgnore(zone, target_name) end
         end
     elseif opt == 'addclicky' then
         local clickyType = new_value
@@ -152,7 +153,7 @@ function commands.cmd_bind(...)
         if itemName then
             local clicky = {name=itemName, clickyType=clickyType}
             aqo.class.addClicky(clicky)
-            aqo.class.save_settings()
+            aqo.class.saveSettings()
         else
             print(aqo.logger.logLine('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', aqo.state.class))
         end
@@ -160,7 +161,7 @@ function commands.cmd_bind(...)
         local itemName = mq.TLO.Cursor()
         if itemName then
             aqo.class.removeClicky(itemName)
-            aqo.class.save_settings()
+            aqo.class.saveSettings()
         else
             print(aqo.logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', aqo.state.class))
         end
@@ -177,9 +178,7 @@ function commands.cmd_bind(...)
         end
         mq.cmdf('/dgga /say %s', repeatstring)
     elseif opt == 'force' then
-        aqo.assist.force_assist(new_value)
-    elseif opt == 'nowcast' then
-        aqo.class.nowCast(args)
+        aqo.assist.forceAssist(new_value)
     elseif opt == 'update' then
         os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     elseif opt == 'docs' then
@@ -199,14 +198,18 @@ function commands.cmd_bind(...)
         manastoneTimer:reset()
         while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
-            if manastoneTimer:timer_expired() then break end
+            if manastoneTimer:timerExpired() then break end
         end
     else
-        commands.class_settings(opt:upper(), new_value)
+        commands.handleClassSettings(opt:upper(), new_value)
     end
 end
 
-commands.class_settings = function(opt, new_value)
+commands.nowcastHandler = function(...)
+    aqo.class.nowCast({...})
+end
+
+commands.handleClassSettings = function(opt, new_value)
     if new_value then
         if opt == 'SPELLSET' and aqo.class.OPTS.SPELLSET ~= nil then
             if aqo.class.SPELLSETS[new_value] then

@@ -5,12 +5,12 @@ local mode = {
     mode_names={}
 }
 
-function mode:new(name, set_camp, is_assist, is_tank, is_pull, is_return)
+function mode:new(name, setCamp, is_assist, is_tank, is_pull, is_return)
     local m = {}
     setmetatable(m, self)
     self.__index = self
     m.name = name
-    m.set_camp = set_camp
+    m.setCamp = setCamp
     m.is_assist = is_assist
     m.is_tank = is_tank
     m.is_pull = is_pull
@@ -21,35 +21,35 @@ function mode:new(name, set_camp, is_assist, is_tank, is_pull, is_return)
     return m
 end
 
-function mode:get_name()
+function mode:getName()
     return self.name
 end
 
-function mode:is_manual_mode()
+function mode:isManualMode()
     return self.name == 'manual'
 end
 
-function mode:set_camp_mode()
-    return self.set_camp
+function mode:isCampMode()
+    return self.setCamp
 end
 
-function mode:is_assist_mode()
+function mode:isAssistMode()
     return self.is_assist
 end
 
-function mode:is_tank_mode()
+function mode:isTankMode()
     return self.is_tank
 end
 
-function mode:is_pull_mode()
+function mode:isPullMode()
     return self.is_pull
 end
 
-function mode:return_to_camp()
+function mode:isReturnToCampMode()
     return self.is_return
 end
 
-function mode.from_string(a_mode)
+function mode.fromString(a_mode)
     if tonumber(a_mode) then
         return mode.modes[tonumber(a_mode)+1]
     else

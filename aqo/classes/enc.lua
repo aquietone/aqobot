@@ -7,18 +7,11 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'enc'
-    class.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest', 'managepet'}
-
+    class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
     class.SPELLSETS = {standard=1}
     class.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
+    class.initBase(_aqo, 'enc')
 
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, 'The first aura to keep up', 'combobox')
     class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, 'The second aura to keep up', 'combobox')
     class.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
@@ -84,7 +77,7 @@ function class.init(_aqo)
     class.addSpell('aenuke', {'Gravity Roil'}) -- 23k targeted ae nuke
 
     class.addSpell('calm', {'Still Mind'})
-    class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani'})
+    class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani'}, {opt='USEDEBUFF'})
     class.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
     class.addSpell('stunae', {'Remote Color Conflagration'})
     class.addSpell('stunpbae', {'Color Conflagration'})
@@ -122,16 +115,12 @@ function class.init(_aqo)
     if state.emu then
         class.addSpell('nuke5', {'Chromaburst', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
         class.addSpell('unified', {'Unified Alacrity'})
-        class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'})
-        class.addSpell('spasm', {'Synapsis Spasm'})
+        class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'}, {opt='USEDISPEL'})
+        class.addSpell('spasm', {'Synapsis Spasm'}, {opt='USEDEBUFF'})
     end
     -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     local standard = {}
-    table.insert(standard, class.spells.tash)
-    if state.emu then
-        table.insert(standard, class.spells.spasm)
-    end
     table.insert(standard, class.spells.dotmiti)
     table.insert(standard, class.spells.meznoblur)
     table.insert(standard, class.spells.mezae)
@@ -163,13 +152,18 @@ function class.init(_aqo)
     --table.insert(AAs, getAAid_and_name('Glyph of Destruction (115+)'))
     --table.insert(AAs, getAAid_and_name('Intensity of the Resolute'))
 
-    class.debuff = common.getAA('Bite of Tashani')
-    class.slow = common.getAA('Slowing Helix') -- single target slow
+    --class.debuff = common.getAA('Bite of Tashani')
     if state.emu then
-        class.slow = common.getItem('Serpent of Vindication')
+        table.insert(class.debuffs, class.spells.dispel)
+        table.insert(class.debuffs, class.spells.tash)
+        table.insert(class.debuffs, common.getItem('Serpent of Vindication', {opt='USESLOW'}))
+        table.insert(class.debuffs, class.spells.spasm)
+    else
+        table.insert(class.debuffs, common.getAA('Eradicate Magic', {opt='USEDISPEL'}))
+        table.insert(class.debuffs, common.getAA('Bite of Tashani', {opt='USETASHAOE'}))
+        table.insert(class.debuffs, common.getAA('Enveloping Helix', {opt='USESLOWAOE'})) -- AE slow on 8 targets
+        table.insert(class.debuffs, common.getAA('Slowing Helix', {opt='USESLOW'})) -- single target slow
     end
-    class.aeslow = common.getAA('Enveloping Helix') -- AE slow on 8 targets
-    class.dispel = common.getAA('Eradicate Magic') or class.spells.dispel
 
     class.mezbeam = common.getAA('Beam of Slumber')
     class.longmez = common.getAA('Noctambulate') -- 3min single target mez
@@ -195,8 +189,13 @@ function class.init(_aqo)
     class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1}) -- summon clicky mana heal
     class.gathermana = common.getAA('Gather Mana')
     class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1}) -- summon clicky hp heal
-    -- Agro
-    class.stasis = common.getAA('Self Stasis')
+
+    -- Aggro
+    local postStasis = function()
+        mq.delay(1000)
+        
+    end
+    table.insert(class.fadeAbilities, common.getAA('Self Stasis', {postcast=postStasis}))
 
     table.insert(class.selfBuffs, class.spells.guard)
     table.insert(class.selfBuffs, class.spells.stunaerune)
@@ -243,19 +242,7 @@ function class.init(_aqo)
     end
 end
 
-class.mez_unused = function()
-    if class.OPTS.MEZAE.value then
-        mez.do_ae(class.spells.mezae, class.OPTS.AEMEZCOUNT.value)
-    end
-    if class.OPTS.MEZST.value and not mq.TLO.Me.SpellInCooldown() then
-        if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.tash then
-            class.tash:use()
-        end
-        mez.do_single(class.spells.mezst)
-    end
-end
-
-local function cast_synergy()
+local function castSynergy()
     if class.spells.synergy and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.name)() then
         if mq.TLO.Spell(class.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
@@ -270,19 +257,19 @@ end
 -- synergy
 -- nuke5
 -- dot2
-class.find_next_spell = function()
-    if not mq.TLO.Target.Tashed() and class.OPTS.USEDEBUFF.value and common.is_spell_ready(class.spells.tash) then return class.spells.tash end
-    if common.is_spell_ready(class.spells.composite) then return class.spells.composite end
-    if cast_synergy() then return nil end
-    if state.emu and common.is_spell_ready(class.spells.spasm) then return class.spells.spasm end
-    if common.is_spell_ready(class.spells.nuke5) then return class.spells.nuke5 end
-    if common.is_spell_ready(class.spells.dot2) then return class.spells.dot2 end
+class.findNextSpell = function()
+    if not mq.TLO.Target.Tashed() and class.OPTS.USEDEBUFF.value and common.isSpellReady(class.spells.tash) then return class.spells.tash end
+    if common.isSpellReady(class.spells.composite) then return class.spells.composite end
+    if castSynergy() then return nil end
+    if state.emu and common.isSpellReady(class.spells.spasm) then return class.spells.spasm end
+    if common.isSpellReady(class.spells.nuke5) then return class.spells.nuke5 end
+    if common.isSpellReady(class.spells.dot2) then return class.spells.dot2 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 
 class.recover = function()
     -- modrods
-    common.check_mana()
+    common.checkMana()
     local pct_mana = state.loop.PctMana
     if class.gathermana and pct_mana < 50 then
         -- death bloom at some %
@@ -292,20 +279,20 @@ class.recover = function()
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(class.azure.name) then mq.cmd('/autoinventory') end
         local manacrystal = mq.TLO.FindItem(class.azure.name)
-        common.use_item(manacrystal)
+        common.useItem(manacrystal)
     end
 end
 
-local check_aggro_timer = timer:new(10)
-class.aggro = function()
+local checkAggroTimer = timer:new(10)
+class.aggroOld = function()
     if state.loop.PctHPs < 40 and class.sanguine then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(class.sanguine.name) then mq.cmd('/autoinventory') end
         local hpcrystal = mq.TLO.FindItem('='..class.sanguine.name)
-        common.use_item(hpcrystal)
+        common.useItem(hpcrystal)
     end
     if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or checkAggroTimer:timerExpired() then
             if mq.TLO.Me.PctAggro() >= 90 then
 
             end
@@ -347,8 +334,8 @@ class.buff_unused = function()
     if class.veil and not mq.TLO.Me.Buff(class.veil.name)() then
         if class.veil:use() then return end
     end
-    common.check_combat_buffs()
-    if not common.clear_to_buff() then return end
+    common.checkCombatBuffs()
+    if not common.clearToBuff() then return end
 
     if class.unity and missing_unity_buffs(class.unity.name) then
         if class.unity:use() then return end
@@ -377,14 +364,14 @@ class.buff_unused = function()
         end
     else
         if class.OPTS.AURA1.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
-            if common.swap_and_cast(class.spells[class.OPTS.AURA1.value], 13) then return end
+            if common.swapAndCast(class.spells[class.OPTS.AURA1.value], 13) then return end
         elseif class.OPTS.AURA1.value ~= 'twincast' and class.spells[class.OPTS.AURA1.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA1.value].name)() then
-            if common.swap_and_cast(class.spells[class.OPTS.AURA1.value], 13) then return end
+            if common.swapAndCast(class.spells[class.OPTS.AURA1.value], 13) then return end
         end
         if class.OPTS.AURA2.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
-            if common.swap_and_cast(class.spells[class.OPTS.AURA2.value], 13) then return end
+            if common.swapAndCast(class.spells[class.OPTS.AURA2.value], 13) then return end
         elseif class.OPTS.AURA2.value ~= 'twincast' and class.spells[class.OPTS.AURA2.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA2.value].name)() then
-            if common.swap_and_cast(class.spells[class.OPTS.AURA2.value], 13) then return end
+            if common.swapAndCast(class.spells[class.OPTS.AURA2.value], 13) then return end
         end
     end
 
@@ -396,39 +383,39 @@ class.buff_unused = function()
     end
     -- haste
 
-    common.check_item_buffs()
+    common.checkItemBuffs()
 
     if class.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 then
         --for _,buff in ipairs(buffs.pet) do
         --    if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
-        --        common.swap_and_cast(buff.name, 13)
+        --        common.swapAndCast(buff.name, 13)
         --    end
         --end
     end
 end
 
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
-local check_spell_timer = timer:new(30)
-class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+local checkSpellTimer = timer:new(30)
+class.checkSpellSet = function()
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
+    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then
-            common.swap_spell(class.spells.tash, 1)
-            common.swap_spell(class.spells.dotmiti, 2)
-            common.swap_spell(class.spells.meznoblur, 3)
-            common.swap_spell(class.spells.mezae, 4)
-            common.swap_spell(class.spells.dot, 5)
-            common.swap_spell(class.spells.dot2, 6)
-            common.swap_spell(class.spells.synergy, 7)
-            common.swap_spell(class.spells.nuke5, 8)
-            common.swap_spell(class.spells.composite, 9, composite_names)
-            common.swap_spell(class.spells.stunaerune, 10)
-            common.swap_spell(class.spells.guard, 11)
-            common.swap_spell(class.spells.nightsterror, 12)
-            common.swap_spell(class.spells.combatinnate, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.tash, 1)
+            common.swapSpell(class.spells.dotmiti, 2)
+            common.swapSpell(class.spells.meznoblur, 3)
+            common.swapSpell(class.spells.mezae, 4)
+            common.swapSpell(class.spells.dot, 5)
+            common.swapSpell(class.spells.dot2, 6)
+            common.swapSpell(class.spells.synergy, 7)
+            common.swapSpell(class.spells.nuke5, 8)
+            common.swapSpell(class.spells.composite, 9, composite_names)
+            common.swapSpell(class.spells.stunaerune, 10)
+            common.swapSpell(class.spells.guard, 11)
+            common.swapSpell(class.spells.nightsterror, 12)
+            common.swapSpell(class.spells.combatinnate, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         end
-        check_spell_timer:reset()
+        checkSpellTimer:reset()
     end
 end
 

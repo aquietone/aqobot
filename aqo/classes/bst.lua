@@ -5,21 +5,17 @@ local lists = require('data.lists')
 local common = require('common')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'bst'
-    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
-
+    class.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
     class.SPELLSETS = {standard=1}
-    class.addCommonOptions()
-    class.addCommonAbilities()
+    class.initBase(_aqo, 'bst')
+
+
     class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
     class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
     class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox')
     class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
+    class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox')
 
     class.addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
     class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}) -- pet haste
@@ -64,6 +60,11 @@ function class.init(_aqo)
     table.insert(class.healAbilities, class.spells.heal)
     table.insert(class.healAbilities, class.spells.petheal)
 
+    local postFD = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /stand ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
     table.insert(class.selfBuffs, class.spells.groupregen)
     table.insert(class.selfBuffs, class.spells.grouphp)
     table.insert(class.selfBuffs, class.spells.fero)
@@ -90,7 +91,7 @@ function class.init(_aqo)
     class.addRequestAlias(class.spells.groupregen, 'rejuv')
 end
 
-class.recover_class = function()
+class.recoverClass = function()
     local lowmana = mq.TLO.Group.LowMana(50)() or 0
     local groupSize = mq.TLO.Group.Members() or 0
     local needEnd = 0

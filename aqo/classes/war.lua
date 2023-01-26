@@ -6,20 +6,14 @@ local config = require('configuration')
 local state = require('state')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
+    class.classOrder = {'assist', 'mash', 'ae', 'burn', 'ohshit', 'recover', 'buff', 'rest'}
+    class.initBase(_aqo, 'war')
 
     -- What were these again?
     mq.cmd('/squelch /stick mod -2')
     mq.cmd('/squelch /stick set delaystrafe on')
 
-    class.class = 'war'
-    class.classOrder = {'assist', 'mash', 'ae', 'burn', 'ohshit', 'recover', 'buff', 'rest'}
-
     -- key label value options tip type
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('USEBATTLELEAP', 'Use Battle Leap', true, nil, 'Keep the Battle Leap AA Buff up', 'checkbox')
     class.addOption('USEFORTITUDE', 'Use Fortitude', false, nil, 'Use Fortitude Discipline on burn', 'checkbox')
     class.addOption('USEGRAPPLE', 'Use Grapple', true, nil, 'Use Grappling Strike AA', 'checkbox')
@@ -125,10 +119,10 @@ function class.init(_aqo)
     end
 end
 
-class.ohshit_class = function()
+class.ohShitClass = function()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         class.resurgence:use()
-        if config.MODE.value:is_tank_mode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.CombatAbilityReady(class.flash.name)() then
                 class.flash:use()
             elseif class.OPTS.USEFORTITUDE.value then

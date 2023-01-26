@@ -5,16 +5,10 @@ local timer = require('utils.timer')
 local common = require('common')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'dru'
-    class.classOrder = {'heal', 'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
-
+    class.classOrder = {'heal', 'assist', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
     class.SPELLSETS = {standard=1}
-    class.addCommonOptions()
-    class.addCommonAbilities()
+    class.initBase(_aqo, 'dru')
+
     class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', 'checkbox')
     class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
@@ -25,7 +19,7 @@ function class.init(_aqo)
     class.addSpell('firenuke', {'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
     class.addSpell('dot', {'Swarming Death', 'Winged Death'}, {opt='USEDOTS'})
     class.addSpell('dot2', {'Vengeance of the Sun'}, {opt='USEDOTS'})
-    class.addSpell('snare', {'Ensnare', 'Snare'})
+    class.addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
     class.addSpell('aura', {'Aura of Life', 'Aura of the Grove'})
     class.addSpell('pet', {'Nature Wanderer\'s Behest'})
     class.addSpell('reptile', {'Skin of the Reptile'}, {classes={MNK=true,WAR=true,PAL=true,SHD=true}})
@@ -56,8 +50,6 @@ function class.init(_aqo)
     -- nature's boon, 30min cd, healing ward
     -- nature's fury, 45min cd, improved damage
     -- nature's guardian, 22min  cd, temp pet
-
-    class.snare = class.spells.snare
 
     -- Aura of the Grove, Aura of the Grove Effect
 
@@ -96,7 +88,8 @@ function class.init(_aqo)
     table.insert(class.cures, class.radiant)
     table.insert(class.cures, class.rgc)
 
-    class.debuff = common.getAA('Blessing of Ro')
+    table.insert(class.debuffs, common.getAA('Blessing of Ro', {opt='USEDEBUFF'}))
+    table.insert(class.debuffs, class.spells.snare)
 
     class.nuketimer = timer:new(5)
 end

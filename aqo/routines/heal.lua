@@ -132,7 +132,7 @@ local function getHurt(opts)
         return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.PRIORITYTARGET.value) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
     elseif mostHurtPct < config.HOTHEALPCT.value and melees[mostHurtClass] and mostHurtDistance < 100 then
         local hotTimer = hottimers[mostHurtName]
-        if (not hotTimer or hotTimer:timer_expired()) then
+        if (not hotTimer or hotTimer:timerExpired()) then
             return mostHurtID, HEAL_TYPES.HOT
         end
     end
@@ -161,7 +161,7 @@ local function getHurt(opts)
             return mostHurtID, HEAL_TYPES.REGULAR
         elseif mostHurtPct < config.HOTHEALPCT.value and melees[mostHurtClass] and mostHurtDistance < 100 then
             local hotTimer = hottimers[mostHurtName]
-            if (not hotTimer or hotTimer:timer_expired()) then
+            if (not hotTimer or hotTimer:timerExpired()) then
                 return mostHurtID, HEAL_TYPES.HOT
             end
         end
@@ -305,7 +305,7 @@ healing.rez = function(rezAbility)
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if reztimer:timer_expired() and mq.TLO.Alert(0)() then mq.cmd('/alert clear 0') end
+    if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/alert clear 0') end
     if config.REZGROUP.value then
         if doRezFor(rezAbility, 'group') then return true end
     end

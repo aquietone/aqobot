@@ -2,11 +2,12 @@ local logger = {}
 
 local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax \aw'
 
-logger.log_flags = {
-    class={cast=false,mash=false,assist=false,tank=false,rest=false,recover=false,burn=false,heal=false,managepet=false},
-    routines={camp=false,assist=false,mez=false,pull=false,tank=false},
+logger.flags = {
+    routines={assist=false,buff=false,camp=false,cure=false,debuff=false,events=false,heal=false,mez=false,movement=false,pull=false,tank=false},
+    class={ae=false,aggro=false,burn=false,cast=false,findspell=false,managepet=false,mash=false,ohshit=false,recover=false,rest=false},
+    ability={validation=false,spell=false,aa=false,disc=false,item=false,skill=false},
     common={chase=false,cast=false,memspell=false,misc=false},
-    aqo={main=false},
+    aqo={main=false,commands=false,configuration=false},
 }
 
 function logger.logLine(...)

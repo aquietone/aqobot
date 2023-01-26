@@ -4,16 +4,10 @@ local class = require('classes.classbase')
 local common = require('common')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'clr'
-    class.classOrder = {'cure', 'heal', 'assist', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
-
     class.SPELLSETS = {standard=1}
-    class.addCommonOptions()
-    class.addCommonAbilities()
+    class.classOrder = {'cure', 'heal', 'assist', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
+    class.initBase(_aqo, 'clr')
+
     class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')
     class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
     class.addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox')
@@ -70,6 +64,7 @@ function class.init(_aqo)
     table.insert(class.cures, class.radiant)
     table.insert(class.cures, class.rgc)
 
+    table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
     -- Project Lazarus only
     local aaAura = common.getAA('Spirit Mastery', {checkfor='Aura of Pious Divinity'})
     if aaAura then

@@ -10,16 +10,8 @@ local state = require('state')
 local songs = {}
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    -- what was this again?
-    mq.cmd('/squelch /stick mod 0')
-
-    class.class = 'brd'
-    class.classOrder = {'assist', 'mez', 'assist', 'cast', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
-
+    class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
     if state.emu then
         class.SPELLSETS = {emuancient=1,emuaura65=1,emuaura55=1,emunoaura=1}
         class.DEFAULT_SPELLSET='emuancient'
@@ -27,10 +19,11 @@ function class.init(_aqo)
         class.SPELLSETS = {melee=1,caster=1,meleedot=1}
         class.DEFAULT_SPELLSET='melee'
     end
-    class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
+    class.initBase(_aqo, 'brd')
 
-    class.addCommonOptions()
-    class.addCommonAbilities()
+    -- what was this again?
+    mq.cmd('/squelch /stick mod 0')
+
     class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, nil, 'combobox')
     class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
     class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
@@ -79,20 +72,35 @@ function class.init(_aqo)
 
     if state.emu then
         class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
-        local emuancient = {
-            class.spells.selos, class.spells.overhaste, class.spells.pulse, class.spells.bardhaste, class.spells.suffering, class.spells.arcane--class.spells.chantflame
-        }
+        local emuancient = {}
+        table.insert(emuancient, class.spells.selos)
+        table.insert(emuancient, class.spells.chantflame)
+        table.insert(emuancient, class.spells.chantfrost)
+        table.insert(emuancient, class.spells.overhaste)
+        table.insert(emuancient, class.spells.suffering)
+        table.insert(emuancient, class.spells.pulse)
+        table.insert(emuancient, class.spells.bardhaste)
+        table.insert(emuancient, class.spells.arcane)
 
-        local emuaura65 = {
-            class.spells.selos, class.spells.pulse, class.spells.spiteful, class.spells.bardhaste, class.spells.emuhaste
-        }
+        local emuaura65 = {}
+        table.insert(emuancient, class.spells.selos)
+        table.insert(emuancient, class.spells.suffering)
+        table.insert(emuancient, class.spells.bardhaste)
+        table.insert(emuancient, class.spells.emuhaste)
 
-        local emuaura55 = {
-            class.spells.selos, class.spells.pulse, class.spells.overhaste, class.spells.bardhaste, class.spells.emuhaste
-        }
-        local emunoaura = {
-            class.spells.selos, class.spells.pulse, class.spells.overhaste, class.spells.emuhaste, class.spells.firenukebuff
-        }
+        local emuaura55 = {}
+        table.insert(emuancient, class.spells.selos)
+        table.insert(emuancient, class.spells.pulse)
+        table.insert(emuancient, class.spells.overhaste)
+        table.insert(emuancient, class.spells.bardhaste)
+        table.insert(emuancient, class.spells.emuhaste)
+
+        local emunoaura = {}
+        table.insert(emuancient, class.spells.selos)
+        table.insert(emuancient, class.spells.pulse)
+        table.insert(emuancient, class.spells.overhaste)
+        table.insert(emuancient, class.spells.emuhaste)
+        table.insert(emuancient, class.spells.firenukebuff)
 
         songs.emuancient = emuancient
         songs.emuaura65 = emuaura65
@@ -103,6 +111,7 @@ function class.init(_aqo)
         table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
 
         table.insert(class.burnAbilities, common.getAA('A Tune Stuck In Your Head'))
+        table.insert(class.burnAbilities, common.getBestDisc({'Puretone Discipline'}))
     else
         -- entries in the dots table are pairs of {spell id, spell name} in priority order
         local melee = {
@@ -163,7 +172,12 @@ function class.init(_aqo)
     table.insert(class.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
 
     -- Aggro
-    class.drop_aggro = common.getAA('Fading Memories')
+    local preFade = function() mq.cmd('/attack off') end
+    local postFade = function()
+        mq.delay(1000)
+        mq.cmd('/multiline ; /makemevis ; /attack on')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
 
     --table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
     --table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
@@ -183,22 +197,22 @@ function class.init(_aqo)
 
     class.selos = common.getAA('Selo\'s Sonata')
 
-    class.item_timer = timer:new(1)
+    class.itemTimer = timer:new(1)
 end
 
-local song_timer = timer:new(3)
-local selos_timer = timer:new(30)
-local crescendo_timer = timer:new(53)
-local boastful_timer = timer:new(30)
-local synergy_timer = timer:new(18)
+local songTimer = timer:new(3)
+local selosTimer = timer:new(30)
+local crescendoTimer = timer:new(53)
+local bellowTimer = timer:new(30)
+local synergyTimer = timer:new(18)
 
-class.reset_class_timers = function()
-    boastful_timer:reset(0)
-    synergy_timer:reset(0)
+class.resetClassTimers = function()
+    bellowTimer:reset(0)
+    synergyTimer:reset(0)
 end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
-local function try_alliance()
+local function tryAlliance()
     local alliance = class.spells.alliance and class.spells.alliance.name
     if class.OPTS.USEALLIANCE.value and alliance then
         if mq.TLO.Spell(alliance).Mana() > mq.TLO.Me.CurrentMana() then
@@ -206,31 +220,31 @@ local function try_alliance()
         end
         if mq.TLO.Me.Gem(alliance)() and mq.TLO.Me.GemTimer(alliance)() == 0  and not mq.TLO.Target.Buff(alliance)() and mq.TLO.Spell(alliance).StacksTarget() then
             class.spells.alliance:use()
-            song_timer:reset()
+            songTimer:reset()
             return true
         end
     end
     return false
 end
 
-local function cast_synergy()
+local function castSynergy()
     -- don't nuke if i'm not attacking
     local synergy = class.spells.insult and class.spells.insult.name
-    if class.OPTS.USEINSULTS.value and synergy_timer:timer_expired() and synergy and mq.TLO.Me.Combat() then
+    if class.OPTS.USEINSULTS.value and synergyTimer:timerExpired() and synergy and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(synergy)() and mq.TLO.Me.GemTimer(synergy)() == 0 then
             if mq.TLO.Spell(synergy).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
             end
             class.spells.insult:use()
-            song_timer:reset()
-            synergy_timer:reset()
+            songTimer:reset()
+            synergyTimer:reset()
             return true
         end
     end
     return false
 end
 
-local function is_dot_ready(spellId, spellName)
+local function isDotReady(spellId, spellName)
     -- don't dot if i'm not attacking
     if not spellName or not mq.TLO.Me.Combat() then return false end
     local actualSpellName = spellName
@@ -239,16 +253,16 @@ local function is_dot_ready(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() ~= 0  then
         return false
     end
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.assist_mob_id or mq.TLO.Target.Type() == 'Corpse' then return false end
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= state.assistMobID or mq.TLO.Target.Type() == 'Corpse' then return false end
 
     songDuration = mq.TLO.Target.MyBuffDuration(actualSpellName)()
-    if not common.is_target_dotted_with(spellId, actualSpellName) then
+    if not common.isTargetDottedWith(spellId, actualSpellName) then
         -- target does not have the dot, we are ready
-        logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
+        logger.debug(logger.flags.class.cast, 'song ready %s', spellName)
         return true
     else
         if not songDuration then
-            logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
+            logger.debug(logger.flags.class.cast, 'song ready %s', spellName)
             return true
         end
     end
@@ -256,51 +270,51 @@ local function is_dot_ready(spellId, spellName)
     return false
 end
 
-local function is_song_ready(spellId, spellName)
+local function isSongReady(spellId, spellName)
     if not spellName then return false end
     local actualSpellName = spellName
     if state.subscription ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and state.loop.PctMana < state.min_mana) then
+    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and state.loop.PctMana < state.minMana) then
         return false
     end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and state.loop.PctEndurance < state.min_end) then
+    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and state.loop.PctEndurance < state.minEndurance) then
         return false
     end
     if mq.TLO.Spell(spellName).TargetType() == 'Single' then
-        return is_dot_ready(spellId, spellName)
+        return isDotReady(spellId, spellName)
     end
 
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spellName == (class.spells.crescendo and class.spells.crescendo.name) and (mq.TLO.Me.Buff(actualSpellName)() or not crescendo_timer:timer_expired()) then
+    if spellName == (class.spells.crescendo and class.spells.crescendo.name) and (mq.TLO.Me.Buff(actualSpellName)() or not crescendoTimer:timerExpired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
 
     local songDuration = mq.TLO.Me.Song(actualSpellName).Duration() or mq.TLO.Me.Buff(actualSpellName).Duration()
     if not songDuration then
-        logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
+        logger.debug(logger.flags.class.cast, 'song ready %s', spellName)
         return true
     else
         local cast_time = mq.TLO.Spell(spellName).MyCastTime()
         if songDuration < cast_time +500 then
-            logger.debug(logger.log_flags.class.cast, 'song ready %s', spellName)
+            logger.debug(logger.flags.class.cast, 'song ready %s', spellName)
         end
         return songDuration < cast_time + 500
     end
 end
 
-local function find_next_song()
-    if try_alliance() then return nil end
-    if cast_synergy() then return nil end
+local function findNextSong()
+    if tryAlliance() then return nil end
+    if castSynergy() then return nil end
     if not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value and ((mq.TLO.Target.PctHPs() or 100) < 30) then
         return class.spells.snare
     end
     for _,song in ipairs(songs[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.id
         local song_name = song.name
-        if is_song_ready(song_id, song_name) and class.isAbilityEnabled(song.opt) then
+        if isSongReady(song_id, song_name) and class.isAbilityEnabled(song.opt) then
             if song_name ~= (class.spells.composite and class.spells.composite.name) or mq.TLO.Target() then
                 return song
             end
@@ -311,7 +325,7 @@ end
 
 class.cast = function()
     if class.OPTS.USETWIST.value then return false end
-    if not state.loop.Invis and class.can_i_sing() and class.item_timer:timer_expired() then
+    if not state.loop.Invis and class.doneSinging() and class.itemTimer:timerExpired() then
         for _,clicky in ipairs(class.castClickies) do
             if (clicky.duration > 0 and mq.TLO.Target.Buff(clicky.checkfor)()) or
                     (clicky.casttime >= 0 and mq.TLO.Me.Moving()) then
@@ -319,7 +333,7 @@ class.cast = function()
                 if clicky:use() then return end
             end
         end
-        local spell = find_next_song() -- find the first available dot to cast that is missing from the target
+        local spell = findNextSong() -- find the first available dot to cast that is missing from the target
         if spell then -- if a dot was found
             local did_cast = false
             if mq.TLO.Spell(spell.name).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
@@ -327,8 +341,8 @@ class.cast = function()
             else
                 did_cast = spell:use() -- then cast the dot
             end
-            if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then song_timer:reset() class.item_timer:reset() end
-            if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendo_timer:reset() end
+            if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then songTimer:reset() class.itemTimer:reset() end
+            if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendoTimer:reset() end
             return true
         end
     end
@@ -337,39 +351,39 @@ end
 
 local fierceeye = common.getAA('Fierce Eye')
 local epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')
-local function use_epic()
+local function useEpic()
     if not fierceeye or not epic then
         if fierceeye then fierceeye:use() end
         if epic then epic:use() end
         return
     end
     local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
-    if mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy and class.item_timer:timer_expired() then
+    if mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy and class.itemTimer:timerExpired() then
         fierceeye:use()
         epic:use()
-        class.item_timer:reset()
+        class.itemTimer:reset()
     end
 end
 
-class.mash_class = function()
+class.mashClass = function()
     if class.OPTS.USEEPIC.value == 'always' or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
-        use_epic()
+        useEpic()
     end
 
-    if class.OPTS.USEBELLOW.value and class.bellow and boastful_timer:timer_expired() and class.bellow:use() then
-        boastful_timer:reset()
+    if class.OPTS.USEBELLOW.value and class.bellow and bellowTimer:timerExpired() and class.bellow:use() then
+        bellowTimer:reset()
     end
 end
 
-class.burn_class = function()
+class.burnClass = function()
     if class.OPTS.USEEPIC.value == 'burn' then
-        use_epic()
+        useEpic()
     end
 end
 
 class.hold = function()
     if class.rallyingsolo and (mq.TLO.Me.Song(class.rallyingsolo.name)() or mq.TLO.Me.Buff(class.rallyingsolo.name)()) then
-        if state.mob_count >= 3 then
+        if state.mobCount >= 3 then
             return false
         elseif mq.TLO.Target() and mq.TLO.Target.Named() then
             return false
@@ -390,74 +404,74 @@ class.invis = function()
 end
 
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
-local check_spell_timer = timer:new(30)
-class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if not class.can_i_sing() then return end
-    if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+local checkSpellTimer = timer:new(30)
+class.checkSpellSet = function()
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
+    if not class.doneSinging() then return end
+    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'melee' then
-            common.swap_spell(class.spells.aria, 1)
-            common.swap_spell(class.spells.arcane, 2)
-            common.swap_spell(class.spells.spiteful, 3)
-            common.swap_spell(class.spells.suffering, 4)
-            common.swap_spell(class.spells.insult, 5)
-            common.swap_spell(class.spells.warmarch, 6)
-            common.swap_spell(class.spells.sonata, 7)
-            common.swap_spell(class.spells.mezst, 8)
-            common.swap_spell(class.spells.mezae, 9)
-            common.swap_spell(class.spells.crescendo, 10)
-            common.swap_spell(class.spells.pulse, 11)
-            common.swap_spell(class.spells.composite, 12, composite_names)
-            common.swap_spell(class.spells.dirge, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.aria, 1)
+            common.swapSpell(class.spells.arcane, 2)
+            common.swapSpell(class.spells.spiteful, 3)
+            common.swapSpell(class.spells.suffering, 4)
+            common.swapSpell(class.spells.insult, 5)
+            common.swapSpell(class.spells.warmarch, 6)
+            common.swapSpell(class.spells.sonata, 7)
+            common.swapSpell(class.spells.mezst, 8)
+            common.swapSpell(class.spells.mezae, 9)
+            common.swapSpell(class.spells.crescendo, 10)
+            common.swapSpell(class.spells.pulse, 11)
+            common.swapSpell(class.spells.composite, 12, composite_names)
+            common.swapSpell(class.spells.dirge, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         elseif class.OPTS.SPELLSET.value == 'caster' then
-            common.swap_spell(class.spells.aria, 1)
-            common.swap_spell(class.spells.arcane, 2)
-            common.swap_spell(class.spells.firenukebuff, 3)
-            common.swap_spell(class.spells.suffering, 4)
-            common.swap_spell(class.spells.insult, 5)
-            common.swap_spell(class.spells.warmarch, 6)
-            common.swap_spell(class.spells.firemagicdotbuff, 7)
-            common.swap_spell(class.spells.mezst, 8)
-            common.swap_spell(class.spells.mezae, 9)
-            common.swap_spell(class.spells.crescendo, 10)
-            common.swap_spell(class.spells.pulse, 11)
-            common.swap_spell(class.spells.composite, 12, composite_names)
-            common.swap_spell(class.spells.dirge, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.aria, 1)
+            common.swapSpell(class.spells.arcane, 2)
+            common.swapSpell(class.spells.firenukebuff, 3)
+            common.swapSpell(class.spells.suffering, 4)
+            common.swapSpell(class.spells.insult, 5)
+            common.swapSpell(class.spells.warmarch, 6)
+            common.swapSpell(class.spells.firemagicdotbuff, 7)
+            common.swapSpell(class.spells.mezst, 8)
+            common.swapSpell(class.spells.mezae, 9)
+            common.swapSpell(class.spells.crescendo, 10)
+            common.swapSpell(class.spells.pulse, 11)
+            common.swapSpell(class.spells.composite, 12, composite_names)
+            common.swapSpell(class.spells.dirge, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         elseif class.OPTS.SPELLSET.value == 'meleedot' then
-            common.swap_spell(class.spells.aria, 1)
-            common.swap_spell(class.spells.chantflame, 2)
-            common.swap_spell(class.spells.chantfrost, 3)
-            common.swap_spell(class.spells.suffering, 4)
-            common.swap_spell(class.spells.insult, 5)
-            common.swap_spell(class.spells.warmarch, 6)
-            common.swap_spell(class.spells.chantdisease, 7)
-            common.swap_spell(class.spells.mezst, 8)
-            common.swap_spell(class.spells.mezae, 9)
-            common.swap_spell(class.spells.crescendo, 10)
-            common.swap_spell(class.spells.pulse, 11)
-            common.swap_spell(class.spells.composite, 12, composite_names)
-            common.swap_spell(class.spells.dirge, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.aria, 1)
+            common.swapSpell(class.spells.chantflame, 2)
+            common.swapSpell(class.spells.chantfrost, 3)
+            common.swapSpell(class.spells.suffering, 4)
+            common.swapSpell(class.spells.insult, 5)
+            common.swapSpell(class.spells.warmarch, 6)
+            common.swapSpell(class.spells.chantdisease, 7)
+            common.swapSpell(class.spells.mezst, 8)
+            common.swapSpell(class.spells.mezae, 9)
+            common.swapSpell(class.spells.crescendo, 10)
+            common.swapSpell(class.spells.pulse, 11)
+            common.swapSpell(class.spells.composite, 12, composite_names)
+            common.swapSpell(class.spells.dirge, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         else -- emu spellsets
-            common.swap_spell(class.spells.emuaura, 1)
-            common.swap_spell(class.spells.pulse, 2)
-            common.swap_spell(class.spells.emuhaste, 3)
-            common.swap_spell(class.spells.suffering, 4)
-            common.swap_spell(class.spells.firenukebuff, 5)
-            common.swap_spell(class.spells.bardhaste, 6)
-            common.swap_spell(class.spells.overhaste, 7)
-            common.swap_spell(class.spells.selos, 8)
-            --common.swap_spell(class.spells.snare, 9)
-            --common.swap_spell(class.spells.chantflame, 10)
+            common.swapSpell(class.spells.emuaura, 1)
+            common.swapSpell(class.spells.pulse, 2)
+            common.swapSpell(class.spells.emuhaste, 3)
+            common.swapSpell(class.spells.suffering, 4)
+            common.swapSpell(class.spells.firenukebuff, 5)
+            common.swapSpell(class.spells.bardhaste, 6)
+            common.swapSpell(class.spells.overhaste, 7)
+            common.swapSpell(class.spells.selos, 8)
+            --common.swapSpell(class.spells.snare, 9)
+            --common.swapSpell(class.spells.chantflame, 10)
         end
-        check_spell_timer:reset()
+        checkSpellTimer:reset()
     end
 end
 -- aura, chorus, war march, storm, rizlonas, verse, ancient,selos, chant flame, echoes, nivs
 
-class.pull_func = function()
+class.pullCustom = function()
     if class.fluxstaff then
         class.fluxstaff:use()
     elseif class.sonic then
@@ -465,13 +479,13 @@ class.pull_func = function()
     end
 end
 
-class.can_i_sing = function()
+class.doneSinging = function()
     if class.OPTS.USETWIST.value then return true end
-    if song_timer:timer_expired() or mq.TLO.Me.CastTimeLeft() > 4000 then
+    if songTimer:timerExpired() or mq.TLO.Me.CastTimeLeft() > 4000 then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
-        if not class.spells.selos and class.selos and selos_timer:timer_expired() then
+        if not class.spells.selos and class.selos and selosTimer:timerExpired() then
             class.selos:use()
-            selos_timer:reset()
+            selosTimer:reset()
         end
         return true
     end

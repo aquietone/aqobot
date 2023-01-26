@@ -5,21 +5,15 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'ber'
     class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.initBase(_aqo, 'ber')
 
-    class.addCommonOptions()
-    class.addCommonAbilities()
     if state.emu then
         class.addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox')
     end
 
     table.insert(class.DPSAbilities, common.getItem('Raging Taelosian Alloy Axe'))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))
+    --table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))
     table.insert(class.DPSAbilities, common.getSkill('Frenzy'))
     table.insert(class.DPSAbilities, common.getBestDisc({'Destroyer\'s Volley', 'Rage Volley'}))
     table.insert(class.DPSAbilities, common.getBestDisc({'Confusing Strike'}))
@@ -62,6 +56,8 @@ function class.init(_aqo)
     table.insert(class.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 
     table.insert(class.selfBuffs, common.getBestDisc({'Bonesplicer Axe'}, {summons='Bonesplicer Axe', summonMinimum=101, summonComponent='Axe Components'}))
+
+    table.insert(class.fadeAbilities, common.getAA('Self Preservation'))
 end
 
 return class

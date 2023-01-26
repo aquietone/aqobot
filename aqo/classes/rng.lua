@@ -11,19 +11,12 @@ local config = require('configuration')
 local state = require('state')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
+    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest'}
+    class.SPELLSETS = {standard=1}
+    class.initBase(_aqo, 'rng')
 
     mq.cmd('/squelch /stick mod 0')
 
-    class.class = 'rng'
-    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'heal', 'aggro', 'recover', 'buff', 'rest'}
-
-    class.SPELLSETS = {standard=1}
-
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
     class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
     class.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
@@ -69,8 +62,8 @@ function class.init(_aqo)
     class.addSpell('ds', {'Shield of Shadethorns'}) -- DS
     class.addSpell('rune', {'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
     class.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
-    class.addSpell('snare', {'Ensnare', 'Snare'})
-    class.addSpell('dispel', {'Nature\'s Balance'})
+    class.addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
+    class.addSpell('dispel', {'Nature\'s Balance'}, {opt='USEDISPEL'})
 
     -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
     class.arrow_spells = {}
@@ -121,22 +114,21 @@ function class.init(_aqo)
 
     table.insert(class.DPSAbilities, common.getAA('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
 
-    table.insert(class.DPSAbilities, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
     table.insert(class.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
     table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
     -- table.insert(mashDiscs, common.getAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
 
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
 
-    class.dispel = common.getAA('Entropy of Nature') or class.spells.dispel -- dispel 9 slots
-    class.snare = common.getAA('Entrap')
-    class.fade = common.getAA('Cover Tracks')
-    class.evasion = common.getAA('Outrider\'s Evasion') -- 7min cd, 85% avoidance, 10% absorb
+    table.insert(class.debuffs, common.getAA('Entropy of Nature', {opt='USEDISPEL'}) or class.spells.dispel)
+    table.insert(class.debuffs, common.getAA('Entrap', {opt='USESNARE'}) or class.spells.snare)
+
+    table.insert(class.fadeAbilities, common.getAA('Cover Tracks'))
+    table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
+    table.insert(class.aggroReducers, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
     table.insert(class.selfBuffs, common.getAA('Outrider\'s Evasion'))
-    class.brownies = common.getAA('Bulwark of the Brownies') -- 10m cd, 4min buff procs 100% parry below 50% HP
-    table.insert(class.selfBuffs, common.getAA('Bulwark of the Brownies'))
-    class.chameleon = common.getAA('Chameleon\'s Gift') -- 5min cd, 3min buff procs hate reduction below 50% HP
-    table.insert(class.selfBuffs, common.getAA('Chameleon\'s Gift'))
+    table.insert(class.selfBuffs, common.getAA('Bulwark of the Brownies')) -- 10m cd, 4min buff procs 100% parry below 50% HP
+    table.insert(class.selfBuffs, common.getAA('Chameleon\'s Gift')) -- 5min cd, 3min buff procs hate reduction below 50% HP
     class.protection = common.getAA('Protection of the Spirit Wolf') -- 20min cd, large rune
     class.unity_azia = common.getAA('Wildstalker\'s Unity (Azia)')
     --Slot 1: 	Devastating Barrage
@@ -176,25 +168,25 @@ function class.init(_aqo)
     class.addRequestAlias(class.spells.strength, 'strength')
 end
 
-local ranged_timer = timer:new(5)
-class.reset_class_timers = function()
-    ranged_timer:reset(0)
+local rangedTimer = timer:new(5)
+class.resetClassTimers = function()
+    rangedTimer:reset(0)
 end
 
-local function get_ranged_combat_position(radius)
-    if not ranged_timer:timer_expired() then return false end
-    ranged_timer:reset()
-    local assist_mob_id = state.assist_mob_id
-    local mob_x = mq.TLO.Spawn('id '..assist_mob_id).X()
-    local mob_y = mq.TLO.Spawn('id '..assist_mob_id).Y()
-    local mob_z = mq.TLO.Spawn('id '..assist_mob_id).Z()
-    local degrees = mq.TLO.Spawn('id '..assist_mob_id).Heading.Degrees()
+local function getRangedCombatPosition(radius)
+    if not rangedTimer:timerExpired() then return false end
+    rangedTimer:reset()
+    local assistMobID = state.assistMobID
+    local mob_x = mq.TLO.Spawn('id '..assistMobID).X()
+    local mob_y = mq.TLO.Spawn('id '..assistMobID).Y()
+    local mob_z = mq.TLO.Spawn('id '..assistMobID).Z()
+    local degrees = mq.TLO.Spawn('id '..assistMobID).Heading.Degrees()
     if not mob_x or not mob_y or not mob_z or not degrees then return false end
     local my_heading = degrees
     local base_radian = 10
     for i=1,36 do
-        local x_move = math.cos(math.rad(common.convert_heading(base_radian * i + my_heading)))
-        local y_move = math.sin(math.rad(common.convert_heading(base_radian * i + my_heading)))
+        local x_move = math.cos(math.rad(common.convertHeading(base_radian * i + my_heading)))
+        local y_move = math.sin(math.rad(common.convertHeading(base_radian * i + my_heading)))
         local x_off = mob_x + radius * x_move
         local y_off = mob_y + radius * y_move
         local z_off = mob_z
@@ -218,7 +210,7 @@ end
 -- false invalid, true valid
 ---Determine whether the target is in front.
 ---@return boolean @Returns true if the spawn is in front, otherwise false.
-local function check_mob_angle()
+local function checkMobAngle()
     local left = mq.TLO.Me.Heading.Degrees() - 45
     local right = mq.TLO.Me.Heading.Degrees() + 45
     local mob_heading = mq.TLO.Target.HeadingTo
@@ -234,8 +226,8 @@ local function check_mob_angle()
     return true
 end
 
-local function attack_range()
-    if state.assist_mob_id == 0 or mq.TLO.Target.ID() ~= state.assist_mob_id or not assist.should_assist() then
+local function attackRanged()
+    if state.assistMobID == 0 or mq.TLO.Target.ID() ~= state.assistMobID or not assist.shouldAssist() then
         if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
         return
     end
@@ -243,7 +235,7 @@ local function attack_range()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     if not state.emu then
         if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
-            if not get_ranged_combat_position(40) then
+            if not getRangedCombatPosition(40) then
                 return false
             end
         end
@@ -254,7 +246,7 @@ local function attack_range()
     end
     --movement.stop()
     if mq.TLO.Target() then
-        if not check_mob_angle() then
+        if not checkMobAngle() then
             mq.cmd('/squelch /face fast')
         end
         if not mq.TLO.Me.AutoFire() then
@@ -264,9 +256,9 @@ local function attack_range()
     return true
 end
 
-local function use_opener()
+local function useOpener()
     if mq.TLO.Me.CombatState() == 'COMBAT' or not class.spells.opener then return end
-    if assist.should_assist() and state.assist_mob_id > 0 and class.spells.opener.name and mq.TLO.Me.SpellReady(class.spells.opener.name)() then
+    if assist.shouldAssist() and state.assistMobID > 0 and class.spells.opener.name and mq.TLO.Me.SpellReady(class.spells.opener.name)() then
         class.spells.opener:use()
     end
 end
@@ -277,32 +269,32 @@ end
     3. dicho -- strong arrow spell
     4. wildfire spam
 ]]--
-local function find_next_spell()
+local function findNextSpell()
     local tothp = mq.TLO.Me.TargetOfTarget.PctHPs()
     if tothp and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.TargetOfTarget() and tothp < 65 then
         for _,spell in ipairs(class.combat_heal_spells) do
-            if common.is_spell_ready(spell) then
+            if common.isSpellReady(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(class.dot_spells) do
-        if spell.name ~= class.spells.dot.name or class.OPTS.USEDOT.value or (state.burn_active and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS.value and common.is_named(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
-            if common.is_spell_ready(spell) then
+        if spell.name ~= class.spells.dot.name or class.OPTS.USEDOT.value or (state.burnActive and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS.value and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
+            if common.isSpellReady(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(class.arrow_spells) do
         if not class.spells.composite or spell.name ~= class.spells.composite.name or class.OPTS.USECOMPOSITE.value then
-            if common.is_spell_ready(spell) then
+            if common.isSpellReady(spell) then
                 return spell
             end
         end
     end
     if class.OPTS.USENUKES.value then
         for _,spell in ipairs(class.dd_spells) do
-            if common.is_spell_ready(spell) then
+            if common.isSpellReady(spell) then
                 return spell
             end
         end
@@ -313,7 +305,7 @@ end
 local snared_id = 0
 class.cast = function()
     if not state.loop.Invis and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if assist.is_fighting() then
+        if assist.isFighting() then
             if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value then
                 class.spells.snare:use()
                 snared_id = mq.TLO.Target.ID()
@@ -326,7 +318,7 @@ class.cast = function()
                     if clicky:use() then return end
                 end
             end
-            local spell = find_next_spell()
+            local spell = findNextSpell()
             if spell then
                 spell:use()
                 return true
@@ -352,7 +344,7 @@ end
     14. bulwark of the brownies
     15. scarlet cheetah fang
 ]]--
-class.burn_class = function()
+class.burnClass = function()
     if mq.TLO.Me.Combat() then
         for _,disc in ipairs(class.meleeBurnDiscs) do
             disc:use()
@@ -364,28 +356,19 @@ class.burn_class = function()
     end
 end
 
--- fade -- cover tracks
--- evasion -- 7min cd, 30sec buff, avoidance
---local check_aggro_timer = timer:new(10)
-class.aggro = function()
-    if state.loop.PctHPs < 50 then
-        if class.evasion then class.evasion:use() end
-        if config.MODE.value:return_to_camp() then
+class.aggroClass = function()
+    if (mq.TLO.Me.PctAggro() or 0) > 95 then
+        -- Pause attacking if aggro is too high
+        mq.cmd('/multiline ; /attack off ; /autofire off')
+        mq.delay(5000, function() return mq.TLO.Me.PctAggro() <= 75 end)
+        if class.isEnabled('USERANGE') then mq.cmd('/autofire on') else mq.cmd('/attack on') end
+    end
+    if state.loop.PctHPs < 50 and class.isEnabled('USERANGE') then
+        -- If ranged, we might be in some bad position aggroing extra stuff, return to camp
+        if config.MODE.value:isReturnToCampMode() then
             movement.navToLoc(camp.X, camp.Y, camp.Z)
         end
     end
-    --[[
-    if OPTS.USEFADE and common.is_fighting() and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or check_aggro_timer:timer_expired() then
-            if mq.TLO.Me.PctAggro() >= 70 then
-                fade:use()
-                check_aggro_timer:reset()
-                mq.delay(1000)
-                mq.cmd('/makemevis')
-            end
-        end
-    end
-    ]]--
 end
 
 local function missing_unity_buffs(name)
@@ -424,9 +407,9 @@ local function target_missing_buff(name)
     return false
 end
 
-local group_buff_timer = timer:new(60)
+local groupBuffTimer = timer:new(60)
 class.buff_classb = function()
-    common.check_combat_buffs()
+    common.checkCombatBuffs()
     if class.brownies and not mq.TLO.Me.Buff(class.brownies.name)() then
         class.brownies:use()
     end
@@ -435,7 +418,7 @@ class.buff_classb = function()
         mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
         class.chameleon:use()
     end
-    if not common.clear_to_buff() or mq.TLO.Me.AutoFire() then return end
+    if not common.clearToBuff() or mq.TLO.Me.AutoFire() then return end
     --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
 
     if class.OPTS.USEPOISONARROW.value then
@@ -448,7 +431,7 @@ class.buff_classb = function()
         end
     end
 
-    common.check_item_buffs()
+    common.checkItemBuffs()
 
     -- ranger unity aa
     if class.unity_azia and class.OPTS.USEUNITYAZIA.value then
@@ -472,7 +455,7 @@ class.buff_classb = function()
     if class.OPTS.USEREGEN.value and class.spells.regen and not mq.TLO.Me.Buff(class.spells.regen.name)() then
         mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
         mq.delay(500)
-        if common.swap_and_cast(class.spells.regen, 13) then return end
+        if common.swapAndCast(class.spells.regen, 13) then return end
     end
 
     if class.OPTS.DSTANK.value then
@@ -483,13 +466,13 @@ class.buff_classb = function()
                     tank_spawn.DoTarget()
                     mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
                     if target_missing_buff(class.spells.ds.name) then
-                        if common.swap_and_cast(class.spells.ds, 13) then return end
+                        if common.swapAndCast(class.spells.ds, 13) then return end
                     end
                 end
             end
         end
     end
-    if class.OPTS.BUFFGROUP.value and group_buff_timer:timer_expired() then
+    if class.OPTS.BUFFGROUP.value and groupBuffTimer:timerExpired() then
         if mq.TLO.Group.Members() then
             for i=1,mq.TLO.Group.Members() do
                 local group_member = mq.TLO.Group.Member(i).Spawn
@@ -512,47 +495,47 @@ class.buff_classb = function()
                 end
             end
         end
-        group_buff_timer:reset()
+        groupBuffTimer:reset()
     end
 end
 
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
-local check_spell_timer = timer:new(30)
-class.check_spell_set = function()
-    if not common.clear_to_buff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if state.spellset_loaded ~= class.OPTS.SPELLSET.value or check_spell_timer:timer_expired() then
+local checkSpellTimer = timer:new(30)
+class.checkSpellSet = function()
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
+    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then
-            common.swap_spell(class.spells.shots, 1)
-            common.swap_spell(class.spells.focused, 2)
-            common.swap_spell(class.spells.composite, 3, composite_names)
-            common.swap_spell(class.spells.heart, 4)
-            common.swap_spell(class.spells.opener, 5)
-            common.swap_spell(class.spells.summer, 6)
-            common.swap_spell(class.spells.healtot, 7)
-            common.swap_spell(class.spells.rune, 8)
-            common.swap_spell(class.spells.dot, 9)
-            common.swap_spell(class.spells.dotds, 10)
-            common.swap_spell(class.spells.dmgbuff, 12)
-            common.swap_spell(class.spells.buffs, 13)
-            state.spellset_loaded = class.OPTS.SPELLSET.value
+            common.swapSpell(class.spells.shots, 1)
+            common.swapSpell(class.spells.focused, 2)
+            common.swapSpell(class.spells.composite, 3, composite_names)
+            common.swapSpell(class.spells.heart, 4)
+            common.swapSpell(class.spells.opener, 5)
+            common.swapSpell(class.spells.summer, 6)
+            common.swapSpell(class.spells.healtot, 7)
+            common.swapSpell(class.spells.rune, 8)
+            common.swapSpell(class.spells.dot, 9)
+            common.swapSpell(class.spells.dotds, 10)
+            common.swapSpell(class.spells.dmgbuff, 12)
+            common.swapSpell(class.spells.buffs, 13)
+            state.spellSetLoaded = class.OPTS.SPELLSET.value
         end
-        check_spell_timer:reset()
+        checkSpellTimer:reset()
     end
 end
 
 class.assist = function()
     if mq.TLO.Navigation.Active() then return end
-    if config.MODE.value:is_assist_mode() then
-        assist.check_target(class.reset_class_timers)
-        use_opener()
+    if config.MODE.value:isAssistMode() then
+        assist.checkTarget(class.resetClassTimers)
+        useOpener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
         if state.loop.PctHPs > 40 then
-            if not class.OPTS.USERANGE.value or not attack_range() then
+            if not class.OPTS.USERANGE.value or not attackRanged() then
                 if class.OPTS.USEMELEE.value then assist.attack() end
             end
         end
-        assist.send_pet()
+        assist.sendPet()
     end
 end
 

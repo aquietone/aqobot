@@ -324,7 +324,7 @@ end
 local function lootCorpse(corpseID)
     loot.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
-    if mq.TLO.Me.FreeInventory() <= loot.SaveBagSlots and loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax My bags are full, I can\'t loot anymore!\ay%s\ax', loot.LootChannel) end
+    if mq.TLO.Me.FreeInventory() <= loot.SaveBagSlots and loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax My bags are full, I can\'t loot anymore!', loot.LootChannel) end
     for i=1,3 do
         mq.cmd('/loot')
         mq.delay(1000, function() return mq.TLO.Window('LootWnd').Open() end)
@@ -379,16 +379,16 @@ local function lootCorpse(corpseID)
                     else
                         lootItem(i, getRule(corpseItem), 'leftmouseup')
                     end
-                else
-                    table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
+                --else
+                --    table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
         if #noDropItems > 0 then
-            local noDropList = '/gu NoDrop Items (%s - %s)'
+            local noDropList = '/gu NoDrop Items (%s - %s) '
             for _,noDropItem in ipairs(noDropItems) do
-                noDropList = noDropList .. noDropItem
+                noDropList = noDropList .. ' ' .. noDropItem
             end
             mq.cmdf(noDropList, corpseName, corpseID)
         end

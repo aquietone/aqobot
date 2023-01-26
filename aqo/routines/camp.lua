@@ -25,7 +25,7 @@ end
 local function campPredicate(spawn)
     if spawn.Type() ~= 'NPC' then return false end
     local x, y, z
-    if not camp.Active or config.MODE.value:get_name() == 'huntertank' then
+    if not camp.Active or config.MODE.value:getName() == 'huntertank' then
         x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     else
         x, y, z = camp.X, camp.Y, camp.Z
@@ -37,29 +37,29 @@ local xtar_count = 'xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_spawn = '%d, xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
 ---Determine the number of mobs within the camp radius.
----Sets common.MOB_COUNT to the total number of mobs on xtarget within the camp radius.
+---Sets common.mobCount to the total number of mobs on xtarget within the camp radius.
 ---Adds the mob ID of each mob found to the common.TARGETS table.
-camp.mob_radar = function()
+camp.mobRadar = function()
     local x, y, z
-    if not camp.Active or config.MODE.value:get_name() == 'huntertank' then
+    if not camp.Active or config.MODE.value:getName() == 'huntertank' then
         x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     else
         x, y, z = camp.X, camp.Y, camp.Z
     end
-    logger.debug(logger.log_flags.routines.camp, xtar_count:format(config.CAMPRADIUS.value or 0, x, y, z))
-    state.mob_count = mq.TLO.SpawnCount(xtar_count:format(config.CAMPRADIUS.value or 0, x, y, z))()
-    state.mob_count_nopet = mq.TLO.SpawnCount(xtar_nopet_count:format(config.CAMPRADIUS.value or 0, x, y, z))()
-    if state.mob_count > 0 then
-        for i=1,state.mob_count do
+    logger.debug(logger.flags.routines.camp, xtar_count:format(config.CAMPRADIUS.value or 0, x, y, z))
+    state.mobCount = mq.TLO.SpawnCount(xtar_count:format(config.CAMPRADIUS.value or 0, x, y, z))()
+    state.mobCountNoPets = mq.TLO.SpawnCount(xtar_nopet_count:format(config.CAMPRADIUS.value or 0, x, y, z))()
+    if state.mobCount > 0 then
+        for i=1,state.mobCount do
             if i > 13 then break end
-            logger.debug(logger.log_flags.routines.camp, xtar_spawn:format(i, config.CAMPRADIUS.value or 0, x, y, z))
+            logger.debug(logger.flags.routines.camp, xtar_spawn:format(i, config.CAMPRADIUS.value or 0, x, y, z))
             local mob = mq.TLO.NearestSpawn(xtar_spawn:format(i, config.CAMPRADIUS.value or 0, x, y, z))
             local mob_id = mob.ID()
             if mob_id and mob_id > 0 then
                 if not mob() or mob.Type() == 'Corpse' then
                     state.targets[mob_id] = nil
                 elseif not state.targets[mob_id] then
-                    logger.debug(logger.log_flags.routines.camp, 'Adding mob_id %d', mob_id)
+                    logger.debug(logger.flags.routines.camp, 'Adding mob_id %d', mob_id)
                     state.targets[mob_id] = {meztimer=timer:new(30)}
                 end
             end
@@ -68,7 +68,7 @@ camp.mob_radar = function()
 end
 
 ---Checks for any mobs in common.TARGETS which are no longer valid and removes them from the table.
-camp.clean_targets = function()
+camp.cleanTargets = function()
     for mobid,_ in pairs(state.targets) do
         local spawn = mq.TLO.Spawn(string.format('id %s', mobid))
         if not spawn() or spawn.Type() == 'Corpse' then
@@ -78,15 +78,15 @@ camp.clean_targets = function()
 end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
-camp.check_camp = function()
-    if not config.MODE.value:return_to_camp() or not camp.Active then return end
-    if mq.TLO.Me.Casting() or not common.clear_to_buff() then return end
+camp.checkCamp = function()
+    if not config.MODE.value:isReturnToCampMode() or not camp.Active then return end
+    if mq.TLO.Me.Casting() or not common.clearToBuff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
         print(logger.logLine('Clearing camp due to zoning.'))
         camp.Active = false
         return
     end
-    if common.check_distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15 then
+    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15 then
         movement.navToLoc(camp.X, camp.Y, camp.Z)
     end
 end
@@ -96,19 +96,19 @@ end
 ---@param camp_y number @
 ---@param heading number @The MQ heading degrees pointing to where to draw the maploc.
 ---@param color string @The color input to the /maploc command.
-local function draw_maploc(camp_x, camp_y, camp_z, heading, color)
+local function drawMapLoc(camp_x, camp_y, camp_z, heading, color)
     if heading < 0 then
         heading = 360 - heading
     elseif heading > 360 then
         heading = heading - 360
     end
-    local x_move = math.cos(math.rad(common.convert_heading(heading)))
+    local x_move = math.cos(math.rad(common.convertHeading(heading)))
     if x_move > 0 and heading > 0 and heading < 180 then
         x_move = x_move * -1
     elseif x_move < 0 and heading >= 180 then
         x_move = math.abs(x_move)
     end
-    local y_move = math.sin(math.rad(common.convert_heading(heading)))
+    local y_move = math.sin(math.rad(common.convertHeading(heading)))
     if y_move > 0 and heading > 90 and heading < 270 then
         y_move = y_move * -1
     elseif y_move < 0 and (heading <= 90 or heading >= 270) then
@@ -120,7 +120,7 @@ local function draw_maploc(camp_x, camp_y, camp_z, heading, color)
 end
 
 ---Set the left and right pull arc values based on the configured PULLARC option.
-local function set_pull_angles()
+local function setPullAngles()
     local pull_arc = config.PULLARC.value
     if not pull_arc or pull_arc == 0 then return end
     if not camp.Heading then camp.Heading = 0 end
@@ -134,14 +134,14 @@ local function set_pull_angles()
     else
         camp.PullArcRight = (pull_arc*.5)+camp.Heading
     end
-    logger.debug(logger.log_flags.routines.camp, 'arcleft: %s, arcright: %s', camp.PullArcLeft, camp.PullArcRight)
+    logger.debug(logger.flags.routines.camp, 'arcleft: %s, arcright: %s', camp.PullArcLeft, camp.PullArcRight)
 end
 
 ---Set, update or clear the CAMP values depending on whether currently in a camp mode or not.
 ---@param reset boolean|nil @If true, then reset the camp to pickup the latest options.
-camp.set_camp = function(reset)
+camp.setCamp = function(reset)
     local mode = config.MODE.value
-    if mode:set_camp_mode() then
+    if mode:isCampMode() then
         mq.cmd('/squelch /maploc remove')
         if not camp.Active or reset then
             camp.Active = true
@@ -151,12 +151,12 @@ camp.set_camp = function(reset)
             camp.Heading = mq.TLO.Me.Heading.Degrees()
             camp.ZoneID = mq.TLO.Zone.ID()
         end
-        if mode:is_pull_mode() then
+        if mode:isPullMode() then
             if config.PULLARC.value > 0 and config.PULLARC.value < 360 then
-                set_pull_angles()
-                draw_maploc(camp.X, camp.Y, camp.Z, camp.PullArcLeft, '0 0 255')
-                draw_maploc(camp.X, camp.Y, camp.Z, camp.PullArcRight, '0 0 255')
-                draw_maploc(camp.X, camp.Y, camp.Z, camp.Heading, '255 0 0')
+                setPullAngles()
+                drawMapLoc(camp.X, camp.Y, camp.Z, camp.PullArcLeft, '0 0 255')
+                drawMapLoc(camp.X, camp.Y, camp.Z, camp.PullArcRight, '0 0 255')
+                drawMapLoc(camp.X, camp.Y, camp.Z, camp.Heading, '255 0 0')
             else
                 camp.PullArcLeft = 0
                 camp.PullArcRight = 0

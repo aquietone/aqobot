@@ -5,15 +5,9 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
+    class.classOrder = {'assist', 'aggro', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.initBase(_aqo, 'rog')
 
-    class.class = 'rog'
-    class.classOrder = {'assist', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
-
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox')
 
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
@@ -39,10 +33,22 @@ function class.init(_aqo)
 end
 
 class.beforeEngage = function()
-    if class.isEnabled('USEEVADE') and not mq.TLO.Me.Combat() and mq.TLO.Target.ID() == state.assist_mob_id then
+    if class.isEnabled('USEEVADE') and not mq.TLO.Me.Combat() and mq.TLO.Target.ID() == state.assistMobID then
         mq.cmd('/doability Hide')
         mq.delay(100)
         mq.cmd('/doability Backstab')
+    end
+end
+
+class.aggroClass = function()
+    if mq.TLO.Me.AbilityReady('hide') then
+        if mq.TLO.Me.Combat() then
+            mq.cmd('/attack off')
+            mq.delay(1000, function() return not mq.TLO.Me.Combat() end)
+        end
+        mq.cmd('/doability hide')
+        mq.delay(500, function() return mq.TLO.Me.Invis() end)
+        mq.cmd('/attack on')
     end
 end
 

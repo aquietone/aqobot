@@ -10,7 +10,7 @@ local config = {
 
     -- General settings
     MODE = {
-        value = modes.from_string('manual'),
+        value = modes.fromString('manual'),
         tip = 'The mode to run as: 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank',
         alias = 'mode',
     },
@@ -226,11 +226,31 @@ function config.getAll()
     for key,cfg in pairs(config) do
         if type(config[key]) == 'table' then
             if key == 'MODE' then
-                configMap[key] = cfg.value:get_name()
+                configMap[key] = cfg.value:getName()
             else
                 configMap[key] = cfg.value
             end
         end
+    end
+    return configMap
+end
+
+local categories = {'Assist', 'Camp', 'Burn', 'Heal', 'Pull'}
+function config.categories()
+    return categories
+end
+
+local configByCategory = {
+    Assist={'AUTOASSISTAT','ASSIST','SWITCHWITHMA'},
+    Camp={'MODE','CAMPRADIUS','CHASETARGET','CHASEDISTANCE','MAINTANK','LOOTMOBS','AUTODETECTRAID'},
+    Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY','RECOVERPCT'},
+    Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','PULLWITH'},
+    Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET'},
+}
+function config.getByCategory(category)
+    local configMap = {}
+    for _,key in ipairs(configByCategory[category]) do
+        configMap[key] = config[key]
     end
     return configMap
 end
@@ -260,40 +280,40 @@ end
 ---Check whether the specified file exists or not.
 ---@param file_name string @The name of the file to check existence of.
 ---@return boolean @Returns true if the file exists, false otherwise.
-function config.file_exists(file_name)
+function config.fileExists(file_name)
     local f = io.open(file_name, "r")
     if f ~= nil then io.close(f) return true else return false end
 end
 
 ---Load common settings from settings file
 ---@return table|nil @Returns a table containing the loaded settings file content.
-function config.load_settings()
-    if not config.file_exists(config.SETTINGS_FILE) then return nil end
+function config.loadSettings()
+    if not config.fileExists(config.SETTINGS_FILE) then return nil end
     local settings = assert(loadfile(config.SETTINGS_FILE))()
     if not settings or not settings.common then return settings end
     for setting,value in pairs(settings.common) do
         config[setting].value = value
     end
-    if settings.common.MODE ~= nil then config.MODE.value = modes.from_string(settings.common.MODE) end
+    if settings.common.MODE ~= nil then config.MODE.value = modes.fromString(settings.common.MODE) end
     return settings
 end
 
 local ignores = {}
 
 ---Load mob ignore lists file
-function config.load_ignores()
+function config.loadIgnores()
     local ignore_file = ('%s/%s'):format(mq.configDir, 'aqo_ignore.lua')
-    if config.file_exists(ignore_file) then
+    if config.fileExists(ignore_file) then
         ignores = assert(loadfile(ignore_file))()
     end
 end
 
-function config.save_ignores()
+function config.saveIgnores()
     local ignore_file = ('%s/%s'):format(mq.configDir, 'aqo_ignore.lua')
     persistence.store(ignore_file, ignores)
 end
 
-function config.get_ignores(zone_short_name)
+function config.getIgnores(zone_short_name)
     if not zone_short_name then
         return ignores
     else
@@ -301,7 +321,7 @@ function config.get_ignores(zone_short_name)
     end
 end
 
-function config.add_ignore(zone_short_name, mob_name)
+function config.addIgnore(zone_short_name, mob_name)
     if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then
         print(logger.logLine('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
@@ -309,20 +329,20 @@ function config.add_ignore(zone_short_name, mob_name)
     if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
     print(logger.logLine('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
-    config.save_ignores()
+    config.saveIgnores()
 end
 
-function config.remove_ignore(zone_short_name, mob_name)
+function config.removeIgnore(zone_short_name, mob_name)
     if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then
         print(logger.logLine('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     ignores[zone_short_name:lower()][mob_name] = nil
     print(logger.logLine('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
-    config.save_ignores()
+    config.saveIgnores()
 end
 
-function config.ignores_contains(zone_short_name, mob_name)
+function config.ignoresContains(zone_short_name, mob_name)
     return ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name]
 end
 

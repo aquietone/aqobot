@@ -51,6 +51,7 @@ AbilityTypes = {
 ---@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
 ---@field tot? boolean # flag to indicate if spell is target-of-target
 ---@field removesong? string # name of buff / song to remove after cast
+---@field condition? function # function to evaluate to determine whether to use the ability
 local Ability = {
     id=0,
     name = '',
@@ -82,6 +83,7 @@ end
 
 -- what was skipSelfStack
 function Ability.shouldUseSpell(spell, skipSelfStack)
+    logger.debug(logger.flags.ability.validation, 'ENTER shouldUseSpell \ag%s\ax', spell.Name())
     local result = false
     local requireTarget = false
     local dist = mq.TLO.Target.Distance3D()
@@ -129,26 +131,27 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, 'Should use spell: \ag%s\ax=%s', spell.Name(), result)
+    logger.debug(logger.flags.ability.validation, 'EXIT shouldUseSpell: \ag%s\ax=%s', spell.Name(), result)
     return result, requireTarget
 end
 
 function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
+    logger.debug(logger.flags.ability.validation, 'ENTER canUseSpell \ag%s\ax', spell.Name())
     if abilityType == AbilityTypes.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
-        if logger.log_flags.common.cast then
-            logger.debug(logger.log_flags.common.cast, ('Spell not ready (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
+        if logger.flags.common.cast then
+            logger.debug(logger.flags.ability.validation, 'Spell not ready (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
         end
         return false
     end
     if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then
-        if logger.log_flags.common.cast then
-            logger.debug(logger.log_flags.common.cast, ('Not in control or moving (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
+        if logger.flags.common.cast then
+            logger.debug(logger.flags.ability.validation, 'Not in control or moving (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
         end
         return false
     end
     if abilityType ~= AbilityTypes.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then
-        if logger.log_flags.common.cast then
-            logger.debug(logger.log_flags.common.cast, ('Not enough mana or endurance (id=%s, name=%s, type=%s)'):format(spell.ID(), spell.Name(), abilityType))
+        if logger.flags.common.cast then
+            logger.debug(logger.flags.ability.validation, 'Not enough mana or endurance (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
         end
         return false
     end
@@ -159,8 +162,8 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
             if reagentid ~= -1 then
                 local reagent_count = spell.ReagentCount(i)()
                 if mq.TLO.FindItemCount(reagentid)() < reagent_count then
-                    if logger.log_flags.common.cast then
-                        logger.debug(logger.log_flags.common.cast, 'Missing Reagent for (id=%d, name=%s, type=%s, reagentid=%s)', spell.ID(), spell.Name(), abilityType, reagentid)
+                    if logger.flags.common.cast then
+                        logger.debug(logger.flags.ability.validation, 'Missing Reagent for (id=%d, name=%s, type=%s, reagentid=%s)', spell.ID(), spell.Name(), abilityType, reagentid)
                     end
                     return false
                 end
@@ -169,7 +172,7 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
             end
         end
     end
-    logger.debug(logger.log_flags.common.cast, ('Can use spell: \ag%s\ax=%s'):format(spell.Name(), 'true'))
+    logger.debug(logger.flags.ability.validation, 'EXIT canUseSpell: \ag%s\ax=%s', spell.Name(), 'true')
     return true
 end
 
@@ -194,6 +197,7 @@ function Spell:new(ID, name, targettype, options)
 end
 
 function Spell:use()
+    logger.debug(logger.flags.ability.spell, 'ENTER spell:use \ag%s\ax', self.name)
     local spell = mq.TLO.Spell(self.name)
     if Ability.canUseSpell(spell, self.type) then
         local result, requiresTarget =  Ability.shouldUseSpell(spell)
@@ -251,7 +255,6 @@ end
 ---Determine whether an disc is ready, including checking whether the character is currently capable.
 ---@return boolean @Returns true if the disc is ready to be used, otherwise false.
 function Disc:isReady()
-    --if mq.TLO.Me.CombatAbility(self.name)() and mq.TLO.Me.CombatAbilityTimer(self.name)() == '0' and mq.TLO.Me.CombatAbilityReady(self.name)() then
     if mq.TLO.Me.CombatAbilityReady(self.name)() then
         local spell = mq.TLO.Spell(self.name)
         return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)--true
@@ -263,6 +266,7 @@ end
 ---Use the disc specified in the passed in table disc.
 ---@param overwrite string|nil @The name of a disc which should be stopped in order to run this disc.
 function Disc:use(overwrite)
+    logger.debug(logger.flags.ability.disc, 'ENTER disc:use \ag%s\ax', self.name)
     local spell = mq.TLO.Spell(self.name)
     if self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
@@ -274,7 +278,7 @@ function Disc:use(overwrite)
             end
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
-            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
+            logger.debug(logger.flags.ability.disc, "Delayed for use_disc %s", self.name)
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
@@ -283,10 +287,10 @@ function Disc:use(overwrite)
             mq.cmdf('/disc %s', self.name)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
-            logger.debug(logger.log_flags.common.cast, "Delayed for use_disc "..self.name)
+            logger.debug(logger.flags.aability.disc, "Delayed for use_disc %s", self.name)
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
         else
-            logger.debug(logger.log_flags.common.cast, ('Not casting due to conflicting active disc (%s)'):format(self.name))
+            logger.debug(logger.flags.ability.disc, 'Not casting due to conflicting active disc (%s)', self.name)
         end
     end
     return false
@@ -323,12 +327,13 @@ end
 ---Use the AA specified in the passed in table aa.
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 function AA:use()
+    logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.name)
     if self:isReady() then
         print(logger.logLine('Use AA: \ag%s\ax', self.name))
         mq.cmdf('/alt activate %d', self.id)
         mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.name)() end)
-        logger.debug(logger.log_flags.common.cast, "Delayed for use_aa "..self.name)
+        logger.debug(logger.flags.ability.aa, "Delayed for use_aa %s", self.name)
         return not mq.TLO.Me.AltAbilityReady(self.name)()
     end
     return false
@@ -364,6 +369,7 @@ end
 ---Use the item specified by item.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 function Item:use()
+    logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.name)
     local theItem = mq.TLO.FindItem(self.id)
     if self:isReady(theItem) then
         if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(1) end
@@ -375,20 +381,6 @@ function Item:use()
         else
             mq.delay(500+theItem.CastTime())
         end
-        --[[if self.targettype == 'Single' and self.casttime > 0 then
-            mq.delay(100)
-            printf('in single target item click with cast time %s %s', self.targettype, mq.TLO.Me.Casting())
-            while mq.TLO.Me.Casting() do
-                if self.targettype == 'Single' and not mq.TLO.Target() then
-                    print('stopping cast why')
-                    mq.cmd('/stopcast')
-                    break
-                end
-                mq.delay(10)
-            end
-        else]]
-            --mq.delay(500+theItem.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-        --end
         return true
     end
     return false
@@ -414,10 +406,11 @@ end
 
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 function Skill:use()
+    logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.name)
     if self:isReady() then
         mq.cmdf('/doability "%s"', self.name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(self.name)() end)
-        logger.debug(logger.log_flags.common.cast, "Delayed for use_ability "..self.name)
+        logger.debug(logger.flags.ability.skill, "Delayed for use_ability %s", self.name)
         return true
     end
 end

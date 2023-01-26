@@ -1,18 +1,13 @@
+--- @type Mq
+local mq = require('mq')
 local class = require('classes.classbase')
 local common = require('common')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
+    class.classOrder = {'assist', 'aggro', 'heal', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.initBase(_aqo, 'mnk')
 
-    class.class = 'mnk'
-    class.classOrder = {'assist', 'heal', 'mash', 'burn', 'aggro', 'recover', 'buff', 'rest'}
-
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox')
-    --class.OPTS.... = {label='Use Alliance',   id='##alliance',    value=true,     tip='Use alliance',               type='checkbox'}
 
     table.insert(class.DPSAbilities, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
     table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))
@@ -32,15 +27,15 @@ function class.init(_aqo)
     table.insert(class.combatBuffs, common.getBestDisc({'Fists of Wu'}))
     table.insert(class.combatBuffs, common.getAA('Zan Fi\'s Whistle'))
     table.insert(class.combatBuffs, common.getAA('Infusion of Thunder'))
-    table.insert(class.selfBuffs, common.getItem('Gloves of the Crimson Sigil', {checkfor='Call of Fire'}))
-    table.insert(class.selfBuffs, common.getItem('Eye of Might', {checkfor='Furious Might'}))
-    table.insert(class.selfBuffs, common.getItem('Pauldron of Dark Auspices', {checkfor='Frost Guard'}))
-    --table.insert(class.selfBuffs, common.getItem('Ring of Organic Darkness', {checkfor='Taelosian Guard'}))
 
     table.insert(class.healAbilities, common.getSkill('Mend', {me=60, self=true}))
 
-    table.insert(class.defensiveAbilities, common.getSkill('Feign Death', {stand=true}))
-    class.drop_aggro = common.getSkill('Feign Death')
+    local postFD = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /stand ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
+    table.insert(class.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
 end
 
 return class

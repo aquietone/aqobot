@@ -1,5 +1,6 @@
 ---@type Mq
 local mq = require('mq')
+local timer = require('utils.timer')
 local Abilities = require('ability')
 local common = require('common')
 local state = require('state')
@@ -79,9 +80,9 @@ local function summonItem(buff)
     end
 end
 
-local function buff_combat(base)
+local function buffCombat(base)
     -- common clicky buffs like geomantra and ... just geomantra
-    common.check_combat_buffs()
+    common.checkCombatBuffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
     if mq.TLO.Me.CombatState() == 'COMBAT' then
         for _,buff in ipairs(base.combatBuffs) do
@@ -90,7 +91,7 @@ local function buff_combat(base)
                     if base.isAbilityEnabled(buff.opt) then summonItem(buff) end
                 else
                     local buffName = buff.checkfor or buff.name
-                    if not haveBuff(buffName) then
+                    if not haveBuff(buffName) and (not buff.skipifbuff or not mq.TLO.Me.Buff(buff.skipifbuff)()) then
                         buff:use()
                     end
                 end
@@ -99,7 +100,7 @@ local function buff_combat(base)
     end
 end
 
-local function buff_auras(base)
+local function buffAuras(base)
     for _,buff in ipairs(base.auras) do
         local buffName = buff.name
         if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
@@ -108,14 +109,14 @@ local function buff_auras(base)
                 local restore_gem = nil
                 if not mq.TLO.Me.Gem(buff.name)() then
                     restore_gem = {name=mq.TLO.Me.Gem(state.swapGem)()}
-                    common.swap_spell(buff, state.swapGem)
+                    common.swapSpell(buff, state.swapGem)
                 end
                 mq.delay(3000, function() return mq.TLO.Me.Gem(buff.name)() and mq.TLO.Me.GemTimer(buff.name)() == 0 end)
                 buff:use()
                 -- project lazarus super long cast time special bard aura stupidity
                 if state.emu and state.class == 'brd' then mq.delay(100) mq.delay(6000, function() return not mq.TLO.Window('CastingWindow').Open() end) end
                 if restore_gem and restore_gem.name then
-                    common.swap_spell(restore_gem, state.swapGem)
+                    common.swapSpell(restore_gem, state.swapGem)
                 end
             elseif buff.type == Abilities.Types.Disc then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) end
@@ -127,7 +128,7 @@ local function buff_auras(base)
     end
 end
 
-local function buff_self(base)
+local function buffSelf(base)
     local originalTargetID = 0
     for _,buff in ipairs(base.selfBuffs) do
         local buffName = buff.name -- TODO: buff name may not match AA or item name
@@ -142,16 +143,16 @@ local function buff_self(base)
                 mq.TLO.Me.DoTarget()
             end
             if buff.type == Abilities.Types.Spell then
-                if common.swap_and_cast(buff, state.swapGem) then
+                if common.swapAndCast(buff, state.swapGem) then
                     if originalTargetID == 0 then mq.cmdf('/squelch /mqtar clear') end
                     return true
                 end
             elseif buff.type == Abilities.Types.Disc then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) return true end
             else
-                if not base.item_timer or base.item_timer:timer_expired() then
+                if not base.itemTimer or base.itemTimer:timerExpired() then
                     buff:use()
-                    if base.item_timer then base.item_timer:reset() end
+                    if base.itemTimer then base.itemTimer:reset() end
                 end
             end
             if buff.removesong then mq.cmdf('/removebuff %s', buff.removesong) end
@@ -159,7 +160,7 @@ local function buff_self(base)
     end
 end
 
-local function will_land_other(toon, buff)
+local function willLandOther(toon, buff)
     local hasBuffQ = ('Me.Buff[%s]'):format(buff)
     local willLandQ = ('Spell[%s].WillLand'):format(buff)
     mq.cmdf('/dquery %s -q "%s"', toon, willLandQ)
@@ -170,7 +171,7 @@ local function will_land_other(toon, buff)
     return willLand > 0 and hasBuff
 end
 
-local function buff_single(base)
+local function buffSingle(base)
     local groupSize = mq.TLO.Group.Members() or 0
     for i=1,groupSize do
         local member = mq.TLO.Group.Member(i)
@@ -188,57 +189,57 @@ local function buff_single(base)
     end
 end
 
-local function buff_group(base)
-    for _,buff in ipairs(base.groupBuffs) do
-        local buffName = buff.name -- TODO: buff name may not match AA or item name
-        if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
-        if buff.type == Abilities.Types.Spell then
+local function buffGroup(base)
+    for _,aBuff in ipairs(base.groupBuffs) do
+        local buffName = aBuff.name -- TODO: buff name may not match AA or item name
+        if state.subscription ~= 'GOLD' then buffName = aBuff.name:gsub(' Rk%..*', '') end
+        if aBuff.type == Abilities.Types.Spell then
             local anyoneMissing = false
             if not mq.TLO.Group.GroupSize() then
                 if not mq.TLO.Me.Buff(buffName)() and not mq.TLO.Me.Song(buffName)() then
                     anyoneMissing = true
                 end
             else
-                for i=1,mq.TLO.Group.GroupSize()-1 do
+                for i=1,mq.TLO.Group.Members() do
                     local member = mq.TLO.Group.Member(i)
                     local distance = member.Distance3D() or 300
-                    if buff.needsBuff(buff, member) and distance < 100 then
+                    if buff.needsBuff(aBuff, member) and distance < 100 then
                         anyoneMissing = true
                     end
                 end
             end
             if anyoneMissing then
-                if common.swap_and_cast(buff, state.swapGem) then return true end
+                if common.swapAndCast(aBuff, state.swapGem) then return true end
             end
-        elseif buff.type == Abilities.Types.Disc then
+        elseif aBuff.type == Abilities.Types.Disc then
             
-        elseif buff.type == Abilities.Types.AA then
-            buff.groupBuff(buff)
-        elseif buff.type == Abilities.Types.Item then
-            local item = mq.TLO.FindItem(buff.id)
+        elseif aBuff.type == Abilities.Types.AA then
+            buff.groupBuff(aBuff)
+        elseif aBuff.type == Abilities.Types.Item then
+            local item = mq.TLO.FindItem(aBuff.id)
             if not mq.TLO.Me.Buff(item.Spell.Name())() then
-                buff:use()
+                aBuff:use()
             end
         end
     end
 end
 
-local function buff_ooc(base)
+local function buffOOC(base)
     -- call class specific buff routine for any special cases
     if base.buff_class then
         if base.buff_class() then return true end
     end
     -- find an actual buff spell that takes time to cast
-    if buff_auras(base) then return true end
-    if buff_self(base) then return true end
-    if buff_single(base) then return true end
+    if buffAuras(base) then return true end
+    if buffSelf(base) then return true end
+    if buffSingle(base) then return true end
     --if buff_tank(base) then return true end
-    if buff_group(base) then return true end
+    if buffGroup(base) then return true end
 
-    common.check_item_buffs()
+    common.checkItemBuffs()
 end
 
-local function buff_pet(base)
+local function buffPet(base)
     if base.isEnabled('BUFFPET') and mq.TLO.Pet.ID() > 0 then
         local distance = mq.TLO.Pet.Distance3D() or 300
         if distance > 100 then return false end
@@ -247,7 +248,7 @@ local function buff_pet(base)
                 local tempName = buff.name
                 if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
                 if not mq.TLO.Pet.Buff(tempName)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() and (not buff.skipifbuff or not mq.TLO.Pet.Buff(buff.skipifbuff)()) then
-                    if common.swap_and_cast(buff, state.swapGem) then return true end
+                    if common.swapAndCast(buff, state.swapGem) then return true end
                 end
             elseif buff.type == Abilities.Types.AA then
                 if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Me.AltAbilityReady(buff.name)() and (not buff.checkfor or not mq.TLO.Pet.Buff(buff.checkfor)()) then
@@ -263,16 +264,31 @@ local function buff_pet(base)
     end
 end
 
+local buffCacheTimer = timer:new(120)
+buff.refreshBuffCaches = function()
+    if not buffCacheTimer:timerExpired() then return end
+    local memberCount = mq.TLO.Group.Members()
+    for i=1,memberCount do
+        local member = mq.TLO.Group.Member(i)
+        if member.Present() then
+            member.DoTarget()
+            mq.delay(1000, function() return mq.TLO.Target.ID() == member.ID() and mq.TLO.Target.BuffsPopulated() end)
+        end
+    end
+    buffCacheTimer:reset()
+end
+
 buff.buff = function(base)
-    if buff_combat(base) then return true end
+    if buffCombat(base) then return true end
 
-    if not common.clear_to_buff() then return end
+    if not common.clearToBuff() then return end
+    --buff.refreshBuffCaches()
 
-    if buff_ooc(base) then return true end
+    if buffOOC(base) then return true end
 
-    if buff_pet(base) then return true end
+    if buffPet(base) then return true end
 
-    common.check_item_buffs()
+    common.checkItemBuffs()
 end
 
 buff.setupBegEvents = function(callback)

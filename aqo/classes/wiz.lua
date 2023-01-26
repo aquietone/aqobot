@@ -4,17 +4,9 @@ local class = require('classes.classbase')
 local common = require('common')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'wiz'
     class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
-
     class.SPELLSETS = {standard=1}
-
-    class.addCommonOptions()
-    class.addCommonAbilities()
+    class.initBase(_aqo, 'wiz')
 
     class.addSpell('nuke1', {'Draught of Ro', 'Pillar of Fire'})
     --class.addSpell('nuke2', {'Fire Spiral of Al\'Kabor'})

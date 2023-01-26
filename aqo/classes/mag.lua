@@ -5,17 +5,10 @@ local movement = require('routines.movement')
 local common = require('common')
 
 function class.init(_aqo)
-    class.initBase(_aqo)
-    class.load_settings()
-    class.setup_events()
-
-    class.class = 'mag'
-    class.classOrder = {'assist', 'mash', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
-
+    class.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
     class.SPELLSETS = {standard=1}
+    class.initBase(_aqo, 'mag')
 
-    class.addCommonOptions()
-    class.addCommonAbilities()
     class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM')
     class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM')
     class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox')
@@ -62,6 +55,13 @@ function class.init(_aqo)
 
     table.insert(class.healAbilities, class.spells.petheal)
 
+    local arcanum1 = common.getAA('Focus of Arcanum')
+    local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
+    local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
+    local arcanum4 = common.getAA('Empowered Focus of Arcanum')
+    table.insert(class.combatBuffs, arcanum2)
+    table.insert(class.combatBuffs, arcanum3)
+
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
     table.insert(class.selfBuffs, class.spells.manaregen)
@@ -72,7 +72,7 @@ function class.init(_aqo)
     table.insert(class.combatBuffs, common.getAA('Fire Core'))
     table.insert(class.singleBuffs, class.spells.bigds)
 
-    class.debuff = common.getAA('Malosinete')
+    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
 
     local standard = {}
     table.insert(standard, class.spells.servant)
@@ -103,7 +103,7 @@ end
     "Snare", "Summoned: Tendon Carver",
 ]]
 
-class.pull_func = function()
+class.pullCustom = function()
     movement.stop()
     mq.cmd('/multiline ; /pet attack ; /pet swarm')
     mq.delay(1000)
