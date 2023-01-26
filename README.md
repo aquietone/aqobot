@@ -32,3 +32,9 @@ The script uses the same sort of command structure to the class plugins, using c
 
 ## Roadmap
 Currently I'm just playing on EMU and haven't played live since the first few months of ToL, so for live nothing has changed since the first few classes added, nec, brd, shd, war, rng.
+
+## Commands
+All available commands are listed on the docs site or can be viewed in game using `/aqo help` or by clicking the `?` button at the top right.
+
+![](./images/helpcmd.png)  
+![](./images/helpui.png)
