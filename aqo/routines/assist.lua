@@ -226,7 +226,7 @@ end
 assist.checkLOS = function()
     local cur_mode = config.MODE.value
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) then
-        local maxRangeTo = mq.TLO.Target.MaxRangeTo()
+        local maxRangeTo = (mq.TLO.Target.MaxRangeTo() or 0) + 20
         if not mq.TLO.Target.LineOfSight() and maxRangeTo then
             movement.navToTarget('dist='..maxRangeTo, 5000)
         end

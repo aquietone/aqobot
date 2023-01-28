@@ -15,7 +15,8 @@ function events.init(_aqo)
     mq.event('eventDeadReleased', '#*#Returning to Bind Location#*#', events.eventDead)
     mq.event('eventDead', 'You died.', events.eventDead)
     mq.event('eventDeadSlain', 'You have been slain by#*#', events.eventDead)
-    mq.event('eventResist', '#1# resisted your #2#!', events.eventResist)
+    mq.event('eventResist', 'Your target resisted the #1# spell#*#', events.eventResist)
+    mq.event('eventResistAlt', '#*# resisted your #1#!', events.eventResist)
 end
 
 function events.initClassBasedEvents()
@@ -61,10 +62,10 @@ end
 ---@param target_name any
 ---@param spell_name any
 function events.eventResist(line, target_name, spell_name)
-    if mq.TLO.Target.CleanName() == target_name then
+    --if mq.TLO.Target.CleanName() == target_name then
         aqo.state.resists[spell_name] = (aqo.state.resists[spell_name] or 0) + 1
-        print(aqo.logger.logLine('%s resisted spell %s, resist count = %s', target_name, spell_name, aqo.state.resists[spell_name]))
-    end
+        print(aqo.logger.logLine('%s resisted spell %s, resist count = %s', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
+    --end
 end
 
 ---Set common.amDead flag to true in the event of death.

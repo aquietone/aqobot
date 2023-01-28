@@ -1,3 +1,25 @@
+# 2023/01/27
+- All the things
+- UI Status Section: Added help button to open new window with all available commands
+- UI General Settings:
+  1. Main Tank checkbox - For EMU where group MainTank role is unreliable, this lets tanks use tank abilities in manual mode.
+  2. Loot Mobs - For EMU where there is no advloot, enable looting of mobs.
+  3. Auto Detect Raid - For EMU where raid assist roles don't work, automatically swap to manual assist mode when in a raid
+- UI Assist Settings:
+  1. Assist - For EMU, addnew new `manual` assist option which will make toons use `/assist` command instead of relying on assist roles.
+- UI Burn Settings:
+  1. New quick burn, long burn, full burn buttons. Didn't really finish implementing these, there is basically just full burn.
+- UI Pull Settings:
+  1. Added pull method, swap between melee, ranged, spell, custom function for class.
+- UI Debug Settings:
+  1. New restart AQO button to restart the lua script
+  2. New update AQO button to download new aqo.zip from GitHub EMU branch.
+  3. New View Ability Lists button which opens a window that shows all the class abilities and such that are loaded and may be used.
+- Commands: Many new commands, utility commands and such. Refer to the docs or help command.
+- Buff Begging: See the docs on buff request support
+- Fleshed out some more abilities for most classes for EMU
+- Many internal changes I've made no attempt to keep track of
+
 # 2022/09/29
 - So much change, where to begin
 - Trying to take this and make it run on EMU

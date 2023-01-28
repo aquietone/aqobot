@@ -13,6 +13,7 @@ local logger = require('utils.logger')
 -- UI Control variables
 local openGUI = true
 local shouldDrawGUI = true
+local uiTheme = 'TEAL'
 
 local abilityGUIOpen = false
 local shouldDrawAbilityGUI = false
@@ -174,6 +175,7 @@ local function drawAssistTab()
     if current_camp_radius ~= config.CAMPRADIUS.value then
         camp.setCamp()
     end
+    --uiTheme = ui.drawComboBox('Theme', uiTheme, {TEAL=1,PINK=1,GOLD=1}, true)
 end
 
 local function drawSkillsTab()
@@ -459,25 +461,49 @@ local function drawHeader()
     end
 end
 
-local function pushStyles()
-    ImGui.PushStyleColor(ImGuiCol.WindowBg, .1, .1, .1, .7)
-    ImGui.PushStyleColor(ImGuiCol.TitleBg, 0, .3, .3, 1)
-    ImGui.PushStyleColor(ImGuiCol.TitleBgActive, 0, .5, .5, 1)
-    ImGui.PushStyleColor(ImGuiCol.FrameBg, 0, .3, .3, 1)
-    ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, 0, .4, .4, 1)
-    ImGui.PushStyleColor(ImGuiCol.FrameBgActive, 0, .4, .4, 1)
-    ImGui.PushStyleColor(ImGuiCol.Button, 0,.3,.3,1)
-    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0,.5,.5,1)
-    ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0,.5,.5,1)
-    ImGui.PushStyleColor(ImGuiCol.PopupBg, 0,.5,.5,1)
+local themes = {
+    TEAL = {
+        bg = {0, .3, .3},
+        hovered = {0, .4, .4},
+        active = {0, .5, .5},
+        button = {0, .3, .3},
+        text = {1, 1, 1},
+    },
+    PINK = {
+        bg = {1, 0, .5},
+        hovered = {1, 0, .5},
+        active = {1, 0, .7},
+        button = {1, 0, .4},
+        text = {1, 1, 1},
+    },
+    GOLD = {
+        bg = {.4, .2, 0},
+        hovered = {.6, .4, 0},
+        active = {.7, .5, 0},
+        button = {.5, .3, 0},
+        text = {1, 1, 1},
+    },
+}
+local function pushStyle(theme)
+    local t = themes[theme]
+    ImGui.PushStyleColor(ImGuiCol.WindowBg, t.bg[1], t.bg[2], t.bg[3], .2)
+    ImGui.PushStyleColor(ImGuiCol.TitleBg, t.bg[1], t.bg[2], t.bg[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.TitleBgActive, t.active[1], t.active[2], t.active[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.FrameBg, t.bg[1], t.bg[2], t.bg[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, t.hovered[1], t.hovered[2], t.hovered[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.FrameBgActive, t.active[1], t.active[2], t.active[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.Button, t.button[1], t.button[2], t.button[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, t.hovered[1], t.hovered[2], t.hovered[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.ButtonActive, t.active[1], t.active[2], t.active[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.PopupBg, t.bg[1], t.bg[2], t.bg[3], 1)
     ImGui.PushStyleColor(ImGuiCol.Tab, 0, 0, 0, 0)
-    ImGui.PushStyleColor(ImGuiCol.TabActive, 0, .4, .4, 1)
-    ImGui.PushStyleColor(ImGuiCol.TabHovered, 0, .5, .50, 1)
-    ImGui.PushStyleColor(ImGuiCol.TabUnfocused, 0, 0, 0, 0)
-    ImGui.PushStyleColor(ImGuiCol.TabUnfocusedActive, 0, .3, .3, 1)
-    ImGui.PushStyleColor(ImGuiCol.TextDisabled, 1, 1, 1, 1)
-    ImGui.PushStyleColor(ImGuiCol.CheckMark, 1, 1, 1, 1)
-    ImGui.PushStyleColor(ImGuiCol.Separator, 0, .4, .4, 1)
+    ImGui.PushStyleColor(ImGuiCol.TabActive, t.active[1], t.active[2], t.active[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.TabHovered, t.hovered[1], t.hovered[2], t.hovered[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.TabUnfocused, t.bg[1], t.bg[2], t.bg[3], 0)
+    ImGui.PushStyleColor(ImGuiCol.TabUnfocusedActive, t.hovered[1], t.hovered[2], t.hovered[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.TextDisabled, t.text[1], t.text[2], t.text[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.CheckMark, t.text[1], t.text[2], t.text[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.Separator, t.hovered[1], t.hovered[2], t.hovered[3], 1)
 end
 
 local function popStyles()
@@ -626,7 +652,7 @@ end
 -- ImGui main function for rendering the UI window
 ui.main = function()
     if not openGUI then return end
-    pushStyles()
+    pushStyle(uiTheme)
     openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, 0)
     if shouldDrawGUI then
         drawHeader()

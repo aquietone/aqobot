@@ -54,7 +54,8 @@ local function showHelp()
         output = output .. alias .. ', '
     end
     output = (output .. '\ax'):gsub('cls', aqo.state.class)
-    print(output)
+    -- output is too long for the boring old chat window
+    if not mq.TLO.Plugin.IsLoaded('MQ2ChatWnd')() then print(output) end
 end
 
 ---Process binding commands.

@@ -418,7 +418,7 @@ base.cast = function()
                 if spell.precast then spell.precast() end
                 if spell:use() then state.actionTaken = true end -- then cast the dot
                 base.nuketimer:reset()
-                mq.doevents('eventResist')
+                mq.doevents()--'eventResist')
                 if spell.postcast then spell.postcast() end
             end
         end
