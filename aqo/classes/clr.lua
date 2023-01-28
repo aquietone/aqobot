@@ -5,13 +5,15 @@ local common = require('common')
 
 function class.init(_aqo)
     class.SPELLSETS = {standard=1}
-    class.classOrder = {'cure', 'heal', 'assist', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
+    class.classOrder = {'cure', 'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'clr')
 
     class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')
     class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
     class.addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox')
     class.addOption('USESTUN', 'Use Stun', true, nil, 'Toggle use of stuns', 'checkbox')
+    class.addOption('USEDEBUFF', 'Use Reverse DS', true, nil, 'Toggle use of Mark reverse DS', 'checkbox')
+    class.loadSettings()
 
     class.addSpell('heal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {tank=true, panic=true, regular=true})
     --class.addSpell('remedy', {'Pious Remedy', 'Supernal Remedy', 'Remedy'}, {regular=true, panic=true, pet=60})
@@ -33,6 +35,7 @@ function class.init(_aqo)
     class.addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
     class.addSpell('stun', {'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Stun'}, {opt='USESTUN'})
     class.addSpell('aestun', {'Silent Dictation'})
+    class.addSpell('mark', {'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, {opt='USEDEBUFF'})
 
     local standard = {}
     table.insert(standard, class.spells.stun)
@@ -85,6 +88,8 @@ function class.init(_aqo)
     table.insert(class.singleBuffs, class.spells.aego)
     table.insert(class.singleBuffs, class.spells.symbol)
     table.insert(class.singleBuffs, class.spells.singleaego)
+
+    table.insert(class.debuffs, class.spells.mark)
 
     class.rezAbility = common.getAA('Blessing of Resurrection')
 

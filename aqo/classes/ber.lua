@@ -11,6 +11,7 @@ function class.init(_aqo)
     if state.emu then
         class.addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox')
     end
+    class.loadSettings()
 
     table.insert(class.DPSAbilities, common.getItem('Raging Taelosian Alloy Axe'))
     --table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))

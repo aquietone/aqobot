@@ -14,6 +14,7 @@ function class.init(_aqo)
     class.initBase(_aqo, 'nec')
 
     class.initializeClassOptions()
+    class.loadSettings()
     class.initializeSpellLines()
     class.initializeSpellConditions()
     class.initializeSpellRotations()

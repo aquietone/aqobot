@@ -24,7 +24,6 @@ function base.initBase(_aqo, class)
     base.class = class
     base.addCommonOptions()
     base.addCommonAbilities()
-    base.loadSettings()
 end
 
 -- All possible class routine methods

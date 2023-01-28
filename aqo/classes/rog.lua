@@ -9,6 +9,7 @@ function class.init(_aqo)
     class.initBase(_aqo, 'rog')
 
     class.addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox')
+    class.loadSettings()
 
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
     table.insert(class.DPSAbilities, common.getSkill('Backstab'))

@@ -13,6 +13,7 @@ function class.init(_aqo)
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', 'checkbox')
     class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
     class.addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, '', 'checkbox')
+    class.loadSettings()
 
     class.addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
     class.addSpell('groupheal', {'Moonshadow', 'Word of Restoration'}, {group=true})

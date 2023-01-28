@@ -14,6 +14,7 @@ function class.init(_aqo)
     class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox')
     class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
+    class.loadSettings()
 
     class.addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
     class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})

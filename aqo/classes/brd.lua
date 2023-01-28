@@ -38,6 +38,7 @@ function class.init(_aqo)
     class.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
     class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT songs if they are in the selected song list', 'checkbox')
+    class.loadSettings()
 
     -- All spells ID + Rank name
     class.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of the Muse', 'Aura of Insight'}) -- spell dmg, overhaste, flurry, triple atk

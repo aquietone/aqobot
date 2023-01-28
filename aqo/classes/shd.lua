@@ -31,6 +31,7 @@ function class.init(_aqo)
     class.addOption('USEDEFLECTION', 'Use Deflection', false, nil, '', 'checkbox')
     class.addOption('DONTCAST', 'Don\'t Cast', false, nil, 'Don\'t cast spells in combat', 'checkbox')
     class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
+    class.loadSettings()
 
     class.addSpell('composite', {'Composite Fang'}) -- big lifetap
     class.addSpell('alliance', {'Bloodletting Coalition'}) -- alliance

@@ -31,6 +31,7 @@ function class.init(_aqo)
     class.addOption('USEREGEN', 'Use Regen', false, nil, 'Buff regen on self', 'checkbox')
     class.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox')
     class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
+    class.loadSettings()
 
     class.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
     class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows

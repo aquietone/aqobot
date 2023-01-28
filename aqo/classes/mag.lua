@@ -17,6 +17,7 @@ function class.init(_aqo)
     class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, '', 'checkbox')
     class.addOption('USEDS', 'Use Group DS', true, nil, '', 'checkbox')
     class.addOption('USETEMPDS', 'Use Temp DS', true, nil, '', 'checkbox')
+    class.loadSettings()
 
     class.addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
     class.addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})

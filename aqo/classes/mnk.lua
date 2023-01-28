@@ -8,6 +8,7 @@ function class.init(_aqo)
     class.initBase(_aqo, 'mnk')
 
     class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox')
+    class.loadSettings()
 
     table.insert(class.DPSAbilities, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
     table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))

@@ -23,6 +23,7 @@ function class.init(_aqo)
     class.addOption('USEEXPANSE', 'Use Expanse', false, nil, 'Use Concordant Expanse for AE aggro', 'checkbox', 'USEPRECISION')
     class.addOption('USEPRECISION', 'Use Precision', false, nil, 'Use Concordant Precision for single target aggro', 'checkbox', 'USEEXPANSE')
     class.addOption('USESNARE', 'Use Snare', false, nil, 'Use Call of Challenge AA, which includes a snare', 'checkbox')
+    class.loadSettings()
 
     table.insert(class.tankAbilities, common.getSkill('Taunt', {aggro=true}))
 
