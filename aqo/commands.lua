@@ -176,6 +176,18 @@ function commands.commandHandler(...)
         else
             print(aqo.logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', aqo.state.class))
         end
+    elseif opt == 'listclickies' then
+        local clickies = ''
+        local first = true
+        for _,clicky in ipairs(aqo.class.clickies) do
+            if first then
+                clickies = clickies .. clicky.name
+                first = false
+            else
+                clickies = clickies .. ', ' .. clicky.name
+            end
+        end
+        print(aqo.logger.logLine('Clickies: %s', clickies))
     elseif opt == 'invis' then
         if aqo.class.invis then
             aqo.class.invis()

@@ -31,6 +31,7 @@ local function init()
     aqo.class = require('classes.'..aqo.state.class)
     aqo.class.init(aqo)
     aqo.events.initClassBasedEvents()
+    aqo.ability.init(aqo)
 
     -- Initialize binds
     aqo.commands.init(aqo)

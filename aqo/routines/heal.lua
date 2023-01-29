@@ -175,7 +175,7 @@ local function getHeal(healAbilities, healType, whoToHeal)
         if heal[healType] then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
-                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timer_expired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
+                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
                 elseif heal.type == Abilities.Types.Spell then
                     local spell = mq.TLO.Spell(heal.name)
                     if Abilities.canUseSpell(spell, heal.type) then

@@ -36,6 +36,7 @@ function class.init(_aqo)
     class.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
     class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT songs if they are in the selected song list', 'checkbox')
+    class.addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox')
     class.loadSettings()
 
     -- All spells ID + Rank name
@@ -46,7 +47,7 @@ function class.init(_aqo)
     class.addSpell('arcane', {'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad', 'Arcane Aria'}) -- spell dmg proc
     class.addSpell('suffering', {'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Storm Blade', 'Song of the Storm'}) -- melee dmg proc
     class.addSpell('spiteful', {'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}) -- AC
-    class.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}) -- heal focus + regen
+    class.addSpell('pulse', {'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}, {opt='USEREGENSONG'}) -- heal focus + regen
     class.addSpell('sonata', {'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}) -- spell shield, AC, dmg mitigation
     class.addSpell('dirge', {'Dirge of the Restless', 'Dirge of Lost Horizons'}) -- spell+melee dmg mitigation
     class.addSpell('firenukebuff', {'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Rizlona\'s Fire', 'Rizlona\'s Embers'}) -- inc fire DD
@@ -188,7 +189,7 @@ function class.init(_aqo)
     class.itemTimer = timer:new(1)
 end
 
-local songTimer = timer:new(3)
+local songTimer = timer:new(2)
 local selosTimer = timer:new(30)
 local crescendoTimer = timer:new(53)
 local bellowTimer = timer:new(30)
@@ -315,10 +316,11 @@ function class.cast()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.doneSinging() and class.itemTimer:timerExpired() then
         for _,clicky in ipairs(class.castClickies) do
-            if (clicky.duration > 0 and mq.TLO.Target.Buff(clicky.checkfor)()) or
-                    (clicky.casttime >= 0 and mq.TLO.Me.Moving()) then
-                movement.stop()
-                if clicky:use() then return end
+            if clicky.duration > 0 and not mq.TLO.Target.Buff(clicky.checkfor)() then
+                if clicky:use() then
+                    if clicky.delay then mq.delay(clicky.delay) end
+                    return true
+                end
             end
         end
         local spell = findNextSong() -- find the first available dot to cast that is missing from the target

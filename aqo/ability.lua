@@ -58,6 +58,11 @@ local Ability = {
     type = AbilityTypes.Spell,
 }
 
+local aqo
+function Ability.init(_aqo)
+    aqo = _aqo
+end
+
 ---Initialize a new ability istance.
 ---@param ID number|nil #
 ---@param name string|nil #
@@ -382,6 +387,7 @@ function Item:use()
         else
             mq.delay(500+theItem.CastTime())
         end
+        if state.class == 'brd' then aqo.class.itemTimer:reset() end
         return true
     end
     return false
@@ -417,6 +423,7 @@ function Skill:use()
 end
 
 return {
+    init=Ability.init,
     Types=AbilityTypes,
     canUseSpell=Ability.canUseSpell,
     Spell=Spell,

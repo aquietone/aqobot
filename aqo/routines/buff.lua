@@ -327,6 +327,7 @@ end
 end]]
 
 function buff.buff(base)
+    if state.class == 'brd' and (not base.doneSinging() or not base.itemTimer:timerExpired()) then return false end
     if buffCombat(base) then return true end
 
     if not common.clearToBuff() then return end
