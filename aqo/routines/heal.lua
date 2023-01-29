@@ -169,12 +169,13 @@ local function getHurt(opts)
     return nil, HEAL_TYPES.GROUPHOT
 end
 
+local groupHOTTimer = timer:new(60)
 local function getHeal(healAbilities, healType, whoToHeal)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
-                    if mq.TLO.Me.CombatState() == 'COMBAT' and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
+                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timer_expired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
                 elseif heal.type == Abilities.Types.Spell then
                     local spell = mq.TLO.Spell(heal.name)
                     if Abilities.canUseSpell(spell, heal.type) then
@@ -191,7 +192,7 @@ local function getHeal(healAbilities, healType, whoToHeal)
     end
 end
 
-healing.heal = function(healAbilities, opts)
+function healing.heal(healAbilities, opts)
     local whoToHeal, typeOfHeal = getHurt(opts)
     if typeOfHeal == HEAL_TYPES.HOT and not healEnabled(opts, 'USEHOT') then return end
     if typeOfHeal == HEAL_TYPES.GROUPHOT and not healEnabled(opts, 'USEGROUPHOT') then return end
@@ -206,7 +207,7 @@ healing.heal = function(healAbilities, opts)
             if not targetName then return end
             local hotTimer = hottimers[targetName]
             if not hotTimer then
-                hottimers[targetName] = timer:new(24)
+                hottimers[targetName] = timer:new(60)
                 hottimers[targetName]:reset()
             else
                 hotTimer:reset()
@@ -215,7 +216,7 @@ healing.heal = function(healAbilities, opts)
     end
 end
 
-healing.healPetOrSelf = function(healAbilities, opts)
+function healing.healPetOrSelf(healAbilities, opts)
     local myHP = state.loop.PctHPs
     local petHP = mq.TLO.Pet.PctHPs() or 100
     if myHP < 60 then healing.healSelf(healAbilities, opts) end
@@ -238,7 +239,7 @@ healing.healPetOrSelf = function(healAbilities, opts)
     end
 end
 
-healing.healSelf = function(healAbilities, opts)
+function healing.healSelf(healAbilities, opts)
     if state.loop.PctHPs > 60 then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
@@ -298,7 +299,7 @@ local function doRezFor(rezAbility, groupOrRaid)
     end
 end
 
-healing.rez = function(rezAbility)
+function healing.rez(rezAbility)
     if not rezAbility then return end
     if not config.REZINCOMBAT.value and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return

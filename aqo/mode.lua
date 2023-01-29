@@ -6,15 +6,16 @@ local mode = {
 }
 
 function mode:new(name, setCamp, is_assist, is_tank, is_pull, is_return)
-    local m = {}
+    local m = {
+        name = name,
+        setCamp = setCamp,
+        is_assist = is_assist,
+        is_tank = is_tank,
+        is_pull = is_pull,
+        is_return = is_return,
+    }
     setmetatable(m, self)
     self.__index = self
-    m.name = name
-    m.setCamp = setCamp
-    m.is_assist = is_assist
-    m.is_tank = is_tank
-    m.is_pull = is_pull
-    m.is_return = is_return
     table.insert(mode.modes, m)
     mode.modes[name] = m
     table.insert(mode.mode_names, name)

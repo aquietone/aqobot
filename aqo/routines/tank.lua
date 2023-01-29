@@ -20,7 +20,7 @@ local campBuffer = 20
 
 ---Iterate through mobs in the common.TARGETS table and find a mob in camp to begin tanking.
 ---Sets common.tankMobID to the ID of the mob to tank.
-tank.findMobToTank = function()
+function tank.findMobToTank()
     if state.mobCount == 0 then return end
     if state.tankMobID > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tankMobID == mq.TLO.Target.ID() then
         return
@@ -100,7 +100,7 @@ end
 
 local stickTimer = timer:new(3)
 ---Tank the mob whose ID is stored in common.tankMobID.
-tank.tankMob = function()
+function tank.tankMob()
     if state.tankMobID == 0 then return end
     local tank_spawn = mq.TLO.Spawn(state.tankMobID)
     if not tank_spawn() or tank_spawn.Type() == 'Corpse' then

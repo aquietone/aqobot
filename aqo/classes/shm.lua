@@ -6,7 +6,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'buff', 'rest', 'managepet'}
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.initBase(_aqo, 'shm')
 
     class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox')
@@ -66,16 +66,11 @@ function class.init(_aqo)
     --table.insert(class.groupBuffs, class.spells.talisman)
     -- pact of the wolf, remove pact of the wolf effect
 
-    local standard = {}
-    table.insert(standard, class.spells.twincast)
-    table.insert(standard, class.spells.dot1)
-    table.insert(standard, class.spells.dot2)
-    table.insert(standard, class.spells.dot3)
-    table.insert(standard, class.spells.nuke)
-
-    class.spellRotations = {
-        standard=standard
-    }
+    table.insert(class.spellRotations.standard, class.spells.twincast)
+    table.insert(class.spellRotations.standard, class.spells.dot1)
+    table.insert(class.spellRotations.standard, class.spells.dot2)
+    table.insert(class.spellRotations.standard, class.spells.dot3)
+    table.insert(class.spellRotations.standard, class.spells.nuke)
 
     --table.insert(class.healAbilities, class.spells.twincast)
     table.insert(class.healAbilities, class.spells.heal)

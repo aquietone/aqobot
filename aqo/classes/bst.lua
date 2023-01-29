@@ -6,7 +6,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.initBase(_aqo, 'bst')
 
 
@@ -32,14 +32,9 @@ function class.init(_aqo)
     class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
     class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
 
-    local standard = {}
-    table.insert(standard, class.spells.swarmpet)
-    table.insert(standard, class.spells.nuke)
-    table.insert(standard, class.spells.dot)
-
-    class.spellRotations = {
-        standard=standard
-    }
+    table.insert(class.spellRotations.standard, class.spells.swarmpet)
+    table.insert(class.spellRotations.standard, class.spells.nuke)
+    table.insert(class.spellRotations.standard, class.spells.dot)
 
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
     table.insert(class.DPSAbilities, common.getBestDisc({'Rake'}))
@@ -92,7 +87,7 @@ function class.init(_aqo)
     class.addRequestAlias(class.spells.groupregen, 'rejuv')
 end
 
-class.recoverClass = function()
+function class.recoverClass()
     local lowmana = mq.TLO.Group.LowMana(50)() or 0
     local groupSize = mq.TLO.Group.Members() or 0
     local needEnd = 0

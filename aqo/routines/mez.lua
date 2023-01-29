@@ -15,7 +15,7 @@ function mez.init(aqo)
 end
 
 ---Scan mobs in camp and reset mez timers to current time
-mez.initMezTimers = function(mez_spell)
+function mez.initMezTimers(mez_spell)
     camp.mobRadar()
     for id,_ in pairs(state.targets) do
         local mob = mq.TLO.Spawn('id '..id)
@@ -33,7 +33,7 @@ end
 ---Cast AE mez spell if AE Mez condition (>=3 mobs) is met.
 ---@param mez_spell table @The name of the AE mez spell to cast.
 ---@param ae_count number @The mob threshold for using AE mez.
-mez.doAE = function(mez_spell, ae_count)
+function mez.doAE(mez_spell, ae_count)
     if state.mobCount >= ae_count and mez_spell then
         if mq.TLO.Me.Gem(mez_spell.name)() and mq.TLO.Me.GemTimer(mez_spell.name)() == 0 then
             print(logger.logLine('AE Mezzing (mobCount=%d)', state.mobCount))
@@ -46,7 +46,7 @@ end
 
 ---Cast single target mez spell if adds in camp.
 ---@param mez_spell table @The name of the single target mez spell to cast.
-mez.doSingle = function(mez_spell)
+function mez.doSingle(mez_spell)
     if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.name)() then return end
     for id,mobdata in pairs(state.targets) do
         if state.debug then
@@ -88,11 +88,11 @@ mez.doSingle = function(mez_spell)
     end
 end
 
-mez.eventMezBreak = function(line, mob, breaker)
+function mez.eventMezBreak(line, mob, breaker)
     print(logger.logLine('\at%s\ax mez broken by \at%s\ax', mob, breaker))
 end
 
-mez.eventMezImmune = function(line)
+function mez.eventMezImmune(line)
     local mezTargetName = state.mezTargetName
     if mezTargetName then
         print(logger.logLine('Added to MEZ_IMMUNE: \at%s', mezTargetName))
@@ -100,7 +100,7 @@ mez.eventMezImmune = function(line)
     end
 end
 
-mez.eventMezResist = function(line, mob)
+function mez.eventMezResist(line, mob)
     local mezTargetName = state.mezTargetName
     if mezTargetName and mob == mezTargetName then
         print(logger.logLine('MEZ RESIST >>> \at%s\ax <<<', mezTargetName))
@@ -108,7 +108,7 @@ mez.eventMezResist = function(line, mob)
     end
 end
 
-mez.setupEvents = function()
+function mez.setupEvents()
     mq.event('eventMezBreak', '#1# has been awakened by #2#.', mez.eventMezBreak)
     mq.event('eventMezImmune', 'Your target cannot be mesmerized#*#', mez.eventMezImmune)
     mq.event('eventMezResist', '#1# resisted your#*#slumber of the diabo#*#', mez.eventMezResist)

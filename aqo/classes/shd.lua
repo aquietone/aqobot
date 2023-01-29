@@ -10,7 +10,7 @@ local state = require('state')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
-    class.SPELLSETS = {standard=1,dps=1}
+    class.spellRotations = {standard={},dps={}}
     class.initBase(_aqo, 'shd')
 
     mq.cmd('/squelch /stick mod -2')
@@ -95,40 +95,34 @@ function class.init(_aqo)
     if class.spells.largetap then class.spells.largetap.condition = lifetapCondition end
     if class.spells.tap1 then class.spells.tap1.condition = lifetapCondition end
 
-    local standard = {}
-    table.insert(standard, class.spells.aeterror)
-    if not state.emu then table.insert(standard, class.spells.challenge) end
-    table.insert(standard, class.spells.terror)
-    table.insert(standard, class.spells.bitetap)
-    table.insert(standard, class.spells.spear)
-    table.insert(standard, class.spells.composite)
-    table.insert(standard, class.spells.largetap)
-    table.insert(standard, class.spells.tap1)
-    table.insert(standard, class.spells.tap2)
-    table.insert(standard, class.spells.dottap)
-    --table.insert(standard, class.spells.stance)
-    --table.insert(standard, class.spells.skin)
-    table.insert(standard, class.spells.acdebuff)
+    table.insert(class.spellRotations.standard, class.spells.aeterror)
+    if not state.emu then table.insert(class.spellRotations.standard, class.spells.challenge) end
+    table.insert(class.spellRotations.standard, class.spells.terror)
+    table.insert(class.spellRotations.standard, class.spells.bitetap)
+    table.insert(class.spellRotations.standard, class.spells.spear)
+    table.insert(class.spellRotations.standard, class.spells.composite)
+    table.insert(class.spellRotations.standard, class.spells.largetap)
+    table.insert(class.spellRotations.standard, class.spells.tap1)
+    table.insert(class.spellRotations.standard, class.spells.tap2)
+    table.insert(class.spellRotations.standard, class.spells.dottap)
+    --table.insert(class.spellRotations.standard, class.spells.stance)
+    --table.insert(class.spellRotations.standard, class.spells.skin)
+    table.insert(class.spellRotations.standard, class.spells.acdebuff)
 
     local dps = {}
-    table.insert(dps, class.spells.tap1)
-    table.insert(dps, class.spells.tap2)
-    table.insert(dps, class.spells.largetap)
-    table.insert(dps, class.spells.composite)
-    table.insert(dps, class.spells.spear)
-    table.insert(dps, class.spells.corruption)
-    table.insert(dps, class.spells.poison)
-    table.insert(dps, class.spells.dottap)
-    table.insert(dps, class.spells.disease)
-    table.insert(dps, class.spells.bitetap)
-    table.insert(dps, class.spells.stance)
-    table.insert(dps, class.spells.skin)
-    table.insert(dps, class.spells.acdebuff)
-
-    class.spellRotations = {
-        standard=standard,
-        dps=dps,
-    }
+    table.insert(class.spellRotations.dps, class.spells.tap1)
+    table.insert(class.spellRotations.dps, class.spells.tap2)
+    table.insert(class.spellRotations.dps, class.spells.largetap)
+    table.insert(class.spellRotations.dps, class.spells.composite)
+    table.insert(class.spellRotations.dps, class.spells.spear)
+    table.insert(class.spellRotations.dps, class.spells.corruption)
+    table.insert(class.spellRotations.dps, class.spells.poison)
+    table.insert(class.spellRotations.dps, class.spells.dottap)
+    table.insert(class.spellRotations.dps, class.spells.disease)
+    table.insert(class.spellRotations.dps, class.spells.bitetap)
+    table.insert(class.spellRotations.dps, class.spells.stance)
+    table.insert(class.spellRotations.dps, class.spells.skin)
+    table.insert(class.spellRotations.dps, class.spells.acdebuff)
 
     -- TANK
     -- defensives
@@ -189,7 +183,7 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
     table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 
-    local epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
+    class.epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
 
     if state.emu then
         table.insert(class.selfBuffs, class.spells.drape)
@@ -212,7 +206,7 @@ function class.init(_aqo)
     class.pullSpell = class.spells.terror
 end
 
-class.mashClass = function()
+function class.mashClass()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
@@ -224,17 +218,17 @@ class.mashClass = function()
     end
 end
 
-class.burnClass = function()
+function class.burnClass()
     if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         if class.mantle then class.mantle:use() end
         if class.carapace then class.carapace:use() end
         if class.guardian then class.guardian:use() end
     end
 
-    if class.isEnabled('USEEPIC') and epic then epic:use() end
+    if class.isEnabled('USEEPIC') and class.epic then class.epic:use() end
 end
 
-class.ohshit = function()
+function class.ohshit()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.AltAbilityReady(class.flash.name)() then
@@ -249,7 +243,7 @@ end
 
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 local checkSpellTimer = timer:new(30)
-class.checkSpellSet = function()
+function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then

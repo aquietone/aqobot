@@ -39,6 +39,11 @@ local config = {
         tip = 'Mob Percent HP to begin assisting',
         alias = 'autoassistat',
     },
+    ASSISTNAMES = {
+        value = '',
+        tip = 'Comma separated, ordered list of names to assist, mainly for manual assist mode in raids.',
+        alias = 'assistnames',
+    },
     SWITCHWITHMA = {
         value = true,
         tip = 'Swap targets if the MA swaps targets',
@@ -241,7 +246,7 @@ function config.categories()
 end
 
 local configByCategory = {
-    Assist={'AUTOASSISTAT','ASSIST','SWITCHWITHMA'},
+    Assist={'AUTOASSISTAT','ASSIST','ASSISTNAMES','SWITCHWITHMA'},
     Camp={'MODE','CAMPRADIUS','CHASETARGET','CHASEDISTANCE','MAINTANK','LOOTMOBS','AUTODETECTRAID'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY','RECOVERPCT'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','PULLWITH'},
@@ -260,7 +265,7 @@ end
 ---@param current_value any @The current value of the specified setting.
 ---@param new_value string @The new value for the setting.
 ---@param key string @The configuration key to be set.
-config.getOrSetOption = function(name, current_value, new_value, key)
+function config.getOrSetOption(name, current_value, new_value, key)
     if config[key] == nil then return end
     if new_value then
         if type(current_value) == 'number' then

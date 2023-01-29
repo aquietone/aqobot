@@ -13,8 +13,8 @@ end
 
 function debuff.shouldUseDebuff(ability)
     if ability.opt == 'USEDISPEL' then
-        local beneficial = mq.TLO.Target.Beneficial()
-        return beneficial and not aqo.lists.ignoreBuff[beneficial]
+        local beneficial = mq.TLO.Target.Beneficial
+        return beneficial() and beneficial.Dispellable() and not aqo.lists.ignoreBuff[beneficial]
     elseif ability.opt == 'USESLOWAOE' or ability.opt == 'USESLOW' then
         return mq.TLO.Target() and not mq.TLO.Target.Slowed() and not debuff.SLOW_IMMUNES[mq.TLO.Target.CleanName()]
     elseif ability.opt == 'USESNARE' then
@@ -67,7 +67,7 @@ function debuff.castDebuffs()
 end
 
 -- attempt to avoid trying to slow mobs that are slow immune. currently this table is never cleaned up unless restarted
-debuff.eventSlowImmune = function(line)
+function debuff.eventSlowImmune(line)
     local target_name = mq.TLO.Target.CleanName()
     if target_name and not debuff.SLOW_IMMUNES[target_name] then
         debuff.SLOW_IMMUNES[target_name] = 1
@@ -75,7 +75,7 @@ debuff.eventSlowImmune = function(line)
 end
 
 -- attempt to avoid trying to snare mobs that are snare immune. currently this table is never cleaned up unless restarted
-debuff.eventSnareImmune = function()
+function debuff.eventSnareImmune()
     local target_name = mq.TLO.Target.CleanName()
     if target_name and not debuff.SNARE_IMMUNES[target_name] then
         debuff.SNARE_IMMUNES[target_name] = 1

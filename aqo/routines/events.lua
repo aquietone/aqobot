@@ -76,7 +76,7 @@ function events.eventDead()
     aqo.movement.stop()
 end
 
-events.eventGear = function(line, requester, requested)
+function events.eventGear(line, requester, requested)
     requested = requested:lower()
     local slot = requested:gsub('gear ', '')
     if slot == 'listslots' then
@@ -104,7 +104,7 @@ local function validateRequester(requester)
     return mq.TLO.Group.Member(requester)() or mq.TLO.Raid.Member(requester)() or mq.TLO.Spawn('='..requester).Guild() == mq.TLO.Me.Guild()
 end
 
-events.eventRequest = function(line, requester, requested)
+function events.eventRequest(line, requester, requested)
     requested = requested:lower()
     if requested:find('^gear .+') then
         return events.eventGear(line, requester, requested)
@@ -145,7 +145,7 @@ events.eventRequest = function(line, requester, requested)
     end
 end
 
-events.eventTranquil = function()
+function events.eventTranquil()
     if mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Raid.Members() > 0 then
         mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
         if aqo.class.tranquil:use() then mq.cmd('/rs Tranquil Blessings used') end

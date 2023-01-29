@@ -8,7 +8,7 @@ local state = require('state')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
     class.initBase(_aqo, 'enc')
 
@@ -121,19 +121,18 @@ function class.init(_aqo)
     end
     -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
-    local standard = {}
-    table.insert(standard, class.spells.dotmiti)
-    table.insert(standard, class.spells.meznoblur)
-    table.insert(standard, class.spells.mezae)
-    table.insert(standard, class.spells.dot)
-    table.insert(standard, class.spells.dot2)
-    table.insert(standard, class.spells.synergy)
-    table.insert(standard, class.spells.nuke5)
-    table.insert(standard, class.spells.composite)
-    table.insert(standard, class.spells.stunaerune)
-    table.insert(standard, class.spells.guard)
-    table.insert(standard, class.spells.nightsterror)
-    table.insert(standard, class.spells.combatinnate)
+    table.insert(class.spellRotations.standard, class.spells.dotmiti)
+    table.insert(class.spellRotations.standard, class.spells.meznoblur)
+    table.insert(class.spellRotations.standard, class.spells.mezae)
+    table.insert(class.spellRotations.standard, class.spells.dot)
+    table.insert(class.spellRotations.standard, class.spells.dot2)
+    table.insert(class.spellRotations.standard, class.spells.synergy)
+    table.insert(class.spellRotations.standard, class.spells.nuke5)
+    table.insert(class.spellRotations.standard, class.spells.composite)
+    table.insert(class.spellRotations.standard, class.spells.stunaerune)
+    table.insert(class.spellRotations.standard, class.spells.guard)
+    table.insert(class.spellRotations.standard, class.spells.nightsterror)
+    table.insert(class.spellRotations.standard, class.spells.combatinnate)
 
     table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
@@ -258,7 +257,7 @@ end
 -- synergy
 -- nuke5
 -- dot2
-class.findNextSpell = function()
+function class.findNextSpell()
     if not mq.TLO.Target.Tashed() and class.OPTS.USEDEBUFF.value and common.isSpellReady(class.spells.tash) then return class.spells.tash end
     if common.isSpellReady(class.spells.composite) then return class.spells.composite end
     if castSynergy() then return nil end
@@ -268,7 +267,7 @@ class.findNextSpell = function()
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 
-class.recover = function()
+function class.recover()
     -- modrods
     common.checkMana()
     local pct_mana = state.loop.PctMana
@@ -285,7 +284,7 @@ class.recover = function()
 end
 
 local checkAggroTimer = timer:new(10)
-class.aggroOld = function()
+function class.aggroOld()
     if state.loop.PctHPs < 40 and class.sanguine then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(class.sanguine.name) then mq.cmd('/autoinventory') end
@@ -311,7 +310,7 @@ local function missing_unity_buffs(name)
 end
 
 -- group guards - legion of liako / xetheg
-class.buff_unused = function()
+function class.buff_unused()
     if mq.TLO.Me.Moving() then return end
 -- now buffs:
 -- - class.spells.guard (shield of inevitability - quick-refresh, strong direct damage spell guard and melee-strike rune combined into one.)
@@ -397,7 +396,7 @@ end
 
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 local checkSpellTimer = timer:new(30)
-class.checkSpellSet = function()
+function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then

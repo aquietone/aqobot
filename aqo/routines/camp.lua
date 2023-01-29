@@ -39,7 +39,7 @@ local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
 ---Determine the number of mobs within the camp radius.
 ---Sets common.mobCount to the total number of mobs on xtarget within the camp radius.
 ---Adds the mob ID of each mob found to the common.TARGETS table.
-camp.mobRadar = function()
+function camp.mobRadar()
     local x, y, z
     if not camp.Active or config.MODE.value:getName() == 'huntertank' then
         x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
@@ -68,7 +68,7 @@ camp.mobRadar = function()
 end
 
 ---Checks for any mobs in common.TARGETS which are no longer valid and removes them from the table.
-camp.cleanTargets = function()
+function camp.cleanTargets()
     for mobid,_ in pairs(state.targets) do
         local spawn = mq.TLO.Spawn(string.format('id %s', mobid))
         if not spawn() or spawn.Type() == 'Corpse' then
@@ -78,7 +78,7 @@ camp.cleanTargets = function()
 end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
-camp.checkCamp = function()
+function camp.checkCamp()
     if not config.MODE.value:isReturnToCampMode() or not camp.Active then return end
     if mq.TLO.Me.Casting() or not common.clearToBuff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
@@ -139,7 +139,7 @@ end
 
 ---Set, update or clear the CAMP values depending on whether currently in a camp mode or not.
 ---@param reset boolean|nil @If true, then reset the camp to pickup the latest options.
-camp.setCamp = function(reset)
+function camp.setCamp(reset)
     local mode = config.MODE.value
     if mode:isCampMode() then
         mq.cmd('/squelch /maploc remove')

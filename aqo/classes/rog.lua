@@ -33,7 +33,7 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Dirty Fighting'))
 end
 
-class.beforeEngage = function()
+function class.beforeEngage()
     if class.isEnabled('USEEVADE') and not mq.TLO.Me.Combat() and mq.TLO.Target.ID() == state.assistMobID then
         mq.cmd('/doability Hide')
         mq.delay(100)
@@ -41,7 +41,7 @@ class.beforeEngage = function()
     end
 end
 
-class.aggroClass = function()
+function class.aggroClass()
     if mq.TLO.Me.AbilityReady('hide') then
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')

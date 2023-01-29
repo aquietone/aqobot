@@ -10,7 +10,7 @@ local ui = require('ui')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'aggro', 'mash', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
-    class.SPELLSETS = {standard=1,short=1}
+    class.spellRotations = {standard={},short={}}
     class.initBase(_aqo, 'nec')
 
     class.initializeClassOptions()
@@ -151,45 +151,39 @@ end
 function class.initializeSpellRotations()
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     local standard = {}
-    table.insert(standard, class.spells.alliance)
-    table.insert(standard, class.spells.wounds)
-    table.insert(standard, class.spells.composite)
-    table.insert(standard, class.spells.pyreshort)
-    table.insert(standard, class.spells.venom)
-    table.insert(standard, class.spells.magic)
-    table.insert(standard, class.spells.synergy)
-    table.insert(standard, class.spells.manatap)
-    table.insert(standard, class.spells.combodisease)
-    table.insert(standard, class.spells.haze)
-    table.insert(standard, class.spells.grasp)
-    table.insert(standard, class.spells.fireshadow)
-    table.insert(standard, class.spells.leech)
-    table.insert(standard, class.spells.pyrelong)
-    table.insert(standard, class.spells.ignite)
-    table.insert(standard, class.spells.scourge)
-    table.insert(standard, class.spells.corruption)
+    table.insert(class.spellRotations.standard, class.spells.alliance)
+    table.insert(class.spellRotations.standard, class.spells.wounds)
+    table.insert(class.spellRotations.standard, class.spells.composite)
+    table.insert(class.spellRotations.standard, class.spells.pyreshort)
+    table.insert(class.spellRotations.standard, class.spells.venom)
+    table.insert(class.spellRotations.standard, class.spells.magic)
+    table.insert(class.spellRotations.standard, class.spells.synergy)
+    table.insert(class.spellRotations.standard, class.spells.manatap)
+    table.insert(class.spellRotations.standard, class.spells.combodisease)
+    table.insert(class.spellRotations.standard, class.spells.haze)
+    table.insert(class.spellRotations.standard, class.spells.grasp)
+    table.insert(class.spellRotations.standard, class.spells.fireshadow)
+    table.insert(class.spellRotations.standard, class.spells.leech)
+    table.insert(class.spellRotations.standard, class.spells.pyrelong)
+    table.insert(class.spellRotations.standard, class.spells.ignite)
+    table.insert(class.spellRotations.standard, class.spells.scourge)
+    table.insert(class.spellRotations.standard, class.spells.corruption)
 
-    local short = {}
-    table.insert(short, class.spells.swarm)
-    table.insert(short, class.spells.alliance)
-    table.insert(short, class.spells.composite)
-    table.insert(short, class.spells.pyreshort)
-    table.insert(short, class.spells.venom)
-    table.insert(short, class.spells.magic)
-    table.insert(short, class.spells.synergy)
-    table.insert(short, class.spells.manatap)
-    table.insert(short, class.spells.combodisease)
-    table.insert(short, class.spells.haze)
-    table.insert(short, class.spells.grasp)
-    table.insert(short, class.spells.fireshadow)
-    table.insert(short, class.spells.leech)
-    table.insert(short, class.spells.pyrelong)
-    table.insert(short, class.spells.ignite)
-
-    class.spellRotations = {
-        standard=standard,
-        short=short,
-    }
+    table.insert(class.spellRotations.short, class.spells.swarm)
+    table.insert(class.spellRotations.short, class.spells.alliance)
+    table.insert(class.spellRotations.short, class.spells.composite)
+    table.insert(class.spellRotations.short, class.spells.pyreshort)
+    table.insert(class.spellRotations.short, class.spells.venom)
+    table.insert(class.spellRotations.short, class.spells.magic)
+    table.insert(class.spellRotations.short, class.spells.synergy)
+    table.insert(class.spellRotations.short, class.spells.manatap)
+    table.insert(class.spellRotations.short, class.spells.combodisease)
+    table.insert(class.spellRotations.short, class.spells.haze)
+    table.insert(class.spellRotations.short, class.spells.grasp)
+    table.insert(class.spellRotations.short, class.spells.fireshadow)
+    table.insert(class.spellRotations.short, class.spells.leech)
+    table.insert(class.spellRotations.short, class.spells.pyrelong)
+    table.insert(class.spellRotations.short, class.spells.ignite)
 
     class.swap_gem = 8
     class.swap_gem_dis = 9
@@ -300,7 +294,7 @@ local function countNecros()
     end
 end
 
-class.resetClassTimers = function()
+function class.resetClassTimers()
     class.debuffTimer:reset(0)
 end
 
@@ -358,7 +352,7 @@ local function isNecBurnConditionMet()
     end
 end
 
-class.alwaysCondition = function()
+function class.alwaysCondition()
     if mq.TLO.Me.AltAbilityReady('Heretic\'s Twincast')() and not mq.TLO.Me.AltAbilityReady('Hand of Death')() then
         return false
     elseif not mq.TLO.Me.AltAbilityReady('Heretic\'s Twincast')() and mq.TLO.Me.AltAbilityReady('Hand of Death')() then
@@ -380,7 +374,7 @@ OOW robe - 40% crit
 Intensity - 50% crit
 Glyph - 15% crit
 ]]--
-class.burnClass = function()
+function class.burnClass()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     --if common.isBurnConditionMet(class.alwaysCondition) or isNecBurnConditionMet() then
@@ -435,7 +429,7 @@ function class.preburn()
     end
 end
 
-class.recover = function()
+function class.recover()
     if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.name)() then
         print(logger.logLine('Removing lich to avoid dying!'))
         mq.cmdf('/removebuff %s', class.spells.lich.name)
@@ -475,7 +469,7 @@ local function safeToStand()
 end
 
 local checkAggroTimer = timer:new(10)
-class.aggroOld = function()
+function class.aggroOld()
     if state.emu then return end
     if config.MODE.value:isManualMode() then return end
     if class.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
@@ -510,7 +504,7 @@ end
 
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local checkSpellTimer = timer:new(30)
-class.checkSpellSet = function()
+function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() then return end
     if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then
@@ -613,7 +607,7 @@ local necCountTimer = timer:new(60)
 --    necCountTimer:reset()
 -- end
 
-class.drawBurnTab = function()
+function class.drawBurnTab()
     class.OPTS.BURNPROC.value = ui.drawCheckBox('Burn On Proc', '##burnproc', class.OPTS.BURNPROC.value, 'Burn when proliferation procs')
 end
 

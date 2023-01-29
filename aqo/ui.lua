@@ -54,7 +54,7 @@ function ui.init(_aqo)
     mq.imgui.init('AQO Bot 1.0', ui.main)
 end
 
-ui.toggleGUI = function(open)
+function ui.toggleGUI(open)
     openGUI = open
 end
 
@@ -68,7 +68,7 @@ local function helpMarker(desc)
     end
 end
 
-ui.drawComboBox = function(label, resultvar, options, bykey, xOffset, yOffset)
+function ui.drawComboBox(label, resultvar, options, bykey, xOffset, yOffset)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -94,7 +94,7 @@ ui.drawComboBox = function(label, resultvar, options, bykey, xOffset, yOffset)
     return resultvar
 end
 
-ui.drawCheckBox = function(labelText, idText, resultVar, helpText, xOffset, yOffset)
+function ui.drawCheckBox(labelText, idText, resultVar, helpText, xOffset, yOffset)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -113,7 +113,7 @@ ui.drawCheckBox = function(labelText, idText, resultVar, helpText, xOffset, yOff
     return resultVar
 end
 
-ui.drawInputInt = function(labelText, idText, resultVar, helpText, xOffset, yOffset)
+function ui.drawInputInt(labelText, idText, resultVar, helpText, xOffset, yOffset)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -128,7 +128,7 @@ ui.drawInputInt = function(labelText, idText, resultVar, helpText, xOffset, yOff
     return resultVar
 end
 
-ui.drawInputText = function(labelText, idText, resultVar, helpText, xOffset, yOffset)
+function ui.drawInputText(labelText, idText, resultVar, helpText, xOffset, yOffset)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -143,7 +143,7 @@ ui.drawInputText = function(labelText, idText, resultVar, helpText, xOffset, yOf
     return resultVar
 end
 
-ui.getNextXY = function(startY, yAvail, xOffset, yOffset, maxY)
+function ui.getNextXY(startY, yAvail, xOffset, yOffset, maxY)
     yOffset = yOffset + Y_COLUMN_OFFSET
     if yOffset > maxY then maxY = yOffset end
     if yAvail - yOffset + startY < 25 then
@@ -160,6 +160,8 @@ local function drawAssistTab()
     end
     config.ASSIST.value = ui.drawComboBox('Assist', config.ASSIST.value, common.ASSISTS, true)
     config.AUTOASSISTAT.value = ui.drawInputInt('Assist %', '##assistat', config.AUTOASSISTAT.value, 'Percent HP to assist at')
+    local currentAssistNames = config.ASSISTNAMES.value
+    config.ASSISTNAMES.value = ui.drawInputText('Assist Names', '##assistnames', config.ASSISTNAMES.value, 'Command separated, ordered list of names to assist, mainly for manual assist mode in raids.')
     config.SWITCHWITHMA.value = ui.drawCheckBox('Switch With MA', '##switchwithma', config.SWITCHWITHMA.value, 'Switch targets with MA')
     local current_camp_radius = config.CAMPRADIUS.value
     config.CAMPRADIUS.value = ui.drawInputInt('Camp Radius', '##campradius', config.CAMPRADIUS.value, 'Camp radius to assist within')
@@ -175,7 +177,10 @@ local function drawAssistTab()
     if current_camp_radius ~= config.CAMPRADIUS.value then
         camp.setCamp()
     end
-    --uiTheme = ui.drawComboBox('Theme', uiTheme, {TEAL=1,PINK=1,GOLD=1}, true)
+    if currentAssistNames ~= config.ASSISTNAMES.value then
+        state.assistNames = common.split(config.ASSISTNAMES.value, ',')
+    end
+    uiTheme = ui.drawComboBox('Theme', uiTheme, {TEAL=1,PINK=1,GOLD=1}, true)
 end
 
 local function drawSkillsTab()
@@ -463,6 +468,7 @@ end
 
 local themes = {
     TEAL = {
+        windowbg = {.2, .2, .2},
         bg = {0, .3, .3},
         hovered = {0, .4, .4},
         active = {0, .5, .5},
@@ -470,6 +476,7 @@ local themes = {
         text = {1, 1, 1},
     },
     PINK = {
+        windowbg = {.2, .2, .2},
         bg = {1, 0, .5},
         hovered = {1, 0, .5},
         active = {1, 0, .7},
@@ -477,6 +484,7 @@ local themes = {
         text = {1, 1, 1},
     },
     GOLD = {
+        windowbg = {.2, .2, .2},
         bg = {.4, .2, 0},
         hovered = {.6, .4, 0},
         active = {.7, .5, 0},
@@ -486,7 +494,7 @@ local themes = {
 }
 local function pushStyle(theme)
     local t = themes[theme]
-    ImGui.PushStyleColor(ImGuiCol.WindowBg, t.bg[1], t.bg[2], t.bg[3], .2)
+    ImGui.PushStyleColor(ImGuiCol.WindowBg, t.windowbg[1], t.windowbg[2], t.windowbg[3], .6)
     ImGui.PushStyleColor(ImGuiCol.TitleBg, t.bg[1], t.bg[2], t.bg[3], 1)
     ImGui.PushStyleColor(ImGuiCol.TitleBgActive, t.active[1], t.active[2], t.active[3], 1)
     ImGui.PushStyleColor(ImGuiCol.FrameBg, t.bg[1], t.bg[2], t.bg[3], 1)
@@ -513,7 +521,7 @@ end
 local lists = {
     'DPSAbilities', 'AEDPSAbilities', 'burnAbilities', 'tankAbilities', 'tankBurnAbilities', 'AETankAbilities', 'healAbilities',
     'fadeAbilities', 'defensiveAbilities', 'aggroReducers', 'recoverAbilities', 'combatBuffs', 'auras', 'selfBuffs',
-    'groupBuffs', 'singleBuffs', 'petBuffs', 'tankBuffs', 'cures', 'clickies', 'castClickies', 'pullClickies', 'debuffs'
+    'groupBuffs', 'singleBuffs', 'petBuffs', 'cures', 'clickies', 'castClickies', 'pullClickies', 'debuffs'
 }
 local function drawAbilityInspector()
     if abilityGUIOpen then
@@ -585,23 +593,9 @@ local function drawHelpWindow()
         if shouldDrawHelpGUI then
             ImGui.PushTextWrapPos(750)
             if ImGui.TreeNode('General Commands') then
-                ImGui.TextColored(1,1,0,1,'/aqo help') ImGui.SameLine() ImGui.Text('Print this help output to the console')
-                ImGui.TextColored(1,1,0,1,'/aqo burnnow') ImGui.SameLine() ImGui.Text('Trigger burns manually')
-                ImGui.TextColored(1,1,0,1,'/aqo pause') ImGui.SameLine() ImGui.Text('on|1|off|0')
-                ImGui.TextColored(1,1,0,1,'/aqo show|hide') ImGui.SameLine() ImGui.Text('Show or hide the AQO UI')
-                ImGui.TextColored(1,1,0,1,'/aqo mode') ImGui.SameLine() ImGui.Text('0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank')
-                ImGui.TextColored(1,1,0,1,'/aqo resetcamp') ImGui.SameLine() ImGui.Text('Reset the center camp location to your current x,y,z coordinates')
-                ImGui.TextColored(1,1,0,1,'/aqo addclicky') ImGui.SameLine() ImGui.Text('<mash|burn|buff|heal> -- Adds the currently held item to the clicky group specified')
-                ImGui.TextColored(1,1,0,1,'/aqo removeclicky') ImGui.SameLine() ImGui.Text('Removes the currently held item from clickies')
-                ImGui.TextColored(1,1,0,1,'/aqo door') ImGui.SameLine() ImGui.Text('Click the nearest door')
-                ImGui.TextColored(1,1,0,1,'/aqo ignore') ImGui.SameLine() ImGui.Text('Adds the targeted mob to the ignore list for the current zone')
-                ImGui.TextColored(1,1,0,1,'/aqo unignore') ImGui.SameLine() ImGui.Text('Removes the targeted mob from the ignore list for the current zone')
-                ImGui.TextColored(1,1,0,1,'/aqo sell') ImGui.SameLine() ImGui.Text('Sells items marked to be sold to the targeted or already opened vendor')
-                ImGui.TextColored(1,1,0,1,'/aqo update') ImGui.SameLine() ImGui.Text('Downloads the latest source zip')
-                ImGui.TextColored(1,1,0,1,'/aqo docs') ImGui.SameLine() ImGui.Text('Launches the documentation site in a browser window')
-                ImGui.TextColored(1,1,0,1,'/aqo wiki') ImGui.SameLine() ImGui.Text('Launches the Lazarus wiki in a browser window')
-                ImGui.TextColored(1,1,0,1,'/aqo baz') ImGui.SameLine() ImGui.Text('Launches the Lazarus Bazaar in a browser window')
-                ImGui.TextColored(1,1,0,1,'/aqo manastone') ImGui.SameLine() ImGui.Text('Spam manastone to get some mana back')
+                for _,command in ipairs(aqo.commands.help) do
+                    ImGui.TextColored(1,1,0,1,'/aqo '..command.command) ImGui.SameLine() ImGui.Text(command.tip)
+                end
                 ImGui.TreePop()
             end
             for _,category in ipairs(config.categories()) do
@@ -632,7 +626,7 @@ local function drawHelpWindow()
                 ImGui.TextColored(1,1,0,1,'/tell <name> gear <slotname>')
                 ImGui.TextColored(1,1,0,1,'Slot Names')
                 ImGui.SameLine()
-                ImGui.Text('earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands')
+                ImGui.Text(aqo.lists.slotList)
                 ImGui.TreePop()
             end
             if ImGui.TreeNode('Buff Begging  (WARNING*: Characters accounce requests to group or raid chat!') then
@@ -650,7 +644,7 @@ local function drawHelpWindow()
 end
 
 -- ImGui main function for rendering the UI window
-ui.main = function()
+function ui.main()
     if not openGUI then return end
     pushStyle(uiTheme)
     openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, 0)

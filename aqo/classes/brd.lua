@@ -7,16 +7,14 @@ local timer = require('utils.timer')
 local common = require('common')
 local state = require('state')
 
-local songs = {}
-
 function class.init(_aqo)
     class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
     class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
     if state.emu then
-        class.SPELLSETS = {emuancient=1,emuaura65=1,emuaura55=1,emunoaura=1}
+        class.spellRotations = {emuancient={},emuaura65={},emuaura55={},emunoaura={}}
         class.DEFAULT_SPELLSET='emuancient'
     else
-        class.SPELLSETS = {melee=1,caster=1,meleedot=1}
+        class.spellRotations = {melee={},caster={},meleedot={}}
         class.DEFAULT_SPELLSET='melee'
     end
     class.initBase(_aqo, 'brd')
@@ -73,40 +71,32 @@ function class.init(_aqo)
 
     if state.emu then
         class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
-        local emuancient = {}
-        table.insert(emuancient, class.spells.selos)
-        table.insert(emuancient, class.spells.chantflame)
-        table.insert(emuancient, class.spells.chantfrost)
-        table.insert(emuancient, class.spells.overhaste)
-        table.insert(emuancient, class.spells.suffering)
-        table.insert(emuancient, class.spells.pulse)
-        table.insert(emuancient, class.spells.bardhaste)
-        table.insert(emuancient, class.spells.arcane)
+        table.insert(class.spellRotations.emuancient, class.spells.selos)
+        table.insert(class.spellRotations.emuancient, class.spells.chantflame)
+        table.insert(class.spellRotations.emuancient, class.spells.chantfrost)
+        table.insert(class.spellRotations.emuancient, class.spells.overhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.suffering)
+        table.insert(class.spellRotations.emuancient, class.spells.pulse)
+        table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.arcane)
 
-        local emuaura65 = {}
-        table.insert(emuancient, class.spells.selos)
-        table.insert(emuancient, class.spells.suffering)
-        table.insert(emuancient, class.spells.bardhaste)
-        table.insert(emuancient, class.spells.emuhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.selos)
+        table.insert(class.spellRotations.emuancient, class.spells.suffering)
+        table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.emuhaste)
 
-        local emuaura55 = {}
-        table.insert(emuancient, class.spells.selos)
-        table.insert(emuancient, class.spells.pulse)
-        table.insert(emuancient, class.spells.overhaste)
-        table.insert(emuancient, class.spells.bardhaste)
-        table.insert(emuancient, class.spells.emuhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.selos)
+        table.insert(class.spellRotations.emuancient, class.spells.pulse)
+        table.insert(class.spellRotations.emuancient, class.spells.overhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.emuhaste)
 
-        local emunoaura = {}
-        table.insert(emuancient, class.spells.selos)
-        table.insert(emuancient, class.spells.pulse)
-        table.insert(emuancient, class.spells.overhaste)
-        table.insert(emuancient, class.spells.emuhaste)
-        table.insert(emuancient, class.spells.firenukebuff)
+        table.insert(class.spellRotations.emuancient, class.spells.selos)
+        table.insert(class.spellRotations.emuancient, class.spells.pulse)
+        table.insert(class.spellRotations.emuancient, class.spells.overhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.emuhaste)
+        table.insert(class.spellRotations.emuancient, class.spells.firenukebuff)
 
-        songs.emuancient = emuancient
-        songs.emuaura65 = emuaura65
-        songs.emuaura55 = emuaura55
-        songs.emunoaura = emunoaura
         --table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
         --table.insert(class.selfBuffs, common.getItem('Songblade of the Eternal', {checkfor='Symphony of Battle'}))
         table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
@@ -115,14 +105,14 @@ function class.init(_aqo)
         table.insert(class.burnAbilities, common.getBestDisc({'Puretone Discipline'}))
     else
         -- entries in the dots table are pairs of {spell id, spell name} in priority order
-        local melee = {
+        class.spellRotations.melee = {
             class.spells.composite, class.spells.crescendo, class.spells.aria,
             class.spells.spiteful, class.spells.suffering, class.spells.warmarch,
             class.spells.pulse, class.spells.dirge
         }
         -- synergy, mezst, mstae
 
-        local caster = {
+        class.spellRotations.caster = {
             class.spells.composite, class.spells.crescendo, class.spells.aria,
             class.spells.arcane, class.spells.firenukebuff, class.spells.suffering,
             class.spells.warmarch, class.spells.firemagicdotbuff, class.spells.pulse,
@@ -130,7 +120,7 @@ function class.init(_aqo)
         }
         -- synergy, mezst, mezae
 
-        local meleedot = {
+        class.spellRotations.meleedot = {
             class.spells.composite, class.spells.crescendo, class.spells.chantflame,
             class.spells.aria, class.spells.warmarch, class.spells.chantdisease,
             class.spells.suffering, class.spells.pulse, class.spells.dirge,
@@ -138,9 +128,6 @@ function class.init(_aqo)
         }
         -- synergy, mezst, mezae
 
-        songs.melee = melee
-        songs.caster = caster
-        songs.meleedot = meleedot
         table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
     end
 
@@ -312,7 +299,7 @@ local function findNextSong()
     if not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value and ((mq.TLO.Target.PctHPs() or 100) < 30) then
         return class.spells.snare
     end
-    for _,song in ipairs(songs[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+    for _,song in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.id
         local song_name = song.name
         if isSongReady(song_id, song_name) and class.isAbilityEnabled(song.opt) then
@@ -324,7 +311,7 @@ local function findNextSong()
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 
-class.cast = function()
+function class.cast()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.doneSinging() and class.itemTimer:timerExpired() then
         for _,clicky in ipairs(class.castClickies) do
@@ -366,7 +353,7 @@ local function useEpic()
     end
 end
 
-class.mashClass = function()
+function class.mashClass()
     if class.OPTS.USEEPIC.value == 'always' or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
         useEpic()
     end
@@ -376,13 +363,13 @@ class.mashClass = function()
     end
 end
 
-class.burnClass = function()
+function class.burnClass()
     if class.OPTS.USEEPIC.value == 'burn' then
         useEpic()
     end
 end
 
-class.hold = function()
+function class.hold()
     if class.rallyingsolo and (mq.TLO.Me.Song(class.rallyingsolo.name)() or mq.TLO.Me.Buff(class.rallyingsolo.name)()) then
         if state.mobCount >= 3 then
             return false
@@ -396,7 +383,7 @@ class.hold = function()
     end
 end
 
-class.invis = function()
+function class.invis()
     mq.cmd('/stopcast')
     mq.delay(1)
     mq.cmd('/cast "selo\'s song of travel"')
@@ -406,7 +393,7 @@ end
 
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 local checkSpellTimer = timer:new(30)
-class.checkSpellSet = function()
+function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if not class.doneSinging() then return end
     if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
@@ -472,7 +459,7 @@ class.checkSpellSet = function()
 end
 -- aura, chorus, war march, storm, rizlonas, verse, ancient,selos, chant flame, echoes, nivs
 
-class.pullCustom = function()
+function class.pullCustom()
     if class.fluxstaff then
         class.fluxstaff:use()
     elseif class.sonic then
@@ -480,7 +467,7 @@ class.pullCustom = function()
     end
 end
 
-class.doneSinging = function()
+function class.doneSinging()
     if class.OPTS.USETWIST.value then return true end
     if songTimer:timerExpired() or mq.TLO.Me.CastTimeLeft() > 4000 then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end

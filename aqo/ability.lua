@@ -66,13 +66,14 @@ local Ability = {
 ---@param options table|nil #
 ---@return Ability #
 function Ability:new(ID, name, type, targettype, options)
-    local ability = {}
+    local ability = {
+        id = ID,
+        name = name,
+        type = type,
+        targettype = targettype,
+    }
     setmetatable(ability, self)
     self.__index = self
-    ability.id = ID
-    ability.name = name
-    ability.type = type
-    ability.targettype = targettype
     if options then
         for key,value in pairs(options) do
             ability[key] = value

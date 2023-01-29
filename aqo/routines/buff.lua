@@ -5,13 +5,14 @@ local Abilities = require('ability')
 local common = require('common')
 local state = require('state')
 
+local aqo
 local buff = {}
 
-function buff.init(aqo)
-
+function buff.init(_aqo)
+    aqo = _aqo
 end
 
-buff.hasBuff = function(spell)
+function buff.hasBuff(spell)
     local hasBuff = mq.TLO.Me.Buff(spell.name)()
     if not hasBuff then
         hasBuff = mq.TLO.Me.Song(spell.name)()
@@ -19,7 +20,7 @@ buff.hasBuff = function(spell)
     return hasBuff
 end
 
-buff.selfBuff = function(spell)
+function buff.selfBuff(spell)
     if not mq.TLO.Me.Buff(spell.name)() and mq.TLO.Spell(spell.name).Stacks() then
         if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
             mq.cmd('/mqtarget myself')
@@ -29,7 +30,7 @@ buff.selfBuff = function(spell)
     end
 end
 
-buff.needsBuff = function(spell, buffTarget)
+function buff.needsBuff(spell, buffTarget)
     if not buffTarget.BuffsPopulated() then
         buffTarget.DoTarget()
         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
@@ -38,13 +39,13 @@ buff.needsBuff = function(spell, buffTarget)
     return not buffTarget.Buff(spell.name)() and mq.TLO.Spell(spell.name).StacksSpawn(buffTarget.ID())() and (buffTarget.Distance3D() or 300) < 100
 end
 
-buff.singleBuff = function(spell, buffTarget)
+function buff.singleBuff(spell, buffTarget)
     if buff.needsBuff(spell, buffTarget) then
         return spell:use()
     end
 end
 
-buff.groupBuff = function(spell)
+function buff.groupBuff(spell)
     local anyoneMissing = false
     if not mq.TLO.Group.GroupSize() then return buff.selfBuff(spell) end
     for i=1,mq.TLO.Group.GroupSize()-1 do
@@ -58,7 +59,7 @@ buff.groupBuff = function(spell)
     end
 end
 
-buff.petBuff = function(spell)
+function buff.petBuff(spell)
     if mq.TLO.Pet.ID() > 0 and not mq.TLO.Pet.Buff(spell.name) and mq.TLO.Spell(spell.name).StacksPet() then
         -- Do we need to target the pet..
         -- Do we need to buff others pets..
@@ -234,7 +235,7 @@ local function buffOOC(base)
     if buffSelf(base) then return true end
     if buffSingle(base) then return true end
     --if buff_tank(base) then return true end
-    if buffGroup(base) then return true end
+    --if buffGroup(base) then return true end
 
     common.checkItemBuffs()
 end
@@ -264,8 +265,55 @@ local function buffPet(base)
     end
 end
 
-local buffCacheTimer = timer:new(120)
-buff.refreshBuffCaches = function()
+local function willLandOther(toon, buff)
+    local hasBuffQ = ('Me.Buff[%s]'):format(buff)
+    local willLandQ = ('Spell[%s].WillLand'):format(buff)
+    mq.cmdf('/dquery %s -q "%s"', toon, willLandQ)
+    mq.cmdf('/dquery %s -q "hasBuffQ"', toon, hasBuffQ)
+    mq.delay(250, function() return mq.TLO.DanNet(toon).QReceived(willLandQ)() > 0 and mq.TLO.DanNet(toon).QReceived(hasBuffQ)() end)
+    local willLand = mq.TLO.DanNet(toon).Q(willLandQ)()
+    local hasBuff = mq.TLO.DanNet(toon).Q(hasBuffQ)()
+    return willLand > 0 and hasBuff
+end
+
+local buffCacheTimer = timer:new(30)
+local readQueries = false
+local groupBuffState = {}
+function buff.queryBuffs()
+    if not buffCacheTimer:timerExpired() then return end
+    local peers = common.split(mq.TLO.DanNet.Peers())
+    for _,peer in ipairs(peers) do
+        for _,buff in ipairs(aqo.class.groupBuffs) do
+            local query = ('Me.Buff[%s]'):format(buff.name)
+            mq.cmdf('/dquery %s -q "%s"', peer, query)
+            mq.delay(100)
+            query = ('Spell[%s].WillLand'):format(buff.name)
+            mq.cmdf('/dquery %s -q "%s"', peer, query)
+            mq.delay(100)
+        end
+    end
+    readQueries = true
+    buffCacheTimer:reset()
+end
+function buff.readQueries()
+    local peers = common.split(mq.TLO.DanNet.Peers())
+    for _,peer in ipairs(peers) do
+        for _,buff in ipairs(aqo.class.groupBuffs) do
+            local query = ('Me.Buff[%s]'):format(buff.name)
+            local willLandQ = ('Spell[%s].WillLand'):format(buff.name)
+            if not groupBuffState[peer] then groupBuffState[peer] = {} end
+            groupBuffState[peer][buff.name] = {hasBuff=mq.TLO.DanNet(peer).Q(query)(),stacks=mq.TLO.DanNet(peer).Q(willLandQ)()}
+        end
+    end
+    readQueries = false
+    --[[for k,v in pairs(groupBuffState) do
+        printf('Peer %s buffs', k)
+        for i,j in pairs(v) do
+            printf("%s - hasBuff=%s, stacks=%s", i, j.hasBuff, j.stacks)
+        end
+    end]]
+end
+--[[buff.refreshBuffCaches = function()
     if not buffCacheTimer:timerExpired() then return end
     local memberCount = mq.TLO.Group.Members()
     for i=1,memberCount do
@@ -276,12 +324,17 @@ buff.refreshBuffCaches = function()
         end
     end
     buffCacheTimer:reset()
-end
+end]]
 
-buff.buff = function(base)
+function buff.buff(base)
     if buffCombat(base) then return true end
 
     if not common.clearToBuff() then return end
+    if not readQueries then
+        buff.queryBuffs()
+    else
+        buff.readQueries()
+    end
     --buff.refreshBuffCaches()
 
     if buffOOC(base) then return true end
@@ -291,7 +344,7 @@ buff.buff = function(base)
     common.checkItemBuffs()
 end
 
-buff.setupBegEvents = function(callback)
+function buff.setupBegEvents(callback)
     mq.event('BegSay', '#1# says, \'Buffs Please!\'', callback)
     mq.event('BegGroup', '#1# tells the group, \'Buffs Please!\'', callback)
     mq.event('BegRaid', '#1# tells the raid, \'Buffs Please!\'', callback)

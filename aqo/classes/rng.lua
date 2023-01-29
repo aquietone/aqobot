@@ -12,7 +12,7 @@ local state = require('state')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest'}
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.initBase(_aqo, 'rng')
 
     mq.cmd('/squelch /stick mod 0')
@@ -170,7 +170,7 @@ function class.init(_aqo)
 end
 
 local rangedTimer = timer:new(5)
-class.resetClassTimers = function()
+function class.resetClassTimers()
     rangedTimer:reset(0)
 end
 
@@ -304,7 +304,7 @@ local function findNextSpell()
 end
 
 local snared_id = 0
-class.cast = function()
+function class.cast()
     if not state.loop.Invis and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.isFighting() then
             if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value then
@@ -345,7 +345,7 @@ end
     14. bulwark of the brownies
     15. scarlet cheetah fang
 ]]--
-class.burnClass = function()
+function class.burnClass()
     if mq.TLO.Me.Combat() then
         for _,disc in ipairs(class.meleeBurnDiscs) do
             disc:use()
@@ -357,7 +357,7 @@ class.burnClass = function()
     end
 end
 
-class.aggroClass = function()
+function class.aggroClass()
     if (mq.TLO.Me.PctAggro() or 0) > 95 then
         -- Pause attacking if aggro is too high
         mq.cmd('/multiline ; /attack off ; /autofire off')
@@ -409,7 +409,7 @@ local function target_missing_buff(name)
 end
 
 local groupBuffTimer = timer:new(60)
-class.buff_classb = function()
+function class.buff_classb()
     common.checkCombatBuffs()
     if class.brownies and not mq.TLO.Me.Buff(class.brownies.name)() then
         class.brownies:use()
@@ -502,7 +502,7 @@ end
 
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 local checkSpellTimer = timer:new(30)
-class.checkSpellSet = function()
+function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
     if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
         if class.OPTS.SPELLSET.value == 'standard' then
@@ -524,7 +524,7 @@ class.checkSpellSet = function()
     end
 end
 
-class.assist = function()
+function class.assist()
     if mq.TLO.Navigation.Active() then return end
     if config.MODE.value:isAssistMode() then
         assist.checkTarget(class.resetClassTimers)

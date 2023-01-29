@@ -6,7 +6,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.initBase(_aqo, 'mag')
 
     class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM')
@@ -75,16 +75,11 @@ function class.init(_aqo)
 
     table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
 
-    local standard = {}
-    table.insert(standard, class.spells.servant)
-    --table.insert(standard, class.spells.prenuke)
-    table.insert(standard, class.spells.fastfire)
-    table.insert(standard, class.spells.firenuke)
-    table.insert(standard, class.spells.magicnuke)
-
-    class.spellRotations = {
-        standard=standard
-    }
+    table.insert(class.spellRotations.standard, class.spells.servant)
+    --table.insert(class.spellRotations.standard, class.spells.prenuke)
+    table.insert(class.spellRotations.standard, class.spells.fastfire)
+    table.insert(class.spellRotations.standard, class.spells.firenuke)
+    table.insert(class.spellRotations.standard, class.spells.magicnuke)
 
     class.addRequestAlias(class.spells.orb, 'orb')
     class.addRequestAlias(class.spells.ds, 'ds')
@@ -104,7 +99,7 @@ end
     "Snare", "Summoned: Tendon Carver",
 ]]
 
-class.pullCustom = function()
+function class.pullCustom()
     movement.stop()
     mq.cmd('/multiline ; /pet attack ; /pet swarm')
     mq.delay(1000)

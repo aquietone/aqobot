@@ -26,7 +26,7 @@ local function cureCounters(toon, buff)
     return {diseaseCounters=diseased, poisonCounters=poisoned, curseCounters=cursed}
 end
 
-cure.selfCure = function(spell)
+function cure.selfCure(spell)
     local shouldCast = false
     if spell.HasSPA(35)() and mq.TLO.Me.Diseased() and mq.TLO.Me.CountersDisease() > 0 then
         shouldCast = true
@@ -49,13 +49,13 @@ local function needsCure(spell, buffTarget)
     return not buffTarget.Buff(spell.name)() and mq.TLO.Spell(spell.name).StacksSpawn(buffTarget)
 end
 
-cure.singleCure = function(spell, buffTarget)
+function cure.singleCure(spell, buffTarget)
     if needsCure(spell, buffTarget) then
         return spell:use()
     end
 end
 
-cure.groupCure = function(spell)
+function cure.groupCure(spell)
     local anyoneNeedsCure = false
     if not mq.TLO.Group.GroupSize() then return cure.selfCure(spell) end
     for i=0,mq.TLO.Group.GroupSize()-1 do
@@ -69,7 +69,7 @@ cure.groupCure = function(spell)
     end
 end
 
-cure.setupCureEvents = function(callback)
+function cure.setupCureEvents(callback)
     mq.event('CureSay', '#1# says, \'Cure Please!\'', callback)
     mq.event('CureGroup', '#1# tells the group, \'Cure Please!\'', callback)
     mq.event('CureRaid', '#1# tells the raid, \'Cure Please!\'', callback)

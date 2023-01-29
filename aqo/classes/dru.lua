@@ -6,7 +6,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.classOrder = {'heal', 'assist', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.initBase(_aqo, 'dru')
 
     class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
@@ -54,14 +54,9 @@ function class.init(_aqo)
 
     -- Aura of the Grove, Aura of the Grove Effect
 
-    local standard = {}
-    table.insert(standard, class.spells.firenuke)
-    table.insert(standard, class.spells.dot)
-    table.insert(standard, class.spells.dot2)
-
-    class.spellRotations = {
-        standard=standard
-    }
+    table.insert(class.spellRotations.standard, class.spells.firenuke)
+    table.insert(class.spellRotations.standard, class.spells.dot)
+    table.insert(class.spellRotations.standard, class.spells.dot2)
 
     table.insert(class.healAbilities, class.spells.heal)
     table.insert(class.healAbilities, class.spells.groupheal)

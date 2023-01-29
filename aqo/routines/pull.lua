@@ -86,7 +86,7 @@ local medding = false
 local healers = {CLR=true,DRU=true,SHM=true}
 local holdPullTimer = timer:new(5)
 local holdPulls = false
-pull.checkPullConditions = function()
+function pull.checkPullConditions()
     if mq.TLO.Group.Members() then
         for i=1,mq.TLO.Group.Members() do
             local member = mq.TLO.Group.Member(i)
@@ -149,7 +149,7 @@ local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.pullMobID to the mob ID of the first matching spawn.
 local pullRadarTimer = timer:new(1)
-pull.pullRadar = function()
+function pull.pullRadar()
     if not pullRadarTimer:timerExpired() then return 0 end
     pullRadarTimer:reset()
     local pull_radius_count
@@ -354,7 +354,7 @@ end
 
 ---Attempt to pull the mob whose ID is stored in common.pullMobID.
 ---Sets common.tankMobID to the mob being pulled.
-pull.pullMob = function()
+function pull.pullMob()
     local pull_state = state.pullStatus
     if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or common.DMZ[mq.TLO.Zone.ID()] then
         movement.stop()

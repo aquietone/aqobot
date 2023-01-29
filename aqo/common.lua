@@ -8,29 +8,29 @@ local ability = require('ability')
 local config = require('configuration')
 local state = require('state')
 
-local common = {}
-
-common.ASSISTS = {group=1,raid1=1,raid2=1,raid3=1,manual=1}
-common.PULL_WITH = {melee=1,ranged=1,spell=1,item=1,custom=1}
-common.GROUP_WATCH_OPTS = {healer=1,self=1,none=1}
-common.TANK_CLASSES = {war=true,shd=true,pal=true}
-common.MELEE_CLASSES = {ber=true,mnk=true,rog=true}
-common.CASTER_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true}
-common.PET_CLASSES = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=true}
-common.BUFF_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true,pal=true}
-common.HEALER_CLASSES = {clr=true,dru=true,shm=true}
-common.FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true}
-common.PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6}
-common.DMZ = {
-    [344] = 1,
-    [345] = 1,
-    [202] = 1,
-    [203] = 1,
-    [279] = 1,
-    [151] = 1,
-    [220] = 1,
-    [386] = 1,
-    [33506] = 1,
+local common = {
+    ASSISTS = {group=1,raid1=1,raid2=1,raid3=1,manual=1},
+    PULL_WITH = {melee=1,ranged=1,spell=1,item=1,custom=1},
+    GROUP_WATCH_OPTS = {healer=1,self=1,none=1},
+    TANK_CLASSES = {war=true,shd=true,pal=true},
+    MELEE_CLASSES = {ber=true,mnk=true,rog=true},
+    CASTER_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true},
+    PET_CLASSES = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=true},
+    BUFF_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true,pal=true},
+    HEALER_CLASSES = {clr=true,dru=true,shm=true},
+    FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true},
+    PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6},
+    DMZ = {
+        [344] = 1,
+        [345] = 1,
+        [202] = 1,
+        [203] = 1,
+        [279] = 1,
+        [151] = 1,
+        [220] = 1,
+        [386] = 1,
+        [33506] = 1,
+    }
 }
 
 local familiar = mq.TLO.Familiar and mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
@@ -42,7 +42,7 @@ local mount = mq.TLO.Mount and mq.TLO.Mount.Stat.Item.ID() or mq.TLO.FindItem('G
 
 -- Generic Helper Functions
 
-common.isNamedMob = function(zone_short_name, mob_name)
+function common.isNamedMob(zone_short_name, mob_name)
     return named[zone_short_name:lower()] and named[zone_short_name:lower()][mob_name]
 end
 
@@ -61,7 +61,7 @@ local function getSpell(spellName)
     return {id=spell.ID(), name=rankname, targettype=spell.TargetType()}
 end
 
-common.getBestSpell = function(spells, options)
+function common.getBestSpell(spells, options)
     for i,spellName in ipairs(spells) do
         local bestSpell = getSpell(spellName)
         if bestSpell then
@@ -79,7 +79,7 @@ end
 ---@param aaName string @The name of the AA.
 ---@param options table|nil @A table of options relating to the AA, such as the setting name controlling use of the AA
 ---@return table|nil @Returns a table containing the AA name, AA ID and the provided option name.
-common.getAA = function(aaName, options)
+function common.getAA(aaName, options)
     local aaData = mq.TLO.Me.AltAbility(aaName)
     if aaData() then
         if not options then options = {} end
@@ -113,7 +113,7 @@ end
 ---@param discs table @An ordered list of discs from best to worst
 ---@param options table|nil @A table of options relating to the disc, such as the setting name controlling use of the disc
 ---@return table|nil @Returns a table containing the disc name with rank, disc ID and the provided option name.
-common.getBestDisc = function(discs, options)
+function common.getBestDisc(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
@@ -126,7 +126,7 @@ common.getBestDisc = function(discs, options)
     return nil
 end
 
-common.getItem = function(itemName, options)
+function common.getItem(itemName, options)
     if not itemName then return nil end
     local itemRef = mq.TLO.FindItem('='..itemName)
     if itemRef() and itemRef.Clicky() then
@@ -156,13 +156,13 @@ common.getItem = function(itemName, options)
     return nil
 end
 
-common.getSkill = function(name, options)
+function common.getSkill(name, options)
     if not mq.TLO.Me.Ability(name) or not mq.TLO.Me.Skill(name)() or mq.TLO.Me.Skill(name)() == 0 then return nil end
     local skill = ability.Skill:new(name, options)
     return skill
 end
 
-common.setSwapGem = function()
+function common.setSwapGem()
     if not mq.TLO.Me.Class.CanCast() then return end
     state.swapGem = mq.TLO.Me.NumGems()
 end
@@ -171,7 +171,7 @@ end
 ---@param spell_id number @The ID of the spell to check.
 ---@param spell_name string @The name of the spell to check.
 ---@return boolean @Returns true if the spell is applied to the target, false otherwise.
-common.isTargetDottedWith = function(spell_id, spell_name)
+function common.isTargetDottedWith(spell_id, spell_name)
     return mq.TLO.Target.MyBuff(spell_name)() ~= nil
     --if not mq.TLO.Target.MyBuff(spell_name)() then return false end
     --return spell_id == mq.TLO.Target.MyBuff(spell_name).ID()
@@ -179,7 +179,7 @@ end
 
 ---Determine whether currently fighting a target.
 ---@return boolean @True if standing with an NPC targeted, and not in a resting state, false otherwise.
-common.isFighting = function()
+function common.isFighting()
     --if mq.TLO.Target.CleanName() == 'Combat Dummy Beza' then return true end -- Dev hook for target dummy
     -- mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Target.Type() ~= "Corpse" and not mq.TLO.Me.Feigning()
     return mq.TLO.Me.CombatState() == 'COMBAT'--mq.TLO.Target.ID() and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target.Type() == "NPC"-- and mq.TLO.Me.Standing()
@@ -187,7 +187,7 @@ end
 
 ---Determine if there are any hostile targets on XTarget.
 ---@return boolean @Returns true if at least 1 hostile auto hater spawn on XTarget, otherwise false.
-common.hostileXTargets = function()
+function common.hostileXTargets()
     if mq.TLO.Me.XTarget() == 0 then return false end
     for i=1,20 do
         if mq.TLO.Me.XTarget(i).TargetType() == 'Auto Hater' and mq.TLO.Me.XTarget(i).Type() == 'NPC' then
@@ -197,11 +197,11 @@ common.hostileXTargets = function()
     return false
 end
 
-common.clearToBuff = function()
+function common.clearToBuff()
     return mq.TLO.Me.CombatState() ~= 'COMBAT' and not common.hostileXTargets()
 end
 
-common.isFightingModeBased = function()
+function common.isFightingModeBased()
     local mode = config.MODE.value
     if mode:isTankMode() then
 
@@ -222,17 +222,17 @@ end
 ---@param x2 number @The X value of the second coordinate.
 ---@param y2 number @The Y value of the second coordinate.
 ---@return number @Returns the distance between the two points.
-common.checkDistance = function(x1, y1, x2, y2)
+function common.checkDistance(x1, y1, x2, y2)
     return math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
 end
 
-common.checkDistance3d = function(x, y, z)
+function common.checkDistance3d(x, y, z)
     return math.sqrt((x * mq.TLO.Me.X()) + (y * mq.TLO.Me.Y()) + (z * mq.TLO.Me.Z()))
 end
 
 ---Determine whether currently alive or dead.
 ---@return boolean @Returns true if currently dead, false otherwise.
-common.amIDead = function()
+function common.amIDead()
     if state.amDead and (mq.TLO.Me.Buff('Resurrection Sickness').ID() or mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName())() == 0) then
         state.assistMobID = 0
         state.tankMobID = 0
@@ -244,13 +244,13 @@ end
 
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
 ---@return boolean @Returns true if not under any loss of control effects, false otherwise.
-common.inControl = function()
+function common.inControl()
     return not (mq.TLO.Me.Dead() or mq.TLO.Me.Ducking() or mq.TLO.Me.Charmed() or
             mq.TLO.Me.Stunned() or mq.TLO.Me.Silenced() or mq.TLO.Me.Feigning() or
             mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
 end
 
-common.isBlockingWindowOpen = function()
+function common.isBlockingWindowOpen()
     -- check blocking windows -- BigBankWnd, MerchantWnd, GiveWnd, TradeWnd
     return mq.TLO.Window('BigBankWnd').Open() or mq.TLO.Window('MerchantWnd').Open() or mq.TLO.Window('GiveWnd').Open() or mq.TLO.Window('TradeWnd').Open() or mq.TLO.Window('LootWnd').Open()
 end
@@ -258,7 +258,7 @@ end
 -- Movement Functions
 
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
-common.checkChase = function()
+function common.checkChase()
     if config.MODE.value:getName() ~= 'chase' then return end
     if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET.value)
@@ -300,7 +300,7 @@ MQ degrees start from 0 on the top and go cw
 ---Convert an MQ heading degrees value to a "regular" degrees value.
 ---@param heading number @The MQ heading degrees value to convert.
 ---@return number @The regular heading degrees value.
-common.convertHeading = function(heading)
+function common.convertHeading(heading)
     if heading > 270 then
         heading = 180 - heading + 270
     elseif heading > 180 then
@@ -315,7 +315,7 @@ end
 
 -- Casting Functions
 
-common.isSpellReady = function(spell, skipCheckTarget)
+function common.isSpellReady(spell, skipCheckTarget)
     if not spell then return false end
 
     if not mq.TLO.Me.SpellReady(spell.name)() then return false end
@@ -350,7 +350,7 @@ common.isSpellReady = function(spell, skipCheckTarget)
 end
 
 --- Stacking check stuff
-common.shouldUseSpell = function(spell, skipselfstack)
+function common.shouldUseSpell(spell, skipselfstack)
     local result = false
     local dist = mq.TLO.Target.Distance3D()
     if spell.Beneficial() then
@@ -397,7 +397,7 @@ common.shouldUseSpell = function(spell, skipselfstack)
 end
 
 --- Spell requirements, i.e. enough mana, enough reagents, have a target, target in range, not casting, in control
-common.canUseSpell = function(spell, type)
+function common.canUseSpell(spell, type)
     if not spell() then return false end
     local result = true
     if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
@@ -435,7 +435,7 @@ end
 ---Use the item specified by item.
 ---@param item MQItem @The MQ Item userdata object.
 ---@return boolean @Returns true if the item was fired, otherwise false.
-common.useItem = function(item)
+function common.useItem(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if itemReady(item) then
         print(logger.logLine('Use Item: \ag%s\ax', item))
@@ -452,7 +452,7 @@ end
 ---Determine whether the conditions are met to engage burn routines.
 ---@param alwaysCondition function|nil @An extra function which can be provided to determine if the always burn condition should fire.
 ---@return boolean @Returns true if any burn condition is satisfied, otherwise false.
-common.isBurnConditionMet = function(alwaysCondition)
+function common.isBurnConditionMet(alwaysCondition)
     -- activating a burn condition is good for 60 seconds, don't do check again if 60 seconds hasn't passed yet and burn is active.
     if not state.burnActiveTimer:timerExpired() and state.burnActive then
         return true
@@ -505,7 +505,7 @@ end
 ---@param spell_name string @The spell name to check is memorized.
 ---@param gem number @The spell gem index the spell should be memorized in.
 ---@return boolean|nil @Returns true if the spell is memorized in the specified gem, otherwise false.
-common.swapGemReady = function(spell_name, gem)
+function common.swapGemReady(spell_name, gem)
     return mq.TLO.Me.Gem(gem).Name() == spell_name
 end
 
@@ -513,7 +513,7 @@ end
 ---@param spell table @The MQ Spell to memorize.
 ---@param gem number @The gem index to memorize the spell into.
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
-common.swapSpell = function(spell, gem, other_names)
+function common.swapSpell(spell, gem, other_names)
     if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
@@ -525,7 +525,7 @@ common.swapSpell = function(spell, gem, other_names)
     return common.swapGemReady(spell.name, gem)
 end
 
-common.swapAndCast = function(spell, gem)
+function common.swapAndCast(spell, gem)
     if not spell then return false end
     local restore_gem = nil
     if not mq.TLO.Me.Gem(spell.name)() then
@@ -547,7 +547,7 @@ common.swapAndCast = function(spell, gem)
 end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
-common.checkCombatBuffs = function()
+function common.checkCombatBuffs()
     if state.emu then return end
     if not mq.TLO.Me.Buff('Geomantra')() then
         common.useItem(mq.TLO.InvSlot('Charm').Item)
@@ -555,7 +555,7 @@ common.checkCombatBuffs = function()
 end
 
 ---Check and cast any missing familiar, illusion or mount buffs. Removes illusion and dismounts after casting.
-common.checkItemBuffs = function()
+function common.checkItemBuffs()
     if familiar and familiar > 0 and not mq.TLO.Me.Buff('Familiar:')() then
         common.useItem(mq.TLO.FindItem(familiar))
     end
@@ -572,7 +572,7 @@ common.checkItemBuffs = function()
 end
 
 ---Attempt to click mod rods if mana is below 75%.
-common.checkMana = function()
+function common.checkMana()
     -- modrods
     local pct_mana = state.loop.PctMana
     local pct_end = state.loop.PctEndurance
@@ -615,7 +615,7 @@ end
 
 local sitTimer = timer:new(10)
 ---Sit down to med if the conditions for resting are met.
-common.rest = function()
+function common.rest()
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sitTimer:timerExpired() then
         if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
@@ -631,7 +631,7 @@ end
 -- keep cursor clear for spell swaps and such
 local autoInventoryTimer = timer:new(15)
 ---Autoinventory an item if it has been on the cursor for 15 seconds.
-common.checkCursor = function()
+function common.checkCursor()
     if mq.TLO.Cursor() then
         if autoInventoryTimer.start_time == 0 then
             autoInventoryTimer:reset()
@@ -646,14 +646,26 @@ common.checkCursor = function()
     end
 end
 
-common.toggleTribute = function()
+function common.toggleTribute()
     logger.debug(logger.flags.common.misc, 'Toggle tribute')
     mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
     mq.cmd('/notify TBW_PersonalPage TBWP_ActivateButton leftmouseup')
     mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
 end
 
-common.processList = function(aList, shouldUse, returnOnFirstUse)
+-- Split a string using the provided separator, | by default
+function common.split(input, sep)
+    if sep == nil then
+        sep = "|"
+    end
+    local t={}
+    for str in string.gmatch(input, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
+function common.processList(aList, shouldUse, returnOnFirstUse)
     for _,entry in ipairs(aList) do
         if shouldUse(entry) then
             if entry.beforeUse then entry.beforeUse() end

@@ -120,7 +120,7 @@ function class.init(_aqo)
     end
 end
 
-class.ohShitClass = function()
+function class.ohShitClass()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         class.resurgence:use()
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then

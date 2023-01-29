@@ -4,7 +4,7 @@ local class = require('classes.classbase')
 local common = require('common')
 
 function class.init(_aqo)
-    class.SPELLSETS = {standard=1}
+    class.spellRotations = {standard={}}
     class.classOrder = {'cure', 'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'clr')
 
@@ -37,12 +37,7 @@ function class.init(_aqo)
     class.addSpell('aestun', {'Silent Dictation'})
     class.addSpell('mark', {'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, {opt='USEDEBUFF'})
 
-    local standard = {}
-    table.insert(standard, class.spells.stun)
-
-    class.spellRotations = {
-        standard=standard
-    }
+    table.insert(class.spellRotations.standard, class.spells.stun)
 
     table.insert(class.DPSAbilities, class.spells.hammerpet)
 
@@ -88,6 +83,7 @@ function class.init(_aqo)
     table.insert(class.singleBuffs, class.spells.aego)
     table.insert(class.singleBuffs, class.spells.symbol)
     table.insert(class.singleBuffs, class.spells.singleaego)
+    table.insert(class.groupBuffs, class.spells.aego)
 
     table.insert(class.debuffs, class.spells.mark)
 

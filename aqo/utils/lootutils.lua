@@ -301,7 +301,7 @@ end
 
 -- LOOTING
 
-eventCantLoot = function()
+function eventCantLoot()
     cantLootID = mq.TLO.Target.ID()
 end
 
@@ -411,7 +411,7 @@ local function corpseLocked(corpseID)
     return true
 end
 
-loot.lootMobs = function(limit)
+function loot.lootMobs(limit)
     loot.logger.Debug('Enter lootMobs')
     --if mq.TLO.Me.FreeInventory() > 0 then shouldLootMobs = true end
     --if not shouldLootMobs then return false end
@@ -445,7 +445,7 @@ loot.lootMobs = function(limit)
     return didLoot
 end
 
-loot.lootMyCorpse = function()
+function loot.lootMyCorpse()
     mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
     mq.delay(1000)
     if mq.TLO.Target.Type() == 'Corpse' then
@@ -466,7 +466,7 @@ end
 
 -- SELLING
 
-eventSell = function(line, itemName)
+function eventSell(line, itemName)
     local firstLetter = itemName:sub(1,1):upper()
     if lootData[firstLetter] and lootData[firstLetter][itemName] == 'Sell' then return end
     if lookupIniLootRule(firstLetter, itemName) == 'Sell' then
@@ -527,7 +527,7 @@ local function sellToVendor(itemToSell)
     end
 end
 
-loot.sellStuff = function()
+function loot.sellStuff()
     if not mq.TLO.Window('MerchantWnd').Open() then
         if not goToVendor() then return end
         if not openVendor() then return end
@@ -574,7 +574,7 @@ end
 
 -- BANKING
 
-loot.markTradeSkillAsBank = function()
+function loot.markTradeSkillAsBank()
     for i=1,10 do
         local bagSlot = mq.TLO.InvSlot('pack'..i).Item
         if bagSlot.Container() == 0 then
@@ -609,7 +609,7 @@ local function bankItem(itemName)
     mq.delay(100, function() return not mq.TLO.Cursor() end)
 end
 
-loot.bankStuff = function()
+function loot.bankStuff()
     if not mq.TLO.Window('BigBankWnd').Open() then
         loot.logger.Warn('Bank window must be open!')
         return
@@ -642,7 +642,7 @@ end
 
 -- FORAGING
 
-eventForage = function()
+function eventForage()
     loot.logger.Debug('Enter eventForage')
     -- allow time for item to be on cursor incase message is faster or something?
     mq.delay(1000, function() return mq.TLO.Cursor() end)

@@ -10,6 +10,7 @@ local state = {
     minEndurance = 15,
     spellSetLoaded = nil,
     amDead = false,
+    assistNames = {},
     assistMobID = 0,
     tankMobID = 0,
     pullMobID = 0,

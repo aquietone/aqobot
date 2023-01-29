@@ -2,7 +2,28 @@
 local mq = require('mq')
 
 local aqo
-local commands = {}
+local commands = {
+    help = {
+        {command='help', tip='Output the help text'},
+        {command='burnnow', tip='Activate burn abilities'},
+        {command='pause [on|1|off|0]', tip='Pause or resume the script'},
+        {command='show', tip='Display the UI window'},
+        {command='hide', tip='Hide the UI window'},
+        {command='mode [mode]', tip='Set the current mode of the script. Valid Modes:\n0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank'},
+        {command='resetcamp', tip='Reset the centerpoint of the camp to your current X,Y,Z coordinates'},
+        {command='addclicky <mash|burn|buff|heal>', tip='Adds the currently held item to the clicky group specified'},
+        {command='removeclicky', tip='Removes the currently held item from clickies'},
+        {command='door', tip='Click the nearest door'},
+        {command='ignore', tip='Adds the targeted mob to the ignore list for the current zone'},
+        {command='unignore', tip='Removes the targeted mob from the ignore list for the current zone'},
+        {command='sell', tip='Sells items marked to be sold to the targeted or already opened vendor'},
+        {command='update', tip='Downloads the latest source zip'},
+        {command='docs', tip='Launches the documentation site in a browser window'},
+        {command='wiki', tip='Launches the Lazarus wiki in a browser window'},
+        {command='baz', tip='Launches the Lazarus Bazaar in a browser window'},
+        {command='manastone', tip='Spam manastone to get some mana back'},
+    }
+}
 
 function commands.init(_aqo)
     aqo = _aqo
@@ -17,23 +38,9 @@ local function showHelp()
     local prefix = '\n- /'..aqo.state.class..' '
     local output = aqo.logger.logLine('AQO Bot 1.0\n')
     output = output .. '\ayCommands:\aw'
-    output = output .. prefix .. 'help'
-    output = output .. prefix .. 'burnnow'
-    output = output .. prefix .. 'pause on|1|off|0'
-    output = output .. prefix .. 'show|hide'
-    output = output .. prefix .. 'mode 0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank'
-    output = output .. prefix .. 'resetcamp'
-    output = output .. prefix .. 'addclicky <mash|burn|buff|heal> -- Adds the currently held item to the clicky group specified'
-    output = output .. prefix .. 'removeclicky -- Removes the currently held item from clickies'
-    output = output .. prefix .. 'door -- Click the nearest door'
-    output = output .. prefix .. 'ignore -- Adds the targeted mob to the ignore list for the current zone'
-    output = output .. prefix .. 'unignore -- Removes the targeted mob from the ignore list for the current zone'
-    output = output .. prefix .. 'sell -- Sells items marked to be sold to the targeted or already opened vendor'
-    output = output .. prefix .. 'update -- Downloads the latest source zip'
-    output = output .. prefix .. 'docs -- Launches the documentation site in a browser window'
-    output = output .. prefix .. 'wiki -- Launches the Lazarus wiki in a browser window'
-    output = output .. prefix .. 'baz -- Launches the Lazarus Bazaar in a browser window'
-    output = output .. prefix .. 'manastone -- Spam manastone to get some mana back'
+    for _,command in ipairs(commands.help) do
+        output = output .. prefix .. command.command .. ' -- ' .. command.tip
+    end
     output = output .. '\n\ayGeneric Configuration\aw'
     for key,cfg in pairs(aqo.config) do
         if type(cfg) == 'table' then
@@ -44,11 +51,11 @@ local function showHelp()
     for key,value in pairs(aqo.class.OPTS) do
         local valueType = type(value.value)
         if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
-            output = output .. prefix .. key .. ' <' .. valueType .. '>'--' -- '..value.tip
+            output = output .. prefix .. key .. ' <' .. valueType .. '>'
             if value.tip then output = output .. ' -- '..value.tip end
         end
     end
-    output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands'
+    output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: ' .. aqo.lists.slotList
     output = output .. '\n\ayBuff Begging:\aw /tell <name> <alias> -- Aliases: '
     for alias,_ in pairs(aqo.class.requestAliases) do
         output = output .. alias .. ', '
@@ -125,6 +132,9 @@ function commands.commandHandler(...)
         aqo.camp.setCamp()
     elseif configName then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
+        if configName == 'ASSISTNAMES' then
+            aqo.state.assistNames = aqo.common.split(aqo.config[configName].value)
+        end
     elseif opt == 'groupwatch' and aqo.common.GROUP_WATCH_OPTS[new_value] then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
     elseif opt == 'assist' then
@@ -202,18 +212,14 @@ function commands.commandHandler(...)
             if manastoneTimer:timerExpired() then break end
         end
     else
-        commands.handleClassSettings(opt:upper(), new_value)
+        commands.classSettingsHandler(opt:upper(), new_value)
     end
 end
 
-commands.nowcastHandler = function(...)
-    aqo.class.nowCast({...})
-end
-
-commands.handleClassSettings = function(opt, new_value)
+function commands.classSettingsHandler(opt, new_value)
     if new_value then
         if opt == 'SPELLSET' and aqo.class.OPTS.SPELLSET ~= nil then
-            if aqo.class.SPELLSETS[new_value] then
+            if aqo.class.spellRotations[new_value] then
                 print(aqo.logger.logLine('Setting %s to: %s', opt, new_value))
                 aqo.class.OPTS.SPELLSET.value = new_value
             end
@@ -251,6 +257,10 @@ commands.handleClassSettings = function(opt, new_value)
             print(aqo.logger.logLine('Unrecognized option: %s', opt))
         end
     end
+end
+
+function commands.nowcastHandler(...)
+    aqo.class.nowCast({...})
 end
 
 return commands

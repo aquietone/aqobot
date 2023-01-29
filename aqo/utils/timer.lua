@@ -1,4 +1,6 @@
 ---@class Timer
+---@field expiration number #Time, in seconds, after which the timer expires
+---@field start_time number #Time since epoch, in seconds, when timer is counting from
 local Timer = {
     expiration=0,
     start_time = 0,
@@ -9,15 +11,12 @@ local Timer = {
 ---@param reset? boolean @Indicate whether or not the timer start time should be now (reset) or 0 (expired)
 ---@return Timer @The timer instance.
 function Timer:new(expiration, reset)
-    local t = {}
+    local t = {
+        start_time = reset and os.time() or 0,
+        expiration = expiration
+    }
     setmetatable(t, self)
     self.__index = self
-    if reset then
-        t.start_time = os.time()
-    else
-        t.start_time = 0
-    end
-    t.expiration = expiration
     return t
 end
 

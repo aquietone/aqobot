@@ -17,7 +17,82 @@ local config = require('configuration')
 local state = require('state')
 
 local aqo
-local base = {}
+---@class base
+---@field classOrder table #All possible class routine methods
+---@field OPTS table #Collection of options for the class which appear in the Skills tab
+---@field DEFAULT_SPELLSET? string #The spell set selected by default
+---@field spells table #Collection of all spell id/name pairs that may be used for the class
+---@field spellRotations table #Ordered spell rotations which may be loaded for the class and used in the cast routine
+---@field DPSAbilities table #Abilities used in mash in any modes
+---@field tankAbilities table #Abilities used in mash in tank modes
+---@field burnAbilities table #Abilities used in burn in any modes
+---@field tankBurnAbilities table #Abilities used in burn in tank modes
+---@field healAbilities table #Abilities used in heal
+---@field AEDPSAbilities table #Abilities used in ae in any mode
+---@field AETankAbilities table #Abilities used in ae in tank modes
+---@field defensiveAbilities table #Abilities used in aggro in non-tank modes
+---@field fadeAbilities table #Abilities used in aggro in non-tank modes
+---@field aggroAbilities table #Abilities used in aggro in non-tank modes
+---@field recoverAbilities table #Abilities used in recover
+---@field combatBuffs table #Abilities used to buff during combat
+---@field auras table #Class aura abilities
+---@field selfBuffs table #Abilities used to buff yourself
+---@field groupBuffs table #Abilities used to buff the group
+---@field singleBuffs table #Abilities used to buff individuals by class
+---@field petBuffs table #Abilities used for pet buffing
+---@field cures table #Abilities used in the cure routine
+---@field requests table #Stores pending requests received from other characters
+---@field requestAliases table #Aliases which can be used for requesting buffs
+---@field clickies table #Combined list of user added clickies of all types
+---@field castClickies table #User added items used in the cast routine
+---@field pullClickies table #User added items used to pull mobs
+---@field debuffs table #Abilities used in the debuff routine
+---@field beforeEngage? function #Function to execute before engaging target (rogue stuff)
+---@field resetClassTimers? function #Function to execute to reset class specific timers
+---@field itemTimer? Timer #Timer used to prevent clicking items too quickly, because EMU is crashy
+---@field doneSinging? function #Function to check whether currently singing a song or if the cast time has already completed (bard stuff)
+---@field mashClass? function #Function to perform class specific mash logic
+---@field aeClass? function #Function to perform class specific AE logic
+---@field burnClass? function #Function to perform class specific burn logic
+---@field ohShitClass? function #Function to perform class specific ohshit logic
+---@field aggroClass? function #Function to perform class specific aggro logic
+---@field recoverClass? function #Function to perform class specific recover logic
+---@field checkSpellSet? function #Function to load class spell sets
+---@field swapSpells? function #Function to perform class specific checks for spell swapping in combat (necro stuff)
+---@field rezAbility? Ability #
+local base = {
+    -- All possible class routine methods
+    OPTS = {},
+    spells = {},
+    spellRotations = {},
+    DPSAbilities = {},
+    tankAbilities = {},
+    burnAbilities = {},
+    tankBurnAbilities = {},
+    healAbilities = {},
+    AEDPSAbilities = {},
+    AETankAbilities = {},
+    defensiveAbilities = {},
+    fadeAbilities = {},
+    aggroReducers = {},
+    recoverAbilities = {},
+    combatBuffs = {},
+    auras = {},
+    selfBuffs = {},
+    groupBuffs = {},
+    singleBuffs = {},
+    petBuffs = {},
+    cures = {},
+    requests = {},
+    requestAliases = {},
+    clickies = {},
+    castClickies = {},
+    pullClickies = {},
+    debuffs = {},
+    --nuketimer
+    --drop_aggro
+    --pet
+}
 
 function base.initBase(_aqo, class)
     aqo = _aqo
@@ -25,69 +100,6 @@ function base.initBase(_aqo, class)
     base.addCommonOptions()
     base.addCommonAbilities()
 end
-
--- All possible class routine methods
-base.ROUTINES = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,rez=1,recover=1,managepet=1}
-
--- collection of options for the class which appear in the Skills tab
-base.OPTS = {}
-
--- collection of all spell id/name pairs that may be used for the class
-base.spells = {}
--- collection of ordered spell rotations which may be loaded for the class and used in base.cast
-base.spellRotations = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.mash in any modes
--- Options: opt=string, delay=number
-base.DPSAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.mash in tank modes
--- Options: opt=string, delay=number
-base.tankAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.burn in any modes
--- Options: opt=string, delay=number
-base.burnAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.burn in tank modes
--- Options: opt=string, delay=number
-base.tankBurnAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.heal
--- Options: me=number, mt=number, other=number
-base.healAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.ae in any mode
--- Options: opt=string, delay=number, threshold=number
-base.AEDPSAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.ae in tank modes
--- Options: opt=string, delay=number, threshold=number
-base.AETankAbilities = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.aggro in non-tank modes
--- Options: opt=string, delay=number, threshold=number
-base.defensiveAbilities = {}
-base.fadeAbilities = {}
-base.aggroReducers = {}
--- collection of Spell/AA/Disc/Ability/Item used in base.recover
--- Options: mana=boolean, endurance=boolean, combat=boolean, ooc=boolean, threshold=number, minhp=number
-base.recoverAbilities = {}
-
--- collection of Spell/AA/Disc/Ability/Item used in base.
--- Options: target=self|group|classlist
-base.combatBuffs = {}
-base.auras = {}
-base.selfBuffs = {}
-base.groupBuffs = {}
-base.singleBuffs = {}
-base.tankBuffs = {}
-base.petBuffs = {}
-base.cures = {}
-base.requests = {}
-base.requestAliases = {}
-
-base.clickies = {}
-base.castClickies = {}
-base.pullClickies = {}
-
-base.debuffs = {}
---base.nuketimer
---base.drop_aggro
---base.pet
---
 
 -- Options added by key/value as well as by index/key so that settings can be displayed
 -- in the skills tab in the order in which they are defined.
@@ -98,7 +110,7 @@ base.debuffs = {}
 --- @param tip string|nil # Hover  help message for the setting
 --- @param type string # The UI element type (combobox, checkbox, inputint)
 --- @param exclusive string|nil # The key of another option which is mutually exclusive with this option
-base.addOption = function(key, label, value, options, tip, type, exclusive)
+function base.addOption(key, label, value, options, tip, type, exclusive)
     base.OPTS[key] = {
         label=label,
         value=value,
@@ -110,9 +122,9 @@ base.addOption = function(key, label, value, options, tip, type, exclusive)
     table.insert(base.OPTS, key)
 end
 
-base.addCommonOptions = function()
-    if base.SPELLSETS then
-        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.SPELLSETS, 'The spell set to be used', 'combobox')
+function base.addCommonOptions()
+    if base.spellRotations then
+        base.addOption('SPELLSET', 'Spell Set', base.DEFAULT_SPELLSET or 'standard' , base.spellRotations, 'The spell set to be used', 'combobox')
         base.addOption('BYOS', 'BYOS', true, nil, 'Bring your own spells', 'checkbox')
     end
     base.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
@@ -141,7 +153,7 @@ base.addCommonOptions = function()
     end
 end
 
-base.addCommonAbilities = function()
+function base.addCommonAbilities()
     base.tranquil = common.getAA('Tranquil Blessings')
     base.radiant = common.getAA('Radiant Cure', {all=true})
     base.silent = common.getAA('Silent Casting')
@@ -151,18 +163,18 @@ end
 -- Return true only if the option is both defined and true
 -- For cases where something should only be done by a class who has the option
 -- Ex. USEMEZ logic should only ever be entered for classes who can mez.
-base.isEnabled = function(key)
+function base.isEnabled(key)
     return base.OPTS[key] and base.OPTS[key].value
 end
 
 -- Return true if the option is nil or the option is true
 -- Ex. Kick has no option to toggle it, so should always be true. Intimidate has a toggle
 -- so should evaluate the option.
-base.isAbilityEnabled = function(key)
+function base.isAbilityEnabled(key)
     return not key or not base.OPTS[key] or base.OPTS[key].value
 end
 
-base.addSpell = function(spellGroup, spellList, options)
+function base.addSpell(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options)
     base.spells[spellGroup] = foundSpell
     if foundSpell then
@@ -172,7 +184,7 @@ base.addSpell = function(spellGroup, spellList, options)
     end
 end
 
-base.addClicky = function(clicky)
+function base.addClicky(clicky)
     local item = mq.TLO.FindItem('='..clicky.name)
     if item.Clicky() then
         if clicky.clickyType == 'burn' then
@@ -196,7 +208,7 @@ base.addClicky = function(clicky)
     end
 end
 
-base.removeClicky = function(itemName)
+function base.removeClicky(itemName)
     for i,clicky in ipairs(base.clickies) do
         if clicky.name == itemName then
             table.remove(base.clickies, i)
@@ -228,15 +240,15 @@ base.removeClicky = function(itemName)
     end
 end
 
-base.addRequestAlias = function(ability, alias)
+function base.addRequestAlias(ability, alias)
     base.requestAliases[alias] = ability
 end
 
-base.getAbilityForAlias = function(alias)
+function base.getAbilityForAlias(alias)
     return base.requestAliases[alias]
 end
 
-base.loadSettings = function()
+function base.loadSettings()
     local settings = config.loadSettings()
     if not settings or not settings[base.class] then return end
     for setting,value in pairs(settings[base.class]) do
@@ -253,13 +265,13 @@ base.loadSettings = function()
     end
 end
 
-base.saveSettings = function()
+function base.saveSettings()
     local optValues = {}
     for name,options in pairs(base.OPTS) do optValues[name] = options.value end
     persistence.store(config.SETTINGS_FILE, {common=config.getAll(), [base.class]=optValues, clickies=base.clickies})
 end
 
-base.assist = function()
+function base.assist()
     if common.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
     --if lists.healClasses[base.class] and config.ASSIST.value == 'manual' then return end
     if config.MODE.value:isAssistMode() then
@@ -277,14 +289,14 @@ base.assist = function()
     end
 end
 
-base.tank = function()
+function base.tank()
     if common.DMZ[mq.TLO.Zone.ID()] then return end
     tank.findMobToTank()
     tank.tankMob()
     assist.sendPet()
 end
 
-base.heal = function()
+function base.heal()
     if lists.healClasses[base.class] then
         healing.heal(base.healAbilities, base.OPTS)
     elseif lists.petClasses[base.class] then
@@ -294,7 +306,7 @@ base.heal = function()
     end
 end
 
-base.cure = function()
+function base.cure()
     if mq.TLO.Me.SPA(15)() < 0 then
         if mq.TLO.Me.CountersCurse() > 0 then
             for _,cure in base.cures do
@@ -348,7 +360,7 @@ local function doMashClickies()
     end
 end
 
-base.mash = function()
+function base.mash()
     if mq.TLO.Target.ID() == state.loop.ID then return end
     local cur_mode = config.MODE.value
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
@@ -361,20 +373,20 @@ base.mash = function()
     end
 end
 
-base.ae = function()
+function base.ae()
     if mq.TLO.Target.ID() == state.loop.ID then return end
     if not base.isEnabled('USEAOE') then return end
     local cur_mode = config.MODE.value
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
-            if base.ae_class then base.ae_class() end
+            if base.aeClass then base.aeClass() end
             doCombatLoop(base.AETankAbilities)
         end
         doCombatLoop(base.AEDPSAbilities)
     end
 end
 
-base.burn = function()
+function base.burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if mq.TLO.Target.ID() == state.loop.ID then return end
@@ -389,7 +401,7 @@ base.burn = function()
     end
 end
 
-base.findNextSpell = function()
+function base.findNextSpell()
     -- alliance
     -- synergy
     for _,spell in ipairs(base.spellRotations[base.OPTS.SPELLSET.value]) do
@@ -398,12 +410,12 @@ base.findNextSpell = function()
     end
 end
 
-base.debuff = function()
+function base.debuff()
     aqo.debuff.castDebuffs()
 end
 
 base.nuketimer = timer:new(0)
-base.cast = function()
+function base.cast()
     if mq.TLO.Me.SpellInCooldown() or base.isEnabled('DONTCAST') then return end
     if assist.isFighting() then
         if base.nuketimer:timerExpired() then
@@ -450,16 +462,16 @@ base.cast = function()
     end
 end
 
-base.buff = function()
+function base.buff()
     if base.doneSinging and not base.doneSinging() then return end
     if buffing.buff(base) then state.actionTaken = true end
 end
 
-base.rest = function()
+function base.rest()
     common.rest()
 end
 
-base.mez = function()
+function base.mez()
     -- don't try to mez in manual mode
     if config.MODE.value:isManualMode() or config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then return end
     if base.OPTS.MEZAE.value and base.spells.mezae then
@@ -470,7 +482,7 @@ base.mez = function()
     end
 end
 
-base.aggro = function()
+function base.aggro()
     if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then return end
     local pctAggro = mq.TLO.Me.PctAggro() or 0
     -- 1. Am i on aggro? Use fades or defensives immediately
@@ -512,11 +524,11 @@ base.aggro = function()
     end
 end
 
-base.ohshit = function()
-    if base.ohshitclass then base.ohShitClass() end
+function base.ohshit()
+    if base.ohShitClass then base.ohShitClass() end
 end
 
-base.recover = function()
+function base.recover()
     if common.DMZ[mq.TLO.Zone.ID()] or (mq.TLO.Me.Level() == 70 and mq.TLO.Me.MaxHPs() < 6000) or mq.TLO.Me.Buff('Resurrection Sickness')() then return end
     if base.recoverClass then base.recoverClass() end
     -- modrods
@@ -549,11 +561,11 @@ base.recover = function()
     end
 end
 
-base.rez = function()
+function base.rez()
     if healing.rez(base.rezAbility) then state.actionTaken = true end
 end
 
-base.managepet = function()
+function base.managepet()
     if not base.isEnabled('SUMMONPET') or not base.spells.pet then return end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() > 0 then return end
@@ -563,11 +575,11 @@ base.managepet = function()
     state.actionTaken = true
 end
 
-base.hold = function()
+function base.hold()
 
 end
 
-base.nowCast = function(args)
+function base.nowCast(args)
     if #args == 3 then
         local sendTo = args[1]:lower()
         local alias = args[2]:lower()
@@ -656,7 +668,7 @@ local function lifesupport()
     end
 end
 
-base.mainLoop = function()
+function base.mainLoop()
     if config.LOOTMOBS.value and state.assistMobID > 0 and not state.lootBeforePull then
         -- some attempt at forcing a round of looting before beginning another pull,
         -- otherwise, depending where we are in the loop when a mob dies, we might go

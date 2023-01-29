@@ -43,7 +43,13 @@ lists.booleans = {
 }
 
 lists.ignoreBuff = {
-    
+    ['HC Bracing Defense']=true,
+    ['HC Visziaj\'s Grasp Recourse']=true,
+    ['HC Defense of Calrena']=true,
 }
+
+lists.slotList = 'earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands'
+
+lists.routines = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,rez=1,recover=1,managepet=1}
 
 return lists
