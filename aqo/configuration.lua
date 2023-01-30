@@ -54,6 +54,11 @@ local config = {
         tip = 'Percent mana or endurance to trigger recover abilities',
         alias = 'recoverpct',
     },
+    MEDCOMBAT = {
+        value = false,
+        tip = 'Toggle whether to med during combat. If on, character will still heal, tank, cc, debuff and buff, just not assist.',
+        alias = 'medcombat',
+    },
 
     -- Heal settings
     HEALPCT = {
@@ -246,7 +251,7 @@ function config.categories()
 end
 
 local configByCategory = {
-    Assist={'AUTOASSISTAT','ASSIST','ASSISTNAMES','SWITCHWITHMA'},
+    Assist={'AUTOASSISTAT','ASSIST','ASSISTNAMES','SWITCHWITHMA','MEDCOMBAT'},
     Camp={'MODE','CAMPRADIUS','CHASETARGET','CHASEDISTANCE','MAINTANK','LOOTMOBS','AUTODETECTRAID'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY','RECOVERPCT'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','PULLWITH'},

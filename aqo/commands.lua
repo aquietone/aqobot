@@ -132,9 +132,6 @@ function commands.commandHandler(...)
         aqo.camp.setCamp()
     elseif configName then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
-        if configName == 'ASSISTNAMES' then
-            aqo.state.assistNames = aqo.common.split(aqo.config[configName].value)
-        end
     elseif opt == 'groupwatch' and aqo.common.GROUP_WATCH_OPTS[new_value] then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
     elseif opt == 'assist' then

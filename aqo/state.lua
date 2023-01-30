@@ -10,7 +10,6 @@ local state = {
     minEndurance = 15,
     spellSetLoaded = nil,
     amDead = false,
-    assistNames = {},
     assistMobID = 0,
     tankMobID = 0,
     pullMobID = 0,
@@ -23,6 +22,7 @@ local state = {
     mezTargetID = 0,
     subscription = 'GOLD',
     resists = {},
+    medding = false,
 }
 
 function state.resetCombatState()

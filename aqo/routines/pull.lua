@@ -395,7 +395,7 @@ function pull.pullMob()
                         furthestID = member.ID()
                     end
                 end
-                movement.navToID(furthestID, 'dist=10')
+                if furthestID > 0 then movement.navToID(furthestID, 'dist=10') end
             end
             return
         elseif holdPulls then

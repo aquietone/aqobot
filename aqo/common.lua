@@ -616,15 +616,23 @@ end
 local sitTimer = timer:new(10)
 ---Sit down to med if the conditions for resting are met.
 function common.rest()
+    if not config.MEDCOMBAT and mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if mq.TLO.Me.CombatState() == 'COMBAT' and (config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sitTimer:timerExpired() then
-        if mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and
-                ((mq.TLO.Me.Class.CanCast() and state.loop.PctMana < 60) or state.loop.PctEndurance < 60) and
-                not mq.TLO.Me.Casting() and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
-                mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() == 0 then
+        if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and
+                ((mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.MEDMANASTART.value) or state.loop.PctEndurance < config.MEDENDSTART.value) then
+                --and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
+                --mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() == 0 then
             mq.cmd('/sit')
             sitTimer:reset()
+            state.medding = true
         end
+    end
+    if mq.TLO.Me.Class.CanCast() then
+        if state.loop.PctMana > 85 then state.medding = false end
+    else
+        if state.loop.PctEndurance > 85 then state.medding = false end
     end
 end
 

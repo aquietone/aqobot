@@ -156,7 +156,8 @@ function assist.checkTarget(resetTimers)
         if assist_target == -1 then
             if mq.TLO.Me.XTarget() > 0 then
                 if manualAssistTimer:timerExpired() or not mq.TLO.Target() then
-                    for _,assistName in ipairs(state.assistNames) do
+                    local assistNames = common.split(config.ASSISTNAMES.value, ',')
+                    for _,assistName in ipairs(assistNames) do
                         if mq.TLO.Spawn('pc ='..assistName)() then
                             mq.cmdf('/assist %s', assistName)
                             mq.delay(100)

@@ -160,7 +160,6 @@ local function drawAssistTab()
     end
     config.ASSIST.value = ui.drawComboBox('Assist', config.ASSIST.value, common.ASSISTS, true)
     config.AUTOASSISTAT.value = ui.drawInputInt('Assist %', '##assistat', config.AUTOASSISTAT.value, 'Percent HP to assist at')
-    local currentAssistNames = config.ASSISTNAMES.value
     config.ASSISTNAMES.value = ui.drawInputText('Assist Names', '##assistnames', config.ASSISTNAMES.value, 'Command separated, ordered list of names to assist, mainly for manual assist mode in raids.')
     config.SWITCHWITHMA.value = ui.drawCheckBox('Switch With MA', '##switchwithma', config.SWITCHWITHMA.value, 'Switch targets with MA')
     local current_camp_radius = config.CAMPRADIUS.value
@@ -176,9 +175,6 @@ local function drawAssistTab()
 
     if current_camp_radius ~= config.CAMPRADIUS.value then
         camp.setCamp()
-    end
-    if currentAssistNames ~= config.ASSISTNAMES.value then
-        state.assistNames = common.split(config.ASSISTNAMES.value, ',')
     end
     uiTheme = ui.drawComboBox('Theme', uiTheme, {TEAL=1,PINK=1,GOLD=1}, true)
 end
@@ -203,7 +199,6 @@ local function drawSkillsTab()
             xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
         end
     end
-    config.RECOVERPCT.value = ui.drawInputInt('Recover Pct', '##recoverpct', config.RECOVERPCT.value, 'Percent Mana or End to use class recover abilities', xOffset, yOffset)
     local xAvail = ImGui.GetContentRegionAvail()
     x, y = ImGui.GetWindowSize()
     if x < xOffset + X_COLUMN_OFFSET or xAvail > 20 then x = math.max(MINIMUM_WIDTH, xOffset + X_COLUMN_OFFSET) ImGui.SetWindowSize(x, y) end
@@ -275,14 +270,6 @@ local function drawPullTab()
     config.PULLARC.value = ui.drawInputInt('Pull Arc', '##pullarc', config.PULLARC.value, 'Only pull from this slice of the radius, centered around your current heading', xOffset, yOffset)
     xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
     config.GROUPWATCHWHO.value = ui.drawComboBox('Group Watch', config.GROUPWATCHWHO.value, common.GROUP_WATCH_OPTS, true, xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.MEDMANASTART.value = ui.drawInputInt('Med Mana Start', '##medmanastart', config.MEDMANASTART.value, 'Pct Mana to begin medding', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.MEDMANASTOP.value = ui.drawInputInt('Med Mana Stop', '##medmanastop', config.MEDMANASTOP.value, 'Pct Mana to stop medding', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.MEDENDSTART.value = ui.drawInputInt('Med End Start', '##medendstart', config.MEDENDSTART.value, 'Pct End to begin medding', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.MEDENDSTOP.value = ui.drawInputInt('Med End Stop', '##medendstop', config.MEDENDSTOP.value, 'Pct End to stop medding', xOffset, yOffset)
     if current_radius ~= config.PULLRADIUS.value or current_pullarc ~= config.PULLARC.value then
         camp.setCamp()
     end
@@ -290,6 +277,15 @@ local function drawPullTab()
     local x, y = ImGui.GetWindowSize()
     if x < xOffset + X_COLUMN_OFFSET or xAvail > 20 then x = math.max(MINIMUM_WIDTH, xOffset + X_COLUMN_OFFSET) ImGui.SetWindowSize(x, y) end
     if y < maxY or y > maxY+35 then ImGui.SetWindowSize(x, maxY+35) end
+end
+
+local function drawRestTab()
+    config.MEDCOMBAT.value = ui.drawCheckBox('Med In Combat', '##medcombat', config.MEDCOMBAT.value, 'Toggle medding during combat')
+    config.RECOVERPCT.value = ui.drawInputInt('Recover Pct', '##recoverpct', config.RECOVERPCT.value, 'Percent Mana or End to use class recover abilities')
+    config.MEDMANASTART.value = ui.drawInputInt('Med Mana Start', '##medmanastart', config.MEDMANASTART.value, 'Pct Mana to begin medding')
+    config.MEDMANASTOP.value = ui.drawInputInt('Med Mana Stop', '##medmanastop', config.MEDMANASTOP.value, 'Pct Mana to stop medding')
+    config.MEDENDSTART.value = ui.drawInputInt('Med End Start', '##medendstart', config.MEDENDSTART.value, 'Pct End to begin medding')
+    config.MEDENDSTOP.value = ui.drawInputInt('Med End Stop', '##medendstop', config.MEDENDSTOP.value, 'Pct End to stop medding')
 end
 
 local function drawDebugComboBox()
@@ -402,6 +398,15 @@ local function drawBody()
             if ImGui.BeginChild('Pull', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
                 ImGui.PushItemWidth(item_width)
                 drawPullTab()
+                ImGui.PopItemWidth()
+            end
+            ImGui.EndChild()
+            ImGui.EndTabItem()
+        end
+        if ImGui.BeginTabItem('Rest') then
+            if ImGui.BeginChild('Rest', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                ImGui.PushItemWidth(item_width)
+                drawRestTab()
                 ImGui.PopItemWidth()
             end
             ImGui.EndChild()

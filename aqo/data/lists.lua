@@ -2,7 +2,8 @@ local lists = {}
 
 lists.instantHealClickies = {
     'Orb of Shadows',
-    'Distillate of Divine Healing X',
+    'Distillate of Celestial Healing X',
+    --'Distillate of Divine Healing X',
     'Sanguine Mind Crystal III',
 }
 lists.durationHealClickies = {

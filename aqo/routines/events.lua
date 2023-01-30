@@ -17,6 +17,7 @@ function events.init(_aqo)
     mq.event('eventDeadSlain', 'You have been slain by#*#', events.eventDead)
     mq.event('eventResist', 'Your target resisted the #1# spell#*#', events.eventResist)
     mq.event('eventResistAlt', '#*# resisted your #1#!', events.eventResist)
+    mq.event('eventOMMMask', '#*#You feel a gaze of deadly power focusing on you#*#', events.eventOMMMask)
 end
 
 function events.initClassBasedEvents()
@@ -149,6 +150,31 @@ function events.eventTranquil()
     if mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Raid.Members() > 0 then
         mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
         if aqo.class.tranquil:use() then mq.cmd('/rs Tranquil Blessings used') end
+    end
+end
+
+local currentMask
+function events.eventOMMMask()
+    currentMask = mq.TLO.Me.Inventory('face').Name()
+    if not mq.TLO.FindItem('=Mirrored Mask')() then
+        mq.cmdf('i suck and have no mirrored mask')
+        return
+    else
+        if currentMask ~= 'Mirrored Mask' then
+            mq.cmd('/exchange "Mirrored Mask" face')
+            mq.delay(250)
+        end
+    end
+    if mq.TLO.Me.Inventory('face').Name() == 'Mirrored Mask' then
+        mq.cmd('/useitem "Mirrored Mask"')
+        mq.delay(1000)
+        if not mq.TLO.Me.Song('Reflective Skin')() then
+            -- try again
+            mq.cmd('/useitem "Mirrored Mask"')
+            mq.delay(1000)
+        end
+        mq.cmdf('/exchange "%s" face', currentMask)
+        mq.delay(250)
     end
 end
 

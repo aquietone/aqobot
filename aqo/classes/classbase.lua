@@ -198,10 +198,15 @@ function base.addClicky(clicky)
         elseif clicky.clickyType == 'mana' then
         elseif clicky.clickyType == 'dispel' then
         elseif clicky.clickyType == 'cure' then
+        elseif clicky.clickyType == 'combatbuff' then
+            table.insert(base.combatBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
         elseif clicky.clickyType == 'buff' then
             table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
         elseif clicky.clickyType == 'pull' then
             table.insert(base.pullClickies, common.getItem(clicky.name))
+        else
+            print(logger.logLine('Unknown clicky type: %s', clicky.clickyType))
+            return
         end
         table.insert(base.clickies, clicky)
         print(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
@@ -226,8 +231,13 @@ function base.removeClicky(itemName)
                 t = base.healAbilities
             elseif clicky.clickyType == 'buff' then
                 t = base.selfBuffs
+            elseif clicky.clickyType == 'combatbuff' then
+                t = base.combatBuffs
             elseif clicky.clickyType == 'pull' then
                 t = base.pullClickies
+            else
+                print(logger.logLine('Unknown clicky type: %s', clicky.clickyType))
+                return
             end
             for j,entry in ipairs(t) do
                 if entry.name == itemName then
@@ -277,6 +287,8 @@ function base.assist()
     if config.MODE.value:isAssistMode() then
         assist.checkTarget(base.resetClassTimers)
         logger.debug(logger.flags.class.assist, "after check target "..tostring(state.assistMobID))
+        -- Get assist target still even if medding, incase we need to do debuffs or anything more important
+        if state.medding and config.MEDCOMBAT.value then return end
         if base.isAbilityEnabled('USEMELEE') then
             if state.assistMobID and not mq.TLO.Me.Combat() and base.beforeEngage then
                 base.beforeEngage()
@@ -362,6 +374,7 @@ end
 
 function base.mash()
     if mq.TLO.Target.ID() == state.loop.ID then return end
+    if state.medding and config.MEDCOMBAT.value then return end
     local cur_mode = config.MODE.value
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
         if base.mashClass then base.mashClass() end
@@ -375,6 +388,7 @@ end
 
 function base.ae()
     if mq.TLO.Target.ID() == state.loop.ID then return end
+    if state.medding and config.MEDCOMBAT.value then return end
     if not base.isEnabled('USEAOE') then return end
     local cur_mode = config.MODE.value
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
@@ -390,6 +404,7 @@ function base.burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if mq.TLO.Target.ID() == state.loop.ID then return end
+    if state.medding and config.MEDCOMBAT.value then return end
     if base.doneSinging and not base.doneSinging() then return end
     if common.isBurnConditionMet() then
         if base.burnClass then base.burnClass() end
@@ -417,6 +432,7 @@ end
 base.nuketimer = timer:new(0)
 function base.cast()
     if mq.TLO.Me.SpellInCooldown() or base.isEnabled('DONTCAST') then return end
+    if state.medding and config.MEDCOMBAT.value then return end
     if assist.isFighting() then
         if base.nuketimer:timerExpired() then
             for _,clicky in ipairs(base.castClickies) do
@@ -464,6 +480,7 @@ end
 
 function base.buff()
     if base.doneSinging and not base.doneSinging() then return end
+    if state.medding and config.MEDCOMBAT.value then return end
     if buffing.buff(base) then state.actionTaken = true end
 end
 
@@ -656,7 +673,8 @@ local function lifesupport()
     if mq.TLO.Me.CombatState() == 'COMBAT' and not state.loop.Invis and not mq.TLO.Me.Casting() and mq.TLO.Me.Standing() and state.loop.PctHPs < 60 then
         for _,healclicky in ipairs(lists.instantHealClickies) do
             local item = mq.TLO.FindItem(healclicky)
-            if item() and mq.TLO.Me.ItemReady(healclicky)() then
+            local spell = item.Clicky.Spell
+            if item() and mq.TLO.Me.ItemReady(healclicky)() and (spell.Duration.TotalSeconds() == 0 or (not mq.TLO.Me.Song(spell.Name())()) and mq.TLO.Spell(spell.Name()).Stacks()) then
                 print(logger.logLine('Use Item: \ag%s\ax', healclicky))
                 local castTime = item.CastTime()
                 mq.cmdf('/useitem "%s"', healclicky)
