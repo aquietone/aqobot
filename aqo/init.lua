@@ -136,9 +136,23 @@ local function buffSafetyCheck()
 end
 
 local function doLooting()
-    if mq.TLO.Spawn('pccorpse ='..mq.TLO.Me.CleanName()..'\'s corpse')() then
-        aqo.loot.lootMyCorpse()
-        aqo.state.actionTaken = true
+    local myCorpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
+    if myCorpse() then
+        myCorpse.DoTarget()
+        if mq.TLO.Target.Type() == 'Corpse' then
+            mq.cmd('/keypress CONSIDER')
+            mq.delay(100)
+            mq.doevents('eventCannotRez')
+            if aqo.state.cannotRez then
+                aqo.state.cannotRez = nil
+                mq.cmd('/corpse')
+                aqo.movement.navToTarget(nil, 10000)
+                if (mq.TLO.Target.Distance3D() or 100) > 10 then return end
+                aqo.loot.lootMyCorpse()
+                aqo.state.actionTaken = true
+                return
+            end
+        end
     end
     if aqo.config.LOOTMOBS.value and mq.TLO.Me.CombatState() ~= 'COMBAT' and not aqo.state.pullStatus then
         aqo.state.actionTaken = aqo.loot.lootMobs()

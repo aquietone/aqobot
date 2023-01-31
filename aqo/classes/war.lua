@@ -94,7 +94,7 @@ function class.init(_aqo)
 
     table.insert(class.burnAbilities, common.getAA('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
 
-    table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
+    --table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
     table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
 

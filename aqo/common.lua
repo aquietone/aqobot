@@ -19,18 +19,7 @@ local common = {
     BUFF_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true,pal=true},
     HEALER_CLASSES = {clr=true,dru=true,shm=true},
     FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true},
-    PULL_STATES = {NOT=1,SCAN=2,APPROACHING=3,ENGAGING=4,RETURNING=5,WAITING=6},
-    DMZ = {
-        [344] = 1,
-        [345] = 1,
-        [202] = 1,
-        [203] = 1,
-        [279] = 1,
-        [151] = 1,
-        [220] = 1,
-        [386] = 1,
-        [33506] = 1,
-    }
+    PULL_STATES = {NOT='NOT',SCAN='SCAN',APPROACHING='APPROACHING',ENGAGING='ENGAGING',RETURNING='RETURNING',WAITING='WAITING'},
 }
 
 local familiar = mq.TLO.Familiar and mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
@@ -550,7 +539,10 @@ end
 function common.checkCombatBuffs()
     if state.emu then return end
     if not mq.TLO.Me.Buff('Geomantra')() then
-        common.useItem(mq.TLO.InvSlot('Charm').Item)
+        local charmSpell = mq.TLO.InvSlot('Charm').Item.Clicky.Spell()
+        if charmSpell and charmSpell:lower():find('geomantra') then
+            common.useItem(mq.TLO.InvSlot('Charm').Item)
+        end
     end
 end
 

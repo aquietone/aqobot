@@ -282,7 +282,7 @@ function base.saveSettings()
 end
 
 function base.assist()
-    if common.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
+    if lists.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
     --if lists.healClasses[base.class] and config.ASSIST.value == 'manual' then return end
     if config.MODE.value:isAssistMode() then
         assist.checkTarget(base.resetClassTimers)
@@ -302,7 +302,7 @@ function base.assist()
 end
 
 function base.tank()
-    if common.DMZ[mq.TLO.Zone.ID()] then return end
+    if lists.DMZ[mq.TLO.Zone.ID()] then return end
     tank.findMobToTank()
     tank.tankMob()
     assist.sendPet()
@@ -546,7 +546,7 @@ function base.ohshit()
 end
 
 function base.recover()
-    if common.DMZ[mq.TLO.Zone.ID()] or (mq.TLO.Me.Level() == 70 and mq.TLO.Me.MaxHPs() < 6000) or mq.TLO.Me.Buff('Resurrection Sickness')() then return end
+    if lists.DMZ[mq.TLO.Zone.ID()] or (mq.TLO.Me.Level() == 70 and mq.TLO.Me.MaxHPs() < 6000) or mq.TLO.Me.Buff('Resurrection Sickness')() then return end
     if base.recoverClass then base.recoverClass() end
     -- modrods
     common.checkMana()
@@ -556,7 +556,7 @@ function base.recover()
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     for _,ability in ipairs(base.recoverAbilities) do
-        if base.isAbilityEnabled(ability.opt) then
+        if base.isAbilityEnabled(ability.opt) and (not ability.nodmz or not lists.DMZ[mq.TLO.Zone.ID()]) then
             if ability.mana and pct_mana < (ability.threshold or config.RECOVERPCT.value) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
                 useAbility = ability
                 break
@@ -586,7 +586,10 @@ function base.managepet()
     if not base.isEnabled('SUMMONPET') or not base.spells.pet then return end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() > 0 then return end
-    if (mq.TLO.Spell(base.spells.pet.name).Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
+    local petSpell = mq.TLO.Spell(base.spells.pet.name)
+    if (petSpell.Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
+    local reagentID = petSpell.ReagentID(1)()
+    if reagentID > 0 and not mq.TLO.FindItem(reagentID)() then return end
     common.swapAndCast(base.spells.pet, state.swapGem)
     mq.cmd('/multiline ; /pet ghold on')
     state.actionTaken = true

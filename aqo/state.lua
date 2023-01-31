@@ -1,3 +1,4 @@
+local logger = require('utils.logger')
 local timer = require('utils.timer')
 
 local state = {
@@ -25,7 +26,8 @@ local state = {
     medding = false,
 }
 
-function state.resetCombatState()
+function state.resetCombatState(debug, caller)
+    logger.debug(debug, 'Resetting combatState. pullState before=%s. caller=%s', state.pullState, caller)
     state.burnActive = false
     state.burnActiveTimer:reset(0)
     state.assistMobID = 0

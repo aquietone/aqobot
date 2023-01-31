@@ -202,7 +202,8 @@ function pull.pullRadar()
 end
 
 ---Reset common mob ID variables to 0 to reset pull status.
-local function clearPullVars()
+local function clearPullVars(caller)
+    logger.debug(logger.flags.routines.pull, 'Resetting pull status. beforeState=%s, caller=%s', state.pullStatus, caller)
     state.pullMobID = 0
     state.pullStatus = nil
 end
@@ -214,7 +215,7 @@ local function pullNavToMob(pull_spawn, announce_pull)
     local mob_x = pull_spawn.X()
     local mob_y = pull_spawn.Y()
     if not (mob_x and mob_y) then
-        clearPullVars()
+        clearPullVars('navToMob')
         return false
     end
     if announce_pull then
@@ -246,7 +247,7 @@ local function pullEngage(pull_spawn)
     local dist3d = pull_spawn.Distance3D()
     if not dist3d then
         print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pullMobID))
-        clearPullVars()
+        clearPullVars('pullEngage-distanceCheck')
         return false
     end
     if not pull_spawn.LineOfSight() or dist3d > 200 then
@@ -257,7 +258,7 @@ local function pullEngage(pull_spawn)
     pull_spawn.DoTarget()
     if not mq.TLO.Target() then
         print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pullMobID))
-        clearPullVars()
+        clearPullVars('pullEngage-targetCheck')
         return false
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
@@ -267,7 +268,7 @@ local function pullEngage(pull_spawn)
         print(logger.logLine('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pullMobID, tot_id, state.loop.ID, targethp))
         -- TODO: clear skip targets
         PULL_TARGET_SKIP[pullMobID] = 1
-        clearPullVars()
+        clearPullVars('pullEngage-hpCheck')
         return false
     end
     if mq.TLO.Target.Distance3D() < 35 then
@@ -356,27 +357,30 @@ end
 ---Sets common.tankMobID to the mob being pulled.
 function pull.pullMob()
     local pull_state = state.pullStatus
-    if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or common.DMZ[mq.TLO.Zone.ID()] then
+    if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or aqo.lists.DMZ[mq.TLO.Zone.ID()] then
         movement.stop()
+        return
+    end
+    if config.LOOTMOBS.value and mq.TLO.SpawnCount('npccorpse radius 100')() > 0 then
         return
     end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
     if not pull_state and (state.assistMobID ~= 0 or state.tankMobID ~= 0 or common.hostileXTargets()) then
-        logger.debug(logger.flags.routines.pull, 'returning at weird state')
+        --logger.debug(logger.flags.routines.pull, 'returning at weird state')
         return
     end
 
     -- account for any odd pull state discrepancies?
     if (pull_state and state.pullMobID == 0) or (state.pullMobID ~= 0 and not pull_state) then
         print('pull_state and pullMobID mismatch')
-        clearPullVars()
+        clearPullVars('pullMob-consistencyCheck')
         pullReturn()
         return
     end
 
     -- try to break if something agro'd that isn't the pull mob? thought this was already happening somewhere...
     if pull_state and common.hostileXTargets() and not pullMobOnXTarget() then
-        clearPullVars()
+        clearPullVars('pullMob-onXTargetCheck')
         return
     end
 
@@ -407,7 +411,7 @@ function pull.pullMob()
         local pull_spawn = mq.TLO.Spawn(pullMobID)
         if pull_spawn.ID() == 0 then
             -- didn't seem to find the mob returned by pullRadar
-            clearPullVars()
+            clearPullVars('pullMob-mobMissingCheck')
             pullReturn(true)
             return
         end
@@ -429,12 +433,12 @@ function pull.pullMob()
                 pullReturn(false)
             else
                 pullReturnTimer:reset()
-                clearPullVars()
+                clearPullVars('pullMob-engageNoReturn')
             end
         end
     elseif pull_state == common.PULL_STATES.RETURNING then
         if common.checkDistance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.CAMPRADIUS.value then
-            clearPullVars()
+            clearPullVars('pullMob-reachedCamp')
         else
             pullReturn(false)
         end

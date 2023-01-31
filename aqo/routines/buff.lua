@@ -135,10 +135,11 @@ local function buffSelf(base)
         local buffName = buff.name -- TODO: buff name may not match AA or item name
         if state.subscription ~= 'GOLD' then buffName = buff.name:gsub(' Rk%..*', '') end
         if buff.summons then
-            if base.isAbilityEnabled(buff.opt) then summonItem(buff) end
+            if base.isAbilityEnabled(buff.opt) and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then summonItem(buff) end
         elseif base.isAbilityEnabled(buff.opt) and not haveBuff(buffName) and not haveBuff(buff.checkfor)
                 and mq.TLO.Spell(buff.checkfor or buff.name).Stacks()
-                and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0) then
+                and ((buff.targettype ~= 'Pet' and buff.targettype ~= 'Pet2') or mq.TLO.Pet.ID() > 0)
+                and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
             if buff.targettype == 'Single' then
                 originalTargetID = mq.TLO.Target.ID()
                 mq.TLO.Me.DoTarget()

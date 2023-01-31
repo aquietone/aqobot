@@ -272,7 +272,7 @@ function healing.healSelf(healAbilities, opts)
     end
 end
 
-local function doRezFor(rezAbility, groupOrRaid)
+local function doRezFor(rezAbility)
     local corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
     if not corpse() then
         corpse = mq.TLO.Spawn('pccorpse healer radius 100 noalert 0')
@@ -286,15 +286,27 @@ local function doRezFor(rezAbility, groupOrRaid)
     local corpseName = corpse.Name()
     if not corpseName then return false end
     corpseName = corpseName:gsub('\'s corpse.*', '')
-    if mq.TLO.Group.Member(corpseName)() or mq.TLO.Raid.Member(corpseName)() then
+    if (config.REZGROUP.value and mq.TLO.Group.Member(corpseName)()) or (config.REZRAID.value and mq.TLO.Raid.Member(corpseName)()) then
         corpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
+            mq.cmd('/keypress CONSIDER')
+            mq.delay(100)
+            mq.doevents('eventCannotRez')
+            if state.cannotRez then
+                --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
+                mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
+                state.cannotRez = nil
+                return false
+            end
             mq.cmd('/corpse')
             mq.delay(50)
             rezAbility:use()
-            mq.cmdf('/alert add 0 corpse "%s"', corpse.CleanName())
-            reztimer:reset()
-            return true
+            if not rezAbility:isReady() then
+                --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
+                mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
+                reztimer:reset()
+                return true
+            end
         end
     end
 end
@@ -306,13 +318,8 @@ function healing.rez(rezAbility)
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/alert clear 0') end
-    if config.REZGROUP.value then
-        if doRezFor(rezAbility, 'group') then return true end
-    end
-    if config.REZRAID.value then
-        if doRezFor(rezAbility, 'raid') then return true end
-    end
+    if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') end
+    return doRezFor(rezAbility)
 end
 
 return healing

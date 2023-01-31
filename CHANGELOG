@@ -1,3 +1,14 @@
+# 2023/01/31
+- Longer delay after stopcast before using clickies on bard
+- Remove dup DMZ zone id list
+- Add 'nodmz' check to spells like lich that drain HP
+- Add reagent check to pet summoning before memorizing spell
+- Only click charm for geomantra if charm clicky is geomantra
+- Extra debug on pull routine
+- Fix spell resist event
+- Check if corpse cannot be rezzed before rezzing
+- Fix looting own corpse after rez
+
 # 2023/01/30
 - ASSISTNAMES to list out priority order of people to manually assist
 - MEDCOMBAT to toggle whether to keep medding during combat

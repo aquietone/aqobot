@@ -186,9 +186,9 @@ function class.init(_aqo)
     -- Buffs
     class.unity = common.getAA('Orator\'s Unity')
     -- Mana Recovery AAs
-    class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1}) -- summon clicky mana heal
+    class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky mana heal
     class.gathermana = common.getAA('Gather Mana')
-    class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1}) -- summon clicky hp heal
+    class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky hp heal
 
     -- Aggro
     local postStasis = function()

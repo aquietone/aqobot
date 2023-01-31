@@ -28,8 +28,8 @@ function class.init(_aqo)
     class.dyinggrasp = common.getAA('Dying Grasp')
 
     -- Mana Recovery AAs
-    class.deathbloom = common.getAA('Death Bloom')
-    class.bloodmagic = common.getAA('Blood Magic')
+    class.deathbloom = common.getAA('Death Bloom', {nodmz=true})
+    class.bloodmagic = common.getAA('Blood Magic', {nodmz=true})
 
     -- Aggro
     local postFD = function()
@@ -108,7 +108,7 @@ function class.initializeSpellLines()
     -- Mana Drain
     class.addSpell('manatap', {'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'}, {opt='USEMANATAP'})
     -- Buffs
-    class.addSpell('lich', {'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, {opt='USELICH'})
+    class.addSpell('lich', {'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, {opt='USELICH', nodmz=true})
     class.addSpell('flesh', {'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'})
     class.addSpell('shield', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'})
     class.addSpell('rune', {'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}) -- unused

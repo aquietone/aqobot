@@ -16,8 +16,8 @@ function events.init(_aqo)
     mq.event('eventDead', 'You died.', events.eventDead)
     mq.event('eventDeadSlain', 'You have been slain by#*#', events.eventDead)
     mq.event('eventResist', 'Your target resisted the #1# spell#*#', events.eventResist)
-    mq.event('eventResistAlt', '#*# resisted your #1#!', events.eventResist)
     mq.event('eventOMMMask', '#*#You feel a gaze of deadly power focusing on you#*#', events.eventOMMMask)
+    mq.event('eventCannotRez', '#*#This corpse cannot be resurrected#*#', events.cannotRez)
 end
 
 function events.initClassBasedEvents()
@@ -60,9 +60,8 @@ end
 
 ---Event callback for handling spell resists from mobs
 ---@param line any
----@param target_name any
 ---@param spell_name any
-function events.eventResist(line, target_name, spell_name)
+function events.eventResist(line, spell_name)
     --if mq.TLO.Target.CleanName() == target_name then
         aqo.state.resists[spell_name] = (aqo.state.resists[spell_name] or 0) + 1
         print(aqo.logger.logLine('%s resisted spell %s, resist count = %s', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
@@ -160,6 +159,8 @@ function events.eventOMMMask()
         mq.cmdf('i suck and have no mirrored mask')
         return
     else
+        mq.cmd('/stopcast')
+        mq.delay(1)
         if currentMask ~= 'Mirrored Mask' then
             mq.cmd('/exchange "Mirrored Mask" face')
             mq.delay(250)
@@ -176,6 +177,10 @@ function events.eventOMMMask()
         mq.cmdf('/exchange "%s" face', currentMask)
         mq.delay(250)
     end
+end
+
+function events.cannotRez()
+    aqo.state.cannotRez = true
 end
 
 return events

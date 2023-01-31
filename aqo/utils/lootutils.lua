@@ -67,6 +67,7 @@ The script will setup a bind for "/lootutils":
             - Keep
             - Bank
             - Sell
+            - Tribute (Not Implemented)
             - Ignore
             - Destroy
             - Quest|#
@@ -147,7 +148,9 @@ local cantLootID = 0
 
 -- Constants
 local spawnSearch = '%s radius %d zradius 25'
-local shouldLootActions = {Keep=true, Bank=true, Sell=true, Destroy=true, Ignore=false}
+-- If you want destroy to actually loot and destroy items, change Destroy=false to Destroy=true.
+-- Otherwise, destroy behaves the same as ignore.
+local shouldLootActions = {Keep=true, Bank=true, Sell=true, Destroy=false, Ignore=false}
 local validActions = {keep='Keep',bank='Bank',sell='Sell',ignore='Ignore',destroy='Destroy'}
 local saveOptionTypes = {string=1,number=1,boolean=1}
 
@@ -246,10 +249,6 @@ end
 
 -- EVENTS
 
-local function eventInventoryFull()
-    shouldLootMobs = false
-end
-
 local itemNoValue = nil
 local function eventNovalue(line, item)
     itemNoValue = item
@@ -257,14 +256,12 @@ end
 
 local function setupEvents()
     mq.event("CantLoot", "#*#may not loot this corpse#*#", eventCantLoot)
-    mq.event("InventoryFull", "#*#Your inventory appears full!#*#", eventInventoryFull)
     mq.event("Sell", "#*#You receive#*# for the #1#(s)#*#", eventSell)
     if loot.LootForage then
         mq.event("ForageExtras", "Your forage mastery has enabled you to find something else!", eventForage)
         mq.event("Forage", "You have scrounged up #*#", eventForage)
     end
     mq.event("Novalue", "#*#give you absolutely nothing for the #1#.#*#", eventNovalue)
-    --[[mq.event("Lore", "#*#You cannot loot this Lore Item.#*#", eventHandler)]]--
 end
 
 -- BINDS
@@ -299,24 +296,37 @@ local function setupBinds()
     mq.bind('/lootutils', commandHandler)
 end
 
+local reportPrefix = '/%s \a-t]\ax\aylootutils\ax\a-t]\ax '
+local function report(message, ...)
+    if loot.ReportLoot then
+        local prefixWithChannel = reportPrefix:format(loot.LootChannel)
+        mq.cmdf(prefixWithChannel .. message, ...)
+    end
+end
+
 -- LOOTING
 
 function eventCantLoot()
     cantLootID = mq.TLO.Target.ID()
 end
 
+---@param index number @The current index we are looking at in loot window, 1-based.
+---@param doWhat string @The action to take for the item.
+---@param button string @The mouse button to use to loot the item. Currently only leftmouseup implemented.
 local function lootItem(index, doWhat, button)
     loot.logger.Debug('Enter lootItem')
     if not shouldLootActions[doWhat] then return end
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
     local itemName = mq.TLO.Corpse.Item(index).Name()
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
-    mq.delay(5000, function() return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop() end)
-    if mq.TLO.Window('ConfirmationDialogBox').Open() then mq.cmd('/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup') end
+    -- Looting of no drop items is currently disabled with no flag to enable anyways
+    --mq.delay(5000, function() return mq.TLO.Window('ConfirmationDialogBox').Open() or not mq.TLO.Corpse.Item(index).NoDrop() end)
+    --if mq.TLO.Window('ConfirmationDialogBox').Open() then mq.cmd('/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup') end
     mq.delay(5000, function() return mq.TLO.Cursor() ~= nil or not mq.TLO.Window('LootWnd').Open() end)
-    mq.delay(100)
+    mq.delay(1) -- force next frame
+    -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
-    if loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax %sing \ay%s\ax', loot.LootChannel, doWhat, itemName) end
+    report('%sing \ay%s\ax', doWhat, itemName)
     if doWhat == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
     if mq.TLO.Cursor() then checkCursor() end
 end
@@ -324,7 +334,9 @@ end
 local function lootCorpse(corpseID)
     loot.logger.Debug('Enter lootCorpse')
     if mq.TLO.Cursor() then checkCursor() end
-    if mq.TLO.Me.FreeInventory() <= loot.SaveBagSlots and loot.ReportLoot then mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax My bags are full, I can\'t loot anymore!', loot.LootChannel) end
+    if mq.TLO.Me.FreeInventory() <= loot.SaveBagSlots then
+        report('My bags are full, I can\'t loot anymore!')
+    end
     for i=1,3 do
         mq.cmd('/loot')
         mq.delay(1000, function() return mq.TLO.Window('LootWnd').Open() end)
@@ -343,54 +355,39 @@ local function lootCorpse(corpseID)
     local corpseName = mq.TLO.Corpse.Name()
     if mq.TLO.Window('LootWnd').Open() and items > 0 then
         local noDropItems = {}
-        for i=1,items do
-            local freeSpace = mq.TLO.Me.FreeInventory()
-            local corpseItem = mq.TLO.Corpse.Item(i)
-            local stackable = corpseItem.Stackable()
-            local freeStack = corpseItem.FreeStack()
-            if not corpseItem.NoDrop() then
-                if corpseItem() and not corpseItem.Lore() and (freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0)) then
-                    lootItem(i, getRule(corpseItem), 'leftmouseup')
-                end
-            else
-                table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
-            end
-            if not mq.TLO.Window('LootWnd').Open() then break end
-        end
+        local loreItems = {}
         for i=1,items do
             local freeSpace = mq.TLO.Me.FreeInventory()
             local corpseItem = mq.TLO.Corpse.Item(i)
             if corpseItem() then
-                local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
-                local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
-                if not corpseItem.NoDrop() then
-                    if corpseItem.Lore() and (haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots) then
-                        if loot.ReportLoot then
-                            mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax I already have lore item \ay%s\ax, I can\'t loot another!\ax', loot.LootChannel, corpseItem.Name())
-                        else
-                            loot.logger.Warn('Cannot loot lore item')
-                        end
-                    elseif freeSpace <= loot.SaveBagSlots then
-                        if loot.ReportLoot then
-                            mq.cmdf('/%s \a-t[\ax\aylootutils\ax\a-t]\ax My bags are full, I can\'t loot anymore! \ay%s\ax', loot.LootChannel, corpseItem.Name())
-                        else
-                            if loot.SpamLootInfo then loot.logger.Warn('Inventory full, cannot loot anymore') end
-                        end
+                local stackable = corpseItem.Stackable()
+                local freeStack = corpseItem.FreeStack()
+                if corpseItem.NoDrop() then
+                    table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
+                elseif corpseItem.Lore() then
+                    local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
+                    local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
+                    local lootRule = getRule(corpseItem)
+                    if haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots then
+                        if shouldLootActions[lootRule] then table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')()) end
                     else
-                        lootItem(i, getRule(corpseItem), 'leftmouseup')
+                        lootItem(i, lootRule, 'leftmouseup')
                     end
-                --else
-                --    table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
+                elseif freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0) then
+                    lootItem(i, getRule(corpseItem), 'leftmouseup')
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
-        if #noDropItems > 0 then
-            local noDropList = '/gu NoDrop Items (%s - %s) '
+        if #noDropItems > 0 or #loreItems > 0 then
+            local skippedItems = '/gu Skipped loots (%s - %s) '
             for _,noDropItem in ipairs(noDropItems) do
-                noDropList = noDropList .. ' ' .. noDropItem
+                skippedItems = skippedItems .. ' ' .. noDropItem .. ' (nodrop) '
             end
-            mq.cmdf(noDropList, corpseName, corpseID)
+            for _,loreItem in ipairs(loreItems) do
+                skippedItems = skippedItems .. ' ' .. loreItem .. ' (lore) '
+            end
+            mq.cmdf(skippedItems, corpseName, corpseID)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
@@ -413,8 +410,6 @@ end
 
 function loot.lootMobs(limit)
     loot.logger.Debug('Enter lootMobs')
-    --if mq.TLO.Me.FreeInventory() > 0 then shouldLootMobs = true end
-    --if not shouldLootMobs then return false end
     local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.CorpseRadius))()
     loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
     local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.MobsTooClose))()
@@ -446,20 +441,17 @@ function loot.lootMobs(limit)
 end
 
 function loot.lootMyCorpse()
-    mq.cmdf('/mqt pccorpse %s', mq.TLO.Me.CleanName())
-    mq.delay(1000)
-    if mq.TLO.Target.Type() == 'Corpse' then
-        movement.navToTarget(nil, 10000)
-        if mq.TLO.Target.Distance3D() or 100 > 10 then return end
+    for i=1,3 do
         mq.cmd('/loot')
         mq.delay(3000, function() return mq.TLO.Window('LootWnd').Open() end)
-        if mq.TLO.Window('LootWnd').Open() then
-            mq.delay(3000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
-            local items = mq.TLO.Corpse.Items() or 0
-            if items > 0 then
-                mq.cmd('/notify LootWnd LW_LootAllButton leftmouseup')
-                mq.delay(30000, function() return not mq.TLO.Window('LootWnd').Open() end)
-            end
+        if mq.TLO.Window('LootWnd').Open() then break end
+    end
+    if mq.TLO.Window('LootWnd').Open() then
+        mq.delay(3000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
+        local items = mq.TLO.Corpse.Items() or 0
+        if items > 0 then
+            mq.cmd('/notify LootWnd LW_LootAllButton leftmouseup')
+            mq.delay(30000, function() return not mq.TLO.Window('LootWnd').Open() end)
         end
     end
 end
