@@ -453,6 +453,10 @@ function loot.lootMyCorpse()
             mq.cmd('/notify LootWnd LW_LootAllButton leftmouseup')
             mq.delay(30000, function() return not mq.TLO.Window('LootWnd').Open() end)
         end
+        if mq.TLO.Window('LootWnd').Open() then
+            mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
+            mq.delay(3000, function() return not mq.TLO.Window('LootWnd').Open() end)
+        end
     end
 end
 

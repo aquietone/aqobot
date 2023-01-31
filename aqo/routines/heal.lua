@@ -296,6 +296,7 @@ local function doRezFor(rezAbility)
                 --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
                 mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
                 state.cannotRez = nil
+                reztimer:reset()
                 return false
             end
             mq.cmd('/corpse')
