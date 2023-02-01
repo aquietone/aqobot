@@ -436,7 +436,7 @@ function base.cast()
     if assist.isFighting() then
         if base.nuketimer:timerExpired() then
             for _,clicky in ipairs(base.castClickies) do
-                if clicky.duration > 0 and not mq.TLO.Target.Buff(clicky.checkfor)() and not mq.TLO.Me.Moving() then
+                if (clicky.duration == 0 or not mq.TLO.Target.Buff(clicky.checkfor)()) and not mq.TLO.Me.Moving() then
                     if clicky:use() then return end
                 end
             end

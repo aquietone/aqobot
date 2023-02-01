@@ -316,7 +316,7 @@ function class.cast()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.doneSinging() and class.itemTimer:timerExpired() then
         for _,clicky in ipairs(class.castClickies) do
-            if clicky.duration > 0 and not mq.TLO.Target.Buff(clicky.checkfor)() then
+            if (clicky.duration == 0 or not mq.TLO.Target.Buff(clicky.checkfor)()) then
                 if clicky:use() then
                     if clicky.delay then mq.delay(clicky.delay) end
                     return true
@@ -331,7 +331,9 @@ function class.cast()
             else
                 did_cast = spell:use() -- then cast the dot
             end
-            if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then songTimer:reset() class.itemTimer:reset() end
+            if mq.TLO.Me.Casting() then songTimer:reset() end
+            class.itemTimer:reset()
+            --if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then songTimer:reset() class.itemTimer:reset() end
             if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendoTimer:reset() end
             return true
         end
