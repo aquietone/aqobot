@@ -262,14 +262,6 @@ function class.initializeBuffs()
     table.insert(class.petBuffs, class.spells.inspire)
     table.insert(class.petBuffs, class.spells.pethaste)
 
-    class.buffs={
-        self={},
-        pet={
-            class.spells.pethaste,
-            class.spells.petillusion,
-        },
-    }
-
     class.addRequestAlias(class.spells.defensiveproc, 'defensiveproc')
 end
 

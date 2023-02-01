@@ -80,7 +80,7 @@ end
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 function camp.checkCamp()
     if not config.MODE.value:isReturnToCampMode() or not camp.Active then return end
-    if mq.TLO.Me.Casting() or not common.clearToBuff() then return end
+    if (state.class ~= 'brd' and mq.TLO.Me.Casting()) or not common.clearToBuff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
         print(logger.logLine('Clearing camp due to zoning.'))
         camp.Active = false

@@ -236,7 +236,7 @@ local function pullApproaching(pull_spawn)
     -- return right away if we can't read distance, as pull spawn is probably no longer valid
     if not dist3d then return true end
     -- return true once target is in range and in LOS, or if something appears on xtarget
-    return (pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or common.hostileXTargets()
+    return (config.PULLWITH.value ~= 'melee' and pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or common.hostileXTargets()
 end
 
 ---Aggro the specified target to be pulled. Attempts to use bow and moves closer to melee pull if necessary.

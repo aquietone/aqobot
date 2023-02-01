@@ -60,6 +60,7 @@ local aqo
 ---@field checkSpellSet? function #Function to load class spell sets
 ---@field swapSpells? function #Function to perform class specific checks for spell swapping in combat (necro stuff)
 ---@field rezAbility? Ability #
+---@field useCommonListProcessor? boolean #
 local base = {
     -- All possible class routine methods
     OPTS = {},
@@ -288,14 +289,15 @@ function base.assist()
         assist.checkTarget(base.resetClassTimers)
         logger.debug(logger.flags.class.assist, "after check target "..tostring(state.assistMobID))
         -- Get assist target still even if medding, incase we need to do debuffs or anything more important
-        if state.medding and config.MEDCOMBAT.value then return end
-        if base.isAbilityEnabled('USEMELEE') then
-            if state.assistMobID and not mq.TLO.Me.Combat() and base.beforeEngage then
-                base.beforeEngage()
+        if not state.medding or not config.MEDCOMBAT.value then
+            if base.isAbilityEnabled('USEMELEE') then
+                if state.assistMobID and not mq.TLO.Me.Combat() and base.beforeEngage then
+                    base.beforeEngage()
+                end
+                assist.attack()
+            else
+                assist.checkLOS()
             end
-            assist.attack()
-        else
-            assist.checkLOS()
         end
         assist.sendPet()
     end
@@ -303,9 +305,13 @@ end
 
 function base.tank()
     if lists.DMZ[mq.TLO.Zone.ID()] then return end
-    tank.findMobToTank()
-    tank.tankMob()
-    assist.sendPet()
+    if config.MODE.value:getName() == 'pullertank' and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.CAMPRADIUS.value-5) then
+        movement.navToLoc(camp.X, camp.Y, camp.Z)
+    else
+        tank.findMobToTank()
+        tank.tankMob()
+        assist.sendPet()
+    end
 end
 
 function base.heal()
@@ -379,9 +385,17 @@ function base.mash()
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
         if base.mashClass then base.mashClass() end
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
-            doCombatLoop(base.tankAbilities)
+            if base.useCommonListProcessor then
+                common.processList(base.tankAbilities, false)
+            else
+                doCombatLoop(base.tankAbilities)
+            end
         end
-        doCombatLoop(base.DPSAbilities)
+        if base.useCommonListProcessor then
+            common.processList(base.DPSAbilities, false)
+        else
+            doCombatLoop(base.DPSAbilities)
+        end
         if base.class ~= 'brd' then doMashClickies() end
     end
 end
@@ -394,9 +408,17 @@ function base.ae()
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
             if base.aeClass then base.aeClass() end
-            doCombatLoop(base.AETankAbilities)
+            if base.useCommonListProcessor then
+                common.processList(base.AETankAbilities, false)
+            else
+                doCombatLoop(base.AETankAbilities)
+            end
         end
-        doCombatLoop(base.AEDPSAbilities)
+        if base.useCommonListProcessor then
+            common.processList(base.AEDPSAbilities, false)
+        else
+            doCombatLoop(base.AEDPSAbilities)
+        end
     end
 end
 
@@ -410,9 +432,17 @@ function base.burn()
         if base.burnClass then base.burnClass() end
 
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
-            doCombatLoop(base.tankBurnAbilities, state.burn_type)
+            if base.useCommonListProcessor then
+                common.processList(base.tankBurnAbilities, false)
+            else
+                doCombatLoop(base.tankBurnAbilities, state.burn_type)
+            end
         end
-        doCombatLoop(base.burnAbilities, state.burn_type)
+        if base.useCommonListProcessor then
+            common.processList(base.burnAbilities, false)
+        else
+            doCombatLoop(base.burnAbilities, state.burn_type)
+        end
     end
 end
 
@@ -705,7 +735,7 @@ function base.mainLoop()
             base.tank()
         end
         -- check whether we need to return to camp
-        camp.checkCamp()
+        if not state.assistMobID or state.assistMobID == 0 then camp.checkCamp() end
         -- check whether we need to go chasing after the chase target
         common.checkChase()
         if base.checkSpellSet then base.checkSpellSet() end

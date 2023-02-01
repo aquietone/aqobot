@@ -175,14 +175,8 @@ function commands.commandHandler(...)
         end
     elseif opt == 'listclickies' then
         local clickies = ''
-        local first = true
         for _,clicky in ipairs(aqo.class.clickies) do
-            if first then
-                clickies = clickies .. clicky.name
-                first = false
-            else
-                clickies = clickies .. ', ' .. clicky.name
-            end
+            clickies = clickies .. '\n- ' .. clicky.name .. ' (' .. clicky.clickyType .. ')'
         end
         print(aqo.logger.logLine('Clickies: %s', clickies))
     elseif opt == 'invis' then

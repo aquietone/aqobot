@@ -51,6 +51,7 @@ AbilityTypes = {
 ---@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
 ---@field tot? boolean # flag to indicate if spell is target-of-target
 ---@field removesong? string # name of buff / song to remove after cast
+---@field nodmz? boolean #flag to indicate if this ability should be used in DMZ list zones
 ---@field condition? function # function to evaluate to determine whether to use the ability
 local Ability = {
     id=0,
@@ -285,6 +286,7 @@ function Disc:use(overwrite)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.flags.ability.disc, "Delayed for use_disc %s", self.name)
+            if state.class == 'brd' then aqo.class.itemTimer:reset() end
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
@@ -294,6 +296,7 @@ function Disc:use(overwrite)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.flags.aability.disc, "Delayed for use_disc %s", self.name)
+            if state.class == 'brd' then aqo.class.itemTimer:reset() end
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
         else
             logger.debug(logger.flags.ability.disc, 'Not casting due to conflicting active disc (%s)', self.name)
@@ -339,6 +342,7 @@ function AA:use()
         mq.cmdf('/alt activate %d', self.id)
         mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.name)() end)
+        if state.class == 'brd' then aqo.class.itemTimer:reset() end
         logger.debug(logger.flags.ability.aa, "Delayed for use_aa %s", self.name)
         return not mq.TLO.Me.AltAbilityReady(self.name)()
     end

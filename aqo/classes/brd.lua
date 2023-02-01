@@ -316,7 +316,16 @@ function class.cast()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.doneSinging() and class.itemTimer:timerExpired() then
         for _,clicky in ipairs(class.castClickies) do
-            if (clicky.duration == 0 or not mq.TLO.Target.Buff(clicky.checkfor)()) then
+            if clicky.targettype == 'Single' then
+                -- if single target clicky then make sure in combat
+                if (clicky.duration == 0 or not mq.TLO.Target.Buff(clicky.checkfor)()) and mq.TLO.Me.CombatState() == 'COMBAT' then
+                    if clicky:use() then
+                        if clicky.delay then mq.delay(clicky.delay) end
+                        return true
+                    end
+                end
+            elseif clicky.duration == 0 or (not mq.TLO.Me.Buff(clicky.checkfor)() and not mq.TLO.Me.Song(clicky.checkfor)()) then
+                -- otherwise just use the clicky if its instant or we don't already have the buff/song
                 if clicky:use() then
                     if clicky.delay then mq.delay(clicky.delay) end
                     return true
@@ -324,18 +333,17 @@ function class.cast()
             end
         end
         local spell = findNextSong() -- find the first available dot to cast that is missing from the target
-        if spell then -- if a dot was found
-            local did_cast = false
-            if mq.TLO.Spell(spell.name).TargetType() == 'Single' and mq.TLO.Me.CombatState() == 'COMBAT' then
-                did_cast = spell:use() -- then cast the dot
+        if spell then -- if a song was found
+            local didCast = false
+            if mq.TLO.Spell(spell.name).TargetType() == 'Single' then
+                if mq.TLO.Me.CombatState() == 'COMBAT' then didCast = spell:use() end
             else
-                did_cast = spell:use() -- then cast the dot
+                didCast = spell:use()
             end
             if mq.TLO.Me.Casting() then songTimer:reset() end
             class.itemTimer:reset()
-            --if did_cast and spell.name ~= (class.spells.selos and class.spells.selos.name) then songTimer:reset() class.itemTimer:reset() end
             if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendoTimer:reset() end
-            return true
+            return didCast
         end
     end
     return false

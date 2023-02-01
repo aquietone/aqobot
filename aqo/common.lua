@@ -187,7 +187,7 @@ function common.hostileXTargets()
 end
 
 function common.clearToBuff()
-    return mq.TLO.Me.CombatState() ~= 'COMBAT' and not common.hostileXTargets()
+    return mq.TLO.Me.CombatState() ~= 'COMBAT'-- and not common.hostileXTargets()
 end
 
 function common.isFightingModeBased()
@@ -605,20 +605,21 @@ function common.checkMana()
     end]]
 end
 
-local sitTimer = timer:new(10)
+local sitTimer = timer:new(5)
 ---Sit down to med if the conditions for resting are met.
 function common.rest()
-    if not config.MEDCOMBAT and mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if not config.MEDCOMBAT and (mq.TLO.Me.CombatState() == 'COMBAT' or state.assistMobID ~= 0) then return end
     if mq.TLO.Me.CombatState() == 'COMBAT' and (config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sitTimer:timerExpired() then
-        if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and
-                ((mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.MEDMANASTART.value) or state.loop.PctEndurance < config.MEDENDSTART.value) then
+        if (mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.MEDMANASTART.value) or state.loop.PctEndurance < config.MEDENDSTART.value then
+            state.medding = true
+        end
+        if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and state.loop.PctMana < config.MEDMANASTOP.value then
                 --and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
                 --mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() == 0 then
             mq.cmd('/sit')
             sitTimer:reset()
-            state.medding = true
         end
     end
     if mq.TLO.Me.Class.CanCast() then
@@ -665,13 +666,13 @@ function common.split(input, sep)
     return t
 end
 
-function common.processList(aList, shouldUse, returnOnFirstUse)
+function common.processList(aList, returnOnFirstUse)
     for _,entry in ipairs(aList) do
-        if shouldUse(entry) then
+        if not entry.condition or entry.condition(entry) then
             if entry.beforeUse then entry.beforeUse() end
-            entry:use()
+            local used = entry:use()
             if entry.afterUse then entry.afterUse() end
-            if returnOnFirstUse then return end
+            if used and returnOnFirstUse then return end
         end
     end
 end

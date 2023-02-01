@@ -159,9 +159,9 @@ function class.init(_aqo)
     --Slot 4: 	Eyes of the Senshali
     --Slot 5: 	Moonthorn Coat
     class.poison = common.getAA('Poison Arrows')
-    table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW'}))
+    table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW', nodmz=true}))
     class.fire = common.getAA('Flaming Arrows')
-    table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW'}))
+    table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW', nodmz=true}))
 
     table.insert(class.selfBuffs, class.spells.dmgbuff)
 
