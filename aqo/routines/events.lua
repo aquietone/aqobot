@@ -64,7 +64,7 @@ end
 function events.eventResist(line, spell_name)
     --if mq.TLO.Target.CleanName() == target_name then
         aqo.state.resists[spell_name] = (aqo.state.resists[spell_name] or 0) + 1
-        print(aqo.logger.logLine('%s resisted spell %s, resist count = %s', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
+        print(aqo.logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
     --end
 end
 

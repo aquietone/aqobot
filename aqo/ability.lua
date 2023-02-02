@@ -377,7 +377,7 @@ function Item:use()
     logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.name)
     local theItem = mq.TLO.FindItem(self.id)
     if self:isReady(theItem) then
-        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopcast') mq.delay(250) end
+        if state.class == 'brd' and mq.TLO.Me.Casting() and self.casttime > 500 then mq.cmd('/stopcast') mq.delay(250) end
         print(logger.logLine('Use Item: \ag%s\ax', theItem))
         mq.cmdf('/useitem "%s"', theItem)
         if self.targettype == 'Single' and self.casttime > 0 then
