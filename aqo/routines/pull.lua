@@ -319,6 +319,10 @@ local function pullEngage(pull_spawn)
             end
         elseif config.PULLWITH.value == 'custom' and aqo.class.pullCustom then
             aqo.class.pullCustom()
+        elseif config.PULLWITH.value == 'melee' then
+            state.pullStatus = common.PULL_STATES.APPROACHING
+            pullNavToMob(pull_spawn, false)
+            return false
         end
     end
     if mq.TLO.Me.Combat() then mq.cmd('/attack off') end

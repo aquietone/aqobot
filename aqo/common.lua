@@ -615,7 +615,7 @@ function common.rest()
         if (mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.MEDMANASTART.value) or state.loop.PctEndurance < config.MEDENDSTART.value then
             state.medding = true
         end
-        if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and state.loop.PctMana < config.MEDMANASTOP.value then
+        if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and state.medding then
                 --and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
                 --mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() == 0 then
             mq.cmd('/sit')
