@@ -187,7 +187,7 @@ function common.hostileXTargets()
 end
 
 function common.clearToBuff()
-    return mq.TLO.Me.CombatState() ~= 'COMBAT'-- and not common.hostileXTargets()
+    return mq.TLO.Me.CombatState() ~= 'COMBAT' and not common.hostileXTargets()
 end
 
 function common.isFightingModeBased()

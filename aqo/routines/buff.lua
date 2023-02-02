@@ -152,10 +152,7 @@ local function buffSelf(base)
             elseif buff.type == Abilities.Types.Disc then
                 if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) return true end
             else
-                if not base.itemTimer or base.itemTimer:timerExpired() then
-                    buff:use()
-                    if base.itemTimer then base.itemTimer:reset() end
-                end
+                buff:use()
             end
             if buff.removesong then mq.cmdf('/removebuff %s', buff.removesong) end
         end
@@ -328,7 +325,6 @@ end
 end]]
 
 function buff.buff(base)
-    if state.class == 'brd' and (not base.doneSinging() or not base.itemTimer:timerExpired()) then return false end
     if buffCombat(base) then return true end
 
     if not common.clearToBuff() then return end

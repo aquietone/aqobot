@@ -216,12 +216,12 @@ function Spell:use()
             print(logger.logLine('Casting \ag%s\ax', self.name))
         end
         mq.cmdf('/cast "%s"', self.name)
+        mq.delay(100)
+        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
+        mq.delay(100)
+        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
+        mq.delay(100)
         if state.class ~= 'brd' then
-            mq.delay(20)
-            if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
-            mq.delay(20)
-            if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
-            mq.delay(20)
             while mq.TLO.Me.Casting() do
                 if requiresTarget and not mq.TLO.Target() then
                     mq.cmd('/stopcast')
@@ -229,8 +229,6 @@ function Spell:use()
                 end
                 mq.delay(10)
             end
-        else
-            mq.delay(1000)
         end
         return not mq.TLO.Me.SpellReady(self.name)()
     end
@@ -286,7 +284,6 @@ function Disc:use(overwrite)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.flags.ability.disc, "Delayed for use_disc %s", self.name)
-            if state.class == 'brd' then aqo.class.itemTimer:reset() end
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
@@ -296,7 +293,6 @@ function Disc:use(overwrite)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
             logger.debug(logger.flags.aability.disc, "Delayed for use_disc %s", self.name)
-            if state.class == 'brd' then aqo.class.itemTimer:reset() end
             return not mq.TLO.Me.CombatAbilityReady(self.name)()
         else
             logger.debug(logger.flags.ability.disc, 'Not casting due to conflicting active disc (%s)', self.name)
@@ -342,7 +338,6 @@ function AA:use()
         mq.cmdf('/alt activate %d', self.id)
         mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.name)() end)
-        if state.class == 'brd' then aqo.class.itemTimer:reset() end
         logger.debug(logger.flags.ability.aa, "Delayed for use_aa %s", self.name)
         return not mq.TLO.Me.AltAbilityReady(self.name)()
     end
@@ -389,9 +384,8 @@ function Item:use()
             mq.delay(250+self.casttime, function() return not mq.TLO.Target() end)
             if not mq.TLO.Target() then mq.cmd('/squelch /stopcast') end
         else
-            mq.delay(500+theItem.CastTime())
+            mq.delay(250+self.casttime)
         end
-        if state.class == 'brd' then aqo.class.itemTimer:reset() end
         return true
     end
     return false

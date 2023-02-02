@@ -185,8 +185,6 @@ function class.init(_aqo)
     class.fluxstaff = common.getItem('Staff of Viral Flux')
 
     class.selos = common.getAA('Selo\'s Sonata')
-
-    class.itemTimer = timer:new(1)
 end
 
 local songTimer = timer:new(2)
@@ -314,7 +312,7 @@ end
 
 function class.cast()
     if class.OPTS.USETWIST.value then return false end
-    if not state.loop.Invis and class.doneSinging() and class.itemTimer:timerExpired() then
+    if not state.loop.Invis and class.doneSinging() then
         for _,clicky in ipairs(class.castClickies) do
             if clicky.targettype == 'Single' and mq.TLO.Target.Type() == 'NPC' then
                 -- if single target clicky then make sure in combat
@@ -343,10 +341,9 @@ function class.cast()
             if mq.TLO.Me.Casting() then
                 songTimer:reset()
             else
-                mq.cmd('/stopsong')
-                mq.delay(100)
+                -- not casting, so either we just played selos or missed a note
+                mq.delay(500)
             end
-            class.itemTimer:reset()
             if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendoTimer:reset() end
             return didCast
         end
@@ -363,10 +360,9 @@ local function useEpic()
         return
     end
     local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
-    if mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy and class.itemTimer:timerExpired() then
+    if mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy then
         fierceeye:use()
         epic:use()
-        class.itemTimer:reset()
     end
 end
 
@@ -486,8 +482,9 @@ end
 
 function class.doneSinging()
     if class.OPTS.USETWIST.value then return true end
-    if songTimer:timerExpired() or mq.TLO.Me.CastTimeLeft() > 4000 then
+    if mq.TLO.Me.CastTimeLeft() > 4000 or not mq.TLO.Me.Casting() then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
+        mq.delay(100)
         if not class.spells.selos and class.selos and selosTimer:timerExpired() then
             class.selos:use()
             selosTimer:reset()

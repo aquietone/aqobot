@@ -223,6 +223,12 @@ local config = {
         tip = 'The number of resists after which to stop trying casting a spell on a mob',
         alias = 'resiststopcount',
     },
+
+    TIMESTAMPS = {
+        value = false,
+        tip = 'Enable timestamps on log messages',
+        alias = 'timestamps'
+    }
 }
 
 function config.getNameForAlias(alias)
@@ -256,6 +262,7 @@ local configByCategory = {
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY','RECOVERPCT'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','PULLWITH'},
     Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET'},
+    Debug={'TIMESTAMPS'}
 }
 function config.getByCategory(category)
     local configMap = {}

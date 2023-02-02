@@ -314,6 +314,8 @@ local function drawDebugTab()
     if ImGui.Button('View Ability Lists', x, BUTTON_HEIGHT) then
         abilityGUIOpen = true
     end
+    config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', '##timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages')
+    logger.timestamps = config.TIMESTAMPS.value
     drawDebugComboBox()
     ImGui.TextColored(1, 1, 0, 1, 'Mode:')
     ImGui.SameLine()
@@ -329,6 +331,10 @@ local function drawDebugTab()
         ImGui.SameLine()
         ImGui.SetCursorPosX(150)    
         ImGui.TextColored(1, 1, 0, 1, string.format('%d', config.CAMPRADIUS.value))
+        ImGui.TextColored(1, 1, 0, 1, 'Distance from camp:')
+        ImGui.SameLine()
+        ImGui.SetCursorPosX(150)
+        ImGui.TextColored(1, 1, 0, 1, string.format('%d', common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y)))
     else
         ImGui.TextColored(1, 0, 0, 1, '--')
     end

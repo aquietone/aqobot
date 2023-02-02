@@ -49,7 +49,6 @@ local aqo
 ---@field debuffs table #Abilities used in the debuff routine
 ---@field beforeEngage? function #Function to execute before engaging target (rogue stuff)
 ---@field resetClassTimers? function #Function to execute to reset class specific timers
----@field itemTimer? Timer #Timer used to prevent clicking items too quickly, because EMU is crashy
 ---@field doneSinging? function #Function to check whether currently singing a song or if the cast time has already completed (bard stuff)
 ---@field mashClass? function #Function to perform class specific mash logic
 ---@field aeClass? function #Function to perform class specific AE logic
@@ -363,7 +362,7 @@ end
 local function doMashClickies()
     for _,clicky in ipairs(lists.ddClickies) do
         local clickyItem = mq.TLO.FindItem('='..clicky)
-        if clickyItem() and clickyItem.Timer() == '0' and (not base.itemTimer or base.itemTimer:timerExpired()) then
+        if clickyItem() and clickyItem.Timer() == '0' then
             if mq.TLO.Cursor.Name() == clickyItem.Name() then
                 mq.cmd('/autoinv')
                 mq.delay(50)
@@ -371,7 +370,6 @@ local function doMashClickies()
             end
             if base.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
             mq.cmdf('/useitem "%s"', clickyItem.Name())
-            if base.itemTimer then base.itemTimer:reset() end
             mq.delay(50)
             mq.delay(250, function() return not mq.TLO.Me.Casting() end)
         end

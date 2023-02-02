@@ -130,6 +130,9 @@ function commands.commandHandler(...)
     elseif opt == 'campradius' or opt == 'radius' or opt == 'pullarc' then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
         aqo.camp.setCamp()
+    elseif opt == 'timestamps' then
+        aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
+        aqo.logger.timestamps = aqo.config[configName].value
     elseif configName then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
     elseif opt == 'groupwatch' and aqo.common.GROUP_WATCH_OPTS[new_value] then
