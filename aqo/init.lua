@@ -5,7 +5,7 @@ require 'ImGui'
 
 local aqo = {}
 
-local routines = {'assist','buff','camp','cure','debuff','events','heal','mez','movement','pull','tank'}
+local routines = {'assist','buff','camp','conditions','cure','debuff','events','heal','mez','movement','pull','tank'}
 for _,routine in ipairs(routines) do
     aqo[routine] = require('routines.'..routine)
     aqo[routine].init(aqo)

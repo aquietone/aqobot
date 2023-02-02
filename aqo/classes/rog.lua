@@ -13,6 +13,8 @@ function class.init(_aqo)
     class.initDPSAbilities(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
+
+    class.useCommonListProcessor = true
 end
 
 function class.initClassOptions()
@@ -20,11 +22,11 @@ function class.initClassOptions()
 end
 
 function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getSkill('Kick'))
-    table.insert(class.DPSAbilities, common.getSkill('Backstab'))
-    table.insert(class.DPSAbilities, common.getAA('Twisted Shank'))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Assault'}))
-    table.insert(class.DPSAbilities, common.getAA('Ligament Slice'))
+    table.insert(class.DPSAbilities, common.getSkill('Kick', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getSkill('Backstab', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Twisted Shank', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getBestDisc({'Assault', {conditions=_aqo.conditions.withinMeleeDistance}}))
+    table.insert(class.DPSAbilities, common.getAA('Ligament Slice', {conditions=_aqo.conditions.withinMeleeDistance}))
 end
 
 function class.initBurns(_aqo)

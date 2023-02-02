@@ -32,16 +32,16 @@ end
 
 function class.initSpellLines(_aqo)
     class.addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
-    class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}) -- pet haste
-    class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}) -- pet buff
+    class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}, {swap=true}) -- pet haste
+    class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}, {swap=true}) -- pet buff
     class.addSpell('petheal', {'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
     class.addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
     class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
     class.addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
     class.addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
     class.addSpell('panther', {'Growl of the Panther'}, {skipifbuff='Wild Spirit Infusion'})
-    class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}) -- group buff
-    class.addSpell('grouphp', {'Spiritual Vitality'})
+    class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}, {swap=true}) -- group buff
+    class.addSpell('grouphp', {'Spiritual Vitality'}, {swap=true})
     class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
     class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
 end
@@ -53,14 +53,14 @@ function class.initSpellRotations()
 end
 
 function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getSkill('Kick'))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Rake'}))
-    table.insert(class.DPSAbilities, common.getAA('Feral Swipe'))
-    table.insert(class.DPSAbilities, common.getAA('Chameleon Strike'))
-    table.insert(class.DPSAbilities, common.getAA('Bite of the Asp'))
-    table.insert(class.DPSAbilities, common.getAA('Roar of Thunder'))
-    table.insert(class.DPSAbilities, common.getAA('Gorilla Smash'))
-    table.insert(class.DPSAbilities, common.getAA('Raven Claw'))
+    table.insert(class.DPSAbilities, common.getSkill('Kick', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getBestDisc({'Rake', {conditions=_aqo.conditions.withinMeleeDistance}}))
+    table.insert(class.DPSAbilities, common.getAA('Feral Swipe', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Chameleon Strike', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Bite of the Asp', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Roar of Thunder', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Gorilla Smash', {conditions=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Raven Claw', {conditions=_aqo.conditions.withinMeleeDistance}))
 end
 
 function class.initBurns(_aqo)
@@ -69,11 +69,18 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Frenzy of Spirit'))
     table.insert(class.burnAbilities, common.getAA('Bestial Bloodrage'))
     table.insert(class.burnAbilities, common.getAA('Group Bestial Alignment'))
-    table.insert(class.burnAbilities, common.getAA('Bestial Alignment', {skipifbuff='Group Bestial Alignment'}))
+    table.insert(class.burnAbilities, common.getAA('Bestial Alignment', {skipifbuff='Group Bestial Alignment', condition=_aqo.conditions.skipifbuff}))
     table.insert(class.burnAbilities, common.getAA('Attack of the Warders', {delay=1500}))
 end
 
 function class.initBuffs(_aqo)
+    local buffCondition = function(ability)
+        return _aqo.conditions.checkMana(ability) and _aqo.conditions.missingBuff(ability)
+    end
+    if class.spells.groupregen then class.spells.groupregen.condition = buffCondition end
+    if class.spells.grouphp then class.spells.grouphp.condition = buffCondition end
+    --class.spells.fero.condition = buffCondition
+    if class.spells.panther then class.spells.panther.condition = buffCondition end
     table.insert(class.selfBuffs, class.spells.groupregen)
     table.insert(class.selfBuffs, class.spells.grouphp)
     table.insert(class.selfBuffs, class.spells.fero)
@@ -82,9 +89,20 @@ function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, common.getAA('Pact of the Wurine'))
     table.insert(class.selfBuffs, common.getAA('Protection of the Warder'))
 
+    if class.spells.fero then
+        local singleBuffCondition = function(ability)
+            return _aqo.conditions.checkMana(ability)
+        end
+        class.spells.fero.condition = singleBuffCondition
+    end
     table.insert(class.singleBuffs, class.spells.fero)
     table.insert(class.singleBuffs, class.spells.feralvigor)
 
+    local petBuffCondition = function(ability)
+        return _aqo.conditions.checkMana(ability) and _aqo.conditions.stacksPet(ability)
+    end
+    if class.spells.pethaste then class.spells.pethaste.condition = petBuffCondition end
+    if class.spells.petbuff then class.spells.petbuff.condition = petBuffCondition end
     table.insert(class.petBuffs, class.spells.pethaste)
     table.insert(class.petBuffs, class.spells.petbuff)
     table.insert(class.petBuffs, common.getItem('Savage Lord\'s Totem', {checkfor='Savage Wildcaller\'s Blessing'}))

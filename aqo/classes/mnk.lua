@@ -14,6 +14,8 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
     class.initHeals(_aqo)
+
+    class.useCommonListProcessor = true
 end
 
 function class.initClassOptions()
@@ -21,12 +23,12 @@ function class.initClassOptions()
 end
 
 function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getSkill('Flying Kick'))
-    table.insert(class.DPSAbilities, common.getSkill('Tiger Claw'))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}))
-    table.insert(class.DPSAbilities, common.getAA('Five Point Palm'))
+    table.insert(class.DPSAbilities, common.getSkill('Flying Kick', {condition=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getSkill('Tiger Claw', {condition=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getBestDisc({'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}, {condition=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.DPSAbilities, common.getAA('Five Point Palm', {condition=_aqo.conditions.withinMeleeDistance}))
     --table.insert(class.DPSAbilities, common.getAA('Stunning Kick'))
-    table.insert(class.DPSAbilities, common.getAA('Eye Gouge'))
+    table.insert(class.DPSAbilities, common.getAA('Eye Gouge', {condition=_aqo.conditions.withinMeleeDistance}))
 end
 
 function class.initBurns(_aqo)
@@ -34,7 +36,7 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getBestDisc({'Speed Focus Discipline'}))
     table.insert(class.burnAbilities, common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'}))
     table.insert(class.burnAbilities, common.getBestDisc({'Heel of Kai', 'Heel of Kanji'}))
-    table.insert(class.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE'}))
+    table.insert(class.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE', condition=_aqo.conditions.isEnabled}))
 end
 
 function class.initBuffs(_aqo)
