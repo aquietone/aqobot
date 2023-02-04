@@ -55,10 +55,10 @@ function class.init(_aqo)
     class.addSpell('crescendo', {'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}) -- small heal hp, mana, end
     class.addSpell('insult', {'Yelinak\'s Insult', 'Sathir\'s Insult'}) -- synergy DD
     class.addSpell('insult2', {'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}) -- synergy DD 2
-    class.addSpell('chantflame', {'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, {opt='USEDOTS'})
-    class.addSpell('chantfrost', {'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, {opt='USEDOTS'})
-    class.addSpell('chantdisease', {'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDOTS'})
-    class.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEDOTS'})
+    class.addSpell('chantflame', {'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, {opt='USEDOTS'})
+    class.addSpell('chantfrost', {'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, {opt='USEDOTS'})
+    class.addSpell('chantdisease', {'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDOTS'})
+    class.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEDOTS'})
     class.addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
     class.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'})
     class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
@@ -75,28 +75,29 @@ function class.init(_aqo)
         table.insert(class.spellRotations.emuancient, class.spells.selos)
         table.insert(class.spellRotations.emuancient, class.spells.chantflame)
         table.insert(class.spellRotations.emuancient, class.spells.chantfrost)
+        table.insert(class.spellRotations.emuancient, class.spells.chantdisease)
         table.insert(class.spellRotations.emuancient, class.spells.overhaste)
         table.insert(class.spellRotations.emuancient, class.spells.suffering)
         table.insert(class.spellRotations.emuancient, class.spells.pulse)
         table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
-        table.insert(class.spellRotations.emuancient, class.spells.arcane)
+        --table.insert(class.spellRotations.emuancient, class.spells.arcane)
 
-        table.insert(class.spellRotations.emuancient, class.spells.selos)
-        table.insert(class.spellRotations.emuancient, class.spells.suffering)
-        table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
-        table.insert(class.spellRotations.emuancient, class.spells.emuhaste)
+        table.insert(class.spellRotations.emuaura65, class.spells.selos)
+        table.insert(class.spellRotations.emuaura65, class.spells.suffering)
+        table.insert(class.spellRotations.emuaura65, class.spells.bardhaste)
+        table.insert(class.spellRotations.emuaura65, class.spells.emuhaste)
 
-        table.insert(class.spellRotations.emuancient, class.spells.selos)
-        table.insert(class.spellRotations.emuancient, class.spells.pulse)
-        table.insert(class.spellRotations.emuancient, class.spells.overhaste)
-        table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
-        table.insert(class.spellRotations.emuancient, class.spells.emuhaste)
+        table.insert(class.spellRotations.emuaura55, class.spells.selos)
+        table.insert(class.spellRotations.emuaura55, class.spells.pulse)
+        table.insert(class.spellRotations.emuaura55, class.spells.overhaste)
+        table.insert(class.spellRotations.emuaura55, class.spells.bardhaste)
+        table.insert(class.spellRotations.emuaura55, class.spells.emuhaste)
 
-        table.insert(class.spellRotations.emuancient, class.spells.selos)
-        table.insert(class.spellRotations.emuancient, class.spells.pulse)
-        table.insert(class.spellRotations.emuancient, class.spells.overhaste)
-        table.insert(class.spellRotations.emuancient, class.spells.emuhaste)
-        table.insert(class.spellRotations.emuancient, class.spells.firenukebuff)
+        table.insert(class.spellRotations.emunoaura, class.spells.selos)
+        table.insert(class.spellRotations.emunoaura, class.spells.pulse)
+        table.insert(class.spellRotations.emunoaura, class.spells.overhaste)
+        table.insert(class.spellRotations.emunoaura, class.spells.emuhaste)
+        table.insert(class.spellRotations.emunoaura, class.spells.firenukebuff)
 
         --table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
         --table.insert(class.selfBuffs, common.getItem('Songblade of the Eternal', {checkfor='Symphony of Battle'}))
@@ -187,7 +188,6 @@ function class.init(_aqo)
     class.selos = common.getAA('Selo\'s Sonata')
 end
 
-local songTimer = timer:new(2)
 local selosTimer = timer:new(30)
 local crescendoTimer = timer:new(53)
 local bellowTimer = timer:new(30)
@@ -207,7 +207,6 @@ local function tryAlliance()
         end
         if mq.TLO.Me.Gem(alliance)() and mq.TLO.Me.GemTimer(alliance)() == 0  and not mq.TLO.Target.Buff(alliance)() and mq.TLO.Spell(alliance).StacksTarget() then
             class.spells.alliance:use()
-            songTimer:reset()
             return true
         end
     end
@@ -223,7 +222,6 @@ local function castSynergy()
                 return false
             end
             class.spells.insult:use()
-            songTimer:reset()
             synergyTimer:reset()
             return true
         end
@@ -313,6 +311,9 @@ end
 function class.cast()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.doneSinging() then
+        if class.OPTS.USEEPIC.value == 'always' or state.burnActive or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
+            if class.useEpic() then mq.delay(250) return true end
+        end
         for _,clicky in ipairs(class.castClickies) do
             if clicky.targettype == 'Single' and mq.TLO.Target.Type() == 'NPC' then
                 -- if single target clicky then make sure in combat
@@ -338,10 +339,8 @@ function class.cast()
             else
                 didCast = spell:use()
             end
-            if mq.TLO.Me.Casting() then
-                songTimer:reset()
-            else
-                -- not casting, so either we just played selos or missed a note
+            if not mq.TLO.Me.Casting() then
+                -- not casting, so either we just played selos or missed a note, take some time for unknown reasons
                 mq.delay(500)
             end
             if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendoTimer:reset() end
@@ -353,34 +352,30 @@ end
 
 local fierceeye = common.getAA('Fierce Eye')
 local epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')
-local function useEpic()
+function class.useEpic()
     if not fierceeye or not epic then
-        if fierceeye then fierceeye:use() end
-        if epic then epic:use() end
-        return
+        if fierceeye then return fierceeye:use() end
+        if epic then return epic:use() end
     end
-    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)() or true
-    if mq.TLO.FindItem('=Blade of Vesagran').Timer() == '0' and fierceeye_rdy then
+    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)()
+    if epic:isReady() and fierceeye_rdy then
         fierceeye:use()
         epic:use()
+        return true
     end
 end
 
 function class.mashClass()
-    if class.OPTS.USEEPIC.value == 'always' or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
-        useEpic()
-    end
-
     if class.OPTS.USEBELLOW.value and class.bellow and bellowTimer:timerExpired() and class.bellow:use() then
         bellowTimer:reset()
     end
 end
 
-function class.burnClass()
+--[[function class.burnClass()
     if class.OPTS.USEEPIC.value == 'burn' then
         useEpic()
     end
-end
+end]]
 
 function class.hold()
     if class.rallyingsolo and (mq.TLO.Me.Song(class.rallyingsolo.name)() or mq.TLO.Me.Buff(class.rallyingsolo.name)()) then

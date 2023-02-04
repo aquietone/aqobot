@@ -363,6 +363,9 @@ end
 
 function Item:isReady(item)
     if state.subscription ~= 'GOLD' and item.Prestige() then return false end
+    if not item then
+        item = mq.TLO.FindItem(self.id)
+    end
     local spell = item() and item.Clicky.Spell
     if spell and spell() and item.Timer() == '0' then
         return Ability.canUseSpell(spell, self.type) and Ability.shouldUseSpell(spell)

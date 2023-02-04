@@ -13,13 +13,13 @@ function class.init(_aqo)
     class.spellRotations = {standard={},short={}}
     class.initBase(_aqo, 'nec')
 
-    class.initializeClassOptions()
+    class.initClassOptions()
     class.loadSettings()
-    class.initializeSpellLines()
-    class.initializeSpellConditions()
-    class.initializeSpellRotations()
-    class.initializeBurns()
-    class.initializeBuffs()
+    class.initSpellLines()
+    class.initSpellConditions()
+    class.initSpellRotations()
+    class.initBurns()
+    class.initBuffs()
 
     class.tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
@@ -51,7 +51,7 @@ function class.init(_aqo)
     class.neccount = 1
 end
 
-function class.initializeClassOptions()
+function class.initClassOptions()
     class.addOption('STOPPCT', 'DoT Stop Pct', 0, nil, 'Percent HP to stop refreshing DoTs on mobs', 'inputint')
     class.addOption('USEDEBUFF', 'Debuff', true, nil, 'Debuff targets with scent', 'checkbox')
     class.addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox')
@@ -69,7 +69,7 @@ function class.initializeClassOptions()
     class.addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox')
 end
 
-function class.initializeSpellLines()
+function class.initSpellLines()
     class.addSpell('composite', {'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'}, {opt='USEDOTS'})
     class.addSpell('wounds', {'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'}, {opt='USEWOUNDS'})
     class.addSpell('fireshadow', {'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'}, {opt='USEDOTS'})
@@ -127,7 +127,7 @@ function class.initializeSpellLines()
     class.addSpell('swarm', {'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'})
 end
 
-function class.initializeSpellConditions()
+function class.initSpellConditions()
     if class.spells.manatap then class.spells.manatap.condition = function() return (mq.TLO.Group.LowMana(70)() or 0) > 2 end end
     if class.spells.alliance then class.spells.alliance.condition = function() return class.neccount > 1 and not mq.TLO.Target.Buff(class.spells.alliance.name)() and mq.TLO.Spell(class.spells.alliance.name).StacksTarget() end end
     if not state.emu and class.spells.synergy then
@@ -148,7 +148,7 @@ function class.initializeSpellConditions()
     end
 end
 
-function class.initializeSpellRotations()
+function class.initSpellRotations()
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     local standard = {}
     table.insert(class.spellRotations.standard, class.spells.alliance)
@@ -189,7 +189,7 @@ function class.initializeSpellRotations()
     class.swap_gem_dis = 9
 end
 
-function class.initializeBurns()
+function class.initBurns()
     -- entries in the items table are MQ item datatypes
     table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
@@ -238,7 +238,7 @@ function class.initializeBurns()
     end
 end
 
-function class.initializeBuffs()
+function class.initBuffs()
     -- Buffs
     class.unity = common.getAA('Mortifier\'s Unity')
 

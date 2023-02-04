@@ -81,6 +81,7 @@ function class.init(_aqo)
     table.insert(class.spellRotations.standard, class.spells.firenuke)
     table.insert(class.spellRotations.standard, class.spells.magicnuke)
 
+    table.insert(class.fadeAbilities, common.getAA('Companion of Necessity'))
     class.addRequestAlias(class.spells.orb, 'orb')
     class.addRequestAlias(class.spells.ds, 'ds')
     class.addRequestAlias(class.spells.weapons, 'arm')
