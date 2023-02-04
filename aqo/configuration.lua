@@ -312,6 +312,7 @@ function config.loadSettings()
         config[setting].value = value
     end
     if settings.common.MODE ~= nil then config.MODE.value = modes.fromString(settings.common.MODE) end
+    logger.timestamps = config.TIMESTAMPS and config.TIMESTAMPS.value or false
     return settings
 end
 
