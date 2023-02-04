@@ -311,7 +311,7 @@ end
 function class.cast()
     if class.OPTS.USETWIST.value then return false end
     if not state.loop.Invis and class.doneSinging() then
-        if class.OPTS.USEEPIC.value == 'always' or state.burnActive or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')()) then
+        if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' and (class.OPTS.USEEPIC.value == 'always' or state.burnActive or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
             if class.useEpic() then mq.delay(250) return true end
         end
         for _,clicky in ipairs(class.castClickies) do

@@ -646,7 +646,9 @@ function base.nowCast(args)
         local alias = args[1]:lower()
         local target = args[2]:lower()
         local spellToCast = base.spells[alias] or base[alias]
-        table.insert(base.requests, {requester=target, requested=spellToCast, expiration=timer:new(15, true), tranquil=false, mgb=false})
+        if spellToCast then
+            table.insert(base.requests, {requester=target, requested=spellToCast, expiration=timer:new(15, true), tranquil=false, mgb=false})
+        end
     end
 end
 
