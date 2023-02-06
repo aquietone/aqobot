@@ -209,7 +209,7 @@ end
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function tryAlliance()
     local alliance = class.spells.alliance and class.spells.alliance.name
-    if class.OPTS.USEALLIANCE.value and alliance then
+    if class.isEnabled('USEALLIANCE') and alliance then
         if mq.TLO.Spell(alliance).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
