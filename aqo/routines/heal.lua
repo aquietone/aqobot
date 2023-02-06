@@ -312,8 +312,10 @@ local function doRezFor(rezAbility)
     end
 end
 
+local rezCheckTimer = timer:new(3)
 function healing.rez(rezAbility)
-    if not rezAbility then return end
+    if not rezCheckTimer:timerExpired() or not rezAbility then return end
+    rezCheckTimer:reset()
     if not config.REZINCOMBAT.value and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return

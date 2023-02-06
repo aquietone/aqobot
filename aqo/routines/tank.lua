@@ -129,6 +129,7 @@ function tank.tankMob()
         print(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID))
         -- /stick snaproll front moveback
         -- /stick mod -2
+        state.resists = {}
         mq.cmd('/attack on')
         stickTimer:reset(0)
     elseif state.dontAttack and state.enrageTimer:timerExpired() then

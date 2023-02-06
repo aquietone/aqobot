@@ -366,12 +366,15 @@ end
     buffCacheTimer:reset()
 end]]
 
-local buffTimer = timer:new(60)
+local buffCombatTimer = timer:new(5)
+local buffOOCTimer = timer:new(60)
 function buff.buff(base)
+    if not buffCombatTimer:timerExpired() then return end
+    buffCombatTimer:reset()
     if buffCombat(base) then return true end
 
-    if not common.clearToBuff() or not buffTimer:timerExpired() then return end
-    buffTimer:reset()
+    if not common.clearToBuff() or not buffOOCTimer:timerExpired() then return end
+    buffOOCTimer:reset()
     local originalTargetID = mq.TLO.Target.ID()
     --[[if not readQueries then
         buff.queryBuffs()

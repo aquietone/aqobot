@@ -235,8 +235,11 @@ end
 -- Movement Functions
 
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
+local checkChaseTimer = timer:new(1)
 function common.checkChase()
     if config.MODE.value:getName() ~= 'chase' then return end
+    if not checkChaseTimer:timerExpired() then return end
+    checkChaseTimer:reset()
     if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then
         if logger.flags.common.chase then
             logger.debug(logger.flags.common.chase, 'Not chasing due to one of: Stick.Active=%s, Me.Combat=%s, Me.AutoFire=%s, Me.Casting=%s', mq.TLO.Stick.Active(), mq.TLO.Me.Combat(), mq.TLO.Me.AutoFire, mq.TLO.Me.Casting())
