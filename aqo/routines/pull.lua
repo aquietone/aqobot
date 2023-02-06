@@ -419,17 +419,20 @@ function pull.pullMob()
             pullReturn(true)
             return
         end
+        if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
         -- valid pull spawn acquired, begin approach
         state.pullStatus = common.PULL_STATES.APPROACHING
         pullNavToMob(pull_spawn, true)
     elseif pull_state == common.PULL_STATES.APPROACHING then
         local pull_spawn = mq.TLO.Spawn(state.pullMobID)
+        if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
         if pullApproaching(pull_spawn) then
             -- movement stopped, either spawn became invalid, we're in range, or other stuff agro'd
             state.pullStatus = common.PULL_STATES.ENGAGING
         end
     elseif pull_state == common.PULL_STATES.ENGAGING then
         local pull_spawn = mq.TLO.Spawn(state.pullMobID)
+        if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
         if pullEngage(pull_spawn) then
             -- successfully agro'd the mob, or something else agro'd in the process
             if config.MODE.value:isReturnToCampMode() and camp.Active then

@@ -122,7 +122,7 @@ end
 
 function class.ohShitClass()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        class.resurgence:use()
+        if class.resurgence then class.resurgence:use() end
         if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.CombatAbilityReady(class.flash.name)() then
                 class.flash:use()

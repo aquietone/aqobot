@@ -364,6 +364,7 @@ function class.useEpic()
     if not fierceeye or not epic then
         if fierceeye then return fierceeye:use() end
         if epic then return epic:use() end
+        return
     end
     local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)()
     if epic:isReady() and fierceeye_rdy then

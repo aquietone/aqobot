@@ -284,7 +284,9 @@ function buff.reportBuffs()
         local buffID = mq.TLO.Me.Buff(i).Spell.ID()
         if buffID then buffList = buffList .. buffID .. '|' end
     end
-    mq.cmdf('/squelch /dga aqo /docommand /$\\{Me.Class.ShortName} bufflist %s %s %s', mq.TLO.Me.CleanName(), mq.TLO.Me.Class.ShortName(), buffList)
+    if buffList ~= '' then
+        mq.cmdf('/squelch /dga aqo /squelch /docommand /$\\{Me.Class.ShortName} bufflist %s %s %s', mq.TLO.Me.CleanName(), mq.TLO.Me.Class.ShortName(), buffList)
+    end
 end
 
 function buff.reportSick()
@@ -299,7 +301,7 @@ function buff.reportSick()
         sickList = sickList .. 'C_' .. mq.TLO.Me.Cursed() .. '_' .. mq.TLO.Me.CountersCurse() .. '|'
     end
     if sickList ~= '' then
-        mq.cmdf('/squelch /dga aqo /docommand /$\\{Me.Class.ShortName} sicklist %s %s', mq.TLO.Me.CleanName(), sickList)
+        mq.cmdf('/squelch /dga aqo /squelch /docommand /$\\{Me.Class.ShortName} sicklist %s %s', mq.TLO.Me.CleanName(), sickList)
     end
 end
 
