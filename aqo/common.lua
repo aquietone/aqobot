@@ -95,7 +95,7 @@ local function getDisc(discName)
     local disc = mq.TLO.Spell(discName)
     local rankName = disc.RankName()
     if not rankName or not mq.TLO.Me.CombatAbility(rankName)() then return nil end
-    return {name=rankName, id=disc.ID()}
+    return {name=rankName, id=disc.ID(), targettype=disc.TargetType()}
 end
 
 ---Lookup the ID for a given disc.
@@ -666,11 +666,27 @@ function common.split(input, sep)
     return t
 end
 
+function common.splitSet(input, sep)
+    if sep == nil then
+        sep = "|"
+    end
+    local t={}
+    for str in string.gmatch(input, "([^"..sep.."]+)") do
+        t[str] = true
+    end
+    return t
+end
+
 function common.processList(aList, returnOnFirstUse)
     for _,entry in ipairs(aList) do
         if not entry.condition or entry.condition(entry) then
             if entry.beforeUse then entry.beforeUse() end
-            local used = entry:use()
+            local used = false
+            if entry.swap then
+                used = common.swapAndCast(entry, state.swapGem)
+            else
+                used = entry:use()
+            end
             if entry.afterUse then entry.afterUse() end
             if used and returnOnFirstUse then return end
         end

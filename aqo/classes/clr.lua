@@ -5,7 +5,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.spellRotations = {standard={}}
-    class.classOrder = {'cure', 'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
+    class.classOrder = {'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'clr')
 
     class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')

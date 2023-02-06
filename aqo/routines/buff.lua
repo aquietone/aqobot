@@ -154,7 +154,7 @@ local function buffSelf(base)
             else
                 buff:use()
             end
-            if buff.removesong then mq.cmdf('/removebuff %s', buff.removesong) end
+            if buff.removesong then mq.delay(100) mq.cmdf('/removebuff "%s"', buff.removesong) end
         end
     end
 end
@@ -242,6 +242,10 @@ local function buffPet(base)
     if base.isEnabled('BUFFPET') and mq.TLO.Pet.ID() > 0 then
         local distance = mq.TLO.Pet.Distance3D() or 300
         if distance > 100 then return false end
+        if aqo.class.useCommonListProcessor then
+            aqo.common.processList(base.petBuffs, true)
+            return
+        end
         for _,buff in ipairs(base.petBuffs) do
             if buff.type == Abilities.Types.Spell then
                 local tempName = buff.name
@@ -272,6 +276,44 @@ local function willLandOther(toon, buff)
     local willLand = mq.TLO.DanNet(toon).Q(willLandQ)()
     local hasBuff = mq.TLO.DanNet(toon).Q(hasBuffQ)()
     return willLand > 0 and hasBuff
+end
+
+function buff.reportBuffs()
+    local buffList = ''
+    for i=1,42 do
+        local buffID = mq.TLO.Me.Buff(i).Spell.ID()
+        if buffID then buffList = buffList .. buffID .. '|' end
+    end
+    mq.cmdf('/squelch /dga aqo /docommand /$\\{Me.Class.ShortName} bufflist %s %s %s', mq.TLO.Me.CleanName(), mq.TLO.Me.Class.ShortName(), buffList)
+end
+
+function buff.reportSick()
+    local sickList = ''
+    if mq.TLO.Me.Poisoned() then
+        sickList = sickList .. 'P_' .. mq.TLO.Me.Poisoned() .. '_' .. mq.TLO.Me.CountersPoison() .. '|'
+    end
+    if mq.TLO.Me.Diseased() then
+        sickList = sickList .. 'D_' .. mq.TLO.Me.Diseased() .. '_' .. mq.TLO.Me.CountersDisease() .. '|'
+    end
+    if mq.TLO.Me.Cursed() then
+        sickList = sickList .. 'C_' .. mq.TLO.Me.Cursed() .. '_' .. mq.TLO.Me.CountersCurse() .. '|'
+    end
+    if sickList ~= '' then
+        mq.cmdf('/squelch /dga aqo /docommand /$\\{Me.Class.ShortName} sicklist %s %s', mq.TLO.Me.CleanName(), sickList)
+    end
+end
+
+local reportBuffsTimer = timer:new(60)
+local reportSickTimer = timer:new(5)
+function buff.broadcast()
+    --[[if reportBuffsTimer:timerExpired() then
+        aqo.buff.reportBuffs()
+        reportBuffsTimer:reset()
+    end
+    if reportSickTimer:timerExpired() then
+        aqo.buff.reportSick()
+        reportSickTimer:reset()
+    end]]
 end
 
 local buffCacheTimer = timer:new(30)
@@ -324,15 +366,17 @@ end
     buffCacheTimer:reset()
 end]]
 
+local buffTimer = timer:new(60)
 function buff.buff(base)
     if buffCombat(base) then return true end
 
-    if not common.clearToBuff() then return end
-    if not readQueries then
+    if not common.clearToBuff() or not buffTimer:timerExpired() then return end
+    buffTimer:reset()
+    --[[if not readQueries then
         buff.queryBuffs()
     else
         buff.readQueries()
-    end
+    end]]
     --buff.refreshBuffCaches()
 
     if buffOOC(base) then return true end

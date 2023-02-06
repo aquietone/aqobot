@@ -5,6 +5,7 @@ local logger = {
         ability={validation=false,spell=false,aa=false,disc=false,item=false,skill=false},
         common={chase=false,cast=false,memspell=false,misc=false},
         aqo={main=false,commands=false,configuration=false},
+        announce={spell=true,aa=true,disc=true,item=true,skill=false},
     },
     timestamps = false,
 }

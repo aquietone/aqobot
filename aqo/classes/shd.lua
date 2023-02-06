@@ -36,8 +36,8 @@ function class.init(_aqo)
     class.addSpell('composite', {'Composite Fang'}) -- big lifetap
     class.addSpell('alliance', {'Bloodletting Coalition'}) -- alliance
     -- Aggro
-    class.addSpell('challenge', {'Parlay for Power', 'Aura of Hate'}) -- main hate spell
-    class.addSpell('terror', {'Terror of Ander', 'Terror of Discord', 'Terror of Thule', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}) -- ST increase hate by 1
+    class.addSpell('challenge', {'Parlay for Power', 'Terror of Thule', 'Aura of Hate'}) -- main hate spell
+    class.addSpell('terror', {'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}) -- ST increase hate by 1
     class.addSpell('aeterror', {'Antipathy', 'Dread Gaze'}, {threshold=2}) -- ST increase hate by 1
     --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
     -- Lifetaps
@@ -90,7 +90,7 @@ function class.init(_aqo)
     if class.spells.aeterror then class.spells.aeterror.condition = function() return config.MODE.value:isTankMode() and state.loop.PctHPs > 70 and mobsMissingAggro() end end
     local aggroCondition = function() return config.MODE.value:isTankMode() and state.loop.PctHPs > 70 end
     if class.spells.challenge then class.spells.challenge.condition = aggroCondition end
-    if class.spells.terror then class.spells.terror.condition = aggroCondition end
+    --if class.spells.terror then class.spells.terror.condition = aggroCondition end
     local lifetapCondition = function() return state.loop.PctHPs < 85 end
     if class.spells.largetap then class.spells.largetap.condition = lifetapCondition end
     if class.spells.tap1 then class.spells.tap1.condition = lifetapCondition end
@@ -161,8 +161,8 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getBestDisc({'Sanguine Blade'})) -- 3 strikes
     table.insert(class.burnAbilities, common.getAA('Gift of the Quick Spear')) -- 10min CD, twincast
     table.insert(class.burnAbilities, common.getAA('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
-    table.insert(class.burnAbilities, common.getAA('Harm Touch')) -- 20min CD, giant nuke + dot
-    table.insert(class.burnAbilities, common.getAA('Leech Touch')) -- 9min CD, giant lifetap
+    --table.insert(class.burnAbilities, common.getAA('Harm Touch')) -- 20min CD, giant nuke + dot
+    --table.insert(class.burnAbilities, common.getAA('Leech Touch')) -- 9min CD, giant lifetap
     table.insert(class.burnAbilities, common.getAA('Thought Leech')) -- 18min CD, nuke + mana/end tap
     table.insert(class.burnAbilities, common.getAA('Scourge Skin')) -- 15min CD, large DS
     table.insert(class.burnAbilities, common.getAA('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
@@ -191,8 +191,6 @@ function class.init(_aqo)
         table.insert(class.selfBuffs, class.spells.skin)
         table.insert(class.selfBuffs, class.spells.shroud)
         table.insert(class.selfBuffs, common.getAA('Touch of the Cursed'))
-        table.insert(class.selfBuffs, common.getItem('Pauldron of Dark Auspices', {checkfor='Frost Guard'}))
-        table.insert(class.selfBuffs, common.getItem('Band of Primordial Energy', {checkfor='Form of Defense'}))
         class.addSpell('voice', {'Voice of Innoruuk'}, {opt='USEVOICEOFTHULE'})
         table.insert(class.selfBuffs, class.spells.voice)
     else
@@ -200,8 +198,6 @@ function class.init(_aqo)
         table.insert(class.selfBuffs, buffbeza)
         table.insert(class.selfBuffs, voice)
     end
-    table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
-    table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
     table.insert(class.petBuffs, class.spells.pethaste)
     class.pullSpell = class.spells.terror
 end

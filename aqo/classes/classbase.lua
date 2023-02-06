@@ -449,7 +449,11 @@ function base.findNextSpell()
     -- synergy
     for _,spell in ipairs(base.spellRotations[base.OPTS.SPELLSET.value]) do
         local resistCount = state.resists[spell.name] or 0
-        if common.isSpellReady(spell) and base.isAbilityEnabled(spell.opt) and resistCount < config.RESISTSTOPCOUNT.value and (not spell.condition or spell.condition()) then return spell end
+        if common.isSpellReady(spell) and base.isAbilityEnabled(spell.opt)
+                and (config.RESISTSTOPCOUNT.value == 0 or resistCount < config.RESISTSTOPCOUNT.value)
+                and (not spell.condition or spell.condition()) then
+            return spell
+        end
     end
 end
 

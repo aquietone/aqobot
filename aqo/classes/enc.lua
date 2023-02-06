@@ -78,7 +78,7 @@ function class.init(_aqo)
     class.addSpell('aenuke', {'Gravity Roil'}) -- 23k targeted ae nuke
 
     class.addSpell('calm', {'Still Mind'})
-    class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani'}, {opt='USEDEBUFF'})
+    class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani', 'Echo of Tashan'}, {opt='USEDEBUFF'})
     class.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
     class.addSpell('stunae', {'Remote Color Conflagration'})
     class.addSpell('stunpbae', {'Color Conflagration'})
@@ -89,7 +89,7 @@ function class.init(_aqo)
     class.addSpell('charm', {'Marvel\'s Command'})
     -- buffs
     class.addSpell('unity', {'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
-    class.addSpell('procbuff', {'Mana Rebirth', 'Mana Flare'}) -- single target dmg proc buff
+    class.addSpell('procbuff', {'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}) -- single target dmg proc buff
     class.addSpell('kei', {'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
     class.addSpell('keigroup', {'Voice of Perception', 'Voice of Sagacity'})
     class.addSpell('haste', {'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
@@ -115,6 +115,7 @@ function class.init(_aqo)
     end
     if state.emu then
         class.addSpell('nuke5', {'Chromaburst', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
+        class.addSpell('nuke4', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
         class.addSpell('unified', {'Unified Alacrity'})
         class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'}, {opt='USEDISPEL'})
         class.addSpell('spasm', {'Synapsis Spasm'}, {opt='USEDEBUFF'})
@@ -141,11 +142,16 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
     table.insert(class.burnAbilities, common.getAA('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
     table.insert(class.burnAbilities, common.getAA('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
-    table.insert(class.burnAbilities, common.getAA('Spire of Enchantment')) -- buff, 7:30 minute CD
+    if state.emu then
+        table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of Enchantment'))
+    else
+        table.insert(class.burnAbilities, common.getAA('Spire of Enchantment')) -- buff, 7:30 minute CD
+    end
     table.insert(class.burnAbilities, common.getAA('Improved Twincast')) -- 15min CD
     table.insert(class.burnAbilities, common.getAA('Chromatic Haze')) -- 15min CD
     table.insert(class.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
     table.insert(class.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
+    table.insert(class.burnAbilities, common.getAA('Mental Corruption')) -- decrease melee dmg + DoT
 
     --table.insert(class.DPSAbilities, common.getItem('Aged Shissar Focus Staff'))
 
@@ -172,8 +178,6 @@ function class.init(_aqo)
     class.kbblur = common.getAA('Beguiler\'s Directed Banishment')
     class.aeblur = common.getAA('Blanket of Forgetfulness')
 
-    class.haze = common.getAA('Chromatic Haze') -- 10min CD, buff 2 nukes for group
-
     class.shield = common.getAA('Dimensional Shield')
     class.rune = common.getAA('Eldritch Rune')
     class.grouprune = common.getAA('Glyph Spray')
@@ -181,19 +185,19 @@ function class.init(_aqo)
     class.manarune = common.getAA('Mind over Matter') -- absorb dmg using mana
     class.veil = common.getAA('Veil of Mindshadow') -- 5min CD, another rune?
 
-    class.debuffdot = common.getAA('Mental Corruption') -- decrease melee dmg + DoT
-
     -- Buffs
     class.unity = common.getAA('Orator\'s Unity')
     -- Mana Recovery AAs
     class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky mana heal
     class.gathermana = common.getAA('Gather Mana')
+    class.manadraw = common.getAA('Mana Draw')
     class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky hp heal
 
     -- Aggro
     local postStasis = function()
         mq.delay(1000)
-        
+        mq.cmd('/removebuff "Self Stasis"')
+        mq.cmd('/makemevis')
     end
     table.insert(class.fadeAbilities, common.getAA('Self Stasis', {postcast=postStasis}))
 
@@ -218,8 +222,9 @@ function class.init(_aqo)
     table.insert(class.petBuffs, class.spells.pethaste)
     if state.emu then
         table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
-        class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true}
+        class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}
         table.insert(class.singleBuffs, class.spells.procbuff)
+        table.insert(class.selfBuffs, class.spells.procbuff)
     else
         table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {checkfor='Ward of the Beguiler'}))
     end
@@ -261,9 +266,11 @@ function class.findNextSpell()
     if not mq.TLO.Target.Tashed() and class.OPTS.USEDEBUFF.value and common.isSpellReady(class.spells.tash) then return class.spells.tash end
     if common.isSpellReady(class.spells.composite) then return class.spells.composite end
     if castSynergy() then return nil end
-    if state.emu and common.isSpellReady(class.spells.spasm) then return class.spells.spasm end
+    --if state.emu and common.isSpellReady(class.spells.spasm) then return class.spells.spasm end
     if common.isSpellReady(class.spells.nuke5) then return class.spells.nuke5 end
+    if common.isSpellReady(class.spells.dot) then return class.spells.dot end
     if common.isSpellReady(class.spells.dot2) then return class.spells.dot2 end
+    if common.isSpellReady(class.spells.nuke4) then return class.spells.nuke4 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 

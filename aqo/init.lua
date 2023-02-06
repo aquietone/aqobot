@@ -5,6 +5,7 @@ require 'ImGui'
 
 local aqo = {}
 
+--'conditions',
 local routines = {'assist','buff','camp','cure','debuff','events','heal','mez','movement','pull','tank'}
 for _,routine in ipairs(routines) do
     aqo[routine] = require('routines.'..routine)
@@ -34,6 +35,7 @@ local function init()
     aqo.ability.init(aqo)
 
     -- Initialize binds
+    --mq.cmd('/squelch /djoin aqo')
     aqo.commands.init(aqo)
 
     -- Initialize UI
@@ -135,13 +137,15 @@ local function buffSafetyCheck()
     end
 end
 
+local lootMyCorpseTimer = aqo.timer:new(5)
 local function doLooting()
     local myCorpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
-    if myCorpse() then
+    if myCorpse() and lootMyCorpseTimer:timerExpired() then
+        lootMyCorpseTimer:reset()
         myCorpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/keypress CONSIDER')
-            mq.delay(100)
+            mq.delay(500)
             mq.doevents('eventCannotRez')
             if aqo.state.cannotRez then
                 aqo.state.cannotRez = nil
@@ -209,6 +213,8 @@ local function main()
             end
             mq.delay(500)
         end
+        -- broadcast some buff and poison/disease/curse state around netbots style
+        --aqo.buff.broadcast()
     end
 end
 

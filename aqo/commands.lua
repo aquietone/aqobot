@@ -217,6 +217,13 @@ function commands.commandHandler(...)
             mq.cmd('/useitem Manastone')
             if manastoneTimer:timerExpired() then break end
         end
+    elseif opt == 'bufflist' then
+        --local buffList = aqo.common.split(args[4])
+        local buffSet = aqo.common.splitSet(args[4])
+        aqo.state.buffs[new_value] = {class=args[3], buffs=buffSet}
+    elseif opt == 'sicklist' then
+        local sickList = aqo.common.split(args[3])
+        aqo.state.sick[new_value] = sickList
     else
         commands.classSettingsHandler(opt:upper(), new_value)
     end

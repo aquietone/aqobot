@@ -35,7 +35,10 @@ function class.init(_aqo)
     class.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox')
     class.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
     class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox')
-    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT songs if they are in the selected song list', 'checkbox')
+    class.addOption('USEFIREDOTS', 'Use Fire DoT', false, nil, 'Toggle use of Fire DoT songs if they are in the selected song list', 'checkbox')
+    class.addOption('USEFROSTDOTS', 'Use Frost DoT', false, nil, 'Toggle use of Frost DoT songs if they are in the selected song list', 'checkbox')
+    class.addOption('USEPOISONDOTS', 'Use Poison DoT', false, nil, 'Toggle use of Poison DoT songs if they are in the selected song list', 'checkbox')
+    class.addOption('USEDISEASEDOTS', 'Use Disease DoT', false, nil, 'Toggle use of Disease DoT songs if they are in the selected song list', 'checkbox')
     class.addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox')
     class.loadSettings()
 
@@ -55,10 +58,10 @@ function class.init(_aqo)
     class.addSpell('crescendo', {'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}) -- small heal hp, mana, end
     class.addSpell('insult', {'Yelinak\'s Insult', 'Sathir\'s Insult'}) -- synergy DD
     class.addSpell('insult2', {'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}) -- synergy DD 2
-    class.addSpell('chantflame', {'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, {opt='USEDOTS'})
-    class.addSpell('chantfrost', {'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, {opt='USEDOTS'})
-    class.addSpell('chantdisease', {'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDOTS'})
-    class.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEDOTS'})
+    class.addSpell('chantflame', {'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, {opt='USEFIREDOTS'})
+    class.addSpell('chantfrost', {'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, {opt='USEFROSTDOTS'})
+    class.addSpell('chantdisease', {'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDISEASEDOTS'})
+    class.addSpell('chantpoison', {'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEPOISONDOTS'})
     class.addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
     class.addSpell('mezst', {'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'})
     class.addSpell('mezae', {'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
@@ -71,11 +74,16 @@ function class.init(_aqo)
     class.addSpell('debuff', {'Harmony of Sound'})
 
     if state.emu then
+        if class.spells.chantflame then class.spells.chantflame.checkfor = 'Chant of Flame' end
+        if class.spells.chantfrost then class.spells.chantfrost.checkfor = 'Chant of Frost' end
+        if class.spells.chantdisease then class.spells.chantdisease.checkfor = 'Chant of Plague' end
+        if class.spells.chantpoison then class.spells.chantpoison.checkfor = 'Chant of Venom' end
         class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
         table.insert(class.spellRotations.emuancient, class.spells.selos)
         table.insert(class.spellRotations.emuancient, class.spells.chantflame)
         table.insert(class.spellRotations.emuancient, class.spells.chantfrost)
         table.insert(class.spellRotations.emuancient, class.spells.chantdisease)
+        table.insert(class.spellRotations.emuancient, class.spells.chantpoison)
         table.insert(class.spellRotations.emuancient, class.spells.overhaste)
         table.insert(class.spellRotations.emuancient, class.spells.suffering)
         table.insert(class.spellRotations.emuancient, class.spells.pulse)
@@ -299,7 +307,7 @@ local function findNextSong()
     for _,song in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.id
         local song_name = song.name
-        if isSongReady(song_id, song_name) and class.isAbilityEnabled(song.opt) then
+        if isSongReady(song_id, song_name) and class.isAbilityEnabled(song.opt) and not mq.TLO.Target.Buff(song.checkfor)() then
             if song_name ~= (class.spells.composite and class.spells.composite.name) or mq.TLO.Target() then
                 return song
             end
@@ -359,7 +367,10 @@ function class.useEpic()
     end
     local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)()
     if epic:isReady() and fierceeye_rdy then
+        mq.cmd('/stopsong')
+        mq.delay(100)
         fierceeye:use()
+        mq.delay(50)
         epic:use()
         return true
     end

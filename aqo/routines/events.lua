@@ -27,12 +27,12 @@ function events.initClassBasedEvents()
         aqo.mez.setupEvents()
     end
     if mq.TLO.Me.AltAbility('Tranquil Blessings')() then
-        mq.event('eventTranquil', '#*# tells the #*#, \'tranquil\'', events.eventTranquil)
+        mq.event('eventTranquil', '#*# tells #*#,#*#\'tranquil\'', events.eventTranquil)
     end
     if aqo.class.OPTS.SERVEBUFFREQUESTS then
-        mq.event('eventRequests', '#1# tells #*#, \'#2#\'', events.eventRequest)
+        mq.event('eventRequests', '#1# tells #*#,#*#\'#2#\'', events.eventRequest)
     else
-        mq.event('eventGearrequest', '#1# tells #*#, \'gear #2#\'', events.eventGear)
+        mq.event('eventGearrequest', '#1# tells #*#,#*#\'gear #2#\'', events.eventGear)
     end
 end
 
@@ -62,10 +62,8 @@ end
 ---@param line any
 ---@param spell_name any
 function events.eventResist(line, spell_name)
-    --if mq.TLO.Target.CleanName() == target_name then
-        aqo.state.resists[spell_name] = (aqo.state.resists[spell_name] or 0) + 1
-        print(aqo.logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
-    --end
+    aqo.state.resists[spell_name] = (aqo.state.resists[spell_name] or 0) + 1
+    print(aqo.logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
 end
 
 ---Set common.amDead flag to true in the event of death.

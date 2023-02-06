@@ -210,11 +210,7 @@ function Spell:use()
         local result, requiresTarget =  Ability.shouldUseSpell(spell)
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
-        if requiresTarget then
-            print(logger.logLine('Casting \ag%s\ax on \at%s\ax', self.name, mq.TLO.Target.CleanName()))
-        else
-            print(logger.logLine('Casting \ag%s\ax', self.name))
-        end
+        if logger.flags.announce.spell then print(logger.logLine('Casting \ag%s\ax%s', self.name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/cast "%s"', self.name)
         mq.delay(100)
         if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.name) end
@@ -275,7 +271,7 @@ function Disc:use(overwrite)
     local spell = mq.TLO.Spell(self.name)
     if self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
-            print(logger.logLine('Use Disc: \ag%s\ax', self.name))
+            if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
             if self.name:find('Composite') then
                 mq.cmdf('/disc %s', self.id)
             else
@@ -288,7 +284,7 @@ function Disc:use(overwrite)
         elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
             mq.cmd('/stopdisc')
             mq.delay(50)
-            print(logger.logLine('Use Disc: \ag%s\ax', self.name))
+            if logger.flags.announce.disc then print(logger.logLine('Use Disc: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
             mq.cmdf('/disc %s', self.name)
             mq.delay(250+spell.CastTime())
             mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
@@ -334,7 +330,7 @@ end
 function AA:use()
     logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.name)
     if self:isReady() then
-        print(logger.logLine('Use AA: \ag%s\ax', self.name))
+        if logger.flags.announce.aa then print(logger.logLine('Use AA: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/alt activate %d', self.id)
         mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.name)() end)
@@ -381,7 +377,7 @@ function Item:use()
     local theItem = mq.TLO.FindItem(self.id)
     if self:isReady(theItem) then
         if state.class == 'brd' and mq.TLO.Me.Casting() and self.casttime > 500 then mq.cmd('/stopcast') mq.delay(250) end
-        print(logger.logLine('Use Item: \ag%s\ax', theItem))
+        if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', theItem, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/useitem "%s"', theItem)
         if self.targettype == 'Single' and self.casttime > 0 then
             mq.delay(250+self.casttime, function() return not mq.TLO.Target() end)
@@ -416,6 +412,7 @@ end
 function Skill:use()
     logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.name)
     if self:isReady() then
+        if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/doability "%s"', self.name)
         mq.delay(500, function() return not mq.TLO.Me.AbilityReady(self.name)() end)
         logger.debug(logger.flags.ability.skill, "Delayed for use_ability %s", self.name)

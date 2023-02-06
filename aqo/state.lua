@@ -24,6 +24,8 @@ local state = {
     subscription = 'GOLD',
     resists = {},
     medding = false,
+    buffs = {},
+    sick = {},
 }
 
 function state.resetCombatState(debug, caller)
