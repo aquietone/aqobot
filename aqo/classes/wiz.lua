@@ -4,7 +4,7 @@ local class = require('classes.classbase')
 local common = require('common')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.spellRotations = {standard={}}
     class.initBase(_aqo, 'wiz')
     class.loadSettings()

@@ -319,6 +319,7 @@ function healing.rez(rezAbility)
     elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
     elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
+    if rezAbility.name == 'Token of Resurrection' and mq.TLO.FindItemCount('=Token of Resurrection')() == 0 then return end
     if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') end
     return doRezFor(rezAbility)
 end

@@ -178,12 +178,10 @@ local function main()
         updateLoopState()
         detectRaidOrGroup()
         buffSafetyCheck()
-        if not aqo.state.paused and aqo.common.inControl() and not aqo.common.amIDead() then
+        if not aqo.state.paused and aqo.common.inControl() then
             aqo.camp.cleanTargets()
             checkTarget()
-            if mq.TLO.Me.Hovering() then
-                mq.delay(50)
-            elseif not aqo.state.loop.Invis and not aqo.common.isBlockingWindowOpen() then
+            if not aqo.state.loop.Invis and not aqo.common.isBlockingWindowOpen() then
                 -- do active combat assist things when not paused and not invis
                 checkFD()
                 aqo.common.checkCursor()

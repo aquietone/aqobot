@@ -66,10 +66,9 @@ function events.eventResist(line, spell_name)
     print(aqo.logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
 end
 
----Set common.amDead flag to true in the event of death.
+---Reset combat state in the event of death.
 function events.eventDead()
     print(aqo.logger.logLine('HP hit 0. what do!'))
-    aqo.state.amDead = true
     aqo.state.resetCombatState()
     aqo.movement.stop()
 end

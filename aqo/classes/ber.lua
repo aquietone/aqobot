@@ -5,7 +5,7 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'ber')
 
     if state.emu then

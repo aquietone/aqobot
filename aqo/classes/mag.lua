@@ -5,7 +5,7 @@ local movement = require('routines.movement')
 local common = require('common')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
+    class.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     class.spellRotations = {standard={}}
     class.initBase(_aqo, 'mag')
 

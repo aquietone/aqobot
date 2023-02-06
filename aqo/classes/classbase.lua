@@ -128,7 +128,7 @@ function base.addCommonOptions()
         base.addOption('BYOS', 'BYOS', true, nil, 'Bring your own spells', 'checkbox')
     end
     base.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
-    base.addOption('USEALLIANCE', 'Use Alliance', true, nil, 'Use alliance spell', 'checkbox')
+    if not state.emu then base.addOption('USEALLIANCE', 'Use Alliance', true, nil, 'Use alliance spell', 'checkbox') end
     if lists.manaClasses[base.class] then
         base.addOption('USEMELEE', 'Use Melee', false, nil, 'Toggle attacking mobs with melee', 'checkbox')
     end
@@ -140,8 +140,10 @@ function base.addCommonOptions()
     if base.class == 'clr' then
         base.addOption('HEALPET', 'Heal Pets', true, nil, 'Toggle healing of pets', 'checkbox')
     end
-    base.addOption('USEGLYPH', 'Use DPS Glyph', false, nil, 'Use glyph of destruction during burns', 'checkbox')
-    base.addOption('USEINTENSITY', 'Use Intensity', false, nil, 'Use intensity of the resolute during burns', 'checkbox')
+    if not state.emu then
+        base.addOption('USEGLYPH', 'Use DPS Glyph', false, nil, 'Use glyph of destruction during burns', 'checkbox')
+        base.addOption('USEINTENSITY', 'Use Intensity', false, nil, 'Use intensity of the resolute during burns', 'checkbox')
+    end
     if lists.buffClasses[base.class] then
         base.addOption('SERVEBUFFREQUESTS', 'Serve Buff Requests', true, nil, 'Toggle serving buff requests', 'checkbox')
     end
@@ -158,6 +160,7 @@ function base.addCommonAbilities()
     base.radiant = common.getAA('Radiant Cure', {all=true})
     base.silent = common.getAA('Silent Casting')
     base.mgb = common.getAA('Mass Group Buff')
+    base.rezAbility = common.getItem('Token of Resurrection')
 end
 
 -- Return true only if the option is both defined and true

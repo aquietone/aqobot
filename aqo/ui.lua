@@ -206,17 +206,17 @@ local function drawSkillsTab()
 end
 
 local function drawHealTab()
-    if state.class == 'clr' or state.class == 'dru' or state.class == 'shm' then
+    if aqo.lists.healClasses[state.class] then
         config.HEALPCT.value = ui.drawInputInt('Heal Pct', '##healpct', config.HEALPCT.value, 'Percent HP to begin casting regular heals')
         config.PANICHEALPCT.value = ui.drawInputInt('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT.value, 'Percent HP to begin casting panic heals')
         config.GROUPHEALPCT.value = ui.drawInputInt('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT.value, 'Percent HP to begin casting group heals')
         config.GROUPHEALMIN.value = ui.drawInputInt('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN.value, 'Minimum number of hurt group members to begin casting group heals')
         config.HOTHEALPCT.value = ui.drawInputInt('HoT Pct', '##hothealpct', config.HOTHEALPCT.value, 'Percent HP to begin casting HoTs')
-        config.REZGROUP.value = ui.drawCheckBox('Rez Group', '##rezgroup', config.REZGROUP.value, 'Rez Group Members')
-        config.REZRAID.value = ui.drawCheckBox('Rez Raid', '##rezraid', config.REZRAID.value, 'Rez Raid Members')
-        config.REZINCOMBAT.value = ui.drawCheckBox('Rez In Combat', '##rezincombat', config.REZINCOMBAT.value, 'Rez In Combat')
         config.PRIORITYTARGET.value = ui.drawInputText('Priority Target', '##prioritytarget', config.PRIORITYTARGET.value, 'Main focus for heals')
     end
+    config.REZGROUP.value = ui.drawCheckBox('Rez Group', '##rezgroup', config.REZGROUP.value, 'Rez Group Members')
+    config.REZRAID.value = ui.drawCheckBox('Rez Raid', '##rezraid', config.REZRAID.value, 'Rez Raid Members')
+    config.REZINCOMBAT.value = ui.drawCheckBox('Rez In Combat', '##rezincombat', config.REZINCOMBAT.value, 'Rez In Combat')
 end
 
 local function drawBurnTab()
@@ -370,21 +370,19 @@ local function drawBody()
             ImGui.EndChild()
             ImGui.EndTabItem()
         end
-        if state.class  == 'clr' or state.class == 'shm' or state.class == 'dru' then
-            ImGui.PushStyleColor(ImGuiCol.Text, .6, .8, 1, 1)
-            if ImGui.BeginTabItem(icons.FA_HEART..' Heal') then
-                ImGui.PopStyleColor()
-                if ImGui.BeginChild('Heal', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                    ImGui.PushItemWidth(item_width)
-                    drawHealTab()
-                    ImGui.PopItemWidth()
-                    ImGui.EndTabItem()
-                end
-                ImGui.EndChild()
+        ImGui.PushStyleColor(ImGuiCol.Text, .6, .8, 1, 1)
+        if ImGui.BeginTabItem(icons.FA_HEART..' Heal') then
+            ImGui.PopStyleColor()
+            if ImGui.BeginChild('Heal', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                ImGui.PushItemWidth(item_width)
+                drawHealTab()
+                ImGui.PopItemWidth()
                 ImGui.EndTabItem()
-            else
-                ImGui.PopStyleColor()
             end
+            ImGui.EndChild()
+            ImGui.EndTabItem()
+        else
+            ImGui.PopStyleColor()
         end
         ImGui.PushStyleColor(ImGuiCol.Text, 1, .65, 0, 1)
         if ImGui.BeginTabItem(icons.FA_FIRE..' Burn') then

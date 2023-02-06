@@ -10,7 +10,6 @@ local state = {
     minMana = 15,
     minEndurance = 15,
     spellSetLoaded = nil,
-    amDead = false,
     assistMobID = 0,
     tankMobID = 0,
     pullMobID = 0,

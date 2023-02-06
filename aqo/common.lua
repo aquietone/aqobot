@@ -219,18 +219,6 @@ function common.checkDistance3d(x, y, z)
     return math.sqrt((x * mq.TLO.Me.X()) + (y * mq.TLO.Me.Y()) + (z * mq.TLO.Me.Z()))
 end
 
----Determine whether currently alive or dead.
----@return boolean @Returns true if currently dead, false otherwise.
-function common.amIDead()
-    if state.amDead and (mq.TLO.Me.Buff('Resurrection Sickness').ID() or mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName())() == 0) then
-        state.assistMobID = 0
-        state.tankMobID = 0
-        state.pullMobID = 0
-        state.amDead = false
-    end
-    return state.amDead
-end
-
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
 ---@return boolean @Returns true if not under any loss of control effects, false otherwise.
 function common.inControl()

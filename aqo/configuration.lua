@@ -87,12 +87,12 @@ local config = {
         alias = 'hothealpct',
     },
     REZGROUP = {
-        value = true,
+        value = false,
         tip = 'Toggle rezzing of group members',
         alias = 'rezgroup',
     },
     REZRAID = {
-        value = true,
+        value = false,
         tip = 'Toggle rezzing of raid members',
         alias = 'rezraid',
     },
@@ -257,7 +257,7 @@ function config.categories()
 end
 
 local configByCategory = {
-    Assist={'AUTOASSISTAT','ASSIST','ASSISTNAMES','SWITCHWITHMA','MEDCOMBAT'},
+    Assist={'AUTOASSISTAT','ASSIST','ASSISTNAMES','SWITCHWITHMA','MEDCOMBAT','RESISTSTOPCOUNT'},
     Camp={'MODE','CAMPRADIUS','CHASETARGET','CHASEDISTANCE','MAINTANK','LOOTMOBS','AUTODETECTRAID'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY','RECOVERPCT'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','PULLWITH'},

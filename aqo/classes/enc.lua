@@ -7,7 +7,7 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet'}
+    class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     class.spellRotations = {standard={}}
     class.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
     class.initBase(_aqo, 'enc')

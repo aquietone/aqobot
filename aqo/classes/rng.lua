@@ -11,7 +11,7 @@ local config = require('configuration')
 local state = require('state')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest'}
+    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
     class.spellRotations = {standard={}}
     class.initBase(_aqo, 'rng')
 
