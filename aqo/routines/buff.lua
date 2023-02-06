@@ -372,6 +372,7 @@ function buff.buff(base)
 
     if not common.clearToBuff() or not buffTimer:timerExpired() then return end
     buffTimer:reset()
+    local originalTargetID = mq.TLO.Target.ID()
     --[[if not readQueries then
         buff.queryBuffs()
     else
@@ -379,9 +380,15 @@ function buff.buff(base)
     end]]
     --buff.refreshBuffCaches()
 
-    if buffOOC(base) then return true end
+    if buffOOC(base) then
+        if originalTargetID == 0 then mq.cmd('/squelch /mqt clear') else mq.cmdf('/mqt id %s', originalTargetID) end
+        return true
+    end
 
-    if buffPet(base) then return true end
+    if buffPet(base) then
+        if originalTargetID == 0 then mq.cmd('/squelch /mqt clear') else mq.cmdf('/mqt id %s', originalTargetID) end
+        return true
+    end
 
     common.checkItemBuffs()
 end

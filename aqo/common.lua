@@ -249,13 +249,21 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 function common.checkChase()
     if config.MODE.value:getName() ~= 'chase' then return end
-    if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then return end
+    if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then
+        if logger.flags.common.chase then
+            logger.debug(logger.flags.common.chase, 'Not chasing due to one of: Stick.Active=%s, Me.Combat=%s, Me.AutoFire=%s, Me.Casting=%s', mq.TLO.Stick.Active(), mq.TLO.Me.Combat(), mq.TLO.Me.AutoFire, mq.TLO.Me.Casting())
+        end
+        return
+    end
     local chase_spawn = mq.TLO.Spawn('pc ='..config.CHASETARGET.value)
     local me_x = mq.TLO.Me.X()
     local me_y = mq.TLO.Me.Y()
     local chase_x = chase_spawn.X()
     local chase_y = chase_spawn.Y()
-    if not chase_x or not chase_y then return end
+    if not chase_x or not chase_y then
+        logger.debug(logger.flags.common.chase, 'Not chasing due to invalid chase spawn X=%s,Y=%s', chase_x, chase_y)
+        return
+    end
     if common.checkDistance(me_x, me_y, chase_x, chase_y) > config.CHASEDISTANCE.value then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
         if not movement.navToSpawn('pc ='..config.CHASETARGET.value) then
