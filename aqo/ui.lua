@@ -213,6 +213,7 @@ local function drawHealTab()
         config.GROUPHEALMIN.value = ui.drawInputInt('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN.value, 'Minimum number of hurt group members to begin casting group heals')
         config.HOTHEALPCT.value = ui.drawInputInt('HoT Pct', '##hothealpct', config.HOTHEALPCT.value, 'Percent HP to begin casting HoTs')
         config.PRIORITYTARGET.value = ui.drawInputText('Priority Target', '##prioritytarget', config.PRIORITYTARGET.value, 'Main focus for heals')
+        config.XTARGETHEAL.value = ui.drawCheckBox('Heal XTarget', '##healxtarget', config.XTARGETHEAL.value, 'Toggle healing of PCs on XTarget')
     end
     config.REZGROUP.value = ui.drawCheckBox('Rez Group', '##rezgroup', config.REZGROUP.value, 'Rez Group Members')
     config.REZRAID.value = ui.drawCheckBox('Rez Raid', '##rezraid', config.REZRAID.value, 'Rez Raid Members')

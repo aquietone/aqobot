@@ -77,8 +77,14 @@ end
 ---@return boolean @Returns true if the spawn meets all the criteria for pulling, otherwise false.
 local function validatePull(pull_spawn, path_len, zone_sn)
     local mob_id = pull_spawn.ID()
-    if not mob_id or mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' then return false end
-    if path_len < 0 or path_len > config.PULLRADIUS.value then return false end
+    if not mob_id or mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' then
+        logger.debug(logger.flags.routines.pull, 'Invalid mob ID %s (type=%s, skip=%s)', mob_id, pull_spawn.Type(), PULL_TARGET_SKIP[mob_id])
+        return false
+    end
+    if path_len < 0 or path_len > config.PULLRADIUS.value then
+        logger.debug(logger.flags.routines.pull, 'Navigation PathLength %s exceeds PullRadius %s', path_len, config.PULLRADIUS.value)
+        return false
+    end
     return checkMobAngle(pull_spawn) and checkZRadius(pull_spawn) and checkMobLevel(pull_spawn) and not config.ignoresContains(zone_sn, pull_spawn.CleanName())
 end
 

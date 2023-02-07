@@ -70,21 +70,25 @@ local config = {
         value = 30,
         tip = 'The Percent HP to begin casting panic heals on a character',
         alias = 'panichealpct',
+        classes = lists.healClasses,
     },
     GROUPHEALPCT = {
         value = 75,
         tip = 'The Percent HP to begin casting group heals',
         alias = 'grouphealpct',
+        classes = lists.healClasses,
     },
     GROUPHEALMIN = {
         value = 3,
         tip = 'The number of group members which must be injured to begin casting group heals',
         alias = 'grouphealmin',
+        classes = lists.healClasses,
     },
     HOTHEALPCT = {
         value = 90,
         tip = 'The Percent HP to begin casting HoTs on a character',
         alias = 'hothealpct',
+        classes = lists.healClasses,
     },
     REZGROUP = {
         value = false,
@@ -105,6 +109,13 @@ local config = {
         value = '',
         tip = 'For EMU, where group main tank role is unreliable, assign a character name to treat like the main tank',
         alias = 'prioritytarget',
+        classes = lists.healClasses,
+    },
+    XTARGETHEAL = {
+        value = false,
+        tip = 'Toggle healing of PCs on XTarget',
+        alias = 'xtargetheal',
+        classes = lists.healClasses,
     },
 
     -- Burn settings

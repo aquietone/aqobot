@@ -28,13 +28,6 @@ function class.init(_aqo)
     class.kbblur = common.getAA('Beguiler\'s Directed Banishment')
     class.aeblur = common.getAA('Blanket of Forgetfulness')
 
-    --[[
-        track data about our targets, for one-time or long-term affects.
-        for example: we do not need to continually poll when to debuff a mob if the debuff will last 17+ minutes
-        if the mob aint dead by then, you should re-roll a wizard.
-    ]]--
-    local targets = {}
-
     if class.spells.mezst then
         function class.beforeMez()
             if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.tash then

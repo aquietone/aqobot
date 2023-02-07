@@ -35,16 +35,19 @@ end
 
 ---Display help information for the script.
 local function showHelp()
+    local myClass = mq.TLO.Me.Class.ShortName():lower()
     local prefix = '\n- /'..aqo.state.class..' '
     local output = aqo.logger.logLine('AQO Bot 1.0\n')
     output = output .. '\ayCommands:\aw'
     for _,command in ipairs(commands.help) do
         output = output .. prefix .. command.command .. ' -- ' .. command.tip
     end
-    output = output .. '\n\ayGeneric Configuration\aw'
-    for key,cfg in pairs(aqo.config) do
-        if type(cfg) == 'table' then
-            output = output .. prefix .. key .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
+    for _,category in ipairs(aqo.config.categories()) do
+        output = output .. '\n\ay' .. category .. ' configuration:\aw'
+        for cfgName, cfg in pairs(aqo.config.getByCategory(category)) do
+            if type(cfg) == 'table' and (not cfg.classes or cfg.classes[myClass]) then
+                output = output .. prefix .. cfgName .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
+            end
         end
     end
     output = output .. '\n\ayClass Configuration\aw'

@@ -136,7 +136,7 @@ local function getHurt(opts)
             return mostHurtID, HEAL_TYPES.HOT
         end
     end
-    if healEnabled(opts, 'XTARGETHEAL') then
+    if config.XTARGETHEAL.value then
         mostHurtPct = 100
         for i=1,13 do
             local xtarSpawn = mq.TLO.Me.XTarget(i)

@@ -1,3 +1,10 @@
+# 2023/02/07
+- Move XTARGETHEAL to common configuration for healer classes
+- All classes can now rez in combat with rez tokens
+- Improve pull debug
+- Reorganized init code in each of the class luas
+- Fix option check for HoT heals
+
 # 2023/02/03
 - Maybe actually stopped bard crashes
 - Fix error in buff requests with unrecognized spells
