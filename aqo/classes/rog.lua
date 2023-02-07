@@ -5,24 +5,29 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'aggro', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.classOrder = {'assist', 'aggro', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'rog')
 
-    class.addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox')
+    class.initClassOptions()
     class.loadSettings()
+    class.initDPSAbilities(_aqo)
+    class.initBurns(_aqo)
+    class.initBuffs(_aqo)
+end
 
+function class.initClassOptions()
+    class.addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox')
+end
+
+function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
     table.insert(class.DPSAbilities, common.getSkill('Backstab'))
     table.insert(class.DPSAbilities, common.getAA('Twisted Shank'))
     table.insert(class.DPSAbilities, common.getBestDisc({'Assault'}))
     table.insert(class.DPSAbilities, common.getAA('Ligament Slice'))
+end
 
-    table.insert(class.combatBuffs, common.getAA('Envenomed Blades'))
-    table.insert(class.combatBuffs, common.getBestDisc({'Brigand\'s Gaze', 'Thief\'s Eyes'}))
-    table.insert(class.combatBuffs, common.getItem('Fatestealer', {checkfor='Assassin\'s Taint'}))
-    table.insert(class.selfBuffs, common.getAA('Sleight of Hand'))
-    table.insert(class.selfBuffs, common.getItem('Faded Gloves of the Shadows', {checkfor='Strike Poison'}))
-
+function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Rogue\'s Fury'))
     --table.insert(class.burnAbilities, common.getBestDisc({'Poison Spikes Trap'}))
     table.insert(class.burnAbilities, common.getBestDisc({'Duelist Discipline'}))
@@ -31,6 +36,14 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getBestDisc({'Twisted Chance Discipline'}))
     table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Rake'))
     table.insert(class.burnAbilities, common.getAA('Dirty Fighting'))
+end
+
+function class.initBuffs(_aqo)
+    table.insert(class.combatBuffs, common.getAA('Envenomed Blades'))
+    table.insert(class.combatBuffs, common.getBestDisc({'Brigand\'s Gaze', 'Thief\'s Eyes'}))
+    table.insert(class.combatBuffs, common.getItem('Fatestealer', {checkfor='Assassin\'s Taint'}))
+    table.insert(class.selfBuffs, common.getAA('Sleight of Hand'))
+    table.insert(class.selfBuffs, common.getItem('Faded Gloves of the Shadows', {checkfor='Strike Poison'}))
 end
 
 function class.beforeEngage()

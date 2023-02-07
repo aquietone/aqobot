@@ -450,8 +450,17 @@ function loot.lootMyCorpse()
         mq.delay(3000, function() return mq.TLO.Corpse.Items() and mq.TLO.Corpse.Items() > 0 end)
         local items = mq.TLO.Corpse.Items() or 0
         if items > 0 then
-            mq.cmd('/notify LootWnd LW_LootAllButton leftmouseup')
-            mq.delay(30000, function() return not mq.TLO.Window('LootWnd').Open() end)
+            for i=1,items do
+                local corpseItem = mq.TLO.Corpse.Item(i)
+                if corpseItem() then
+                    mq.cmdf('/nomodkey /shift /itemnotify loot%s rightmouseup', i)
+                    mq.delay(250, function() return not mq.TLO.Corpse.Item(i)() or not mq.TLO.Window('LootWnd').Open() end)
+                    mq.delay(50)
+                    if not mq.TLO.Window('LootWnd').Open() then return end
+                end
+            end
+            --mq.cmd('/notify LootWnd LW_LootAllButton leftmouseup')
+            --mq.delay(30000, function() return not mq.TLO.Window('LootWnd').Open() end)
         end
         if mq.TLO.Window('LootWnd').Open() then
             mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')

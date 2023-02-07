@@ -5,7 +5,6 @@ require 'ImGui'
 
 local aqo = {}
 
---'conditions',
 local routines = {'assist','buff','camp','cure','debuff','events','heal','mez','movement','pull','tank'}
 for _,routine in ipairs(routines) do
     aqo[routine] = require('routines.'..routine)
@@ -35,7 +34,7 @@ local function init()
     aqo.ability.init(aqo)
 
     -- Initialize binds
-    --mq.cmd('/squelch /djoin aqo')
+    mq.cmd('/squelch /djoin aqo')
     aqo.commands.init(aqo)
 
     -- Initialize UI
@@ -212,7 +211,7 @@ local function main()
             mq.delay(500)
         end
         -- broadcast some buff and poison/disease/curse state around netbots style
-        --aqo.buff.broadcast()
+        aqo.buff.broadcast()
     end
 end
 

@@ -362,10 +362,14 @@ end
 function pull.pullMob()
     local pull_state = state.pullStatus
     if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or aqo.lists.DMZ[mq.TLO.Zone.ID()] then
-        movement.stop()
-        return
+        if pull_state == common.PULL_STATES.APPROACHING or pull_state == common.PULL_STATES.ENGAGING then
+            clearPullVars('pullMob-deadOrInjured')
+            movement.stop()
+            return
+        end
     end
     if config.LOOTMOBS.value and mq.TLO.SpawnCount('npccorpse radius 100')() > 0 then
+        logger.debug(logger.flags.routines.pull, 'Not pulling due to lootable corpses nearby')
         return
     end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things

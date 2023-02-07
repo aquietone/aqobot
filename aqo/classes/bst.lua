@@ -5,19 +5,41 @@ local lists = require('data.lists')
 local common = require('common')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet'}
+    class.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     class.spellRotations = {standard={}}
     class.initBase(_aqo, 'bst')
 
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations()
+    class.initDPSAbilities(_aqo)
+    class.initBurns(_aqo)
+    class.initHeals(_aqo)
+    class.initBuffs(_aqo)
 
+    local postFD = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /stand ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
+
+    class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
+    class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
+    table.insert(class.recoverAbilities, class.fParagon)
+
+end
+
+function class.initClassOptions()
     class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
     class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
     class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox')
     class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
     class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     class.addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
     class.addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}) -- pet haste
     class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}) -- pet buff
@@ -26,16 +48,20 @@ function class.init(_aqo)
     class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
     class.addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
     class.addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
-    class.addSpell('panther', {'Growl of the Panther'})
+    class.addSpell('panther', {'Growl of the Panther'}, {skipifbuff='Wild Spirit Infusion'})
     class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}) -- group buff
     class.addSpell('grouphp', {'Spiritual Vitality'})
     class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
     class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
+end
 
+function class.initSpellRotations()
     table.insert(class.spellRotations.standard, class.spells.swarmpet)
     table.insert(class.spellRotations.standard, class.spells.nuke)
     table.insert(class.spellRotations.standard, class.spells.dot)
+end
 
+function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
     table.insert(class.DPSAbilities, common.getBestDisc({'Rake'}))
     table.insert(class.DPSAbilities, common.getAA('Feral Swipe'))
@@ -44,7 +70,9 @@ function class.init(_aqo)
     table.insert(class.DPSAbilities, common.getAA('Roar of Thunder'))
     table.insert(class.DPSAbilities, common.getAA('Gorilla Smash'))
     table.insert(class.DPSAbilities, common.getAA('Raven Claw'))
+end
 
+function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getBestDisc({'Empathic Fury', 'Bestial Fury Discipline'})) -- burn disc
     table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Savage Lord'))
     table.insert(class.burnAbilities, common.getAA('Frenzy of Spirit'))
@@ -52,15 +80,9 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Group Bestial Alignment'))
     table.insert(class.burnAbilities, common.getAA('Bestial Alignment', {skipifbuff='Group Bestial Alignment'}))
     table.insert(class.burnAbilities, common.getAA('Attack of the Warders', {delay=1500}))
+end
 
-    table.insert(class.healAbilities, class.spells.heal)
-    table.insert(class.healAbilities, class.spells.petheal)
-
-    local postFD = function()
-        mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
+function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, class.spells.groupregen)
     table.insert(class.selfBuffs, class.spells.grouphp)
     table.insert(class.selfBuffs, class.spells.fero)
@@ -68,7 +90,6 @@ function class.init(_aqo)
     table.insert(class.selfBuffs, common.getAA('Gelid Rending'))
     table.insert(class.selfBuffs, common.getAA('Pact of the Wurine'))
     table.insert(class.selfBuffs, common.getAA('Protection of the Warder'))
-    table.insert(class.selfBuffs, common.getItem('Gloves of the Crimson Sigil', {checkfor='Call of Fire'}))
 
     table.insert(class.singleBuffs, class.spells.fero)
     table.insert(class.singleBuffs, class.spells.feralvigor)
@@ -78,13 +99,14 @@ function class.init(_aqo)
     table.insert(class.petBuffs, common.getItem('Savage Lord\'s Totem', {checkfor='Savage Wildcaller\'s Blessing'}))
     table.insert(class.petBuffs, common.getAA('Taste of Blood', {checkfor='Blood Frenzy'}))
 
-    class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
-    class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
-    table.insert(class.recoverAbilities, class.fParagon)
-
     class.addRequestAlias(class.fParagon, 'fparagon')
     class.addRequestAlias(class.paragon, 'paragon')
     class.addRequestAlias(class.spells.groupregen, 'rejuv')
+end
+
+function class.initHeals(_aqo)
+    table.insert(class.healAbilities, class.spells.heal)
+    table.insert(class.healAbilities, class.spells.petheal)
 end
 
 function class.recoverClass()

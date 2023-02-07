@@ -308,14 +308,14 @@ end
 local reportBuffsTimer = timer:new(60)
 local reportSickTimer = timer:new(5)
 function buff.broadcast()
-    --[[if reportBuffsTimer:timerExpired() then
+    if reportBuffsTimer:timerExpired() then
         aqo.buff.reportBuffs()
         reportBuffsTimer:reset()
     end
     if reportSickTimer:timerExpired() then
         aqo.buff.reportSick()
         reportSickTimer:reset()
-    end]]
+    end
 end
 
 local buffCacheTimer = timer:new(30)

@@ -13,7 +13,14 @@ function class.init(_aqo)
     mq.cmd('/squelch /stick mod -2')
     mq.cmd('/squelch /stick set delaystrafe on')
 
-    -- key label value options tip type
+    class.initClassOptions()
+    class.loadSettings()
+    class.initTankAbilities(_aqo)
+    class.initDPSAbilities(_aqo)
+    class.initBuffs(_aqo)
+end
+
+function class.initClassOptions(_aqo)
     class.addOption('USEBATTLELEAP', 'Use Battle Leap', true, nil, 'Keep the Battle Leap AA Buff up', 'checkbox')
     class.addOption('USEFORTITUDE', 'Use Fortitude', false, nil, 'Use Fortitude Discipline on burn', 'checkbox')
     class.addOption('USEGRAPPLE', 'Use Grapple', true, nil, 'Use Grappling Strike AA', 'checkbox')
@@ -23,13 +30,21 @@ function class.init(_aqo)
     class.addOption('USEEXPANSE', 'Use Expanse', false, nil, 'Use Concordant Expanse for AE aggro', 'checkbox', 'USEPRECISION')
     class.addOption('USEPRECISION', 'Use Precision', false, nil, 'Use Concordant Precision for single target aggro', 'checkbox', 'USEEXPANSE')
     class.addOption('USESNARE', 'Use Snare', false, nil, 'Use Call of Challenge AA, which includes a snare', 'checkbox')
-    class.loadSettings()
+end
 
+-- bazu bellow 69
+-- mock 65
+-- bellow of the mastruq 65
+-- ancient: chaos cry 65
+-- incite 63
+-- berate 56
+-- bellow 52
+function class.initTankAbilities(_aqo)
     table.insert(class.tankAbilities, common.getSkill('Taunt', {aggro=true}))
 
     class.mash_defensive = common.getBestDisc({'Primal Defense'})
     table.insert(class.tankAbilities, class.mash_defensive)
-    table.insert(class.tankAbilities, common.getBestDisc({'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq'}))
+    table.insert(class.tankAbilities, common.getBestDisc({'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq', 'Bellow'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Bristle', 'Mock', 'Incite'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Composite Shield'}))
@@ -37,7 +52,7 @@ function class.init(_aqo)
     table.insert(class.tankAbilities, common.getBestDisc({'Phantom Aggressor'}, {opt='USEPHANTOM'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Confluent Precision'}, {opt='USEPRECISION'}))
 
-    table.insert(class.tankAbilities, common.getAA('Blast of Anger'))
+    table.insert(class.tankAbilities, common.getAA('Blast of Anger', {maxdistance=100}))
     table.insert(class.tankAbilities, common.getAA('Blade Guardian'))
     table.insert(class.tankAbilities, common.getAA('Brace for Impact'))
     table.insert(class.tankAbilities, common.getAA('Call of Challenge', {opt='USESNARE'}))
@@ -50,11 +65,11 @@ function class.init(_aqo)
     table.insert(class.AETankAbilities, common.getBestDisc({'Wade into Battle'}, {threshold=4}))
     table.insert(class.AETankAbilities, common.getAA('Extended Area Taunt', {threshold=3}) or common.getAA('Area Taunt', {threshold=3}))
 
-    table.insert(class.tankBurnAbilities, common.getBestDisc({'Unrelenting Attention'}))
+    table.insert(class.tankBurnAbilities, common.getBestDisc({'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'}))
     --table.insert(class.tankBurnAbilities, common.getBestDisc({'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.name or nil}))
     table.insert(class.tankBurnAbilities, common.getBestDisc({'Armor of Akhevan Runes'}, {overwritedisc=class.mash_defensive and class.mash_defensive.name or nil}))
     table.insert(class.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=class.mash_defensive and class.mash_defensive.name or nil}))
-    table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity')) -- big taunt
+    table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true})) -- big taunt
     table.insert(class.tankBurnAbilities, common.getAA('Warlord\'s Fury')) -- more big aggro
     table.insert(class.tankBurnAbilities, common.getAA('Mark of the Mage Hunter')) -- 25% spell dmg absorb
     table.insert(class.tankBurnAbilities, common.getAA('Resplendent Glory')) -- increase incoming heals
@@ -74,9 +89,9 @@ function class.init(_aqo)
     class.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE'})
     class.flash = common.getBestDisc({'Flash of Anger'})
     class.resurgence = common.getAA('Warlord\'s Resurgence') -- 10min cd, 60k heal
+end
 
-    -- DPS
-
+function class.initDPSAbilities(_aqo)
     table.insert(class.AEDPSAbilities, common.getBestDisc({'Vortex Blade', 'Cyclone Blade'}, {threshold=3}))
     table.insert(class.AEDPSAbilities, common.getAA('Rampage', {threshold=5}))
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
@@ -93,11 +108,9 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getBestDisc({'Offensive Discipline'})) -- 4min cd, timer 2, increased offensive capabilities
 
     table.insert(class.burnAbilities, common.getAA('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
+end
 
-    --table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
-    table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
-    table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
-
+function class.initBuffs(_aqo)
     -- Buffs and Other
 
     table.insert(class.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20}))
@@ -105,18 +118,13 @@ function class.init(_aqo)
     class.leap = common.getAA('Battle Leap', {opt='USEBATTLELEAP', maxdistance=30, delay=500, combat=false})
     table.insert(class.auras, common.getBestDisc({'Champion\'s Aura', 'Myrmidon\'s Aura'}))
     table.insert(class.combatBuffs, common.getBestDisc({'Full Moon\'s Champion', 'Field Armorer'}))
-    --table.insert(class.combatBuffs, common.getBestDisc({'Commanding Voice'}))
     table.insert(class.combatBuffs, common.getAA('Imperator\'s Command'))
 
-    table.insert(class.selfBuffs, common.getItem('Chestplate of the Dark Flame'))
-    table.insert(class.selfBuffs, common.getItem('Violet Conch of the Tempest'))
-    table.insert(class.selfBuffs, common.getItem('Mask of the Lost Guktan'))
     table.insert(class.selfBuffs, common.getAA('Infused by Rage'))
 
-    table.insert(class.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summons='Ethereal Arrow', summonMinimum=101}))
-
-    if state.emu then
-        table.insert(class.selfBuffs, common.getItem('Silver Hoop of Speed', {checkfor='Primal Guard'}))
+    if not state.emu then
+        table.insert(class.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summons='Ethereal Arrow', summonMinimum=101}))
+        table.insert(class.combatBuffs, common.getBestDisc({'Commanding Voice'}))
     end
 end
 
