@@ -16,8 +16,24 @@ function class.init(_aqo)
     mq.cmd('/squelch /stick mod -2')
     mq.cmd('/squelch /stick set delaystrafe on')
 
-    -- theft of agony
-    -- decrepit skin
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellConditions(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initTankAbilities(_aqo)
+    class.initDPSAbilities(_aqo)
+    class.initBurns(_aqo)
+    class.initBuffs(_aqo)
+
+    class.leechtouch = common.getAA('Leech Touch') -- 9min CD, giant lifetap
+
+    class.epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
+
+    class.pullSpell = class.spells.terror
+end
+
+function class.initClassOptions()
     class.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, '', 'checkbox')
     class.addOption('USEPROJECTION', 'Use Projection', true, nil, '', 'checkbox')
     class.addOption('USEAZIA', 'Use Unity Azia', true, nil, '', 'checkbox', 'USEBEZA')
@@ -31,8 +47,9 @@ function class.init(_aqo)
     class.addOption('USEDEFLECTION', 'Use Deflection', false, nil, '', 'checkbox')
     class.addOption('DONTCAST', 'Don\'t Cast', false, nil, 'Don\'t cast spells in combat', 'checkbox')
     class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     class.addSpell('composite', {'Composite Fang'}) -- big lifetap
     class.addSpell('alliance', {'Bloodletting Coalition'}) -- alliance
     -- Aggro
@@ -73,7 +90,9 @@ function class.init(_aqo)
     class.addSpell('drape', {'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}) -- self buff hp, ac, ds
     class.addSpell('atkbuff', {'Penumbral Call'}) -- atk buff, hp drain on self
     --['']=common.get_best_spell({'Remorseless Demeanor'})
+end
 
+function class.initSpellConditions(_aqo)
     local function mobsMissingAggro()
         if state.mobCount >= 2 then
             local xtar_aggro_count = 0
@@ -94,7 +113,9 @@ function class.init(_aqo)
     local lifetapCondition = function() return state.loop.PctHPs < 85 end
     if class.spells.largetap then class.spells.largetap.condition = lifetapCondition end
     if class.spells.tap1 then class.spells.tap1.condition = lifetapCondition end
+end
 
+function class.initSpellRotations(_aqo)
     table.insert(class.spellRotations.standard, class.spells.aeterror)
     if not state.emu then table.insert(class.spellRotations.standard, class.spells.challenge) end
     table.insert(class.spellRotations.standard, class.spells.terror)
@@ -123,7 +144,9 @@ function class.init(_aqo)
     table.insert(class.spellRotations.dps, class.spells.stance)
     table.insert(class.spellRotations.dps, class.spells.skin)
     table.insert(class.spellRotations.dps, class.spells.acdebuff)
+end
 
+function class.initTankAbilities(_aqo)
     -- TANK
     -- defensives
     class.flash = common.getAA('Shield Flash') -- 4min CD, short deflection
@@ -150,13 +173,17 @@ function class.init(_aqo)
     table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity')) -- big taunt
     table.insert(class.tankBurnAbilities, common.getAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
     table.insert(class.tankBurnAbilities, common.getAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
+end
 
+function class.initDPSAbilities(_aqo)
     -- DPS
     table.insert(class.DPSAbilities, common.getSkill('Bash'))
     table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Resentment'})) -- 3x 2hs attack + heal
     table.insert(class.DPSAbilities, common.getAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
     table.insert(class.DPSAbilities, common.getAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
+end
 
+function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getBestDisc({'Grisly Blade'})) -- 2hs attack
     table.insert(class.burnAbilities, common.getBestDisc({'Sanguine Blade'})) -- 3 strikes
     table.insert(class.burnAbilities, common.getAA('Gift of the Quick Spear')) -- 10min CD, twincast
@@ -168,22 +195,19 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
     --table.insert(class.burnAbilities, common.getAA('Visage of Death')) -- 12min CD, melee dmg burn
     table.insert(class.burnAbilities, common.getAA('Visage of Decay')) -- 12min CD, dot dmg burn
+end
 
-    class.leechtouch = common.getAA('Leech Touch') -- 9min CD, giant lifetap
+function class.initHeals(_aqo)
 
-    -- Buffs
+end
+
+function class.initBuffs(_aqo)
+-- Buffs
     -- dark lord's unity azia X -- shroud of zelinstein, brightfield's horror, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
     local buffazia = common.getAA('Dark Lord\'s Unity (Azia)')
     -- dark lord's unity beza X -- shroud of zelinstein, mental anguish, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
     local buffbeza = common.getAA('Dark Lord\'s Unity (Beza)', {opt='USEBEZA'})
     local voice = common.getAA('Voice of Thule', {opt='USEVOICEOFTHULE'}) -- aggro mod buff
-
-    -- entries in the items table are MQ item datatypes
-    table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
-    table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
-    table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
-
-    class.epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
 
     if state.emu then
         table.insert(class.selfBuffs, class.spells.drape)
@@ -199,7 +223,6 @@ function class.init(_aqo)
         table.insert(class.selfBuffs, voice)
     end
     table.insert(class.petBuffs, class.spells.pethaste)
-    class.pullSpell = class.spells.terror
 end
 
 function class.mashClass()

@@ -741,16 +741,19 @@ function base.mainLoop()
         camp.mobRadar()
         if config.MODE.value:isTankMode() then
             base.tank()
+            -- tank check may determine pull return interrupted / ended early for some reason, and put us back
+            -- into pull return to try to get back to camp
             if state.pullStatus then return end
         end
-        -- check whether we need to return to camp
+        -- check whether we need to return to camp, only while not assisting
         if not state.assistMobID or state.assistMobID == 0 then camp.checkCamp() end
-        -- check whether we need to go chasing after the chase target
+        -- check whether we need to go chasing after the chase target, may happen while fighting
         common.checkChase()
         if base.checkSpellSet then base.checkSpellSet() end
         if not base.hold() then
             for _,routine in ipairs(base.classOrder) do
                 if not state.actionTaken then base[routine]() end
+                -- handling for primarily necro in combat spell swaps
                 if routine == 'cast' and not state.actionTaken and base.swapSpells then
                     base.swapSpells()
                 end

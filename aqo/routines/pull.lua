@@ -380,7 +380,6 @@ function pull.pullMob()
 
     -- account for any odd pull state discrepancies?
     if (pull_state and state.pullMobID == 0) or (state.pullMobID ~= 0 and not pull_state) then
-        print('pull_state and pullMobID mismatch')
         clearPullVars('pullMob-consistencyCheck')
         pullReturn()
         return

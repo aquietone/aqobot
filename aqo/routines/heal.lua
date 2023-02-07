@@ -26,7 +26,7 @@ local hottimers = {}
 local reztimer = timer:new(30)
 
 local function healEnabled(opts, key)
-    return opts[key] and opts[key].value
+    return opts[key] == nil or opts[key].value
 end
 
 --[[
@@ -170,9 +170,9 @@ local function getHurt(opts)
 end
 
 local groupHOTTimer = timer:new(60)
-local function getHeal(healAbilities, healType, whoToHeal)
+local function getHeal(healAbilities, healType, whoToHeal, opts)
     for _,heal in ipairs(healAbilities) do
-        if heal[healType] then
+        if heal[healType] and healEnabled(opts) then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
@@ -194,9 +194,7 @@ end
 
 function healing.heal(healAbilities, opts)
     local whoToHeal, typeOfHeal = getHurt(opts)
-    if typeOfHeal == HEAL_TYPES.HOT and not healEnabled(opts, 'USEHOT') then return end
-    if typeOfHeal == HEAL_TYPES.GROUPHOT and not healEnabled(opts, 'USEGROUPHOT') then return end
-    local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal)
+    local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal, opts)
     if healToUse then
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             mq.cmdf('/mqt id %s', whoToHeal)
@@ -317,11 +315,16 @@ function healing.rez(rezAbility)
     if not rezCheckTimer:timerExpired() or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.REZINCOMBAT.value and mq.TLO.Me.CombatState() == 'COMBAT' then return end
-    if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then return
-    elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then return
-    elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then return end
+    -- if not rezAbility:isReady() then return end
+    if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then
+        return
+    elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then
+        return
+    elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then
+        return
+    end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if rezAbility.name == 'Token of Resurrection' and mq.TLO.FindItemCount('=Token of Resurrection')() == 0 then return end
+    if rezAbility.name == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
     if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') end
     return doRezFor(rezAbility)
 end

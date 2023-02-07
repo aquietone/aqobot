@@ -12,6 +12,75 @@ function class.init(_aqo)
     class.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
     class.initBase(_aqo, 'enc')
 
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initBuffs(_aqo)
+    class.initBurns(_aqo)
+
+    --class.debuff = common.getAA('Bite of Tashani')
+    if state.emu then
+        table.insert(class.debuffs, class.spells.dispel)
+        table.insert(class.debuffs, class.spells.tash)
+        table.insert(class.debuffs, common.getItem('Serpent of Vindication', {opt='USESLOW'}))
+        table.insert(class.debuffs, class.spells.spasm)
+    else
+        table.insert(class.debuffs, common.getAA('Eradicate Magic', {opt='USEDISPEL'}))
+        table.insert(class.debuffs, common.getAA('Bite of Tashani', {opt='USETASHAOE'}))
+        table.insert(class.debuffs, common.getAA('Enveloping Helix', {opt='USESLOWAOE'})) -- AE slow on 8 targets
+        table.insert(class.debuffs, common.getAA('Slowing Helix', {opt='USESLOW'})) -- single target slow
+    end
+
+    class.mezbeam = common.getAA('Beam of Slumber')
+    class.longmez = common.getAA('Noctambulate') -- 3min single target mez
+
+    class.aekbblur = common.getAA('Beguiler\'s Banishment')
+    class.kbblur = common.getAA('Beguiler\'s Directed Banishment')
+    class.aeblur = common.getAA('Blanket of Forgetfulness')
+
+    class.shield = common.getAA('Dimensional Shield')
+    class.rune = common.getAA('Eldritch Rune')
+    class.grouprune = common.getAA('Glyph Spray')
+    class.reactiverune = common.getAA('Reactive Rune') -- group buff, melee/spell shield that procs rune
+    class.manarune = common.getAA('Mind over Matter') -- absorb dmg using mana
+    class.veil = common.getAA('Veil of Mindshadow') -- 5min CD, another rune?
+
+    -- Buffs
+    class.unity = common.getAA('Orator\'s Unity')
+    -- Mana Recovery AAs
+    class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky mana heal
+    class.gathermana = common.getAA('Gather Mana')
+    class.manadraw = common.getAA('Mana Draw')
+    class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky hp heal
+
+    -- Aggro
+    local postStasis = function()
+        mq.delay(1000)
+        mq.cmd('/removebuff "Self Stasis"')
+        mq.cmd('/makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Self Stasis', {postcast=postStasis}))
+
+    --[[
+        track data about our targets, for one-time or long-term affects.
+        for example: we do not need to continually poll when to debuff a mob if the debuff will last 17+ minutes
+        if the mob aint dead by then, you should re-roll a wizard.
+    ]]--
+    local targets = {}
+
+    if class.spells.mezst then
+        function class.beforeMez()
+            if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.tash then
+                class.tash:use()
+            end
+            return true
+        end
+        class.spells.mezst.precast = class.beforeMez
+    end
+end
+
+function class.initClassOptions()
     class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, 'The first aura to keep up', 'combobox')
     class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, 'The second aura to keep up', 'combobox')
     class.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
@@ -36,8 +105,9 @@ function class.init(_aqo)
     class.addOption('USEDEBUFF', 'Use Tash', false, nil, 'Toggle use of single target tash ability', 'checkbox')
     class.addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, 'Toggle use of AOE tash ability', 'checkbox')
     class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     class.addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
     class.addSpell('alliance', {'Chromatic Coalition', 'Chromatic Covenant'})
 
@@ -120,6 +190,9 @@ function class.init(_aqo)
         class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'}, {opt='USEDISPEL'})
         class.addSpell('spasm', {'Synapsis Spasm'}, {opt='USEDEBUFF'})
     end
+end
+
+function class.initSpellRotations(_aqo)
     -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     table.insert(class.spellRotations.standard, class.spells.dotmiti)
@@ -134,7 +207,9 @@ function class.init(_aqo)
     table.insert(class.spellRotations.standard, class.spells.guard)
     table.insert(class.spellRotations.standard, class.spells.nightsterror)
     table.insert(class.spellRotations.standard, class.spells.combatinnate)
+end
 
+function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
 
@@ -152,55 +227,9 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
     table.insert(class.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
     table.insert(class.burnAbilities, common.getAA('Mental Corruption')) -- decrease melee dmg + DoT
+end
 
-    --table.insert(class.DPSAbilities, common.getItem('Aged Shissar Focus Staff'))
-
-    --table.insert(AAs, getAAid_and_name('Glyph of Destruction (115+)'))
-    --table.insert(AAs, getAAid_and_name('Intensity of the Resolute'))
-
-    --class.debuff = common.getAA('Bite of Tashani')
-    if state.emu then
-        table.insert(class.debuffs, class.spells.dispel)
-        table.insert(class.debuffs, class.spells.tash)
-        table.insert(class.debuffs, common.getItem('Serpent of Vindication', {opt='USESLOW'}))
-        table.insert(class.debuffs, class.spells.spasm)
-    else
-        table.insert(class.debuffs, common.getAA('Eradicate Magic', {opt='USEDISPEL'}))
-        table.insert(class.debuffs, common.getAA('Bite of Tashani', {opt='USETASHAOE'}))
-        table.insert(class.debuffs, common.getAA('Enveloping Helix', {opt='USESLOWAOE'})) -- AE slow on 8 targets
-        table.insert(class.debuffs, common.getAA('Slowing Helix', {opt='USESLOW'})) -- single target slow
-    end
-
-    class.mezbeam = common.getAA('Beam of Slumber')
-    class.longmez = common.getAA('Noctambulate') -- 3min single target mez
-
-    class.aekbblur = common.getAA('Beguiler\'s Banishment')
-    class.kbblur = common.getAA('Beguiler\'s Directed Banishment')
-    class.aeblur = common.getAA('Blanket of Forgetfulness')
-
-    class.shield = common.getAA('Dimensional Shield')
-    class.rune = common.getAA('Eldritch Rune')
-    class.grouprune = common.getAA('Glyph Spray')
-    class.reactiverune = common.getAA('Reactive Rune') -- group buff, melee/spell shield that procs rune
-    class.manarune = common.getAA('Mind over Matter') -- absorb dmg using mana
-    class.veil = common.getAA('Veil of Mindshadow') -- 5min CD, another rune?
-
-    -- Buffs
-    class.unity = common.getAA('Orator\'s Unity')
-    -- Mana Recovery AAs
-    class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky mana heal
-    class.gathermana = common.getAA('Gather Mana')
-    class.manadraw = common.getAA('Mana Draw')
-    class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky hp heal
-
-    -- Aggro
-    local postStasis = function()
-        mq.delay(1000)
-        mq.cmd('/removebuff "Self Stasis"')
-        mq.cmd('/makemevis')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Self Stasis', {postcast=postStasis}))
-
+function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, class.spells.guard)
     table.insert(class.selfBuffs, class.spells.stunaerune)
     table.insert(class.selfBuffs, class.rune)
@@ -227,23 +256,6 @@ function class.init(_aqo)
         table.insert(class.selfBuffs, class.spells.procbuff)
     else
         table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {checkfor='Ward of the Beguiler'}))
-    end
-
-    --[[
-        track data about our targets, for one-time or long-term affects.
-        for example: we do not need to continually poll when to debuff a mob if the debuff will last 17+ minutes
-        if the mob aint dead by then, you should re-roll a wizard.
-    ]]--
-    local targets = {}
-
-    if class.spells.mezst then
-        function class.beforeMez()
-            if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.tash then
-                class.tash:use()
-            end
-            return true
-        end
-        class.spells.mezst.precast = class.beforeMez
     end
 end
 

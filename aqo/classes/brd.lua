@@ -22,6 +22,46 @@ function class.init(_aqo)
     -- what was this again?
     mq.cmd('/squelch /stick mod 0')
 
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initDPSAbilities(_aqo)
+    class.initBurns(_aqo)
+    class.initBuffs(_aqo)
+
+    table.insert(class.defensiveAbilities, common.getAA('Shield of Notes'))
+    table.insert(class.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
+    table.insert(class.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
+
+    -- Aggro
+    local preFade = function() mq.cmd('/attack off') end
+    local postFade = function()
+        mq.delay(1000)
+        mq.cmd('/multiline ; /makemevis ; /attack on')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
+
+    --table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
+    --table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
+
+    -- Mana Recovery AAs
+    class.rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
+    table.insert(class.recoverAbilities, class.rallyingsolo)
+    class.rallyingcall = common.getAA('Rallying Call')
+
+    -- Bellow handled separately as we want it to run its course and not be refreshed early
+    class.bellow = common.getAA('Boastful Bellow')
+
+    -- aa mez
+    class.dirge = common.getAA('Dirge of the Sleepwalker')
+    class.sonic = common.getAA('Sonic Disturbance')
+    class.fluxstaff = common.getItem('Staff of Viral Flux')
+
+    class.selos = common.getAA('Selo\'s Sonata')
+end
+
+function class.initClassOptions()
     class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, nil, 'combobox')
     class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
     class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
@@ -40,8 +80,9 @@ function class.init(_aqo)
     class.addOption('USEPOISONDOTS', 'Use Poison DoT', false, nil, 'Toggle use of Poison DoT songs if they are in the selected song list', 'checkbox')
     class.addOption('USEDISEASEDOTS', 'Use Disease DoT', false, nil, 'Toggle use of Disease DoT songs if they are in the selected song list', 'checkbox')
     class.addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     -- All spells ID + Rank name
     class.addSpell('aura', {'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of the Muse', 'Aura of Insight'}) -- spell dmg, overhaste, flurry, triple atk
     class.addSpell('composite', {'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}) -- DD+melee dmg bonus + small heal
@@ -79,6 +120,11 @@ function class.init(_aqo)
         if class.spells.chantdisease then class.spells.chantdisease.checkfor = 'Chant of Plague' end
         if class.spells.chantpoison then class.spells.chantpoison.checkfor = 'Chant of Venom' end
         class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
+    end
+end
+
+function class.initSpellRotations(_aqo)
+    if state.emu then
         table.insert(class.spellRotations.emuancient, class.spells.selos)
         table.insert(class.spellRotations.emuancient, class.spells.chantflame)
         table.insert(class.spellRotations.emuancient, class.spells.chantfrost)
@@ -106,13 +152,6 @@ function class.init(_aqo)
         table.insert(class.spellRotations.emunoaura, class.spells.overhaste)
         table.insert(class.spellRotations.emunoaura, class.spells.emuhaste)
         table.insert(class.spellRotations.emunoaura, class.spells.firenukebuff)
-
-        --table.insert(class.DPSAbilities, common.getItem('Rapier of Somber Notes', {delay=1500}))
-        --table.insert(class.selfBuffs, common.getItem('Songblade of the Eternal', {checkfor='Symphony of Battle'}))
-        table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
-
-        table.insert(class.burnAbilities, common.getAA('A Tune Stuck In Your Head'))
-        table.insert(class.burnAbilities, common.getBestDisc({'Puretone Discipline'}))
     else
         -- entries in the dots table are pairs of {spell id, spell name} in priority order
         class.spellRotations.melee = {
@@ -137,12 +176,23 @@ function class.init(_aqo)
             class.spells.chantfrost
         }
         -- synergy, mezst, mezae
-
-        table.insert(class.groupBuffs, common.getItem('Songblade of the Eternal') or common.getItem('Rapier of Somber Notes'))
     end
+end
 
-    table.insert(class.auras, class.spells.aura)
+function class.initDPSAbilities(_aqo)
+    table.insert(class.DPSAbilities, common.getAA('Cacophony', {opt='USECACOPHONY'}))
+    -- Delay after using swarm pet AAs while pets are spawning
+    table.insert(class.DPSAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
+    table.insert(class.DPSAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
+    table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
+    table.insert(class.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
+    table.insert(class.DPSAbilities, common.getSkill('Kick'))
+    table.insert(class.DPSAbilities, common.getAA('Selo\'s Kick'))
 
+    table.insert(class.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=4}))
+end
+
+function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
     table.insert(class.burnAbilities, common.getAA('Quick Time'))
@@ -154,46 +204,13 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Frenzied Kicks'))
     table.insert(class.burnAbilities, common.getBestDisc({'Thousand Blades'}))
 
-    table.insert(class.DPSAbilities, common.getAA('Cacophony', {opt='USECACOPHONY'}))
-    -- Delay after using swarm pet AAs while pets are spawning
-    table.insert(class.DPSAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
-    table.insert(class.DPSAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
-    table.insert(class.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
-    table.insert(class.DPSAbilities, common.getSkill('Kick'))
-    table.insert(class.DPSAbilities, common.getAA('Selo\'s Kick'))
+    table.insert(class.burnAbilities, common.getAA('A Tune Stuck In Your Head'))
+    table.insert(class.burnAbilities, common.getBestDisc({'Puretone Discipline'}))
+end
 
-    table.insert(class.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=4}))
-
-    table.insert(class.defensiveAbilities, common.getAA('Shield of Notes'))
-    table.insert(class.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
-    table.insert(class.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
-
-    -- Aggro
-    local preFade = function() mq.cmd('/attack off') end
-    local postFade = function()
-        mq.delay(1000)
-        mq.cmd('/multiline ; /makemevis ; /attack on')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
-
-    --table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
-    --table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
-
-    -- Mana Recovery AAs
-    class.rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
-    table.insert(class.recoverAbilities, class.rallyingsolo)
-    class.rallyingcall = common.getAA('Rallying Call')
-
-    -- Bellow handled separately as we want it to run its course and not be refreshed early
-    class.bellow = common.getAA('Boastful Bellow')
-
-    -- aa mez
-    class.dirge = common.getAA('Dirge of the Sleepwalker')
-    class.sonic = common.getAA('Sonic Disturbance')
-    class.fluxstaff = common.getItem('Staff of Viral Flux')
-
-    class.selos = common.getAA('Selo\'s Sonata')
+function class.initBuffs(_aqo)
+    table.insert(class.auras, class.spells.aura)
+    table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
 end
 
 local selosTimer = timer:new(30)

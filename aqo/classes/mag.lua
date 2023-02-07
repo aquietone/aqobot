@@ -9,6 +9,21 @@ function class.init(_aqo)
     class.spellRotations = {standard={}}
     class.initBase(_aqo, 'mag')
 
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initHeals(_aqo)
+    class.initBuffs(_aqo)
+    class.initBurns(_aqo)
+    class.initDPSAbilities(_aqo)
+
+    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
+
+    table.insert(class.fadeAbilities, common.getAA('Companion of Necessity'))
+end
+
+function class.initClassOptions()
     class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM')
     class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM')
     class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox')
@@ -17,8 +32,9 @@ function class.init(_aqo)
     class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, '', 'checkbox')
     class.addOption('USEDS', 'Use Group DS', true, nil, '', 'checkbox')
     class.addOption('USETEMPDS', 'Use Temp DS', true, nil, '', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     class.addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
     class.addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
     class.addSpell('fastfire', {'Burning Earth'}, {opt='USEFIRENUKES'})
@@ -42,20 +58,32 @@ function class.init(_aqo)
     class.addSpell('weapons', {'Grant Spectral Armaments'}) -- targeted, Summons Folded Pack of Spectral Armaments
     class.addSpell('jewelry', {'Grant Enibik\'s Heirlooms'}) -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
     class.addSpell('belt', {'Summon Crystal Belt'}) -- Summoned: Crystal Belt
+end
 
-    table.insert(class.DPSAbilities, common.getItem('Aged Sarnak Channeler Staff'))
+function class.initSpellRotations(_aqo)
+    table.insert(class.spellRotations.standard, class.spells.servant)
+    --table.insert(class.spellRotations.standard, class.spells.prenuke)
+    table.insert(class.spellRotations.standard, class.spells.fastfire)
+    table.insert(class.spellRotations.standard, class.spells.firenuke)
+    table.insert(class.spellRotations.standard, class.spells.magicnuke)
+end
+
+function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getAA('Force of Elements'))
+end
+
+function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
     table.insert(class.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
     table.insert(class.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
     table.insert(class.burnAbilities, common.getAA('Frenzied Burnout'))
+end
 
-    table.insert(class.petBuffs, class.spells.petbuff)
-    table.insert(class.petBuffs, class.spells.petstrbuff)
-    table.insert(class.petBuffs, class.spells.petds)
-
+function class.initHeals(_aqo)
     table.insert(class.healAbilities, class.spells.petheal)
+end
 
+function class.initBuffs(_aqo)
     local arcanum1 = common.getAA('Focus of Arcanum')
     local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
     local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
@@ -73,15 +101,10 @@ function class.init(_aqo)
     table.insert(class.combatBuffs, common.getAA('Fire Core'))
     table.insert(class.singleBuffs, class.spells.bigds)
 
-    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
+    table.insert(class.petBuffs, class.spells.petbuff)
+    table.insert(class.petBuffs, class.spells.petstrbuff)
+    table.insert(class.petBuffs, class.spells.petds)
 
-    table.insert(class.spellRotations.standard, class.spells.servant)
-    --table.insert(class.spellRotations.standard, class.spells.prenuke)
-    table.insert(class.spellRotations.standard, class.spells.fastfire)
-    table.insert(class.spellRotations.standard, class.spells.firenuke)
-    table.insert(class.spellRotations.standard, class.spells.magicnuke)
-
-    table.insert(class.fadeAbilities, common.getAA('Companion of Necessity'))
     class.addRequestAlias(class.spells.orb, 'orb')
     class.addRequestAlias(class.spells.ds, 'ds')
     class.addRequestAlias(class.spells.weapons, 'arm')

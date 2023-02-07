@@ -284,6 +284,10 @@ function buff.reportBuffs()
         local buffID = mq.TLO.Me.Buff(i).Spell.ID()
         if buffID then buffList = buffList .. buffID .. '|' end
     end
+    for i=1,20 do
+        local songID = mq.TLO.Me.Song(i).Spell.ID()
+        if songID then buffList = buffList .. songID .. '|' end
+    end
     if buffList ~= '' then
         mq.cmdf('/squelch /dga aqo /squelch /docommand /$\\{Me.Class.ShortName} bufflist %s %s %s', mq.TLO.Me.CleanName(), mq.TLO.Me.Class.ShortName(), buffList)
     end

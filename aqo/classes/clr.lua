@@ -8,13 +8,35 @@ function class.init(_aqo)
     class.classOrder = {'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'clr')
 
+
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initHeals(_aqo)
+    class.initBuffs(_aqo)
+    class.initBurns(_aqo)
+    class.initDPSAbilities(_aqo)
+
+    table.insert(class.cures, class.radiant)
+    --table.insert(class.cures, class.rgc)
+
+    table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
+
+    table.insert(class.debuffs, class.spells.mark)
+
+    class.rezAbility = common.getAA('Blessing of Resurrection')
+end
+
+function class.initClassOptions()
     class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')
     class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
     class.addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox')
     class.addOption('USESTUN', 'Use Stun', true, nil, 'Toggle use of stuns', 'checkbox')
     class.addOption('USEDEBUFF', 'Use Reverse DS', true, nil, 'Toggle use of Mark reverse DS', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     class.addSpell('heal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {tank=true, panic=true, regular=true})
     --class.addSpell('remedy', {'Pious Remedy', 'Supernal Remedy', 'Remedy'}, {regular=true, panic=true, pet=60})
     class.addSpell('desperate', {'Desperate Renewal'}, {panic=true, pet=15})
@@ -24,8 +46,8 @@ function class.init(_aqo)
     class.addSpell('spellhaste', {'Aura of Devotion'})
     class.addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
     class.addSpell('groupheal', {'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'}, {threshold=3, group=true, pct=70})
-    class.addSpell('hottank', {'Pious Elixir', 'Holy Elixir'}, {opt='USEHOTTANK', hot=true})
-    class.addSpell('hotdps', {'Pious Elixir', 'Holy Elixir'}, {opt='USEHOTDPS', hot=true})
+    class.addSpell('hottank', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing'}, {opt='USEHOTTANK', hot=true})
+    class.addSpell('hotdps', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing'}, {opt='USEHOTDPS', hot=true})
     class.addSpell('hotgroup', {'Elixir of Divinity'}, {opt='USEHOTGROUP', grouphot=true})
     class.addSpell('aego', {'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, {classes={WAR=true,SHD=true,PAL=true}})
     class.addSpell('singleaego', {'Conviction', 'Virtue', 'Aegolism', 'Temperance'}, {classes={WAR=true,SHD=true,PAL=true}})
@@ -36,11 +58,13 @@ function class.init(_aqo)
     class.addSpell('stun', {'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Stun'}, {opt='USESTUN'})
     class.addSpell('aestun', {'Silent Dictation'})
     class.addSpell('mark', {'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, {opt='USEDEBUFF'})
+end
 
+function class.initSpellRotations(_aqo)
     table.insert(class.spellRotations.standard, class.spells.stun)
+end
 
-    table.insert(class.DPSAbilities, class.spells.hammerpet)
-
+function class.initHeals(_aqo)
     table.insert(class.healAbilities, common.getAA('Burst of Life', {panic=true}))
     table.insert(class.healAbilities, common.getItem('Weighted Hammer of Conviction', {tank=true, regular=true, panic=true, pet=60}))
     table.insert(class.healAbilities, common.getItem('Harmony of the Soul', {panic=true}))
@@ -51,21 +75,9 @@ function class.init(_aqo)
     --table.insert(class.healAbilities, class.spells.remedy)
     table.insert(class.healAbilities, class.spells.hottank)
     table.insert(class.healAbilities, class.spells.hotdps)
+end
 
-    table.insert(class.burnAbilities, common.getAA('Celestial Rapidity'))
-    --table.insert(class.burnAbilities, common.getAA('Celestial Regeneration'))
-    table.insert(class.burnAbilities, common.getAA('Exquisite Benediction'))
-    table.insert(class.burnAbilities, common.getAA('Flurry of Life'))
-    table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of Divinity'))
-    --table.insert(class.burnAbilities, common.getAA('Healing Frenzy'))
-    table.insert(class.burnAbilities, common.getAA('Improved Twincast'))
-
-    --table.insert(class.burnAbilities, common.getAA('Focused Celestial Regeneration'))
-
-    table.insert(class.cures, class.radiant)
-    table.insert(class.cures, class.rgc)
-
-    table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
+function class.initBuffs(_aqo)
     -- Project Lazarus only
     local aaAura = common.getAA('Spirit Mastery', {checkfor='Aura of Pious Divinity'})
     if aaAura then
@@ -85,10 +97,6 @@ function class.init(_aqo)
     table.insert(class.singleBuffs, class.spells.singleaego)
     table.insert(class.groupBuffs, class.spells.aego)
 
-    table.insert(class.debuffs, class.spells.mark)
-
-    class.rezAbility = common.getAA('Blessing of Resurrection')
-
     class.addRequestAlias(class.spells.singleaego, 'singleaego')
     class.addRequestAlias(class.spells.aego, 'aego')
     class.addRequestAlias(class.spells.symbol, 'symbol')
@@ -100,6 +108,22 @@ function class.init(_aqo)
     class.addRequestAlias(class.cr, 'cr')
     class.focusedcr = common.getAA('Focused Celestial Regeneration')
     class.addRequestAlias(class.focusedcr, 'focusedcr')
+end
+
+function class.initBurns(_aqo)
+    table.insert(class.burnAbilities, common.getAA('Celestial Rapidity'))
+    --table.insert(class.burnAbilities, common.getAA('Celestial Regeneration'))
+    table.insert(class.burnAbilities, common.getAA('Exquisite Benediction'))
+    table.insert(class.burnAbilities, common.getAA('Flurry of Life'))
+    table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of Divinity'))
+    --table.insert(class.burnAbilities, common.getAA('Healing Frenzy'))
+    table.insert(class.burnAbilities, common.getAA('Improved Twincast'))
+
+    --table.insert(class.burnAbilities, common.getAA('Focused Celestial Regeneration'))
+end
+
+function class.initDPSAbilities(_aqo)
+    table.insert(class.DPSAbilities, class.spells.hammerpet)
 end
 
 return class

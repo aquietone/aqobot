@@ -10,13 +10,7 @@ local common = require('common')
 local config = require('configuration')
 local state = require('state')
 
-function class.init(_aqo)
-    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
-    class.spellRotations = {standard={}}
-    class.initBase(_aqo, 'rng')
-
-    mq.cmd('/squelch /stick mod 0')
-
+function class.initClassOptions()
     class.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
     class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
     class.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
@@ -31,8 +25,9 @@ function class.init(_aqo)
     class.addOption('USEREGEN', 'Use Regen', false, nil, 'Buff regen on self', 'checkbox')
     class.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox')
     class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
-    class.loadSettings()
+end
 
+function class.initSpellLines(_aqo)
     class.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
     class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
     class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
@@ -65,7 +60,9 @@ function class.init(_aqo)
     class.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
     class.addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
     class.addSpell('dispel', {'Nature\'s Balance'}, {opt='USEDISPEL'})
+end
 
+function class.initSpellRotations(_aqo)
     -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
     class.arrow_spells = {}
     table.insert(class.arrow_spells, class.spells.shots)
@@ -85,12 +82,19 @@ function class.init(_aqo)
     class.combat_heal_spells = {}
     table.insert(class.combat_heal_spells, class.spells.healtot)
     --table.insert(combat_heal_spells, spells.healtot2) -- replacing in main spell lineup with self rune buff
+end
 
-    -- entries in the items table are MQ item datatypes
-    table.insert(class.DPSAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
-    table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
-    table.insert(class.burnAbilities, common.getItem('Blood Drinker\'s Coating'))
+function class.initDPSAbilities(_aqo)
+    table.insert(class.DPSAbilities, common.getAA('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
 
+    table.insert(class.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
+    table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
+    -- table.insert(mashDiscs, common.getAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
+
+    table.insert(class.DPSAbilities, common.getSkill('Kick'))
+end
+
+function class.initBurns(_aqo)
     -- entries in the AAs table are pairs of {aa name, aa id}
     if state.emu then
         table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Pathfinders'))
@@ -112,21 +116,9 @@ function class.init(_aqo)
     table.insert(class.meleeBurnDiscs, common.getBestDisc({'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
     class.rangedBurnDiscs = {}
     table.insert(class.rangedBurnDiscs, common.getBestDisc({'Pureshot Discipline'})) -- bow dmg buff, 1hr7min CD, timer 2
+end
 
-    table.insert(class.DPSAbilities, common.getAA('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
-
-    table.insert(class.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
-    table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
-    -- table.insert(mashDiscs, common.getAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
-
-    table.insert(class.DPSAbilities, common.getSkill('Kick'))
-
-    table.insert(class.debuffs, common.getAA('Entropy of Nature', {opt='USEDISPEL'}) or class.spells.dispel)
-    table.insert(class.debuffs, common.getAA('Entrap', {opt='USESNARE'}) or class.spells.snare)
-
-    table.insert(class.fadeAbilities, common.getAA('Cover Tracks'))
-    table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
-    table.insert(class.aggroReducers, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, common.getAA('Outrider\'s Evasion'))
     table.insert(class.selfBuffs, common.getAA('Bulwark of the Brownies')) -- 10m cd, 4min buff procs 100% parry below 50% HP
     table.insert(class.selfBuffs, common.getAA('Chameleon\'s Gift')) -- 5min cd, 3min buff procs hate reduction below 50% HP
@@ -167,6 +159,29 @@ function class.init(_aqo)
 
     class.addRequestAlias(class.spells.predator, 'predator')
     class.addRequestAlias(class.spells.strength, 'strength')
+end
+
+function class.init(_aqo)
+    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
+    class.spellRotations = {standard={}}
+    class.initBase(_aqo, 'rng')
+
+    mq.cmd('/squelch /stick mod 0')
+
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initBurns(_aqo)
+    class.initDPSAbilities(_aqo)
+    class.initBuffs(_aqo)
+
+    table.insert(class.debuffs, common.getAA('Entropy of Nature', {opt='USEDISPEL'}) or class.spells.dispel)
+    table.insert(class.debuffs, common.getAA('Entrap', {opt='USESNARE'}) or class.spells.snare)
+
+    table.insert(class.fadeAbilities, common.getAA('Cover Tracks'))
+    table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
+    table.insert(class.aggroReducers, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
 end
 
 local rangedTimer = timer:new(5)

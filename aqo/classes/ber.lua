@@ -8,11 +8,22 @@ function class.init(_aqo)
     class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'ber')
 
+    class.initClassOptions()
+    class.loadSettings()
+    class.initDPSAbilities(_aqo)
+    class.initBurns(_aqo)
+    class.initBuffs(_aqo)
+
+    table.insert(class.fadeAbilities, common.getAA('Self Preservation'))
+end
+
+function class.initClassOptions()
     if state.emu then
         class.addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox')
     end
-    class.loadSettings()
+end
 
+function class.initDPSAbilities(_aq0)
     table.insert(class.DPSAbilities, common.getItem('Raging Taelosian Alloy Axe'))
     --table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))
     table.insert(class.DPSAbilities, common.getSkill('Frenzy'))
@@ -24,7 +35,9 @@ function class.init(_aqo)
     --table.insert(class.DPSAbilities, common.getBestDisc({'Leg Cut'}))
 
     table.insert(class.AEDPSAbilities, common.getAA('Rampage', {threshold=3}))
+end
 
+function class.initBurns(_aqo)
     --quick burns
     table.insert(class.burnAbilities, common.getBestDisc({'Cleaving Anger Discipline'}, {quick=true}))
     table.insert(class.burnAbilities, common.getItem('Rage Bound Chestguard', {quick=true}))
@@ -48,8 +61,9 @@ function class.init(_aqo)
     table.insert(class.burnAbilities, common.getAA('Reckless Abandon', {long=true}))
     table.insert(class.burnAbilities, common.getAA('Cascading Rage', {long=true}))
     table.insert(class.burnAbilities, common.getAA('Blinding Fury', {long=true}))
+end
 
-
+function class.initBuffs(_aqo)
     table.insert(class.combatBuffs, common.getBestDisc({'Cry Havoc'}, {combat=true, ooc=false}))
     if state.emu then table.insert(class.combatBuffs, common.getAA('Decapitation', {opt='USEDECAP', combat=true})) end
     table.insert(class.combatBuffs, common.getAA('Battle Leap'))
@@ -57,8 +71,6 @@ function class.init(_aqo)
     table.insert(class.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 
     table.insert(class.selfBuffs, common.getBestDisc({'Bonesplicer Axe'}, {summons='Bonesplicer Axe', summonMinimum=101, summonComponent='Axe Components'}))
-
-    table.insert(class.fadeAbilities, common.getAA('Self Preservation'))
 end
 
 return class
