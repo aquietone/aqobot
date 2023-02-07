@@ -17,17 +17,9 @@ function class.init(_aqo)
     class.initBurns(_aqo)
     class.initHeals(_aqo)
     class.initBuffs(_aqo)
+    class.initDefensiveAbilities(_aqo)
 
-    local postFD = function()
-        mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
-
-    class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
-    class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
     table.insert(class.recoverAbilities, class.fParagon)
-
 end
 
 function class.initClassOptions()
@@ -99,6 +91,8 @@ function class.initBuffs(_aqo)
     table.insert(class.petBuffs, common.getItem('Savage Lord\'s Totem', {checkfor='Savage Wildcaller\'s Blessing'}))
     table.insert(class.petBuffs, common.getAA('Taste of Blood', {checkfor='Blood Frenzy'}))
 
+    class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
+    class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
     class.addRequestAlias(class.fParagon, 'fparagon')
     class.addRequestAlias(class.paragon, 'paragon')
     class.addRequestAlias(class.spells.groupregen, 'rejuv')
@@ -107,6 +101,14 @@ end
 function class.initHeals(_aqo)
     table.insert(class.healAbilities, class.spells.heal)
     table.insert(class.healAbilities, class.spells.petheal)
+end
+
+function class.initDefensiveAbilities(_aqo)
+    local postFD = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /stand ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
 end
 
 function class.recoverClass()

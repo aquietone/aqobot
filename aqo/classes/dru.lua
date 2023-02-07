@@ -18,12 +18,10 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
+    class.initDebuffs(_aqo)
 
     table.insert(class.cures, class.radiant)
     --table.insert(class.cures, class.rgc)
-
-    table.insert(class.debuffs, common.getAA('Blessing of Ro', {opt='USEDEBUFF'}))
-    table.insert(class.debuffs, class.spells.snare)
 
     class.nuketimer = timer:new(5)
 end
@@ -109,6 +107,11 @@ function class.initBuffs(_aqo)
     table.insert(class.singleBuffs, class.spells.reptile)
     table.insert(class.selfBuffs, class.spells.reptile)
     table.insert(class.selfBuffs, common.getAA('Spirit of the Black Wolf'))
+end
+
+function class.initDebuffs(_aqo)
+    table.insert(class.debuffs, common.getAA('Blessing of Ro', {opt='USEDEBUFF'}))
+    table.insert(class.debuffs, class.spells.snare)
 end
 
 return class

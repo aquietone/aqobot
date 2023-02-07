@@ -10,6 +10,24 @@ local common = require('common')
 local config = require('configuration')
 local state = require('state')
 
+function class.init(_aqo)
+    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
+    class.spellRotations = {standard={}}
+    class.initBase(_aqo, 'rng')
+
+    mq.cmd('/squelch /stick mod 0')
+
+    class.initClassOptions()
+    class.loadSettings()
+    class.initSpellLines(_aqo)
+    class.initSpellRotations(_aqo)
+    class.initBurns(_aqo)
+    class.initDPSAbilities(_aqo)
+    class.initBuffs(_aqo)
+    class.initDebuffs(_aqo)
+    class.initDefensiveAbilities(_aqo)
+end
+
 function class.initClassOptions()
     class.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
     class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
@@ -161,24 +179,12 @@ function class.initBuffs(_aqo)
     class.addRequestAlias(class.spells.strength, 'strength')
 end
 
-function class.init(_aqo)
-    class.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
-    class.spellRotations = {standard={}}
-    class.initBase(_aqo, 'rng')
-
-    mq.cmd('/squelch /stick mod 0')
-
-    class.initClassOptions()
-    class.loadSettings()
-    class.initSpellLines(_aqo)
-    class.initSpellRotations(_aqo)
-    class.initBurns(_aqo)
-    class.initDPSAbilities(_aqo)
-    class.initBuffs(_aqo)
-
+function class.initDebuffs(_aqo)
     table.insert(class.debuffs, common.getAA('Entropy of Nature', {opt='USEDISPEL'}) or class.spells.dispel)
     table.insert(class.debuffs, common.getAA('Entrap', {opt='USESNARE'}) or class.spells.snare)
+end
 
+function class.initDefensiveAbilities(_aqo)
     table.insert(class.fadeAbilities, common.getAA('Cover Tracks'))
     table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
     table.insert(class.aggroReducers, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks

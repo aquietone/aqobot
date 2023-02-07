@@ -29,21 +29,7 @@ function class.init(_aqo)
     class.initDPSAbilities(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
-
-    table.insert(class.defensiveAbilities, common.getAA('Shield of Notes'))
-    table.insert(class.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
-    table.insert(class.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
-
-    -- Aggro
-    local preFade = function() mq.cmd('/attack off') end
-    local postFade = function()
-        mq.delay(1000)
-        mq.cmd('/multiline ; /makemevis ; /attack on')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
-
-    --table.insert(burnAAs, common.getAA('Glyph of Destruction (115+)'))
-    --table.insert(burnAAs, common.getAA('Intensity of the Resolute'))
+    class.initDefensiveAbilities(_aqo)
 
     -- Mana Recovery AAs
     class.rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
@@ -211,6 +197,20 @@ end
 function class.initBuffs(_aqo)
     table.insert(class.auras, class.spells.aura)
     table.insert(class.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
+end
+
+function class.initDefensiveAbilities(_aqo)
+    table.insert(class.defensiveAbilities, common.getAA('Shield of Notes'))
+    table.insert(class.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
+    table.insert(class.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
+
+    -- Aggro
+    local preFade = function() mq.cmd('/attack off') end
+    local postFade = function()
+        mq.delay(1000)
+        mq.cmd('/multiline ; /makemevis ; /attack on')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
 end
 
 local selosTimer = timer:new(30)

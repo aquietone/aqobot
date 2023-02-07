@@ -18,20 +18,17 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
+    class.initDebuffs(_aqo)
+    class.initDefensiveAbilities(_aqo)
 
     table.insert(class.cures, class.spells.cure)
 
     table.insert(class.cures, class.radiant)
     table.insert(class.cures, class.rgc)
 
-    table.insert(class.debuffs, class.spells.idol)
-    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
-    table.insert(class.debuffs, common.getAA('Turgur\'s Swarm', {opt='USESLOW'}) or class.spells.slow)
     class.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
     table.insert(class.recoverAbilities, class.canni)
     table.insert(class.recoverAbilities, class.spells.canni)
-
-    table.insert(class.defensiveAbilities, common.getAA('Ancestral Guard'))
 
     class.nuketimer = timer:new(3)
 end
@@ -134,6 +131,16 @@ function class.initBuffs(_aqo)
     class.addRequestAlias(class.spells.torpor, 'torpor')
     class.addRequestAlias(class.spells.talisman, 'talisman')
     class.addRequestAlias(class.spells.focus, 'focus')
+end
+
+function class.initDebuffs(_aqo)
+    table.insert(class.debuffs, class.spells.idol)
+    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
+    table.insert(class.debuffs, common.getAA('Turgur\'s Swarm', {opt='USESLOW'}) or class.spells.slow)
+end
+
+function class.initDefensiveAbilities(_aqo)
+    table.insert(class.defensiveAbilities, common.getAA('Ancestral Guard'))
 end
 
 return class

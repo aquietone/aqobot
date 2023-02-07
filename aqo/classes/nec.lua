@@ -20,6 +20,8 @@ function class.init(_aqo)
     class.initSpellRotations()
     class.initBurns()
     class.initBuffs()
+    class.initDebuffs()
+    class.initDefensiveAbilities()
 
     class.tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
@@ -31,22 +33,8 @@ function class.init(_aqo)
     class.deathbloom = common.getAA('Death Bloom', {nodmz=true})
     class.bloodmagic = common.getAA('Blood Magic', {nodmz=true})
 
-    -- Aggro
-    local postFD = function()
-        mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Death\'s Effigy', {opt='USEFD', postcast=postFD}))
-    table.insert(class.aggroReducers, common.getAA('Death Peace', {opt='USEFD', postcast=postFD}))
-
     class.convergence = common.getAA('Convergence')
     class.rezAbility = class.convergence
-    class.dispel = common.getAA('Eradicate Magic', {opt='USEDISPEL'})
-
-    class.scent = common.getAA('Scent of Thule', {opt='USEDEBUFF'}) or common.getAA('Scent of Terris', {opt='USEDEBUFF'})
-    class.debuffTimer = timer:new(30)
-    table.insert(class.debuffs, class.dispel)
-    table.insert(class.debuffs, class.scent)
 
     class.neccount = 1
 end
@@ -265,12 +253,32 @@ function class.initBuffs()
     class.addRequestAlias(class.spells.defensiveproc, 'defensiveproc')
 end
 
+function class.initDebuffs()
+    class.dispel = common.getAA('Eradicate Magic', {opt='USEDISPEL'})
+
+    class.scent = common.getAA('Scent of Thule', {opt='USEDEBUFF'}) or common.getAA('Scent of Terris', {opt='USEDEBUFF'})
+    class.debuffTimer = timer:new(30)
+    table.insert(class.debuffs, class.dispel)
+    table.insert(class.debuffs, class.scent)
+end
+
+function class.initDefensiveAbilities()
+    -- Aggro
+    local postFD = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /stand ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Death\'s Effigy', {opt='USEFD', postcast=postFD}))
+    table.insert(class.aggroReducers, common.getAA('Death Peace', {opt='USEFD', postcast=postFD}))
+end
+
 -- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
 local function setSwapGems()
     class.swap_gem = mq.TLO.Me.Gem(class.spells.wounds and class.spells.wounds.name or 'unknown')() or
             mq.TLO.Me.Gem(class.spells.fireshadow and class.spells.fireshadow.name or 'unknown')() or
             mq.TLO.Me.Gem(class.spells.pyrelong and class.spells.pyrelong.name or 'unknown')() or 10
-            class.swap_gem_dis = mq.TLO.Me.Gem(class.spells.decay and class.spells.decay.name or 'unknown')() or mq.TLO.Me.Gem(class.spells.grip and class.spells.grip.name or 'unknown')() or 11
+    class.swap_gem_dis = mq.TLO.Me.Gem(class.spells.decay and class.spells.decay.name or 'unknown')() or
+            mq.TLO.Me.Gem(class.spells.grip and class.spells.grip.name or 'unknown')() or 11
 end
 
 --[[

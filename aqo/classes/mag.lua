@@ -17,10 +17,8 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
-
-    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
-
-    table.insert(class.fadeAbilities, common.getAA('Companion of Necessity'))
+    class.initDebuffs(_aqo)
+    class.initDefensiveAbilities(_aqo)
 end
 
 function class.initClassOptions()
@@ -110,6 +108,14 @@ function class.initBuffs(_aqo)
     class.addRequestAlias(class.spells.weapons, 'arm')
     class.addRequestAlias(class.spells.jewelry, 'jewelry')
     class.addRequestAlias(class.spells.armor, 'armor')
+end
+
+function class.initDebuffs(_aqo)
+    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
+end
+
+function class.initDefensiveAbilities(_aqo)
+    table.insert(class.fadeAbilities, common.getAA('Companion of Necessity'))
 end
 
 --[[

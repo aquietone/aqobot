@@ -13,8 +13,7 @@ function class.init(_aqo)
     class.initDPSAbilities(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
-
-    table.insert(class.fadeAbilities, common.getAA('Self Preservation'))
+    class.initDefensiveAbilities(_aqo)
 end
 
 function class.initClassOptions()
@@ -71,6 +70,10 @@ function class.initBuffs(_aqo)
     table.insert(class.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 
     table.insert(class.selfBuffs, common.getBestDisc({'Bonesplicer Axe'}, {summons='Bonesplicer Axe', summonMinimum=101, summonComponent='Axe Components'}))
+end
+
+function class.initDefensiveAbilities(_aqo)
+    table.insert(class.fadeAbilities, common.getAA('Self Preservation'))
 end
 
 return class

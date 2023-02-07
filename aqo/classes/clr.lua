@@ -17,13 +17,12 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
+    class.initDebuffs(_aqo)
 
     table.insert(class.cures, class.radiant)
     --table.insert(class.cures, class.rgc)
 
     table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
-
-    table.insert(class.debuffs, class.spells.mark)
 
     class.rezAbility = common.getAA('Blessing of Resurrection')
 end
@@ -124,6 +123,10 @@ end
 
 function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, class.spells.hammerpet)
+end
+
+function class.initDebuffs(_aqo)
+    table.insert(class.debuffs, class.spells.mark)
 end
 
 return class

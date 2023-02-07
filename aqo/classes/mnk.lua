@@ -12,16 +12,9 @@ function class.init(_aqo)
     class.initDPSAbilities(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
-
+    class.initDefensiveAbilities(_aqo)
 
     table.insert(class.healAbilities, common.getSkill('Mend', {me=60, self=true}))
-
-    local postFD = function()
-        mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
-    end
-    table.insert(class.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
-    table.insert(class.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
 end
 
 function class.initClassOptions()
@@ -51,6 +44,15 @@ function class.initBuffs(_aqo)
     table.insert(class.combatBuffs, common.getBestDisc({'Fists of Wu'}))
     table.insert(class.combatBuffs, common.getAA('Zan Fi\'s Whistle'))
     table.insert(class.combatBuffs, common.getAA('Infusion of Thunder'))
+end
+
+function class.initDefensiveAbilities(_aqo)
+    local postFD = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /stand ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
+    table.insert(class.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
 end
 
 return class
