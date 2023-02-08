@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require('mq')
+local lists = require('data.lists')
 
 local aqo
 local commands = {
@@ -59,7 +60,7 @@ local function showHelp()
             if value.tip then output = output .. ' -- '..value.tip end
         end
     end
-    output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: ' .. aqo.lists.slotList
+    output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: ' .. lists.slotList
     output = output .. '\n\ayBuff Begging:\aw /tell <name> <alias> -- Aliases: '
     for alias,_ in pairs(aqo.class.requestAliases) do
         output = output .. alias .. ', '
@@ -108,8 +109,8 @@ function commands.commandHandler(...)
                 mq.cmd('/stopcast')
             end
         else
-            if aqo.lists.booleans[new_value] == nil then return end
-            aqo.state.paused = aqo.lists.booleans[new_value]
+            if lists.booleans[new_value] == nil then return end
+            aqo.state.paused = lists.booleans[new_value]
             if aqo.state.paused then
                 aqo.state.resetCombatState()
                 mq.cmd('/stopcast')
@@ -139,10 +140,10 @@ function commands.commandHandler(...)
         aqo.logger.timestamps = aqo.config[configName].value
     elseif configName then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
-    elseif opt == 'groupwatch' and aqo.common.GROUP_WATCH_OPTS[new_value] then
+    elseif opt == 'groupwatch' and lists.groupWatchOptions[new_value] then
         aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
     elseif opt == 'assist' then
-        if new_value and aqo.common.ASSISTS[new_value] then
+        if new_value and lists.assists[new_value] then
             aqo.config.ASSIST.value = new_value
         end
         print(aqo.logger.logLine('assist: %s', aqo.config.ASSIST.value))
@@ -256,9 +257,9 @@ function commands.classSettingsHandler(opt, new_value)
                 aqo.class.OPTS.AURA2.value = new_value
             end
         elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'boolean' then
-            if aqo.lists.booleans[new_value] == nil then return end
-            aqo.class.OPTS[opt].value = aqo.lists.booleans[new_value]
-            print(aqo.logger.logLine('Setting %s to: %s', opt, aqo.lists.booleans[new_value]))
+            if lists.booleans[new_value] == nil then return end
+            aqo.class.OPTS[opt].value = lists.booleans[new_value]
+            print(aqo.logger.logLine('Setting %s to: %s', opt, lists.booleans[new_value]))
         elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'number' then
             if tonumber(new_value) then
                 print(aqo.logger.logLine('Setting %s to: %s', opt, tonumber(new_value)))

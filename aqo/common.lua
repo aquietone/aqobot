@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require 'mq'
+local lists = require('data.lists')
 local named = require('data.named')
 local movement = require('routines.movement')
 local logger = require('utils.logger')
@@ -8,19 +9,7 @@ local ability = require('ability')
 local config = require('configuration')
 local state = require('state')
 
-local common = {
-    ASSISTS = {group=1,raid1=1,raid2=1,raid3=1,manual=1},
-    PULL_WITH = {melee=1,ranged=1,spell=1,item=1,custom=1},
-    GROUP_WATCH_OPTS = {healer=1,self=1,none=1},
-    TANK_CLASSES = {war=true,shd=true,pal=true},
-    MELEE_CLASSES = {ber=true,mnk=true,rog=true},
-    CASTER_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true},
-    PET_CLASSES = {nec=true,enc=true,mag=true,bst=true,shm=true,dru=true,shd=true},
-    BUFF_CLASSES = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true,pal=true},
-    HEALER_CLASSES = {clr=true,dru=true,shm=true},
-    FD_CLASSES = {mnk=true,bst=true,shd=true,nec=true},
-    PULL_STATES = {NOT='NOT',SCAN='SCAN',APPROACHING='APPROACHING',ENGAGING='ENGAGING',RETURNING='RETURNING',WAITING='WAITING'},
-}
+local common = {}
 
 local familiar = mq.TLO.Familiar and mq.TLO.Familiar.Stat.Item.ID() or mq.TLO.FindItem('Personal Hemic Source').ID()
 -- Familiar: Personal Hemic Source

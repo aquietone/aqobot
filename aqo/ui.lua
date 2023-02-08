@@ -3,12 +3,13 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
+local lists = require('data.lists')
 local camp = require('routines.camp')
+local logger = require('utils.logger')
 local common = require('common')
 local config = require('configuration')
 local mode = require('mode')
 local state = require('state')
-local logger = require('utils.logger')
 
 -- UI Control variables
 local openGUI = true
@@ -30,21 +31,12 @@ local item_width = 115
 local X_COLUMN_OFFSET = 265
 local Y_COLUMN_OFFSET = 30
 
-local icons = {
-    FA_PLAY = '\xef\x81\x8b',
-    FA_PAUSE = '\xef\x81\x8c',
-    FA_STOP = '\xef\x81\x8d',
-    FA_SAVE = '\xee\x85\xa1',
-    FA_HEART = '\xef\x80\x84',
-    FA_FIRE = '\xef\x81\xad',
-    FA_MEDKIT = '\xef\x83\xba',
-    FA_FIGHTER_JET = '\xef\x83\xbb',
-    MD_LOCAL_HOSPITAL = '\xee\x95\x88',
-    FA_BICYCLE = '\xef\x88\x86',
-    FA_BUS = '\xef\x88\x87',
-    MD_EXPLORE = '\xee\xa1\xba',
-    MD_HELP = '\xee\xa2\x87',
-}
+local WHITE = ImVec4(1, 1, 1, 1)
+local GREEN = ImVec4(0, 1, 0, 1)
+local YELLOW = ImVec4(1, 1, 0, 1)
+local RED = ImVec4(1, 0, 0, 1)
+local LIGHT_BLUE = ImVec4(.6, .8, 1, 1)
+local ORANGE = ImVec4(1, .65, 0, 1)
 
 local aqo
 local ui = {}
@@ -99,9 +91,9 @@ function ui.drawCheckBox(labelText, idText, resultVar, helpText, xOffset, yOffse
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
     if resultVar then
-        ImGui.TextColored(0, 1, 0, 1, labelText)
+        ImGui.TextColored(GREEN, labelText)
     else
-        ImGui.TextColored(1, 0, 0, 1, labelText)
+        ImGui.TextColored(RED, labelText)
     end
     ImGui.SameLine()
     helpMarker(helpText)
@@ -158,7 +150,7 @@ local function drawAssistTab()
     if ImGui.Button('Reset Camp', x, BUTTON_HEIGHT) then
         camp.setCamp(true)
     end
-    config.ASSIST.value = ui.drawComboBox('Assist', config.ASSIST.value, common.ASSISTS, true)
+    config.ASSIST.value = ui.drawComboBox('Assist', config.ASSIST.value, lists.assists, true)
     config.AUTOASSISTAT.value = ui.drawInputInt('Assist %', '##assistat', config.AUTOASSISTAT.value, 'Percent HP to assist at')
     config.ASSISTNAMES.value = ui.drawInputText('Assist Names', '##assistnames', config.ASSISTNAMES.value, 'Command separated, ordered list of names to assist, mainly for manual assist mode in raids.')
     config.SWITCHWITHMA.value = ui.drawCheckBox('Switch With MA', '##switchwithma', config.SWITCHWITHMA.value, 'Switch targets with MA')
@@ -176,7 +168,7 @@ local function drawAssistTab()
     if current_camp_radius ~= config.CAMPRADIUS.value then
         camp.setCamp()
     end
-    uiTheme = ui.drawComboBox('Theme', uiTheme, {TEAL=1,PINK=1,GOLD=1}, true)
+    uiTheme = ui.drawComboBox('Theme', uiTheme, lists.uiThemes, true)
 end
 
 local function drawSkillsTab()
@@ -207,7 +199,7 @@ end
 
 local function drawHealTab()
     config.HEALPCT.value = ui.drawInputInt('Heal Pct', '##healpct', config.HEALPCT.value, 'Percent HP to begin casting regular heals on self or others')
-    if aqo.lists.healClasses[state.class] then
+    if lists.healClasses[state.class] then
         config.PANICHEALPCT.value = ui.drawInputInt('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT.value, 'Percent HP to begin casting panic heals')
         config.GROUPHEALPCT.value = ui.drawInputInt('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT.value, 'Percent HP to begin casting group heals')
         config.GROUPHEALMIN.value = ui.drawInputInt('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN.value, 'Minimum number of hurt group members to begin casting group heals')
@@ -254,7 +246,7 @@ local function drawPullTab()
     local yOffset = y
     local maxY = yOffset
     local _, yAvail = ImGui.GetContentRegionAvail()
-    config.PULLWITH.value = ui.drawComboBox('Pull With', config.PULLWITH.value, common.PULL_WITH, true, xOffset, yOffset)
+    config.PULLWITH.value = ui.drawComboBox('Pull With', config.PULLWITH.value, lists.pullWith, true, xOffset, yOffset)
     xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
     local current_radius = config.PULLRADIUS.value
     local current_pullarc = config.PULLARC.value
@@ -270,7 +262,7 @@ local function drawPullTab()
     xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
     config.PULLARC.value = ui.drawInputInt('Pull Arc', '##pullarc', config.PULLARC.value, 'Only pull from this slice of the radius, centered around your current heading', xOffset, yOffset)
     xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.GROUPWATCHWHO.value = ui.drawComboBox('Group Watch', config.GROUPWATCHWHO.value, common.GROUP_WATCH_OPTS, true, xOffset, yOffset)
+    config.GROUPWATCHWHO.value = ui.drawComboBox('Group Watch', config.GROUPWATCHWHO.value, lists.groupWatchOptions, true, xOffset, yOffset)
     if current_radius ~= config.PULLRADIUS.value or current_pullarc ~= config.PULLARC.value then
         camp.setCamp()
     end
@@ -324,34 +316,34 @@ local function drawDebugTab()
     config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', '##timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages')
     logger.timestamps = config.TIMESTAMPS.value
     drawDebugComboBox()
-    ImGui.TextColored(1, 1, 0, 1, 'Mode:')
+    ImGui.TextColored(YELLOW, 'Mode:')
     ImGui.SameLine()
     ImGui.SetCursorPosX(150)
-    ImGui.TextColored(1, 1, 1, 1, config.MODE.value:getName())
+    ImGui.TextColored(WHITE, config.MODE.value:getName())
 
-    ImGui.TextColored(1, 1, 0, 1, 'Camp:')
+    ImGui.TextColored(YELLOW, 'Camp:')
     ImGui.SameLine()
     ImGui.SetCursorPosX(150)
     if camp.Active then
-        ImGui.TextColored(1, 1, 0, 1, string.format('X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z))
-        ImGui.TextColored(1, 1, 0, 1, 'Radius:')
+        ImGui.TextColored(YELLOW, string.format('X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z))
+        ImGui.TextColored(YELLOW, 'Radius:')
         ImGui.SameLine()
         ImGui.SetCursorPosX(150)    
-        ImGui.TextColored(1, 1, 0, 1, string.format('%d', config.CAMPRADIUS.value))
-        ImGui.TextColored(1, 1, 0, 1, 'Distance from camp:')
+        ImGui.TextColored(YELLOW, string.format('%d', config.CAMPRADIUS.value))
+        ImGui.TextColored(YELLOW, 'Distance from camp:')
         ImGui.SameLine()
         ImGui.SetCursorPosX(150)
-        ImGui.TextColored(1, 1, 0, 1, string.format('%d', common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y)))
+        ImGui.TextColored(YELLOW, string.format('%d', common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y)))
     else
-        ImGui.TextColored(1, 0, 0, 1, '--')
+        ImGui.TextColored(RED, '--')
     end
 
     for k,v in pairs(state) do
         if type(v) ~= 'table' and type(v) ~= 'function' then
-            ImGui.TextColored(1, 1, 0, 1, ('%s:'):format(k))
+            ImGui.TextColored(YELLOW, ('%s:'):format(k))
             ImGui.SameLine()
             ImGui.SetCursorPosX(150)
-            ImGui.TextColored(1, 0, 0, 1, ('%s'):format(v))
+            ImGui.TextColored(RED, ('%s'):format(v))
         end
     end
 end
@@ -377,8 +369,8 @@ local function drawBody()
             ImGui.EndChild()
             ImGui.EndTabItem()
         end
-        ImGui.PushStyleColor(ImGuiCol.Text, .6, .8, 1, 1)
-        if ImGui.BeginTabItem(icons.FA_HEART..' Heal') then
+        ImGui.PushStyleColor(ImGuiCol.Text, LIGHT_BLUE)
+        if ImGui.BeginTabItem(lists.icons.FA_HEART..' Heal') then
             ImGui.PopStyleColor()
             if ImGui.BeginChild('Heal', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
                 ImGui.PushItemWidth(item_width)
@@ -391,8 +383,8 @@ local function drawBody()
         else
             ImGui.PopStyleColor()
         end
-        ImGui.PushStyleColor(ImGuiCol.Text, 1, .65, 0, 1)
-        if ImGui.BeginTabItem(icons.FA_FIRE..' Burn') then
+        ImGui.PushStyleColor(ImGuiCol.Text, ORANGE)
+        if ImGui.BeginTabItem(lists.icons.FA_FIRE..' Burn') then
             ImGui.PopStyleColor()
             if ImGui.BeginChild('Burn', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
                 ImGui.PushItemWidth(item_width)
@@ -441,12 +433,12 @@ local function drawHeader()
     local x, y = ImGui.GetContentRegionAvail()
     local buttonWidth = (x / 2) - 22
     if state.paused then
-        if ImGui.Button(icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
+        if ImGui.Button(lists.icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
             camp.setCamp()
             state.paused = false
         end
     else
-        if ImGui.Button(icons.FA_PAUSE, buttonWidth, BUTTON_HEIGHT) then
+        if ImGui.Button(lists.icons.FA_PAUSE, buttonWidth, BUTTON_HEIGHT) then
             state.paused = true
             state.resetCombatState()
             mq.cmd('/stopcast')
@@ -454,12 +446,12 @@ local function drawHeader()
     end
     helpMarker('Pause/Resume')
     ImGui.SameLine()
-    if ImGui.Button(icons.FA_SAVE, buttonWidth, BUTTON_HEIGHT) then
+    if ImGui.Button(lists.icons.FA_SAVE, buttonWidth, BUTTON_HEIGHT) then
         aqo.class.saveSettings()
     end
     helpMarker('Save Settings')
     ImGui.SameLine()
-    if ImGui.Button(icons.MD_HELP, -1, BUTTON_HEIGHT) then
+    if ImGui.Button(lists.icons.MD_HELP, -1, BUTTON_HEIGHT) then
         helpGUIOpen = true
     end
     helpMarker('Help')
@@ -467,9 +459,9 @@ local function drawHeader()
     ImGui.SameLine()
     ImGui.SetCursorPosX(buttonWidth+16)
     if state.paused then
-        ImGui.TextColored(1, 0, 0, 1, 'PAUSED')
+        ImGui.TextColored(RED, 'PAUSED')
     else
-        ImGui.TextColored(0, 1, 0, 1, 'RUNNING')
+        ImGui.TextColored(GREEN, 'RUNNING')
     end
     local current_mode = config.MODE.value:getName()
     ImGui.PushItemWidth(item_width)
@@ -482,63 +474,32 @@ local function drawHeader()
     end
 end
 
-local themes = {
-    TEAL = {
-        windowbg = {.2, .2, .2},
-        bg = {0, .3, .3},
-        hovered = {0, .4, .4},
-        active = {0, .5, .5},
-        button = {0, .3, .3},
-        text = {1, 1, 1},
-    },
-    PINK = {
-        windowbg = {.2, .2, .2},
-        bg = {1, 0, .5},
-        hovered = {1, 0, .5},
-        active = {1, 0, .7},
-        button = {1, 0, .4},
-        text = {1, 1, 1},
-    },
-    GOLD = {
-        windowbg = {.2, .2, .2},
-        bg = {.4, .2, 0},
-        hovered = {.6, .4, 0},
-        active = {.7, .5, 0},
-        button = {.5, .3, 0},
-        text = {1, 1, 1},
-    },
-}
 local function pushStyle(theme)
-    local t = themes[theme]
-    ImGui.PushStyleColor(ImGuiCol.WindowBg, t.windowbg[1], t.windowbg[2], t.windowbg[3], .6)
-    ImGui.PushStyleColor(ImGuiCol.TitleBg, t.bg[1], t.bg[2], t.bg[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.TitleBgActive, t.active[1], t.active[2], t.active[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.FrameBg, t.bg[1], t.bg[2], t.bg[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, t.hovered[1], t.hovered[2], t.hovered[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.FrameBgActive, t.active[1], t.active[2], t.active[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.Button, t.button[1], t.button[2], t.button[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, t.hovered[1], t.hovered[2], t.hovered[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.ButtonActive, t.active[1], t.active[2], t.active[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.PopupBg, t.bg[1], t.bg[2], t.bg[3], 1)
+    local t = lists.uiThemes[theme]
+    ImGui.PushStyleColor(ImGuiCol.WindowBg, t.windowbg)
+    ImGui.PushStyleColor(ImGuiCol.TitleBg, t.bg)
+    ImGui.PushStyleColor(ImGuiCol.TitleBgActive, t.active)
+    ImGui.PushStyleColor(ImGuiCol.FrameBg, t.bg)
+    ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, t.hovered)
+    ImGui.PushStyleColor(ImGuiCol.FrameBgActive, t.active)
+    ImGui.PushStyleColor(ImGuiCol.Button, t.button)
+    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, t.hovered)
+    ImGui.PushStyleColor(ImGuiCol.ButtonActive, t.active)
+    ImGui.PushStyleColor(ImGuiCol.PopupBg, t.bg)
     ImGui.PushStyleColor(ImGuiCol.Tab, 0, 0, 0, 0)
-    ImGui.PushStyleColor(ImGuiCol.TabActive, t.active[1], t.active[2], t.active[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.TabHovered, t.hovered[1], t.hovered[2], t.hovered[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.TabUnfocused, t.bg[1], t.bg[2], t.bg[3], 0)
-    ImGui.PushStyleColor(ImGuiCol.TabUnfocusedActive, t.hovered[1], t.hovered[2], t.hovered[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.TextDisabled, t.text[1], t.text[2], t.text[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.CheckMark, t.text[1], t.text[2], t.text[3], 1)
-    ImGui.PushStyleColor(ImGuiCol.Separator, t.hovered[1], t.hovered[2], t.hovered[3], 1)
+    ImGui.PushStyleColor(ImGuiCol.TabActive, t.active)
+    ImGui.PushStyleColor(ImGuiCol.TabHovered, t.hovered)
+    ImGui.PushStyleColor(ImGuiCol.TabUnfocused, t.bg)
+    ImGui.PushStyleColor(ImGuiCol.TabUnfocusedActive, t.hovered)
+    ImGui.PushStyleColor(ImGuiCol.TextDisabled, t.text)
+    ImGui.PushStyleColor(ImGuiCol.CheckMark, t.text)
+    ImGui.PushStyleColor(ImGuiCol.Separator, t.hovered)
 end
 
 local function popStyles()
     ImGui.PopStyleColor(18)
 end
 
-local lists = {
-    'DPSAbilities', 'AEDPSAbilities', 'burnAbilities', 'tankAbilities', 'tankBurnAbilities', 'AETankAbilities', 'healAbilities',
-    'fadeAbilities', 'defensiveAbilities', 'aggroReducers', 'recoverAbilities', 'combatBuffs', 'auras', 'selfBuffs',
-    'groupBuffs', 'singleBuffs', 'petBuffs', 'cures', 'clickies', 'castClickies', 'pullClickies', 'debuffs'
-}
 local function drawAbilityInspector()
     if abilityGUIOpen then
         abilityGUIOpen, shouldDrawAbilityGUI = ImGui.Begin(('Ability Inspector##AQOBOTUI%s'):format(state.class), abilityGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
@@ -577,16 +538,16 @@ local function drawAbilityInspector()
                 end
             end
             if ImGui.TreeNode('Lists') then
-                for i, list in ipairs(lists) do
+                for i, list in ipairs(lists.classLists) do
                     if #aqo.class[list] > 0 then
                         if ImGui.TreeNode(list..'##lists'..i) then
                             for j,ability in ipairs(aqo.class[list]) do
                                 if ImGui.TreeNode(ability.name..'##list'..list..i..j) then
                                     for opt,value in pairs(ability) do
                                         if opt ~= 'name' and (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then
-                                            local r,g,b = 1,1,1
-                                            if opt == 'opt' then if aqo.class.isEnabled(value) then r=0 b=0 else g=0 b=0 end end
-                                            ImGui.TextColored(r, g, b, 1, '%s: %s', opt, value)
+                                            local color = WHITE
+                                            if opt == 'opt' then if aqo.class.isEnabled(value) then color = GREEN else color = RED end end
+                                            ImGui.TextColored(color, '%s: %s', opt, value)
                                         end
                                     end
                                     ImGui.TreePop()
@@ -610,7 +571,7 @@ local function drawHelpWindow()
             ImGui.PushTextWrapPos(750)
             if ImGui.TreeNode('General Commands') then
                 for _,command in ipairs(aqo.commands.help) do
-                    ImGui.TextColored(1,1,0,1,'/aqo '..command.command) ImGui.SameLine() ImGui.Text(command.tip)
+                    ImGui.TextColored(YELLOW, '/aqo '..command.command) ImGui.SameLine() ImGui.Text(command.tip)
                 end
                 ImGui.TreePop()
             end
@@ -620,7 +581,7 @@ local function drawHelpWindow()
                     for _,key in ipairs(categoryConfigs) do
                         local cfg = config[key]
                         if type(cfg) == 'table' then
-                            ImGui.TextColored(1,1,0,1,'/aqo ' .. key .. ' <' .. type(cfg.value) .. '>')
+                            ImGui.TextColored(YELLOW, '/aqo ' .. key .. ' <' .. type(cfg.value) .. '>')
                             ImGui.SameLine()
                             ImGui.Text(cfg.tip)
                         end
@@ -632,7 +593,7 @@ local function drawHelpWindow()
                 for key,value in pairs(aqo.class.OPTS) do
                     local valueType = type(value.value)
                     if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
-                        ImGui.TextColored(1,1,0,1,'/aqo ' .. key .. ' <' .. valueType .. '>')
+                        ImGui.TextColored(YELLOW, '/aqo ' .. key .. ' <' .. valueType .. '>')
                         ImGui.SameLine()
                         ImGui.Text(value.tip)
                     end
@@ -640,15 +601,15 @@ local function drawHelpWindow()
                 ImGui.TreePop()
             end
             if ImGui.TreeNode('Gear Check (WARNING*: Characters announce their gear to guild chat!') then
-                ImGui.TextColored(1,1,0,1,'/tell <name> gear <slotname>')
-                ImGui.TextColored(1,1,0,1,'Slot Names')
+                ImGui.TextColored(YELLOW, '/tell <name> gear <slotname>')
+                ImGui.TextColored(YELLOW, 'Slot Names')
                 ImGui.SameLine()
-                ImGui.Text(aqo.lists.slotList)
+                ImGui.Text(lists.slotList)
                 ImGui.TreePop()
             end
             if ImGui.TreeNode('Buff Begging  (WARNING*: Characters accounce requests to group or raid chat!') then
-                ImGui.TextColored(1,1,0,1,'/tell <name> <alias>')
-                ImGui.TextColored(1,1,0,1,'Aliases:')
+                ImGui.TextColored(YELLOW, '/tell <name> <alias>')
+                ImGui.TextColored(YELLOW, 'Aliases:')
                 for alias,_ in pairs(aqo.class.requestAliases) do
                     ImGui.Text(alias)
                 end

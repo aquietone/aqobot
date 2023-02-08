@@ -1,11 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
+local lists = require('data.lists')
 local camp = require('routines.camp')
 local movement = require('routines.movement')
-local common = require('common')
-local config = require('configuration')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
+local common = require('common')
+local config = require('configuration')
 local state = require('state')
 
 local aqo
@@ -257,7 +258,7 @@ local function pullEngage(pull_spawn)
         return false
     end
     if not pull_spawn.LineOfSight() or dist3d > 200 then
-        state.pullStatus = common.PULL_STATES.APPROACHING
+        state.pullStatus = lists.pullStates.APPROACHING
         pullNavToMob(pull_spawn, false)
         return false
     end
@@ -326,7 +327,7 @@ local function pullEngage(pull_spawn)
         elseif config.PULLWITH.value == 'custom' and aqo.class.pullCustom then
             aqo.class.pullCustom()
         elseif config.PULLWITH.value == 'melee' then
-            state.pullStatus = common.PULL_STATES.APPROACHING
+            state.pullStatus = lists.pullStates.APPROACHING
             pullNavToMob(pull_spawn, false)
             return false
         end
@@ -368,7 +369,7 @@ end
 function pull.pullMob()
     local pull_state = state.pullStatus
     if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or aqo.lists.DMZ[mq.TLO.Zone.ID()] then
-        if pull_state == common.PULL_STATES.APPROACHING or pull_state == common.PULL_STATES.ENGAGING then
+        if pull_state == lists.pullStates.APPROACHING or pull_state == lists.pullStates.ENGAGING then
             clearPullVars('pullMob-deadOrInjured')
             movement.stop()
             return
@@ -430,29 +431,29 @@ function pull.pullMob()
         end
         if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
         -- valid pull spawn acquired, begin approach
-        state.pullStatus = common.PULL_STATES.APPROACHING
+        state.pullStatus = lists.pullStates.APPROACHING
         pullNavToMob(pull_spawn, true)
-    elseif pull_state == common.PULL_STATES.APPROACHING then
+    elseif pull_state == lists.pullStates.APPROACHING then
         local pull_spawn = mq.TLO.Spawn(state.pullMobID)
         if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
         if pullApproaching(pull_spawn) then
             -- movement stopped, either spawn became invalid, we're in range, or other stuff agro'd
-            state.pullStatus = common.PULL_STATES.ENGAGING
+            state.pullStatus = lists.pullStates.ENGAGING
         end
-    elseif pull_state == common.PULL_STATES.ENGAGING then
+    elseif pull_state == lists.pullStates.ENGAGING then
         local pull_spawn = mq.TLO.Spawn(state.pullMobID)
         if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
         if pullEngage(pull_spawn) then
             -- successfully agro'd the mob, or something else agro'd in the process
             if config.MODE.value:isReturnToCampMode() and camp.Active then
-                state.pullStatus = common.PULL_STATES.RETURNING
+                state.pullStatus = lists.pullStates.RETURNING
                 pullReturn(false)
             else
                 pullReturnTimer:reset()
                 clearPullVars('pullMob-engageNoReturn')
             end
         end
-    elseif pull_state == common.PULL_STATES.RETURNING then
+    elseif pull_state == lists.pullStates.RETURNING then
         if common.checkDistance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.CAMPRADIUS.value then
             clearPullVars('pullMob-reachedCamp')
         else

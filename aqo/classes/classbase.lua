@@ -307,7 +307,7 @@ end
 function base.tank()
     if lists.DMZ[mq.TLO.Zone.ID()] then return end
     if config.MODE.value:getName() == 'pullertank' and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.CAMPRADIUS.value-5) then
-        state.pullStatus = common.PULL_STATES.RETURNING
+        state.pullStatus = lists.pullStates.RETURNING
         state.actionTaken = true
     else
         tank.findMobToTank()
