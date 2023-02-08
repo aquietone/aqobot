@@ -172,7 +172,7 @@ end
 local groupHOTTimer = timer:new(60)
 local function getHeal(healAbilities, healType, whoToHeal, opts)
     for _,heal in ipairs(healAbilities) do
-        if heal[healType] and healEnabled(opts) then
+        if heal[healType] and healEnabled(opts, heal.opt) then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
@@ -238,7 +238,7 @@ function healing.healPetOrSelf(healAbilities, opts)
 end
 
 function healing.healSelf(healAbilities, opts)
-    if state.loop.PctHPs > 60 then return end
+    if state.loop.PctHPs > config.HEALPCT.value then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
             if heal.type == Abilities.Types.Spell then

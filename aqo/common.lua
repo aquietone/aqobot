@@ -592,16 +592,14 @@ function common.checkMana()
         common.useItem(feather)
     end
 
-    --[[if state.emu then
-        local manastone = mq.TLO.FindItem('Manastone')
-        if manastone() and pct_mana < 75 and state.loop.PctHPs > 50 then
-            local manastoneTimer = timer:new(1)
-            manastoneTimer:reset()
-            while mq.TLO.Me.PctHPs() > 30 and not manastoneTimer:timerExpired() do
-                mq.cmd('/useitem manastone')
-            end
+    local manastone = mq.TLO.FindItem('Manastone')
+    if manastone() and mq.TLO.Me.PctMana() < config.MANASTONESTART.value and state.loop.PctHPs > config.MANASTONESTARTHP.value then
+        local manastoneTimer = timer:new(config.MANASTONETIME.value)
+        manastoneTimer:reset()
+        while mq.TLO.Me.PctHPs() > config.MANASTONESTOPHP.value and not manastoneTimer:timerExpired() do
+            mq.cmd('/useitem manastone')
         end
-    end]]
+    end
 end
 
 local sitTimer = timer:new(5)

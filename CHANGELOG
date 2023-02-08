@@ -5,6 +5,7 @@
 - Reorganized init code in each of the class luas
 - Fix option check for HoT heals
 - Move some 10ish min CDs for bard into burns
+- Add manastone configs
 
 # 2023/02/03
 - Maybe actually stopped bard crashes

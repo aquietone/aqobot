@@ -44,9 +44,10 @@ local function showHelp()
     end
     for _,category in ipairs(aqo.config.categories()) do
         output = output .. '\n\ay' .. category .. ' configuration:\aw'
-        for cfgName, cfg in pairs(aqo.config.getByCategory(category)) do
+        for _,key in ipairs(aqo.config.getByCategory(category)) do
+            local cfg = aqo.config[key]
             if type(cfg) == 'table' and (not cfg.classes or cfg.classes[myClass]) then
-                output = output .. prefix .. cfgName .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
+                output = output .. prefix .. key .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
             end
         end
     end

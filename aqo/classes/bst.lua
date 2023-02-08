@@ -18,8 +18,7 @@ function class.init(_aqo)
     class.initHeals(_aqo)
     class.initBuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
-
-    table.insert(class.recoverAbilities, class.fParagon)
+    class.initRecoverAbilities(_aqo)
 end
 
 function class.initClassOptions()
@@ -109,6 +108,10 @@ function class.initDefensiveAbilities(_aqo)
         mq.cmdf('/multiline ; /stand ; /makemevis')
     end
     table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
+end
+
+function class.initRecoverAbilities(_aqo)
+    table.insert(class.recoverAbilities, class.fParagon)
 end
 
 function class.recoverClass()

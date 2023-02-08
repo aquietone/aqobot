@@ -30,8 +30,8 @@ function class.init(_aqo)
 
     if class.spells.mezst then
         function class.beforeMez()
-            if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.tash then
-                class.tash:use()
+            if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.spells.tash then
+                class.spells.tash:use()
             end
             return true
         end
@@ -288,17 +288,27 @@ end
 function class.recover()
     -- modrods
     common.checkMana()
-    if mq.TLO.Me.PctMana() < 20 then
-        if class.gathermana and class.gathermana:use() then return end
-    end
-    if mq.TLO.Me.PctMana() < 20 then
-        if class.manadraw and class.manadraw:use() then return end
-    end
+    --if mq.TLO.Me.PctMana() < 20 then
+    --    if class.gathermana and class.gathermana:use() then return end
+    --end
+    --if mq.TLO.Me.PctMana() < 20 then
+    --    if class.manadraw and class.manadraw:use() then return end
+    --end
     if mq.TLO.Me.PctMana() < 70 and class.azure then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(class.azure.name) then mq.cmd('/autoinventory') end
         local manacrystal = mq.TLO.FindItem(class.azure.name)
         common.useItem(manacrystal)
+    end
+    if mq.TLO.Me.PctMana() < 25 and mq.TLO.Me.PctHPs() > 70 then
+        local manastone = mq.TLO.FindItem('Manastone')
+        if not manastone() then return end
+        local manastoneTimer = timer:new(1)
+        manastoneTimer:reset()
+        while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
+            mq.cmd('/useitem Manastone')
+            if manastoneTimer:timerExpired() then break end
+        end
     end
 end
 

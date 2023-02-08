@@ -206,8 +206,8 @@ local function drawSkillsTab()
 end
 
 local function drawHealTab()
+    config.HEALPCT.value = ui.drawInputInt('Heal Pct', '##healpct', config.HEALPCT.value, 'Percent HP to begin casting regular heals on self or others')
     if aqo.lists.healClasses[state.class] then
-        config.HEALPCT.value = ui.drawInputInt('Heal Pct', '##healpct', config.HEALPCT.value, 'Percent HP to begin casting regular heals')
         config.PANICHEALPCT.value = ui.drawInputInt('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT.value, 'Percent HP to begin casting panic heals')
         config.GROUPHEALPCT.value = ui.drawInputInt('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT.value, 'Percent HP to begin casting group heals')
         config.GROUPHEALMIN.value = ui.drawInputInt('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN.value, 'Minimum number of hurt group members to begin casting group heals')
@@ -287,6 +287,12 @@ local function drawRestTab()
     config.MEDMANASTOP.value = ui.drawInputInt('Med Mana Stop', '##medmanastop', config.MEDMANASTOP.value, 'Pct Mana to stop medding')
     config.MEDENDSTART.value = ui.drawInputInt('Med End Start', '##medendstart', config.MEDENDSTART.value, 'Pct End to begin medding')
     config.MEDENDSTOP.value = ui.drawInputInt('Med End Stop', '##medendstop', config.MEDENDSTOP.value, 'Pct End to stop medding')
+    if state.emu then
+        config.MANASTONESTART.value = ui.drawInputInt('Manastone Start', '##manastonestart', config.MANASTONESTART.value, 'Pct Mana to start using manastone')
+        config.MANASTONESTARTHP.value = ui.drawInputInt('Manastone Start HP', '##manastonestarthp', config.MANASTONESTARTHP.value, 'Only begin manastone if Pct HP above this pct')
+        config.MANASTONESTOPHP.value = ui.drawInputInt('Manastone Stop HP', '##manastonestophp', config.MANASTONESTOPHP.value, 'Stop manastone once Pct HP reaches this pct')
+        config.MANASTONETIME.value = ui.drawInputInt('Manastone Duration', '##manastonetime', config.MANASTONETIME.value, 'Use manastone for up to this number of seconds')
+    end
 end
 
 local function drawDebugComboBox()
@@ -611,7 +617,8 @@ local function drawHelpWindow()
             for _,category in ipairs(config.categories()) do
                 local categoryConfigs = config.getByCategory(category)
                 if ImGui.TreeNode(category..' Configuration') then
-                    for key,cfg in pairs(categoryConfigs) do
+                    for _,key in ipairs(categoryConfigs) do
+                        local cfg = config[key]
                         if type(cfg) == 'table' then
                             ImGui.TextColored(1,1,0,1,'/aqo ' .. key .. ' <' .. type(cfg.value) .. '>')
                             ImGui.SameLine()

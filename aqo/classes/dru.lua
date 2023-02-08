@@ -15,13 +15,11 @@ function class.init(_aqo)
     class.initSpellLines(_aqo)
     class.initSpellRotations(_aqo)
     class.initHeals(_aqo)
+    class.initCures(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
     class.initDebuffs(_aqo)
-
-    table.insert(class.cures, class.radiant)
-    --table.insert(class.cures, class.rgc)
 
     class.nuketimer = timer:new(5)
 end
@@ -57,6 +55,11 @@ function class.initHeals(_aqo)
     table.insert(class.healAbilities, class.spells.groupheal)
     table.insert(class.healAbilities, common.getAA('Convergence of Spirits', {panic=true}))
     table.insert(class.healAbilities, common.getAA('Peaceful Convergence of Spirits', {panic=true}))
+end
+
+function class.initCures(_aqo)
+    table.insert(class.cures, class.radiant)
+    table.insert(class.cures, class.spells.rgc) 
 end
 
 -- Group Spirit of the Black Wolf

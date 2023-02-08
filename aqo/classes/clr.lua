@@ -14,15 +14,12 @@ function class.init(_aqo)
     class.initSpellLines(_aqo)
     class.initSpellRotations(_aqo)
     class.initHeals(_aqo)
+    class.initCures(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
     class.initDebuffs(_aqo)
-
-    table.insert(class.cures, class.radiant)
-    --table.insert(class.cures, class.rgc)
-
-    table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
+    class.initRecoverAbilities(_aqo)
 
     class.rezAbility = common.getAA('Blessing of Resurrection')
 end
@@ -76,6 +73,11 @@ function class.initHeals(_aqo)
     table.insert(class.healAbilities, class.spells.hotdps)
 end
 
+function class.initCures(_aqo)
+    table.insert(class.cures, class.radiant)
+    table.insert(class.cures, class.spells.rgc)
+end
+
 function class.initBuffs(_aqo)
     -- Project Lazarus only
     local aaAura = common.getAA('Spirit Mastery', {checkfor='Aura of Pious Divinity'})
@@ -127,6 +129,10 @@ end
 
 function class.initDebuffs(_aqo)
     table.insert(class.debuffs, class.spells.mark)
+end
+
+function class.initRecoverAbilities(_aqo)
+    table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
 end
 
 return class

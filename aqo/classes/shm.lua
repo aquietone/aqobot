@@ -15,20 +15,13 @@ function class.init(_aqo)
     class.initSpellConditions(_aqo)
     class.initSpellRotations(_aqo)
     class.initHeals(_aqo)
+    class.initCures(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
     class.initDebuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
-
-    table.insert(class.cures, class.spells.cure)
-
-    table.insert(class.cures, class.radiant)
-    table.insert(class.cures, class.rgc)
-
-    class.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
-    table.insert(class.recoverAbilities, class.canni)
-    table.insert(class.recoverAbilities, class.spells.canni)
+    class.initRecoverAbilities(_aqo)
 
     class.nuketimer = timer:new(3)
 end
@@ -94,8 +87,9 @@ end
 function class.initBurns(_aqo)
     local epic = common.getItem('Blessed Spiritstaff of the Heyokah', {opt='USEEPIC'}) or common.getItem('Crafted Talisman of Fates', {opt='USEEPIC'})
 
-    table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
+    --table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
     table.insert(class.burnAbilities, epic)
+    table.insert(class.burnAbilities, common.getAA('Rabid Bear'))
 end
 
 function class.initHeals(_aqo)
@@ -104,6 +98,12 @@ function class.initHeals(_aqo)
     table.insert(class.healAbilities, class.spells.hottank)
     table.insert(class.healAbilities, class.spells.hotdps)
     table.insert(class.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
+end
+
+function class.initCures(_aqo)
+    table.insert(class.cures, class.spells.cure)
+    table.insert(class.cures, class.radiant)
+    table.insert(class.cures, class.spells.rgc)
 end
 
 function class.initBuffs(_aqo)
@@ -141,6 +141,12 @@ end
 
 function class.initDefensiveAbilities(_aqo)
     table.insert(class.defensiveAbilities, common.getAA('Ancestral Guard'))
+end
+
+function class.initRecoverAbilities(_aqo)
+    class.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
+    table.insert(class.recoverAbilities, class.canni)
+    table.insert(class.recoverAbilities, class.spells.canni)
 end
 
 return class

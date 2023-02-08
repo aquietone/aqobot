@@ -30,11 +30,7 @@ function class.init(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
-
-    -- Mana Recovery AAs
-    class.rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
-    table.insert(class.recoverAbilities, class.rallyingsolo)
-    class.rallyingcall = common.getAA('Rallying Call')
+    class.initRecoverAbilities(_aqo)
 
     -- Bellow handled separately as we want it to run its course and not be refreshed early
     class.bellow = common.getAA('Boastful Bellow')
@@ -211,6 +207,13 @@ function class.initDefensiveAbilities(_aqo)
         mq.cmd('/multiline ; /makemevis ; /attack on')
     end
     table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
+end
+
+function class.initRecoverAbilities(_aqo)
+    -- Mana Recovery AAs
+    class.rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
+    table.insert(class.recoverAbilities, class.rallyingsolo)
+    class.rallyingcall = common.getAA('Rallying Call')
 end
 
 local selosTimer = timer:new(30)

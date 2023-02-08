@@ -13,8 +13,7 @@ function class.init(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
-
-    table.insert(class.healAbilities, common.getSkill('Mend', {me=60, self=true}))
+    class.initHeals(_aqo)
 end
 
 function class.initClassOptions()
@@ -53,6 +52,10 @@ function class.initDefensiveAbilities(_aqo)
     end
     table.insert(class.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
     table.insert(class.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
+end
+
+function class.initHeals(_aqo)
+    table.insert(class.healAbilities, common.getSkill('Mend', {me=60, self=true}))
 end
 
 return class

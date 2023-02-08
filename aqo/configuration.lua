@@ -211,6 +211,26 @@ local config = {
         tip = 'The Percent Endurance to stop medding at',
         alias = 'medendstop',
     },
+    MANASTONESTART = {
+        value = 35,
+        tip = 'Percent Mana to begin spamming manastone (EMU only)',
+        alias = 'manastonestart',
+    },
+    MANASTONESTARTHP = {
+        value = 75,
+        tip = 'Minimum Percent HP to begin spamming manastone (EMU only)',
+        alias = 'manastonestarthp',
+    },
+    MANASTONESTOPHP = {
+        value = 50,
+        tip = 'Percent HP to stop spamming manastone (EMU only)',
+        alias = 'manastonestophp',
+    },
+    MANASTONETIME = {
+        value = 1,
+        tip = 'Duration, in seconds, to spam manastone (EMU only)',
+        alias = 'manastonetime',
+    },
 
     -- Other settings
     LOOTMOBS = {
@@ -262,25 +282,22 @@ function config.getAll()
     return configMap
 end
 
-local categories = {'Assist', 'Camp', 'Burn', 'Heal', 'Pull'}
+local categories = {'Assist', 'Camp', 'Burn', 'Heal', 'Pull', 'Rest', 'Debug'}
 function config.categories()
     return categories
 end
 
 local configByCategory = {
-    Assist={'AUTOASSISTAT','ASSIST','ASSISTNAMES','SWITCHWITHMA','MEDCOMBAT','RESISTSTOPCOUNT'},
+    Assist={'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','RESISTSTOPCOUNT'},
     Camp={'MODE','CAMPRADIUS','CHASETARGET','CHASEDISTANCE','MAINTANK','LOOTMOBS','AUTODETECTRAID'},
-    Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY','RECOVERPCT'},
-    Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','PULLWITH'},
+    Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY'},
+    Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','PULLWITH'},
     Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET'},
+    Rest={'MEDCOMBAT','RECOVERPCT','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','MANASTONESTART','MANASTONESTARTHP','MANASTONESTOPHP','MANASTONETIME'},
     Debug={'TIMESTAMPS'}
 }
 function config.getByCategory(category)
-    local configMap = {}
-    for _,key in ipairs(configByCategory[category]) do
-        configMap[key] = config[key]
-    end
-    return configMap
+    return configByCategory[category]
 end
 
 ---Get or set the specified configuration option. Currently applies to pull settings only.
