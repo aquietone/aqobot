@@ -166,10 +166,6 @@ function class.initSpellRotations(_aqo)
 end
 
 function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getAA('Cacophony', {opt='USECACOPHONY'}))
-    -- Delay after using swarm pet AAs while pets are spawning
-    table.insert(class.DPSAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
-    table.insert(class.DPSAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
     table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
     table.insert(class.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
@@ -189,6 +185,10 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Flurry of Notes'))
     table.insert(class.burnAbilities, common.getAA('Frenzied Kicks'))
     table.insert(class.burnAbilities, common.getBestDisc({'Thousand Blades'}))
+    table.insert(class.burnAbilities, common.getAA('Cacophony', {opt='USECACOPHONY'}))
+    -- Delay after using swarm pet AAs while pets are spawning
+    table.insert(class.burnAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
+    table.insert(class.burnAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
 
     table.insert(class.burnAbilities, common.getAA('A Tune Stuck In Your Head'))
     table.insert(class.burnAbilities, common.getBestDisc({'Puretone Discipline'}))

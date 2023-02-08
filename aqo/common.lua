@@ -107,7 +107,7 @@ function common.getBestDisc(discs, options)
         local bestDisc = getDisc(discName)
         if bestDisc then
             print(logger.logLine('Found Disc: %s (%s)', bestDisc.name, bestDisc.id))
-            local disc = ability.Disc:new(bestDisc.id, bestDisc.name, options)
+            local disc = ability.Disc:new(bestDisc.id, bestDisc.name, bestDisc.targettype, options)
             return disc
         end
     end

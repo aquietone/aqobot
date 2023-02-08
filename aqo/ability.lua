@@ -237,10 +237,11 @@ local Disc = {}
 ---Initialize a new spell instance
 ---@param ID number|nil #
 ---@param name string|nil #
+---@param targettype string|nil #
 ---@param options table|nil #
 ---@return Ability #
-function Disc:new(ID, name, options)
-    local disc = Ability:new(ID, name, AbilityTypes.Disc, nil, options)
+function Disc:new(ID, name, targettype, options)
+    local disc = Ability:new(ID, name, AbilityTypes.Disc, targettype, options)
     setmetatable(disc, self)
     self.__index = self
     return disc

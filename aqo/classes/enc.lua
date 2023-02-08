@@ -288,12 +288,13 @@ end
 function class.recover()
     -- modrods
     common.checkMana()
-    local pct_mana = state.loop.PctMana
-    if class.gathermana and pct_mana < 50 then
-        -- death bloom at some %
-        class.gathermana:use()
+    if mq.TLO.Me.PctMana() < 20 then
+        if class.gathermana and class.gathermana:use() then return end
     end
-    if pct_mana < 75 and class.azure then
+    if mq.TLO.Me.PctMana() < 20 then
+        if class.manadraw and class.manadraw:use() then return end
+    end
+    if mq.TLO.Me.PctMana() < 70 and class.azure then
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(class.azure.name) then mq.cmd('/autoinventory') end
         local manacrystal = mq.TLO.FindItem(class.azure.name)
