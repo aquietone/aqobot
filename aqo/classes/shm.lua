@@ -123,6 +123,7 @@ function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, class.spells.champion)
     table.insert(class.singleBuffs, class.spells.focus)
     table.insert(class.singleBuffs, class.spells.talisman)
+    table.insert(class.singleBuffs, common.getAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}}))
     --table.insert(class.groupBuffs, common.getAA('Group Pact of the Wolf', {group=true, self=false}))
     --table.insert(class.groupBuffs, class.spells.talisman)
     -- pact of the wolf, remove pact of the wolf effect

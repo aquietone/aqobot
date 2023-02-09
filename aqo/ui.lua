@@ -279,7 +279,7 @@ local function drawRestTab()
     config.MEDMANASTOP.value = ui.drawInputInt('Med Mana Stop', '##medmanastop', config.MEDMANASTOP.value, 'Pct Mana to stop medding')
     config.MEDENDSTART.value = ui.drawInputInt('Med End Start', '##medendstart', config.MEDENDSTART.value, 'Pct End to begin medding')
     config.MEDENDSTOP.value = ui.drawInputInt('Med End Stop', '##medendstop', config.MEDENDSTOP.value, 'Pct End to stop medding')
-    if state.emu then
+    if state.emu and mq.TLO.Me.Class.CanCast() then
         config.MANASTONESTART.value = ui.drawInputInt('Manastone Start', '##manastonestart', config.MANASTONESTART.value, 'Pct Mana to start using manastone')
         config.MANASTONESTARTHP.value = ui.drawInputInt('Manastone Start HP', '##manastonestarthp', config.MANASTONESTARTHP.value, 'Only begin manastone if Pct HP above this pct')
         config.MANASTONESTOPHP.value = ui.drawInputInt('Manastone Stop HP', '##manastonestophp', config.MANASTONESTOPHP.value, 'Stop manastone once Pct HP reaches this pct')

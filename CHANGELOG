@@ -1,3 +1,6 @@
+# 2023/02/08
+- manastone options only visible in ui for mana users
+
 # 2023/02/07
 - Move XTARGETHEAL to common configuration for healer classes
 - All classes can now rez in combat with rez tokens
