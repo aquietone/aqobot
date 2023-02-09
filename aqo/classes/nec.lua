@@ -393,12 +393,12 @@ function class.burnClass()
         mq.delay(1500)
     end
 
-    if class.OPTS.USEGLYPH.value and class.intensity and class.glyph then
+    if class.isEnabled('USEGLYPH') and class.intensity and class.glyph then
         if not mq.TLO.Me.Song(class.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.glyph:use()
         end
     end
-    if class.OPTS.USEINTENSITY.value and class.glyph and class.intensity then
+    if class.isEnabled('USEINTENSITY') and class.glyph and class.intensity then
         if not mq.TLO.Me.Buff(class.glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.intensity:use()
         end
@@ -422,7 +422,7 @@ function class.preburn()
         aa:use()
     end
 
-    if class.OPTS.USEGLYPH.value and class.intensity and class.glyph then
+    if class.isEnabled('USEGLYPH') and class.intensity and class.glyph then
         if not mq.TLO.Me.Song(class.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.glyph:use()
         end
