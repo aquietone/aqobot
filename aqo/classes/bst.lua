@@ -36,6 +36,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}, {swap=true}) -- pet buff
     class.addSpell('petheal', {'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
     class.addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
+    class.addSpell('nuke2', {'Glacier Spear'}, {opt='USENUKES'})
     class.addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
     class.addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
     class.addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
@@ -48,8 +49,9 @@ end
 
 function class.initSpellRotations()
     table.insert(class.spellRotations.standard, class.spells.swarmpet)
-    table.insert(class.spellRotations.standard, class.spells.nuke)
     table.insert(class.spellRotations.standard, class.spells.dot)
+    table.insert(class.spellRotations.standard, class.spells.nuke)
+    table.insert(class.spellRotations.standard, class.spells.nuke2)
 end
 
 function class.initDPSAbilities(_aqo)

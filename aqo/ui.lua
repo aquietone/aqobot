@@ -555,6 +555,13 @@ local function drawAbilityInspector()
                             end
                             ImGui.TreePop()
                         end
+                    elseif list == 'clickies' then
+                        if ImGui.TreeNode(list..'##lists'..i) then
+                            for clickyName,clickyType in pairs(aqo.class.clickies) do
+                                ImGui.Text('%s (%s)', clickyName, clickyType)
+                            end
+                            ImGui.TreePop()
+                        end
                     end
                 end
                 ImGui.TreePop()

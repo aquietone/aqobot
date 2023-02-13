@@ -204,6 +204,21 @@ function assist.checkTarget(resetTimers)
         if assist.shouldAssist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
+                --[[
+                state.acquireTarget = assist_target.ID()
+                state.queuedAction = function()
+                    state.assist_mob_id = assist_target.ID()
+                    if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
+                    if mq.TLO.Target.ID() ~= originalTargetID then
+                        reset_combat_timers()
+                        if reset_timers then reset_timers() end
+                        printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
+                    end
+                end
+                state.actionTaken = true
+                state.acquireTargetTimer:reset()
+                return true
+                ]]
             end
             state.assistMobID = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -226,6 +241,11 @@ function assist.getCombatPosition()
         return
     end
     movement.navToTarget(nil, 5000)
+    --[[
+    movement.navToTarget('dist='max_range_to*.6)
+    state.positioning = true
+    state.positioningTimer:reset()
+    ]]
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
@@ -235,6 +255,11 @@ function assist.checkLOS()
         local maxRangeTo = (mq.TLO.Target.MaxRangeTo() or 0) + 20
         if not mq.TLO.Target.LineOfSight() and maxRangeTo then
             movement.navToTarget('dist='..maxRangeTo, 5000)
+            --[[
+            movement.navToTarget('dist='..maxRangeTo*.6)
+            state.positioning = true
+            state.positioningTimer:reset()
+            ]]
         end
     end
 end

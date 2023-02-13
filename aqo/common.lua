@@ -415,9 +415,14 @@ end
 function common.useItem(item)
     if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
     if itemReady(item) then
+        --state.casting = common.getItem(item.Name())
         print(logger.logLine('Use Item: \ag%s\ax', item))
         if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
         mq.cmdf('/useitem "%s"', item)
+        --[[
+        state.actionTaken = true
+        return true
+        ]]
         mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
         return true
     end
@@ -495,6 +500,12 @@ function common.swapSpell(spell, gem, other_names)
     if mq.TLO.Me.Gem(gem)() == spell.name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.name)
+    --[[
+    state.actionTaken = true
+    state.memSpell = spell
+    state.memSpellTimer:reset()
+    return true
+    ]]
     -- Low meditate skill or non-casters may take more time to memorize stuff
     mq.delay(15000, function() return common.swapGemReady(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
     logger.debug(logger.flags.common.memspell, "Delayed for mem_spell "..spell.name)
@@ -521,6 +532,24 @@ function common.swapAndCast(spell, gem)
         end
     end
     return did_cast
+    --[[
+    if not mq.TLO.Me.Gem(spell.name)() then
+        state.restore_gem = {name=mq.TLO.Me.Gem(gem)(),gem=gem}
+        if not common.swap_spell(spell, gem) then
+            -- failed to mem?
+            return
+        end
+        state.queuedAction = function()
+            spell:use()
+            if state.restore_gem then
+                return function()
+                    common.swap_spell(state.restore_gem, gem)
+                end
+            end
+        end
+        return true
+    end
+    ]]
 end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
@@ -551,9 +580,12 @@ function common.checkItemBuffs()
     end
 end
 
+local modrods = {['Summoned: Dazzling Modulation Shard']=true,['Sickle of Umbral Modulation']=true,['Wand of Restless Modulation']=true,
+                ['Summoned: Large Modulation Shard']=true, ['Summoned: Medium Modulation Shard']=true, ['Summoned: Small Modulation Shard']=true, ['Azure Mind Crystal']=true}
 ---Attempt to click mod rods if mana is below 75%.
 function common.checkMana()
     -- modrods
+    if not mq.TLO.Me.Class.CanCast() then return end
     local pct_mana = state.loop.PctMana
     local pct_end = state.loop.PctEndurance
     local group_mana = mq.TLO.Group.LowMana(70)()
@@ -564,13 +596,20 @@ function common.checkMana()
             mq.cmd('/autoinventory')
             mq.delay(50)
         end
+        -- Find ModRods in check_mana since they poof when out of charges, can't just find once at startup.
+        for item,_ in pairs(modrods) do
+            local modrod = mq.TLO.FindItem(item)
+            if mq.TLO.Me.PctHPs() > 70 then
+                common.useItem(modrod)
+            end
+        end
         -- Find ModRods in checkMana since they poof when out of charges, can't just find once at startup.
-        local item_aa_modrod = mq.TLO.FindItem('Summoned: Dazzling Modulation Shard')
-        common.useItem(item_aa_modrod)
-        local item_wand_modrod = mq.TLO.FindItem('Sickle of Umbral Modulation')
-        common.useItem(item_wand_modrod)
-        local item_wand_old = mq.TLO.FindItem('Wand of Restless Modulation')
-        common.useItem(item_wand_old)
+        --local item_aa_modrod = mq.TLO.FindItem('Summoned: Dazzling Modulation Shard')
+        --common.useItem(item_aa_modrod)
+        --local item_wand_modrod = mq.TLO.FindItem('Sickle of Umbral Modulation')
+        --common.useItem(item_wand_modrod)
+        --local item_wand_old = mq.TLO.FindItem('Wand of Restless Modulation')
+        --common.useItem(item_wand_old)
         -- use feather for self if not grouped (group.LowMana is null if not grouped)
         if feather() and not group_mana and not mq.TLO.Me.Song(feather.Spell.Name())() then
             common.useItem(feather)
@@ -581,12 +620,14 @@ function common.checkMana()
         common.useItem(feather)
     end
 
-    local manastone = mq.TLO.FindItem('Manastone')
-    if manastone() and mq.TLO.Me.PctMana() < config.MANASTONESTART.value and state.loop.PctHPs > config.MANASTONESTARTHP.value then
-        local manastoneTimer = timer:new(config.MANASTONETIME.value)
-        manastoneTimer:reset()
-        while mq.TLO.Me.PctHPs() > config.MANASTONESTOPHP.value and not manastoneTimer:timerExpired() do
-            mq.cmd('/useitem manastone')
+    if mq.TLO.Zone.ShortName() ~= 'poknowledge' then
+        local manastone = mq.TLO.FindItem('Manastone')
+        if manastone() and mq.TLO.Me.PctMana() < config.MANASTONESTART.value and state.loop.PctHPs > config.MANASTONESTARTHP.value then
+            local manastoneTimer = timer:new(config.MANASTONETIME.value)
+            manastoneTimer:reset()
+            while mq.TLO.Me.PctHPs() > config.MANASTONESTOPHP.value and not manastoneTimer:timerExpired() do
+                mq.cmd('/useitem manastone')
+            end
         end
     end
 end
@@ -677,6 +718,20 @@ function common.processList(aList, returnOnFirstUse)
             if used and returnOnFirstUse then return end
         end
     end
+end
+
+--Shamelessly stolen from Rekka and E3Next
+function common.amIDead()
+    for i=1,10 do
+        local slot = mq.TLO.Me.Inventory('pack'..i)
+        if slot() then
+            return false
+        end
+    end
+    if mq.TLO.Me.Inventory('Chest')() then
+        return false
+    end
+    return true
 end
 
 return common

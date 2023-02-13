@@ -183,8 +183,8 @@ function commands.commandHandler(...)
         end
     elseif opt == 'listclickies' then
         local clickies = ''
-        for _,clicky in ipairs(aqo.class.clickies) do
-            clickies = clickies .. '\n- ' .. clicky.name .. ' (' .. clicky.clickyType .. ')'
+        for clickyName,clickyType in pairs(aqo.class.clickies) do
+            clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clickyType .. ')'
         end
         print(aqo.logger.logLine('Clickies: %s', clickies))
     elseif opt == 'invis' then
@@ -229,6 +229,8 @@ function commands.commandHandler(...)
     elseif opt == 'sicklist' then
         local sickList = aqo.common.split(args[3])
         aqo.state.sick[new_value] = sickList
+    elseif opt == 'armpets' then
+        aqo.class.armPets()
     else
         commands.classSettingsHandler(opt:upper(), new_value)
     end

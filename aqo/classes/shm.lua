@@ -5,7 +5,7 @@ local timer = require('utils.timer')
 local common = require('common')
 
 function class.init(_aqo)
-    class.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'buff', 'rest', 'managepet'}
+    class.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
     class.spellRotations = {standard={}}
     class.initBase(_aqo, 'shm')
 
@@ -22,6 +22,8 @@ function class.init(_aqo)
     class.initDebuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
     class.initRecoverAbilities(_aqo)
+
+    class.rezAbility = common.getAA('Call of the Wild')
 
     class.nuketimer = timer:new(3)
 end

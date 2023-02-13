@@ -186,68 +186,55 @@ function base.addSpell(spellGroup, spellList, options)
     end
 end
 
+function base.getTableForClicky(clickyType)
+    if clickyType == 'burn' then
+        return base.burnAbilities
+    elseif clickyType == 'mash' then
+        return base.DPSAbilities
+    elseif clickyType == 'cast' then
+        return base.castClickies
+    elseif clickyType == 'heal' then
+        return base.healAbilities
+    elseif clickyType == 'mana' then
+    elseif clickyType == 'dispel' then
+    elseif clickyType == 'cure' then
+    elseif clickyType == 'combatbuff' then
+        return base.combatBuffs
+    elseif clickyType == 'buff' then
+        return base.selfBuffs
+    elseif clickyType == 'pull' then
+        return base.pullClickies
+    else
+        print(logger.logLine('Unknown clicky type: %s', clickyType))
+        return nil
+    end
+end
+
 function base.addClicky(clicky)
+    base.clickies[clicky.name] = clicky.clickyType
     local item = mq.TLO.FindItem('='..clicky.name)
     if item.Clicky() then
-        if clicky.clickyType == 'burn' then
-            table.insert(base.burnAbilities, common.getItem(clicky.name))
-        elseif clicky.clickyType == 'mash' then
-            table.insert(base.DPSAbilities, common.getItem(clicky.name))
-        elseif clicky.clickyType == 'cast' then
-            table.insert(base.castClickies, common.getItem(clicky.name))
-        elseif clicky.clickyType == 'heal' then
-            table.insert(base.healAbilities, common.getItem(clicky.name))
-        elseif clicky.clickyType == 'mana' then
-        elseif clicky.clickyType == 'dispel' then
-        elseif clicky.clickyType == 'cure' then
-        elseif clicky.clickyType == 'combatbuff' then
-            table.insert(base.combatBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
-        elseif clicky.clickyType == 'buff' then
-            table.insert(base.selfBuffs, common.getItem(clicky.name, {checkfor=item.Clicky.Spell()}))
-        elseif clicky.clickyType == 'pull' then
-            table.insert(base.pullClickies, common.getItem(clicky.name))
-        else
-            print(logger.logLine('Unknown clicky type: %s', clicky.clickyType))
-            return
+        local t = base.getTableForClicky(clicky.clickyType)
+        if t then
+            table.insert(t, common.getItem(clicky.name))
         end
-        table.insert(base.clickies, clicky)
         print(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
     end
 end
 
 function base.removeClicky(itemName)
-    for i,clicky in ipairs(base.clickies) do
-        if clicky.name == itemName then
-            table.remove(base.clickies, i)
-            local t
-            if clicky.clickyType == 'burn' then
-                t = base.burnAbilities
-            elseif clicky.clickyType == 'mash' then
-                t = base.DPSAbilities
-            elseif clicky.clickyType == 'cast' then
-                t = base.castClickies
-            elseif clicky.clickyType == 'mana' then
-            elseif clicky.clickyType == 'dispel' then
-            elseif clicky.clickyType == 'cure' then
-            elseif clicky.clickyType == 'heal' then
-                t = base.healAbilities
-            elseif clicky.clickyType == 'buff' then
-                t = base.selfBuffs
-            elseif clicky.clickyType == 'combatbuff' then
-                t = base.combatBuffs
-            elseif clicky.clickyType == 'pull' then
-                t = base.pullClickies
-            else
-                print(logger.logLine('Unknown clicky type: %s', clicky.clickyType))
-                return
-            end
-            for j,entry in ipairs(t) do
-                if entry.name == itemName then
-                    table.remove(t, j)
-                    print(logger.logLine('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
-                    return
-                end
-            end
+    local clickyType = base.clickies[itemName]
+    if not clickyType then
+        -- clicky not found
+        return
+    end
+    local t = base.getTableForClicky(clickyType)
+    if not t then return end
+    for i,entry in ipairs(t) do
+        if entry.name == itemName then
+            table.remove(t, i)
+            print(logger.logLine('Removed \ay%s\ax clicky: \ag%s\ax', clickyType, itemName))
+            return
         end
     end
 end
@@ -275,6 +262,9 @@ function base.loadSettings()
             base.addClicky(clicky)
         end
     end
+    if settings.petWeapons then
+        base.petWeapons = settings.petWeapons
+    end
 end
 
 function base.saveSettings()
@@ -284,6 +274,7 @@ function base.saveSettings()
 end
 
 function base.assist()
+    if common.amIDead() then return end
     if lists.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
     --if lists.healClasses[base.class] and config.ASSIST.value == 'manual' then return end
     if config.MODE.value:isAssistMode() then
@@ -514,6 +505,7 @@ function base.cast()
 end
 
 function base.buff()
+    if common.amIDead() then return end
     if base.doneSinging and not base.doneSinging() then return end
     if state.medding and config.MEDCOMBAT.value then return end
     if buffing.buff(base) then state.actionTaken = true end
@@ -581,6 +573,7 @@ function base.ohshit()
 end
 
 function base.recover()
+    if common.amIDead() then return end
     if lists.DMZ[mq.TLO.Zone.ID()] or (mq.TLO.Me.Level() == 70 and mq.TLO.Me.MaxHPs() < 6000) or mq.TLO.Me.Buff('Resurrection Sickness')() then return end
     if base.recoverClass then base.recoverClass() end
     -- modrods

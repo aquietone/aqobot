@@ -163,6 +163,18 @@ local function doLooting()
     end
 end
 
+local function handleStates()
+    -- Async state handling
+    if aqo.state.looting then aqo.loot.lootMobs() return true end
+    if aqo.state.selling then aqo.loot.sellStuff() return true end
+    if aqo.state.banking then aqo.loot.bankStuff() return true end
+    if not aqo.state.handleTargetState() then return true end
+    if not aqo.state.handlePositioningState() then return true end
+    if not aqo.state.handleMemSpell() then return true end
+    if not aqo.state.handleCastingState() then return true end
+    if not aqo.state.handleQueuedAction() then return true end
+end
+
 local function main()
     init()
 
@@ -173,45 +185,48 @@ local function main()
             aqo.logger.debug(aqo.logger.flags.aqo.main, 'Start Main Loop')
             debugTimer:reset()
         end
-        mq.doevents()
-        updateLoopState()
-        detectRaidOrGroup()
-        buffSafetyCheck()
-        if not aqo.state.paused and aqo.common.inControl() then
-            aqo.camp.cleanTargets()
-            checkTarget()
-            if not aqo.state.loop.Invis and not aqo.common.isBlockingWindowOpen() then
-                -- do active combat assist things when not paused and not invis
-                checkFD()
-                aqo.common.checkCursor()
-                if aqo.state.emu then
-                    doLooting()
+
+        if not aqo.state.useStateMachine or not handleStates() then
+            mq.doevents()
+            updateLoopState()
+            detectRaidOrGroup()
+            buffSafetyCheck()
+            if not aqo.state.paused and aqo.common.inControl() then
+                aqo.camp.cleanTargets()
+                checkTarget()
+                if not aqo.state.loop.Invis and not aqo.common.isBlockingWindowOpen() then
+                    -- do active combat assist things when not paused and not invis
+                    checkFD()
+                    aqo.common.checkCursor()
+                    if aqo.state.emu then
+                        doLooting()
+                    end
+                    if not aqo.state.actionTaken then
+                        aqo.class.mainLoop()
+                    end
+                    mq.delay(50)
+                else
+                    -- stay in camp or stay chasing chase target if not paused but invis
+                    local pet_target_id = mq.TLO.Pet.Target.ID() or 0
+                    if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
+                    aqo.camp.mobRadar()
+                    if (aqo.mode:isTankMode() and aqo.state.mobCount > 0) or (aqo.mode:isAssistMode() and aqo.assist.shouldAssist()) then mq.cmd('/makemevis') end
+                    aqo.camp.checkCamp()
+                    aqo.common.checkChase()
+                    aqo.common.rest()
+                    mq.delay(50)
                 end
-                if not aqo.state.actionTaken then
-                    aqo.class.mainLoop()
-                end
-                mq.delay(50)
             else
-                -- stay in camp or stay chasing chase target if not paused but invis
-                local pet_target_id = mq.TLO.Pet.Target.ID() or 0
-                if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
-                aqo.camp.mobRadar()
-                if (aqo.mode:isTankMode() and aqo.state.mobCount > 0) or (aqo.mode:isAssistMode() and aqo.assist.shouldAssist()) then mq.cmd('/makemevis') end
-                aqo.camp.checkCamp()
-                aqo.common.checkChase()
-                aqo.common.rest()
-                mq.delay(50)
+                if aqo.state.loop.Invis then
+                    -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
+                    local pet_target_id = mq.TLO.Pet.Target.ID() or 0
+                    if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
+                end
+                mq.delay(500)
             end
-        else
-            if aqo.state.loop.Invis then
-                -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
-                local pet_target_id = mq.TLO.Pet.Target.ID() or 0
-                if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
-            end
-            mq.delay(500)
+            -- broadcast some buff and poison/disease/curse state around netbots style
+            aqo.buff.broadcast()
         end
-        -- broadcast some buff and poison/disease/curse state around netbots style
-        aqo.buff.broadcast()
     end
 end
 

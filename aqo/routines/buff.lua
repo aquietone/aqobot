@@ -373,8 +373,27 @@ end
 end]]
 
 local buffCombatTimer = timer:new(5)
-local buffOOCTimer = timer:new(60)
+local buffOOCTimer = timer:new(10)
+local checkClickiesLoadedTimer = timer:new(300)
 function buff.buff(base)
+    if checkClickiesLoadedTimer:timerExpired() then
+        for clickyName,clickyType in pairs(base.clickies) do
+            local t = base.getTableForClicky(clickyType)
+            if t then
+                local found = false
+                for _,clicky in ipairs(t) do
+                    if clicky.name == clickyName then
+                        found = true
+                        break
+                    end
+                end
+                if not found then
+                    base.addClicky({name=clickyName, clickyType=clickyType})
+                end
+            end
+        end
+        checkClickiesLoadedTimer:reset()
+    end
     if not buffCombatTimer:timerExpired() then return end
     buffCombatTimer:reset()
     if buffCombat(base) then return true end
