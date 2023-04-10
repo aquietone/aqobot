@@ -28,14 +28,7 @@ end
 function debuff.findNextDebuff(opt)
     for _,ability in ipairs(aqo.class.debuffs) do
         if ability.opt == opt and debuff.shouldUseDebuff(ability) then
-            if aqo.state.useStateMachine then
-                if abilities.use(ability) then return true end
-            else
-                if ability:use() then
-                    aqo.state.actionTaken = true
-                    return true
-                end
-            end
+            if abilities.use(ability) then return true end
         end
     end
 end

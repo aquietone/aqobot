@@ -28,17 +28,9 @@ end
 
 local function summonItem(buff)
     if mq.TLO.FindItemCount(buff.SummonID)() < (buff.summonMinimum or 1) and not mq.TLO.Me.Moving() and (not buff.summonComponent or mq.TLO.FindItemCount(buff.summonComponent)() > 0) then
-        if state.useStateMachine then
-            if abilities.use(buff) then
-                state.queuedAction = function() mq.cmd('/autoinv') end
-                return true
-            end
-        else
-            buff:use()
-            if mq.TLO.Cursor() then
-                mq.delay(50)
-                mq.cmd('/autoinv')
-            end
+        if abilities.use(buff) then
+            state.queuedAction = function() mq.cmd('/autoinv') end
+            return true
         end
     end
 end
@@ -57,14 +49,8 @@ local function buffCombat(base)
                     summonItem(buff)
                 else
                     local buffName = buff.CheckFor or buff.Name
-                    if state.useStateMachine then
-                        if not haveBuff(buffName) and (not buff.skipifbuff or not mq.TLO.Me.Buff(buff.skipifbuff)()) then
-                            abilities.use(buff)
-                        end
-                    else
-                        if not haveBuff(buffName) and (not buff.skipifbuff or not mq.TLO.Me.Buff(buff.skipifbuff)()) then
-                            buff:use()
-                        end
+                    if not haveBuff(buffName) and (not buff.skipifbuff or not mq.TLO.Me.Buff(buff.skipifbuff)()) then
+                        abilities.use(buff)
                     end
                 end
             end
@@ -77,29 +63,7 @@ local function buffAuras(base)
         local buffName = buff.Name
         if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
         if not mq.TLO.Me.Aura(buff.CheckFor)() and not mq.TLO.Me.Song(buffName)() then
-            if state.useStateMachine then
-                if abilities.use(buff) then return true end
-            else
-                if buff.CastType == abilities.Types.Spell then
-                    local restore_gem = nil
-                    if not mq.TLO.Me.Gem(buff.Name)() then
-                        restore_gem = {Name=mq.TLO.Me.Gem(state.swapGem)()}
-                        common.swapSpell(buff, state.swapGem)
-                    end
-                    mq.delay(3000, function() return mq.TLO.Me.Gem(buff.Name)() and mq.TLO.Me.GemTimer(buff.Name)() == 0 end)
-                    buff:use()
-                    -- project lazarus super long cast time special bard aura stupidity
-                    if state.emu and state.class == 'brd' then mq.delay(100) mq.delay(6000, function() return not mq.TLO.Window('CastingWindow').Open() end) end
-                    if restore_gem and restore_gem.Name then
-                        common.swapSpell(restore_gem, state.swapGem)
-                    end
-                elseif buff.CastType == abilities.Types.Disc then
-                    if buff:use() then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) end
-                elseif buff.CastType == abilities.Types.AA then
-                    buff:use()
-                end
-                return true
-            end
+            if abilities.use(buff) then return true end
         end
     end
 end
@@ -108,20 +72,20 @@ local function buffSelf(base)
     local originalTargetID = 0
     local result = false
     for _,buff in ipairs(base.selfBuffs) do
-        if buff.CastName then
+        --[[if buff.CastName then
             local buffName = buff.SpellName
             if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
             if not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buffName).Stacks() and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
                 castUtil.cast(buff)
             end
-        else
+        else]]
             local buffName = buff.Name -- TODO: buff name may not match AA or item name
             if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
             if buff.SummonID then
                 if base.isAbilityEnabled(buff.opt) and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
                     return summonItem(buff)
                 end
-            elseif state.useStateMachine then
+            else
                 if not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buff.Name).Stacks() and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
                     if buff.TargetType == 'Single' then mq.TLO.Me.DoTarget() end
                     result = abilities.use(buff, true)
@@ -146,37 +110,8 @@ local function buffSelf(base)
                         return result
                     end
                 end
-            elseif base.isAbilityEnabled(buff.opt) and not haveBuff(buffName) and not haveBuff(buff.CheckFor)
-                    and mq.TLO.Spell(buff.CheckFor or buff.Name).Stacks()
-                    and ((buff.TargetType ~= 'Pet' and buff.TargetType ~= 'Pet2') or mq.TLO.Pet.ID() > 0)
-                    and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
-                if buff.TargetType == 'Single' then
-                    originalTargetID = mq.TLO.Target.ID()
-                    mq.TLO.Me.DoTarget()
-                end
-                if buff.CastType == abilities.Types.Spell then
-                    if common.swapAndCast(buff, state.swapGem) then
-                        if originalTargetID == 0 then mq.cmdf('/squelch /mqtar clear') end
-                        result = true
-                    end
-                elseif buff.CastType == abilities.Types.Disc then
-                    result = buff:use()
-                    if not state.useStateMachine then mq.delay(3000, function() return mq.TLO.Me.Casting() == nil end) end
-                else
-                    result = buff:use()
-                end
-                if result then
-                    if state.useStateMachine and buff.RemoveBuff then
-                        state.queuedAction = function()
-                            mq.delay(100) mq.cmdf('/removebuff "%s"', buff.RemoveBuff)
-                        end
-                    else
-                        if buff.RemoveBuff then mq.delay(100) mq.cmdf('/removebuff "%s"', buff.RemoveBuff) end
-                    end
-                    return true
-                end
             end
-        end
+        --end
     end
 end
 
@@ -187,21 +122,11 @@ local function buffSingle(base)
         local memberClass = member.Class.ShortName()
         local memberDistance = member.Distance3D() or 300
         for _,buff in ipairs(base.singleBuffs) do
-            if state.useStateMachine then
-                if buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.Name)() and not member.Buff(buff.Name)() and not member.Dead() and memberDistance < 100 then
-                    member.DoTarget()
-                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
-                    if mq.TLO.Target.ID() == member.ID() and not mq.TLO.Target.Buff(buff.Name)() and mq.TLO.Spell(buff.Name).StacksTarget() then
-                        if abilities.use(buff) then return true end
-                    end
-                end
-            else
-                if base.isAbilityEnabled(buff.opt) and buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.Name)() and not member.Buff(buff.Name)() and not member.Dead() and memberDistance < 100 then
-                    member.DoTarget()
-                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
-                    if not mq.TLO.Target.Buff(buff.Name)() and mq.TLO.Spell(buff.Name).StacksTarget() then
-                        if buff:use() then return true end
-                    end
+            if buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.Name)() and not member.Buff(buff.Name)() and not member.Dead() and memberDistance < 100 then
+                member.DoTarget()
+                mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
+                if mq.TLO.Target.ID() == member.ID() and not mq.TLO.Target.Buff(buff.Name)() and mq.TLO.Spell(buff.Name).StacksTarget() then
+                    if abilities.use(buff) then return true end
                 end
             end
         end
@@ -269,25 +194,8 @@ local function buffPet(base)
         for _,buff in ipairs(base.petBuffs) do
             local tempName = buff.Name
             if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-            if state.useStateMachine then
-                if not mq.TLO.Pet.Buff(tempName)() and not mq.TLO.Pet.Buff(buff.CheckFor)() and mq.TLO.Spell(buff.CheckFor or buff.Name).StacksPet() and (not buff.skipifbuff or not mq.TLO.Pet.Buff(buff.skipifbuff)()) then
-                    if abilities.use(buff) then return end
-                end
-            else
-                if buff.CastType == abilities.Types.Spell then
-                    if not mq.TLO.Pet.Buff(tempName)() and mq.TLO.Spell(buff.Name).StacksPet() and mq.TLO.Spell(buff.Name).Mana() < mq.TLO.Me.CurrentMana() and (not buff.skipifbuff or not mq.TLO.Pet.Buff(buff.skipifbuff)()) then
-                        if common.swapAndCast(buff, state.swapGem) then return true end
-                    end
-                elseif buff.CastType == abilities.Types.AA then
-                    if not mq.TLO.Pet.Buff(buff.Name)() and mq.TLO.Me.AltAbilityReady(buff.Name)() and (not buff.CheckFor or not mq.TLO.Pet.Buff(buff.CheckFor)()) then
-                        buff:use()
-                    end
-                elseif buff.CastType == abilities.Types.Item then
-                    local item = mq.TLO.FindItem(buff.ID)
-                    if not mq.TLO.Pet.Buff(item.Spell.Name())() and (not buff.CheckFor or not mq.TLO.Pet.Buff(buff.CheckFor)()) then
-                        buff:use()
-                    end
-                end
+            if not mq.TLO.Pet.Buff(tempName)() and not mq.TLO.Pet.Buff(buff.CheckFor)() and mq.TLO.Spell(buff.CheckFor or buff.Name).StacksPet() and (not buff.skipifbuff or not mq.TLO.Pet.Buff(buff.skipifbuff)()) then
+                if abilities.use(buff) then return end
             end
         end
     end
@@ -369,16 +277,11 @@ function buff.buff(base)
     local originalTargetID = mq.TLO.Target.ID()
 
     if buffOOC(base) or buffPet(base) then
-        if state.useStateMachine then
-            local action = state.queuedAction
-            state.queuedAction = function()
-                local targetID = mq.TLO.Target.ID()
-                if targetID ~= 0 and originalTargetID ~= targetID then mq.cmd('/squelch /mqt clear') else mq.cmdf('/squelch /mqt id %s', originalTargetID) end
-                return action
-            end
-        else
+        local action = state.queuedAction
+        state.queuedAction = function()
             local targetID = mq.TLO.Target.ID()
             if targetID ~= 0 and originalTargetID ~= targetID then mq.cmd('/squelch /mqt clear') else mq.cmdf('/squelch /mqt id %s', originalTargetID) end
+            return action
         end
         return true
     end

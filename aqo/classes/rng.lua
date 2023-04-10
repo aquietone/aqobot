@@ -342,7 +342,7 @@ function class.cast()
                 return true
             end
             for _,clicky in ipairs(class.castClickies) do
-                if (clicky.Duration > 0 and mq.TLO.Target.Buff(clicky.CheckFor)()) or
+                if (clicky.DurationTotalSeconds > 0 and mq.TLO.Target.Buff(clicky.CheckFor)()) or
                         (clicky.MyCastTime >= 0 and mq.TLO.Me.Moving()) then
                     movement.stop()
                     if clicky:use() then return end

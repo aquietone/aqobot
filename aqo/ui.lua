@@ -309,7 +309,8 @@ local function drawDebugTab()
         ImGui.TextColored(YELLOW, 'Distance from camp:')
         ImGui.SameLine()
         ImGui.SetCursorPosX(150)
-        ImGui.TextColored(YELLOW, string.format('%d', common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y)))
+        --ImGui.TextColored(YELLOW, string.format('%d', common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y)))
+        ImGui.TextColored(YELLOW, string.format('%d', math.sqrt(common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y))))
     else
         ImGui.TextColored(RED, '--')
     end
@@ -324,7 +325,23 @@ local function drawDebugTab()
     end
 end
 
+local function drawHUD()
+    --[[ImGui.TextColored(YELLOW, 'Assist Mob ID:')
+    ImGui.SameLine()
+    ImGui.SetCursorPosX(150)
+    ImGui.TextColored(RED, '%s', state.assistMobID)
+    ImGui.TextColored(YELLOW, 'Tank Mob ID:')
+    ImGui.SameLine()
+    ImGui.SetCursorPosX(150)
+    ImGui.TextColored(RED, '%s', state.tankMobID)
+    ImGui.TextColored(YELLOW, 'Pull Mob ID:')
+    ImGui.SameLine()
+    ImGui.SetCursorPosX(150)
+    ImGui.TextColored(RED, '%s', state.pullMobID)]]
+end
+
 local uiTabs = {
+    --{label='HUD', draw=drawHUD},
     {label='General', draw=drawAssistTab},
     {label='Skills', draw=drawSkillsTab},
     {label=lists.icons.FA_HEART..' Heal', draw=drawHealTab, color=LIGHT_BLUE},
@@ -419,10 +436,14 @@ local function pushStyle(theme)
     ImGui.PushStyleColor(ImGuiCol.TextDisabled, t.text)
     ImGui.PushStyleColor(ImGuiCol.CheckMark, t.text)
     ImGui.PushStyleColor(ImGuiCol.Separator, t.hovered)
+
+    ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 10)
 end
 
 local function popStyles()
     ImGui.PopStyleColor(18)
+
+    ImGui.PopStyleVar(1)
 end
 
 local function drawAbilityInspector()

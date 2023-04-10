@@ -180,7 +180,7 @@ end
 ---@param y2 number @The Y value of the second coordinate.
 ---@return number @Returns the distance between the two points.
 function common.checkDistance(x1, y1, x2, y2)
-    return math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+    return (x2 - x1) ^ 2 + (y2 - y1) ^ 2
 end
 
 function common.checkDistance3d(x, y, z)
@@ -223,7 +223,7 @@ function common.checkChase()
         logger.debug(logger.flags.common.chase, 'Not chasing due to invalid chase spawn X=%s,Y=%s', chase_x, chase_y)
         return
     end
-    if common.checkDistance(me_x, me_y, chase_x, chase_y) > config.get('CHASEDISTANCE') then
+    if common.checkDistance(me_x, me_y, chase_x, chase_y) > (config.get('CHASEDISTANCE')^2) then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
         if not movement.navToSpawn('pc ='..config.get('CHASETARGET'), 'dist=20') then
             local chaseSpawn = mq.TLO.Spawn('pc '..config.get('CHASETARGET'))
@@ -376,59 +376,31 @@ function common.swapSpell(spell, gem, other_names)
     if mq.TLO.Me.Gem(gem)() == spell.Name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.Name)
-    if state.useStateMachine then
-        state.actionTaken = true
-        state.memSpell = spell
-        state.memSpellTimer:reset()
-        return true
-    else
-        -- Low meditate skill or non-casters may take more time to memorize stuff
-        mq.delay(15000, function() return common.swapGemReady(spell.Name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
-        logger.debug(logger.flags.common.memspell, "Delayed for mem_spell "..spell.Name)
-        if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
-        return common.swapGemReady(spell.Name, gem)
-    end
+    state.actionTaken = true
+    state.memSpell = spell
+    state.memSpellTimer:reset()
+    return true
 end
 
 function common.swapAndCast(spell, gem)
     if not spell then return false end
-    if state.useStateMachine then
-        if not mq.TLO.Me.Gem(spell.Name)() then
-            state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
-            if not common.swapSpell(spell, gem) then
-                -- failed to mem?
-                return
-            end
-            state.queuedAction = function()
-                abilities.use(spell)
-                if state.restore_gem then
-                    return function()
-                        common.swapSpell(state.restore_gem, gem)
-                    end
+    if not mq.TLO.Me.Gem(spell.Name)() then
+        state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
+        if not common.swapSpell(spell, gem) then
+            -- failed to mem?
+            return
+        end
+        state.queuedAction = function()
+            abilities.use(spell)
+            if state.restore_gem then
+                return function()
+                    common.swapSpell(state.restore_gem, gem)
                 end
             end
-            return true
-        else
-            return abilities.use(spell)
         end
+        return true
     else
-        local restore_gem = nil
-        if not mq.TLO.Me.Gem(spell.Name)() then
-            restore_gem = {Name=mq.TLO.Me.Gem(gem)()}
-            if not common.swapSpell(spell, gem) then
-                -- failed to mem?
-            end
-        end
-        -- if we swapped a spell then at least try to give it enough time to become ready or why did we swap
-        mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
-        logger.debug(logger.flags.common.memspell, "Delayed for spell swap "..spell.Name)
-        local did_cast = spell:use()
-        if restore_gem and restore_gem.Name then
-            if not common.swapSpell(restore_gem, gem) then
-                -- failed to mem?
-            end
-        end
-        return did_cast
+        return abilities.use(spell)
     end
 end
 
@@ -484,8 +456,8 @@ function common.checkMana()
         -- Find ModRods in check_mana since they poof when out of charges, can't just find once at startup.
         for item,_ in pairs(modrods) do
             local modrod = mq.TLO.FindItem(item)
-            if mq.TLO.Me.PctHPs() > 70 then
-                abilities.use(abilities.Item:new({Name=item, ID=modrod.ID()}))
+            if modrod() and mq.TLO.Me.PctHPs() > 70 then
+                abilities.use(abilities.Item:new({Name=modrod(), ID=modrod.ID()}))
             end
         end
         -- use feather for self if not grouped (group.LowMana is null if not grouped)
@@ -585,15 +557,7 @@ end
 
 function common.processList(aList, returnOnFirstUse)
     for _,entry in ipairs(aList) do
-        if state.useStateMachine then
-            if abilities.use(entry) and returnOnFirstUse then return true end
-        else
-            if not entry.condition or entry.condition(entry) then
-                local used = false
-                used = entry:use()
-                if used and returnOnFirstUse then return true end
-            end
-        end
+        if abilities.use(entry) and returnOnFirstUse then return true end
     end
 end
 

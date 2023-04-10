@@ -254,7 +254,7 @@ local function pullNavToMob(pull_spawn, announce_pull)
     if announce_pull then
         print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
     end
-    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 10 then
+    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 100 then
         logger.debug(logger.flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pullMobID)
         movement.navToSpawn('id '..state.pullMobID, 'dist=15')
     end
@@ -329,11 +329,7 @@ local function pullEngage(pull_spawn)
             if pull_item then
                 movement.stop()
                 mq.delay(50)
-                if state.useStateMachine then
-                    abilities.use(pull_item)
-                else
-                    pull_item:use()
-                end
+                abilities.use(pull_item)
                 mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
             end
         elseif pullWith == 'ranged' then
@@ -352,11 +348,7 @@ local function pullEngage(pull_spawn)
             if mq.TLO.Me.SpellReady(aqo.class.pullSpell.Name)() then
                 movement.stop()
                 mq.delay(50)
-                if state.useStateMachine then
-                    abilities.use(aqo.class.pullSpell)
-                else
-                    aqo.class.pullSpell:use()
-                end
+                abilities.use(aqo.class.pullSpell)
                 mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
             end
         elseif pullWith == 'custom' and aqo.class.pullCustom then
@@ -378,7 +370,7 @@ local pullReturnTimer = timer:new(120000)
 local function pullReturn(noMobs)
     --print(logger.logLine('Bringing pull target back to camp (%s)', common.pullMobID))
     if noMobs and not pullReturnTimer:timerExpired() then return end
-    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 15 then return end
+    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 15^2 then return end
     movement.navToLoc(camp.X, camp.Y, camp.Z)
     if noMobs then pullReturnTimer:reset() end
 end
@@ -489,7 +481,7 @@ function pull.pullMob()
             end
         end
     elseif pull_state == lists.pullStates.RETURNING then
-        if common.checkDistance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.get('CAMPRADIUS') then
+        if common.checkDistance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.get('CAMPRADIUS')^2 then
             clearPullVars('pullMob-reachedCamp')
         else
             pullReturn(false)

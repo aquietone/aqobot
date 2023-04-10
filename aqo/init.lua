@@ -200,7 +200,7 @@ local function main()
         detectRaidOrGroup()
         buffSafetyCheck()
         if not aqo.state.paused and aqo.common.inControl() then
-            if not aqo.state.useStateMachine or not handleStates() then
+            if not handleStates() then
                 aqo.camp.cleanTargets()
                 checkTarget()
                 if not aqo.state.loop.Invis and not aqo.common.isBlockingWindowOpen() then

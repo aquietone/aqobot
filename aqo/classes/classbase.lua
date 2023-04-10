@@ -301,7 +301,7 @@ end
 
 function base.tank()
     if lists.DMZ[mq.TLO.Zone.ID()] then return end
-    if config.get('MODE'):getName() == 'pullertank' and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')-5) then
+    if config.get('MODE'):getName() == 'pullertank' and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')-5)^2 then
         state.pullStatus = lists.pullStates.RETURNING
         state.actionTaken = true
     else
@@ -477,7 +477,7 @@ function base.cast()
     if assist.isFighting() then
         if base.nuketimer:timerExpired() then
             for _,clicky in ipairs(base.castClickies) do
-                if (clicky.Duration == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
+                if (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
                     if clicky:use() then return end
                 end
             end
@@ -653,12 +653,7 @@ function base.managepet()
     local reagentID = petSpell.ReagentID(1)()
     if reagentID > 0 and not mq.TLO.FindItem(reagentID)() then return end
     common.swapAndCast(base.spells.pet, state.swapGem)
-    if state.useStateMachine then
-        state.queuedAction = function() mq.cmd('/multiline ; /pet ghold on') end
-    else
-        mq.cmd('/multiline ; /pet ghold on')
-        state.actionTaken = true
-    end
+    state.queuedAction = function() mq.cmd('/multiline ; /pet ghold on') end
 end
 
 function base.hold()

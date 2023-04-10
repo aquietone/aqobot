@@ -11,7 +11,6 @@ AbilityTypes = {
     AA = 2,
     Disc = 3,
     Item = 4,
-    Ability = 5,
     Skill = 5,
     None = 6,
 }
@@ -200,7 +199,7 @@ end
 function Ability.use(theAbility, doSwap)
     local result = false
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
-    if not theAbility.timer:timerExpired() then print('timer') return result end
+    if not theAbility.timer:timerExpired() then return result end
     if mq.TLO.Me.Casting() and (state.class ~= 'BRD' or theAbility.MyCastTime >= 500) then return result end
     if (theAbility:isReady() or (theAbility.CastType == AbilityTypes.Spell and doSwap)) and (not theAbility.condition or theAbility.condition(theAbility)) and aqo.class.isAbilityEnabled(theAbility.opt) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap then
@@ -236,7 +235,8 @@ function Spell:new(spellData)
 end
 
 function Spell:execute()
-    logger.debug(logger.flags.ability.spell, 'ENTER Spell:use \ag%s\ax', self.Name)
+    logger.debug(logger.flags.ability.spell, 'ENTER Spell:execute \ag%s\ax', self.Name)
+    if state.class == 'brd' then mq.cmd('/stopsong') mq.delay(1) end
     local requiresTarget = self.TargetType == 'Single'
     if logger.flags.announce.spell then print(logger.logLine('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/cast "%s"', self.Name)
@@ -247,35 +247,17 @@ end
 function Spell:use()
     logger.debug(logger.flags.ability.spell, 'ENTER spell:use \ag%s\ax', self.Name)
     local spell = mq.TLO.Spell(self.Name)
-    if (state.useStateMachine and state[self.Name] and not state[self.Name]:timerExpired()) or not Ability.canUseSpell(spell, self.CastType) then return end
+    if (state[self.Name] and not state[self.Name]:timerExpired()) or not Ability.canUseSpell(spell, self.CastType) then return end
     local result, requiresTarget =  Ability.shouldUseSpell(spell)
     if not result then return false end
-    if state.class == 'brd' then mq.cmd('/stopsong') end
+    if state.class == 'brd' then mq.cmd('/stopsong') mq.delay(1) end
     if logger.flags.announce.spell then print(logger.logLine('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/cast "%s"', self.Name)
-    if state.useStateMachine then
-        state.resetCastingState()
-        state.casting = self
-        state.actionTaken = true
-        state[self.Name] = timer:new(2000)
-        return true
-    else
-        mq.delay(200)
-        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.Name) end
-        mq.delay(200)
-        if not mq.TLO.Me.Casting() then mq.cmdf('/cast "%s"', self.Name) end
-        mq.delay(200)
-        if state.class ~= 'brd' then
-            while mq.TLO.Me.Casting() do
-                if requiresTarget and not mq.TLO.Target() then
-                    mq.cmd('/stopcast')
-                    break
-                end
-                mq.delay(10)
-            end
-        end
-        return not mq.TLO.Me.SpellReady(self.Name)()
-    end
+    state.resetCastingState()
+    state.casting = self
+    state.actionTaken = true
+    state[self.Name] = timer:new(2000)
+    return true
 end
 
 ---@class Disc : Ability
@@ -311,7 +293,7 @@ function Disc:isReady()
 end
 
 function Disc:execute()
-    logger.debug(logger.flags.ability.disc, 'ENTER disc:use \ag%s\ax', self.Name)
+    logger.debug(logger.flags.ability.disc, 'ENTER disc:execute \ag%s\ax', self.Name)
     if self.overwrite and mq.TLO.Me.ActiveDisc() == self.overwrite then mq.cmd('/stopdisc') end
     if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
         if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
@@ -330,7 +312,7 @@ end
 function Disc:use(overwrite)
     logger.debug(logger.flags.ability.disc, 'ENTER disc:use \ag%s\ax', self.Name)
     local spell = mq.TLO.Spell(self.Name)
-    if (state.useStateMachine and state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady() then return end
+    if (state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady() then return end
     if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
         if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         if self.Name:find('Composite') then
@@ -338,36 +320,22 @@ function Disc:use(overwrite)
         else
             mq.cmdf('/disc %s', self.Name)
         end
-        if state.useStateMachine then
-            if spell.CastTime() > 0 then
-                state.resetCastingState()
-                state.casting = self
-                state.actionTaken = true
-            end
-            state[self.Name] = timer:new(2000)
-        else
-            mq.delay(250+spell.CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.Name)() end)
-            logger.debug(logger.flags.ability.disc, "Delayed for use_disc %s", self.Name)
-            return not mq.TLO.Me.CombatAbilityReady(self.Name)()
+        if spell.CastTime() > 0 then
+            state.resetCastingState()
+            state.casting = self
+            state.actionTaken = true
         end
+        state[self.Name] = timer:new(2000)
     elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
         mq.cmd('/stopdisc')
         mq.delay(50)
         if logger.flags.announce.disc then print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/disc %s', self.Name)
-        if state.useStateMachine then
-            state.resetCastingState()
-            state.casting = self
-            state.actionTaken = true
-            state[self.Name] = timer:new(2000)
-            return true
-        else
-            mq.delay(250+spell.CastTime())
-            mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.Name)() end)
-            logger.debug(logger.flags.aability.disc, "Delayed for use_disc %s", self.Name)
-            return not mq.TLO.Me.CombatAbilityReady(self.Name)()
-        end
+        state.resetCastingState()
+        state.casting = self
+        state.actionTaken = true
+        state[self.Name] = timer:new(2000)
+        return true
     else
         logger.debug(logger.flags.ability.disc, 'Not casting due to conflicting active disc (%s)', self.Name)
     end
@@ -399,7 +367,7 @@ function AA:isReady()
 end
 
 function AA:execute()
-    logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.Name)
+    logger.debug(logger.flags.ability.aa, 'ENTER AA:execute \ag%s\ax', self.Name)
     if logger.flags.announce.aa then
         print(logger.logLine('Use AA: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or ''))
     end
@@ -412,23 +380,16 @@ end
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 function AA:use()
     logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.Name)
-    if (state.useStateMachine and state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady() then return false end
+    if (state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady() then return false end
     if logger.flags.announce.aa then print(logger.logLine('Use AA: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/alt activate %d', self.ID)
-    if state.useStateMachine then
-        if mq.TLO.AltAbility(self.Name).Spell.CastTime() > 0 then
-            state.resetCastingState()
-            state.casting = self
-            state.actionTaken = true
-        end
-        state[self.Name] = timer:new(2000)
-        return true
-    else
-        mq.delay(250+mq.TLO.Me.AltAbility(self.Name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-        mq.delay(250, function() return not mq.TLO.Me.AltAbilityReady(self.Name)() end)
-        logger.debug(logger.flags.ability.aa, "Delayed for use_aa %s", self.Name)
-        return not mq.TLO.Me.AltAbilityReady(self.Name)()
+    if mq.TLO.AltAbility(self.Name).Spell.CastTime() > 0 then
+        state.resetCastingState()
+        state.casting = self
+        state.actionTaken = true
     end
+    state[self.Name] = timer:new(2000)
+    return true
 end
 
 ---@class Item : Ability
@@ -459,7 +420,7 @@ function Item:isReady(item)
 end
 
 function Item:execute()
-    logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.Name)
+    logger.debug(logger.flags.ability.item, 'ENTER item:execute \ag%s\ax', self.Name)
     if state.class == 'brd' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
     if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/useitem "%s"', self.Name)
@@ -472,27 +433,17 @@ end
 function Item:use()
     logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.Name)
     local theItem = mq.TLO.FindItem(self.ID)
-    if (state.useStateMachine and state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady(theItem) then return false end
+    if (state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady(theItem) then return false end
     if state.class == 'brd' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
     if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', theItem, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/useitem "%s"', theItem)
-    if state.useStateMachine then
-        if self.MyCastTime > 0 then
-            state.resetCastingState()
-            state.casting = self
-            state.actionTaken = true
-        end
-        state[self.Name] = timer:new(2000)
-        return true
-    else
-        if self.TargetType == 'Single' and self.MyCastTime > 0 then
-            mq.delay(250+self.MyCastTime, function() return not mq.TLO.Target() end)
-            if not mq.TLO.Target() then mq.cmd('/squelch /stopcast') end
-        else
-            mq.delay(250+self.MyCastTime)
-        end
-        return true
+    if self.MyCastTime > 0 then
+        state.resetCastingState()
+        state.casting = self
+        state.actionTaken = true
     end
+    state[self.Name] = timer:new(2000)
+    return true
 end
 
 ---@class Skill : Ability
@@ -514,7 +465,7 @@ function Skill:isReady()
 end
 
 function Skill:execute()
-    logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.Name)
+    logger.debug(logger.flags.ability.skill, 'ENTER skill:execute \ag%s\ax', self.Name)
     if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.Name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/doability "%s"', self.Name)
     state.setCastingState(self)
@@ -527,36 +478,30 @@ function Skill:use()
     if self:isReady() then
         if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.Name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/doability "%s"', self.Name)
-        if state.useStateMachine then
-            state[self.Name] = timer:new(2000)
-            return true
-        else
-            mq.delay(500, function() return not mq.TLO.Me.AbilityReady(self.Name)() end)
-            logger.debug(logger.flags.ability.skill, "Delayed for use_ability %s", self.Name)
-            return true
-        end
+        state[self.Name] = timer:new(2000)
+        return true
     end
 end
 
 function Ability:setSpellType()
     if mq.TLO.Me.AltAbility(self.CastName).Spell() then
-        self.CastType = lists.CastType.AA
+        self.CastType = AbilityTypes.AA
     elseif mq.TLO.Me.Book(self.CastName)() then
-        self.CastType = lists.CastType.Spell
+        self.CastType = AbilityTypes.Spell
         self.SpellInBook = true
     elseif mq.TLO.Me.CombatAbility(self.CastName)() then
-        self.CastType = lists.CastType.Disc
+        self.CastType = AbilityTypes.Disc
     elseif mq.TLO.Me.Ability(self.CastName)() then
-        self.CastType = lists.CastType.Ability
+        self.CastType = AbilityTypes.Skill
     elseif mq.TLO.FindItem('='..self.CastName)() then
-        self.CastType = lists.CastType.Item
+        self.CastType = AbilityTypes.Item
     else
-        self.CastType = lists.CastType.None
+        self.CastType = AbilityTypes.None
     end
 end
 
 function Ability:setSpellData()
-    if self.CastType == lists.CastType.Item then
+    if self.CastType == AbilityTypes.Item then
         local itemRef
         if tonumber(self.CastName) then
             itemRef = mq.TLO.FindItem(self.CastName)
@@ -574,7 +519,7 @@ function Ability:setSpellData()
 
         self.SpellName = itemSpellRef()
         self.CastID = itemRef.ID()
-    elseif self.CastType == lists.CastType.AA then
+    elseif self.CastType == AbilityTypes.AA then
         local aaRef = mq.TLO.Me.AltAbility(self.CastName)
         local aaSpellRef = aaRef.Spell
         self:setCommonSpellData(aaSpellRef)
@@ -582,19 +527,19 @@ function Ability:setSpellData()
         self.RecastTime = aaRef.ReuseTime()
         self.SpellName = aaSpellRef()
         self.CastID = aaRef.ID()
-    elseif self.CastType == lists.CastType.Spell then
+    elseif self.CastType == AbilityTypes.Spell then
         local spellRef = mq.TLO.Spell(self.CastName)
         self:setCommonSpellData(spellRef)
 
         self.Mana = spellRef.Mana()
         self.CastID = self.SpellID
-    elseif self.CastType == lists.CastType.Disc then
+    elseif self.CastType == AbilityTypes.Disc then
         local spellRef = mq.TLO.Spell(self.CastName)
         self:setCommonSpellData(spellRef)
 
         self.EnduranceCost = spellRef.EnduranceCost()
         self.CastID = self.SpellID
-    elseif self.CastType == lists.CastType.Ability then
+    elseif self.CastType == AbilityTypes.Skill then
         -- nothing to do
     end
 

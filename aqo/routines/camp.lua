@@ -113,7 +113,7 @@ function camp.checkCamp()
         camp.Active = false
         return
     end
-    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15 then
+    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
         movement.navToLoc(camp.X, camp.Y, camp.Z)
     end
 end

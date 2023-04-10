@@ -3,6 +3,7 @@ local mq = require 'mq'
 local class = require('classes.classbase')
 local mez = require('routines.mez')
 local timer = require('utils.timer')
+local abilities = require('ability')
 local common = require('common')
 local config = require('configuration')
 local state = require('state')
@@ -300,9 +301,11 @@ function class.recover()
     --end
     if mq.TLO.Me.PctMana() < 70 and class.azure then
         local cursor = mq.TLO.Cursor()
-        if cursor and cursor:find(class.azure.Name) then mq.cmd('/autoinventory') end
+        if cursor and cursor:find(class.azure.Name) then mq.cmd('/autoinventory') mq.delay(1) end
         local manacrystal = mq.TLO.FindItem(class.azure.Name)
-        common.useItem(manacrystal)
+        if manacrystal then
+            abilities.use(abilities.Item:new({Name=manacrystal(), ID=manacrystal.ID()}))
+        end
     end
     if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then
         local manastone = mq.TLO.FindItem('Manastone')

@@ -121,9 +121,9 @@ function assist.shouldAssist(assist_target)
     local mob_y = assist_target.Y()
     if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
     if mob_type == 'NPC' and hp < config.get('AUTOASSISTAT') then
-        if camp.Active and common.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS') then
+        if camp.Active and common.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
             return true
-        elseif not camp.Active and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS') then
+        elseif not camp.Active and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
             return true
         else
             return false
@@ -205,21 +205,19 @@ function assist.checkTarget(resetTimers)
         if assist.shouldAssist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
-                if state.useStateMachine then
-                    state.acquireTarget = assist_target.ID()
-                    state.queuedAction = function()
-                        state.assist_mob_id = assist_target.ID()
-                        if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-                        if mq.TLO.Target.ID() ~= originalTargetID then
-                            resetCombatTimers()
-                            if resetTimers then resetTimers() end
-                            printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
-                        end
+                state.acquireTarget = assist_target.ID()
+                state.queuedAction = function()
+                    state.assist_mob_id = assist_target.ID()
+                    if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
+                    if mq.TLO.Target.ID() ~= originalTargetID then
+                        resetCombatTimers()
+                        if resetTimers then resetTimers() end
+                        printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
                     end
-                    state.actionTaken = true
-                    state.acquireTargetTimer:reset()
-                    return true
                 end
+                state.actionTaken = true
+                state.acquireTargetTimer:reset()
+                return true
             end
             state.assistMobID = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -241,13 +239,9 @@ function assist.getCombatPosition()
     if not target_id or target_id == 0 or (target_distance and target_distance > config.get('CAMPRADIUS')) or state.paused then
         return
     end
-    if state.useStateMachine then
-        movement.navToTarget('dist='..max_range_to*.6)
-        state.positioning = true
-        state.positioningTimer:reset()
-    else
-        movement.navToTarget(nil, 5000)
-    end
+    movement.navToTarget('dist='..max_range_to*.6)
+    state.positioning = true
+    state.positioningTimer:reset()
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
@@ -256,13 +250,9 @@ function assist.checkLOS()
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) then
         local maxRangeTo = (mq.TLO.Target.MaxRangeTo() or 0) + 20
         if not mq.TLO.Target.LineOfSight() and maxRangeTo then
-            if state.useStateMachine then
-                movement.navToTarget('dist='..maxRangeTo*.6)
-                state.positioning = true
-                state.positioningTimer:reset()
-            else
-                movement.navToTarget('dist='..maxRangeTo, 5000)
-            end
+            movement.navToTarget('dist='..maxRangeTo*.6)
+            state.positioning = true
+            state.positioningTimer:reset()
         end
     end
 end

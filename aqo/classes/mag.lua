@@ -3,6 +3,7 @@ local mq = require('mq')
 local class = require('classes.classbase')
 local movement = require('routines.movement')
 local timer = require('utils.timer')
+local castUtils = require('cast')
 local common = require('common')
 local state = require('state')
 
@@ -173,8 +174,10 @@ function class.autoArmPets()
 end
 
 function class.clearCursor()
-    mq.cmd('/autoinv')
-    mq.delay(100)
+    while mq.TLO.Cursor() do
+        mq.cmd('/autoinv')
+        mq.delay(100)
+    end
 end
 
 local armPetStates = {
@@ -246,7 +249,6 @@ function class.armPets()
     end
     if not class.petWeapons then return end
     print('Begin arming pets')
-    state.useStateMachine = false
     local restoreGem = {Name=mq.TLO.Me.Gem(12)()}
 
     local petPrimary = mq.TLO.Pet.Primary()
@@ -278,7 +280,6 @@ function class.armPets()
         end
     end
     common.swapSpell(restoreGem, 12)
-    state.useStateMachine = true
 end
 
 function class.armPetRequest(requester)
@@ -292,14 +293,12 @@ function class.armPetRequest(requester)
         local ownerPetLevel = ownerSpawn.Pet.Level() or 0
         local ownerPetPrimary = ownerSpawn.Pet.Primary() or -1
         if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and (ownerPetPrimary == 0 or ownerPetPrimary == EnchanterPetPrimaryWeaponId) then
-            state.useStateMachine = false
             local restoreGem = {Name=mq.TLO.Me.Gem(12)()}
             state.armPet = ownerPetID
             state.armPetOwner = requester
             mq.delay(2000, function() return class.spells.weapons:isReady() end)
             class.armPet(ownerPetID, weapons, requester)
             common.swapSpell(restoreGem, 12)
-            state.useStateMachine = true
         end
     end
 end
@@ -452,21 +451,20 @@ end
 function class.summonItem(spell, inventoryItem)
     printf('going to summon item %s', spell.Name)
     mq.cmd('/mqt 0')
-    common.swapSpell(spell, 12)
+    if not mq.TLO.Me.Gem(spell.Name)() then
+        common.swapSpell(spell, 12)
+    end
     mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
     if not spell:isReady() then printf('Spell %s was not ready', spell.Name) return false end
-    if not spell:use() then
-        printf('Failed to cast %s', spell.Name)
-        return false
-    end
-    mq.delay(100)
+    castUtils.cast(spell)
+
+    mq.delay(300)
     if not mq.TLO.Cursor.ID() then
         printf('Cursor was empty after casting %s', spell.Name)
         return false
     end
 
-    mq.cmd('/autoinv')
-    mq.delay(100)
+    class.clearCursor()
     local summonedItem = summonedItemMap[spell.Name]
     mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonedItem)
     mq.delay(3000, function() return mq.TLO.Cursor() end)

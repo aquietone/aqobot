@@ -113,48 +113,4 @@ lists.icons = {
     MD_HELP = '\xee\xa2\x87',
 }
 
-lists.CastType = {
-    Spell = 1,
-    AA = 2,
-    Disc = 3,
-    Item = 4,
-    Ability = 5,
-    Skill = 5,
-    None = 6,
-}
-
-lists.CastReturn = {
-    CAST_CANCELLED = 1,
-    CAST_CANNOTSEE = 2,
-    CAST_IMMUNE = 3,
-    CAST_INTERRUPTED = 4,
-    CAST_INVIS = 5,
-    CAST_NOTARGET = 6,
-    CAST_NOTMEMMED = 7,
-    CAST_NOTREADY = 8,
-    CAST_OUTOFMANA = 9,
-    CAST_OUTOFRANGE = 10,
-    CAST_RESIST = 11,
-    CAST_SUCCESS = 12,
-    CAST_UNKNOWN = 13,
-    CAST_COLLAPSE = 14,
-    CAST_TAKEHOLD = 15,
-    CAST_FIZZLE = 16,
-    CAST_INVISIBLE = 17,
-    CAST_RECOVER = 18,
-    CAST_STUNNED = 19,
-    CAST_STANDIG = 20,
-    CAST_DISTRACTED = 21,
-    CAST_COMPONENTS = 22,
-    CAST_REAGENT = 23,
-    CAST_ZONING = 24,
-    CAST_FEIGN = 25,
-    CAST_SPELLBOOKOPEN = 26,
-    CAST_ACTIVEDISC = 27,
-    CAST_INTERRUPTFORHEAL = 28,
-    CAST_CORPSEOPEN = 29,
-    CAST_INVALID = 30,
-    CAST_IFFAILURE = 31
-}
-
 return lists

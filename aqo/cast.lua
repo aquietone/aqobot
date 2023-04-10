@@ -1,6 +1,6 @@
+-- Borrowed from e3next.. not really in use, just exploring some other flavors of casting code
 local mq = require('mq')
 
-local lists = require('data.lists')
 local logger = require('utils.logger')
 local abilities = require('ability')
 local state = require('state')
@@ -10,20 +10,20 @@ local casting = {
 }
 
 function casting.cast(spell, targetID, interruptCheck)
-    if state.class == 'brd' and spell.MyCastTime <= 500 and spell.CastType == lists.CastType.Item then
+    if state.class == 'brd' and spell.MyCastTime <= 500 and spell.CastType == abilities.Types.Item then
         -- do nothing
-    elseif state.class == 'brd' and spell.CastType == lists.CastType.Spell then
+    elseif state.class == 'brd' and spell.CastType == abilities.Types.Spell then
         -- sing(spell, target)
-        return lists.CastReturn.CAST_SUCCESS
+        return casting.CastReturn.CAST_SUCCESS
     else
         if mq.TLO.Me.Casting() then
             if state.paused then
                 casting.interrupt()
-                return lists.CastReturn.CAST_INTERRUPTED
+                return casting.CastReturn.CAST_INTERRUPTED
             end
         end
     end
-    local returnValue = lists.CastReturn.CAST_RESIST
+    local returnValue = casting.CastReturn.CAST_RESIST
     if mq.TLO.Cursor() then
         -- clear cursor
         while mq.TLO.Cursor() do
@@ -36,7 +36,7 @@ function casting.cast(spell, targetID, interruptCheck)
         targetID = mq.TLO.Target.ID()
         if not targetID or targetID == 0 then
             if spell.TargetType == 'Single' and spell.SpellType == 'Detrimental' then
-                return lists.CastReturn.CAST_UNKNOWN
+                return casting.CastReturn.CAST_UNKNOWN
             end
         end
         targetID = mq.TLO.Me.ID()
@@ -46,7 +46,7 @@ function casting.cast(spell, targetID, interruptCheck)
         if not (spell.TargetType == 'Self' or spell.TargetType == 'Group v1' or spell.TargetType == 'Group v2' or spell.TargetType == 'PB AE') then
             printf('Invalid target for casting. %s', targetID)
             state.actionTaken = true
-            return lists.CastReturn.CAST_NOTARGET
+            return casting.CastReturn.CAST_NOTARGET
         end
     end
 
@@ -55,47 +55,47 @@ function casting.cast(spell, targetID, interruptCheck)
         local targetName = target.CleanName() or mq.TLO.Target.CleanName()
         if mq.TLO.Me.Invis() then
             state.actionTaken = true
-            return lists.CastReturn.CAST_INVIS
+            return casting.CastReturn.CAST_INVIS
         end
 
-        if spell.ReagentID then
+        if (spell.ReagentID or 0) > 0 then
             local itemCount = mq.TLO.FindItemCount(spell.ReagentID)()
             local requiredCount = spell.ReagentCount or 1
             if itemCount < requiredCount then
                 spell.ReagentOutOfStock = true
                 printf('Spell reagent out of stock %s %s', spell.SpellName, spell.ReagentID)
-                return lists.CastReturn.CAST_REAGENT
+                return casting.CastReturn.CAST_REAGENT
             end
         end
 
         if state.currentZone ~= mq.TLO.Zone.ID() then
             print('skip cast because zoning')
-            return lists.CastReturn.CAST_ZONING
+            return casting.CastReturn.CAST_ZONING
         end
 
         if mq.TLO.Me.Feigning() then
             print('skipping cast because feigned')
-            return lists.CastReturn.CAST_FEIGN
+            return casting.CastReturn.CAST_FEIGN
         end
 
         if mq.TLO.Window('SpellBookWnd').Open() then
             state.actionTaken = true
             print('skip cast because spell book open')
-            return lists.CastReturn.CAST_SPELLBOOKOPEN
+            return casting.CastReturn.CAST_SPELLBOOKOPEN
         end
 
         if mq.TLO.Corpse.Open() then
             state.actionTaken = true
             print('skip cast because corpse open')
-            return lists.CastReturn.CAST_CORPSEOPEN
+            return casting.CastReturn.CAST_CORPSEOPEN
         end
 
         if not spell.SpellType:find('Beneficial') then
-            if not (spell.CastType == lists.CastType.Disc and spell.TargetType == 'Self') then
+            if not (spell.CastType == abilities.Types.Disc and spell.TargetType == 'Self') then
                 if not (spell.TargetType == 'PB AE' or spell.TargetType == 'Self') then
                     if not mq.TLO.Spawn('id '..targetID).LineOfSight() then
                         printf('SkipCast-LOS %s %s', spell.SpellName, targetName)
-                        return lists.CastReturn.CAST_CANNOTSEE
+                        return casting.CastReturn.CAST_CANNOTSEE
                     end
                 end
             end
@@ -129,17 +129,17 @@ function casting.cast(spell, targetID, interruptCheck)
             end
         end
 
-        if spell.CastType == lists.CastType.Disc then
+        if spell.CastType == abilities.Types.Disc then
             if mq.TLO.Me.ActiveDisc.ID() and spell.TargetType == 'Self' then
-                return lists.CastReturn.CAST_ACTIVEDISC
+                return casting.CastReturn.CAST_ACTIVEDISC
             else
                 casting.trueTarget(targetID)
                 state.actionTaken = true
                 mq.cmdf('/disc %s', spell.CastName)
                 mq.delay(300)
-                returnValue = lists.CastReturn.CAST_SUCCESS
+                returnValue = casting.CastReturn.CAST_SUCCESS
             end
-        elseif spell.CastType == lists.CastType.Ability and mq.TLO.Me.AbilityReady(spell.CastName)() then
+        elseif spell.CastType == abilities.Types.Skill and mq.TLO.Me.AbilityReady(spell.CastName)() then
             -- handle alternate race skill names, slam, dragon punch, tail rake
             mq.cmdf('/doability "%s"', spell.CastName)
             mq.delay(300, function() return mq.TLO.Me.AltAbilityReady(spell.CastName)() end)
@@ -153,13 +153,13 @@ function casting.cast(spell, targetID, interruptCheck)
             end
 
             if spell.TargetType == 'Self' then
-                if spell.CastType == lists.CastType.Spell then
+                if spell.CastType == abilities.Types.Spell then
                     mq.cmdf('/cast "%s"', spell.CastName)
                     if spell.MyCastTime > 500 then
                         mq.delay(1000)
                     end
                 else
-                    if spell.CastType == lists.CastType.AA then
+                    if spell.CastType == abilities.Types.AA then
                         mq.cmdf('/alt act %s', spell.CastID)
                         mq.delay(300)
                         if spell.MyCastTime > 500 then
@@ -177,13 +177,13 @@ function casting.cast(spell, targetID, interruptCheck)
                 if mq.TLO.Target.ID() ~= targetID then
                     mq.cmdf('/mqtarget id %s', targetID)
                 end
-                if spell.CastType == lists.CastType.Spell then
-                    mq.cmdf('/casting "%s"', spell.CastName)
+                if spell.CastType == abilities.Types.Spell then
+                    mq.cmdf('/cast "%s"', spell.CastName)
                     if spell.MyCastTime > 500 then
                         mq.delay(1000)
                     end
                 else
-                    if spell.CastType == lists.CastType.AA then
+                    if spell.CastType == abilities.Types.AA then
                         mq.cmdf('/alt act %s', spell.CastID)
                         mq.delay(300)
                         if spell.MyCastTime > 500 then
@@ -210,23 +210,23 @@ function casting.cast(spell, targetID, interruptCheck)
                 if interruptCheck and interruptCheck(currentMana, pctMana) then
                     casting.interrupt()
                     state.actionTaken = true
-                    return lists.CastReturn.CAST_INTERRUPTFORHEAL
+                    return casting.CastReturn.CAST_INTERRUPTFORHEAL
                 end
             end
             if spell.SpellType == 'Detrimental' and spell.TargetType ~= 'PB AE' then
                 local isCorpse = mq.TLO.Target.Type() == 'Corpse'
                 if isCorpse then
                     casting.interrupt()
-                    return lists.CastReturn.CAST_INTERRUPTED
+                    return casting.CastReturn.CAST_INTERRUPTED
                 end
             end
             mq.delay(50)
             if state.paused then
                 casting.interrupt()
-                return lists.CastReturn.CAST_INTERRUPTED
+                return casting.CastReturn.CAST_INTERRUPTED
             end
             if mq.TLO.Me.Invis() then
-                return lists.CastReturn.CAST_INVIS
+                return casting.CastReturn.CAST_INVIS
             end
         end
 
@@ -235,7 +235,7 @@ function casting.cast(spell, targetID, interruptCheck)
         if spell.RemoveBuff then
             mq.cmdf('/removebuff "%s"', spell.RemoveBuff)
         end
-        if spell.RemoveFamilar and mq.TLO.Pet.Name():find('familiar') then
+        if spell.RemoveFamiliar and mq.TLO.Pet.Name():find('familiar') then
             mq.cmdf('/pet get lost')
         end
     end
@@ -248,7 +248,7 @@ function casting.Sing(spell, targetID)
         casting.trueTarget(targetID)
     end
 
-    if spell.CastType == lists.CastType.Spell then
+    if spell.CastType == abilities.Types.Spell then
         mq.cmd('/stopsong')
 
         if spell.BeforeEvent then
@@ -269,7 +269,7 @@ function casting.Sing(spell, targetID)
         if spell.AfterEvent then
             mq.cmdf('/docommand %s', spell.AfterEvent)
         end
-    elseif spell.CastType == lists.CastType.Item then
+    elseif spell.CastType == abilities.Types.Item then
         if spell.MyCastTime > 500 then
             mq.cmd('/stopsong')
             mq.delay(100)
@@ -284,7 +284,7 @@ function casting.Sing(spell, targetID)
         if spell.AfterEvent then
             mq.cmdf('/docommand %s', spell.AfterEvent)
         end
-    elseif spell.CastType == lists.CastType.AA then
+    elseif spell.CastType == abilities.Types.AA then
         if spell.MyCastTime > 500 then
             mq.cmd('/stopsong')
             mq.delay(100)
@@ -302,12 +302,16 @@ function casting.Sing(spell, targetID)
     end
 end
 
+function casting.inCombat()
+    return state.assistMobID or mq.TLO.Me.Combat() or mq.TLO.Me.CombatState() == 'COMBAT'
+end
+
 function casting.isSpellMemmed(spell)
     return mq.TLO.Me.Gem(spell.SpellName)() ~= nil
 end
 
 function casting.memorizeSpell(spell)
-    if not (spell.CastType == lists.CastType.Spell and spell.SpellInBook) then
+    if not (spell.CastType == abilities.Types.Spell and spell.SpellInBook) then
         return true
     end
 
@@ -369,7 +373,7 @@ function casting.inGlobalCooldown()
 end
 
 function casting.checkReady(spell)
-    if spell.CastType == lists.CastType.None then return false end
+    if spell.CastType == abilities.Types.None then return false end
 
     if not casting.memorizeSpell(spell) then
         return false
@@ -378,7 +382,7 @@ function casting.checkReady(spell)
     --if state.class == 'brd' and not mq.TLO.Twist.Twisting() then
     --end
 
-    if spell.CastType == lists.CastType.Spell and spell.SpellInBook then
+    if spell.CastType == abilities.Types.Spell and spell.SpellInBook then
         if spell.SpellName == 'Focused Hail of Arrows' or spell.SpellName == 'Hail of Arrows' then
             if mq.TLO.Me.Gem('Focused Hail of Arrows')() and mq.TLO.Me.Gem('Hail of Arrows')() then
                 if not mq.TLO.Me.SpellReady('Focused Hail of Arrows')() then return false end
@@ -401,13 +405,13 @@ function casting.checkReady(spell)
             print('spells in cooldown')
             return false
         end
-    elseif spell.CastType == lists.CastType.Item then
+    elseif spell.CastType == abilities.Types.Item then
         return mq.TLO.Me.ItemReady(spell.SpellName)()
-    elseif spell.CastType == lists.CastType.AA then
+    elseif spell.CastType == abilities.Types.AA then
         return mq.TLO.Me.AltAbilityReady(spell.SpellName)()
-    elseif spell.CastType == lists.CastType.Disc then
+    elseif spell.CastType == abilities.Types.Disc then
         return mq.TLO.Me.CombatAbilityReady(spell.SpellName)()
-    elseif spell.CastType == lists.CastType.Ability then
+    elseif spell.CastType == abilities.Types.Skill then
         return mq.TLO.Me.AbilityReady(spell.SpellName)()
     end
     return false

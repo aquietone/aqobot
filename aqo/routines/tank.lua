@@ -90,7 +90,7 @@ local function tankMobInRange(tank_spawn)
             return false
         end
     else
-        if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < camp_radius then
+        if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < camp_radius^2 then
             return true
         else
             return false

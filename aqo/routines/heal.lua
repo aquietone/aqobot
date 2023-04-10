@@ -199,11 +199,7 @@ function healing.heal(healAbilities, opts)
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             mq.cmdf('/mqt id %s', whoToHeal)
         end
-        if state.useStateMachine then
-            abilities.use(healToUse)
-        else
-            healToUse:use()
-        end
+        abilities.use(healToUse)
         if typeOfHeal == HEAL_TYPES.HOT then
             local targetName = mq.TLO.Target.CleanName()
             if not targetName then return end
@@ -224,25 +220,9 @@ function healing.healPetOrSelf(healAbilities, opts)
     if not healEnabled(opts, 'HEALPET') then return end
     for _,heal in ipairs(healAbilities) do
         if heal.pet and petHP < heal.pet then
-            if state.useStateMachine then
-                if abilities.use(heal) then
-                    return true
-                end
-            else
-                if heal:use() then return true end
+            if abilities.use(heal) then
+                return true
             end
-            --[[if heal.CastType == abilities.Types.Spell then
-                local spell = mq.TLO.Spell(heal.Name)
-                if abilities.canUseSpell(spell, heal.CastType) then
-                    heal:use()
-                    return
-                end
-            else
-                if heal:isReady() then
-                    heal:use()
-                    return
-                end
-            end]]
         end
     end
 end
@@ -255,18 +235,11 @@ function healing.healSelf(healAbilities, opts)
             if heal.TargetType == 'Single' then
                 mq.TLO.Me.DoTarget()
             end
-            if state.useStateMachine then
-                if abilities.use(heal) then
-                    state.queuedAction = function()
-                        if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/squelch /mqt id %s', originalTargetID) end
-                    end
-                    return true
-                end
-            else
-                if heal:use() then
+            if abilities.use(heal) then
+                state.queuedAction = function()
                     if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/squelch /mqt id %s', originalTargetID) end
-                    return true
                 end
+                return true
             end
         end
     end
@@ -310,20 +283,10 @@ local function doRezFor(rezAbility)
             end
             mq.cmd('/corpse')
             mq.delay(50)
-            if state.useStateMachine then
-                if abilities.use(rezAbility) then
-                    mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
-                    reztimer:reset()
-                    return true
-                end
-            else
-                rezAbility:use()
-                if not rezAbility:isReady() then
-                    --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
-                    mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
-                    reztimer:reset()
-                    return true
-                end
+            if abilities.use(rezAbility) then
+                mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
+                reztimer:reset()
+                return true
             end
         end
     end

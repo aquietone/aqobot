@@ -27,7 +27,6 @@ local state = {
     medding = false,
     buffs = {},
     sick = {},
-    useStateMachine = true,
 }
 
 function state.resetCombatState(debug, caller)
@@ -184,7 +183,7 @@ end
 
 function state.setCastingState(ability)
     state.resetCastingState()
-    if ability.MyCastTime > 0 then
+    if (ability.MyCastTime or 0) > 0 then
         state.casting = ability
         state.actionTaken = true
     end
