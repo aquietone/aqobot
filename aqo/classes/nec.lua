@@ -117,12 +117,12 @@ end
 
 function class.initSpellConditions()
     if class.spells.manatap then class.spells.manatap.condition = function() return (mq.TLO.Group.LowMana(70)() or 0) > 2 end end
-    if class.spells.alliance then class.spells.alliance.condition = function() return class.neccount > 1 and not mq.TLO.Target.Buff(class.spells.alliance.name)() and mq.TLO.Spell(class.spells.alliance.name).StacksTarget() end end
+    if class.spells.alliance then class.spells.alliance.condition = function() return class.neccount > 1 and not mq.TLO.Target.Buff(class.spells.alliance.Name)() and mq.TLO.Spell(class.spells.alliance.Name).StacksTarget() end end
     if not state.emu and class.spells.synergy then
         class.spells.synergy.condition = function()
-            return not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Target.MyBuff(class.spells.pyreshort and class.spells.pyreshort.name)() and
-                    mq.TLO.Target.MyBuff(class.spells.venom and class.spells.venom.name)() and
-                    mq.TLO.Target.MyBuff(class.spells.magic and class.spells.magic.name)() end
+            return not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Target.MyBuff(class.spells.pyreshort and class.spells.pyreshort.Name)() and
+                    mq.TLO.Target.MyBuff(class.spells.venom and class.spells.venom.Name)() and
+                    mq.TLO.Target.MyBuff(class.spells.magic and class.spells.magic.Name)() end
     end
     class.spells.pyreshort.precast = function()
         if class.tcclick and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
@@ -131,7 +131,7 @@ function class.initSpellConditions()
     end
     if class.spells.combodisease then
         class.spells.combodisease.condition = function()
-            return (not common.isTargetDottedWith(class.spells.decay.id, class.spells.decay.name) or not common.isTargetDottedWith(class.spells.grip.id, class.spells.grip.name)) and mq.TLO.Me.SpellReady(class.spells.combodisease.name)()
+            return (not common.isTargetDottedWith(class.spells.decay.ID, class.spells.decay.Name) or not common.isTargetDottedWith(class.spells.grip.ID, class.spells.grip.Name)) and mq.TLO.Me.SpellReady(class.spells.combodisease.Name)()
         end
     end
 end
@@ -139,6 +139,7 @@ end
 function class.initSpellRotations()
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     local standard = {}
+    if state.emu then table.insert(class.spellRotations.standard, class.spells.decay) end
     table.insert(class.spellRotations.standard, class.spells.alliance)
     table.insert(class.spellRotations.standard, class.spells.wounds)
     table.insert(class.spellRotations.standard, class.spells.composite)
@@ -233,7 +234,7 @@ function class.initBuffs()
     if state.emu then
         table.insert(class.selfBuffs, class.spells.lich)
         table.insert(class.selfBuffs, class.spells.hpbuff)
-        table.insert(class.selfBuffs, common.getAA('Gift of the Grave', {removesong='Gift of the Grave Effect'}))
+        table.insert(class.selfBuffs, common.getAA('Gift of the Grave', {RemoveBuff='Gift of the Grave Effect'}))
         table.insert(class.singleBuffs, class.spells.defensiveproc)
         table.insert(class.combatBuffs, common.getAA('Reluctant Benevolence'))
 
@@ -257,7 +258,7 @@ function class.initDebuffs()
     class.dispel = common.getAA('Eradicate Magic', {opt='USEDISPEL'})
 
     class.scent = common.getAA('Scent of Thule', {opt='USEDEBUFF'}) or common.getAA('Scent of Terris', {opt='USEDEBUFF'})
-    class.debuffTimer = timer:new(30)
+    class.debuffTimer = timer:new(30000)
     table.insert(class.debuffs, class.dispel)
     table.insert(class.debuffs, class.scent)
 end
@@ -274,11 +275,11 @@ end
 
 -- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
 local function setSwapGems()
-    class.swap_gem = mq.TLO.Me.Gem(class.spells.wounds and class.spells.wounds.name or 'unknown')() or
-            mq.TLO.Me.Gem(class.spells.fireshadow and class.spells.fireshadow.name or 'unknown')() or
-            mq.TLO.Me.Gem(class.spells.pyrelong and class.spells.pyrelong.name or 'unknown')() or 10
-    class.swap_gem_dis = mq.TLO.Me.Gem(class.spells.decay and class.spells.decay.name or 'unknown')() or
-            mq.TLO.Me.Gem(class.spells.grip and class.spells.grip.name or 'unknown')() or 11
+    class.swap_gem = mq.TLO.Me.Gem(class.spells.wounds and class.spells.wounds.Name or 'unknown')() or
+            mq.TLO.Me.Gem(class.spells.fireshadow and class.spells.fireshadow.Name or 'unknown')() or
+            mq.TLO.Me.Gem(class.spells.pyrelong and class.spells.pyrelong.Name or 'unknown')() or 10
+    class.swap_gem_dis = mq.TLO.Me.Gem(class.spells.decay and class.spells.decay.Name or 'unknown')() or
+            mq.TLO.Me.Gem(class.spells.grip and class.spells.grip.Name or 'unknown')() or 11
 end
 
 --[[
@@ -302,9 +303,9 @@ function class.swapSpells()
     -- Only swap spells in standard spell set
     if state.spellSetLoaded ~= 'standard' or mq.TLO.Me.Moving() then return end
 
-    local woundsName = class.spells.wounds and class.spells.wounds.name
-    local pyrelongName = class.spells.pyrelong and class.spells.pyrelong.name
-    local fireshadowName = class.spells.fireshadow and class.spells.fireshadow.name
+    local woundsName = class.spells.wounds and class.spells.wounds.Name
+    local pyrelongName = class.spells.pyrelong and class.spells.pyrelong.Name
+    local fireshadowName = class.spells.fireshadow and class.spells.fireshadow.Name
     local woundsDuration = mq.TLO.Target.MyBuffDuration(woundsName)()
     local pyrelongDuration = mq.TLO.Target.MyBuffDuration(pyrelongName)()
     local fireshadowDuration = mq.TLO.Target.MyBuffDuration(fireshadowName)()
@@ -340,7 +341,7 @@ end
 
 -- Check whether a dot is applied to the target
 local function targetHasProliferation()
-    if not mq.TLO.Target.MyBuff(class.spells.proliferation and class.spells.proliferation.name)() then return false else return true end
+    if not mq.TLO.Target.MyBuff(class.spells.proliferation and class.spells.proliferation.Name)() then return false else return true end
 end
 
 local function isNecBurnConditionMet()
@@ -394,12 +395,12 @@ function class.burnClass()
     end
 
     if config.get('USEGLYPH') and class.intensity and class.glyph then
-        if not mq.TLO.Me.Song(class.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+        if not mq.TLO.Me.Song(class.intensity.Name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.glyph:use()
         end
     end
     if config.get('USEINTENSITY') and class.glyph and class.intensity then
-        if not mq.TLO.Me.Buff(class.glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+        if not mq.TLO.Me.Buff(class.glyph.Name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.intensity:use()
         end
     end
@@ -423,16 +424,16 @@ function class.preburn()
     end
 
     if config.get('USEGLYPH') and class.intensity and class.glyph then
-        if not mq.TLO.Me.Song(class.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+        if not mq.TLO.Me.Song(class.intensity.Name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.glyph:use()
         end
     end
 end
 
 function class.recover()
-    if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.name)() then
+    if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.Name)() then
         print(logger.logLine('Removing lich to avoid dying!'))
-        mq.cmdf('/removebuff %s', class.spells.lich.name)
+        mq.cmdf('/removebuff %s', class.spells.lich.Name)
     end
     -- modrods
     common.checkMana()
@@ -468,7 +469,7 @@ local function safeToStand()
     end
 end
 
-local checkAggroTimer = timer:new(10)
+local checkAggroTimer = timer:new(10000)
 function class.aggroOld()
     if state.emu then return end
     if config.get('MODE'):isManualMode() then return end
@@ -503,7 +504,7 @@ function class.aggroOld()
 end
 
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
-local checkSpellTimer = timer:new(30)
+local checkSpellTimer = timer:new(30000)
 function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
     local spellSet = class.OPTS.SPELLSET.value
@@ -601,7 +602,7 @@ function class.checkSpellSet()
     end
 end
 
-local necCountTimer = timer:new(60)
+local necCountTimer = timer:new(60000)
 
 -- if class.isEnabled('USEALLIANCE') and necCountTimer:timerExpired() then
 --    countNecros()

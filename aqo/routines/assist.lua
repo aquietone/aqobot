@@ -14,7 +14,7 @@ function assist.init(aqo)
 
 end
 
-state.enrageTimer = timer:new(10)
+state.enrageTimer = timer:new(10000)
 --|------------------------------------------------------------|
 --|-  Turns off attack, when a mob you're attacking enrages.  -|
 --|------------------------------------------------------------|
@@ -100,7 +100,7 @@ function assist.forceAssist(assist_id)
     end
 end
 
-local manualAssistTimer = timer:new(3)
+local manualAssistTimer = timer:new(3000)
 ---Determine whether to begin assisting on a mob.
 ---Param: The MQ Spawn to be checked, otherwise the main assists target.
 ---@return boolean @Returns true if the spawn matches the assist criteria (within the camp radius and below autoassistat %), otherwise false.
@@ -133,8 +133,8 @@ function assist.shouldAssist(assist_target)
     end
 end
 
-local sendPetTimer = timer:new(2)
-local stickTimer = timer:new(1)
+local sendPetTimer = timer:new(2000)
+local stickTimer = timer:new(1000)
 
 ---Reset common combat timers to 0.
 local function resetCombatTimers()

@@ -8,7 +8,7 @@ local state = {
     paused = true,
     burnNow = false,
     burnActive = false,
-    burnActiveTimer = timer:new(30),
+    burnActiveTimer = timer:new(30000),
     minMana = 15,
     minEndurance = 15,
     spellSetLoaded = nil,
@@ -50,7 +50,7 @@ end
 state.actionTaken = false
 
 state.acquireTarget = false
-state.acquireTargetTimer = timer:new(1)
+state.acquireTargetTimer = timer:new(1000)
 
 function state.handleTargetState()
     if state.acquireTarget then
@@ -78,7 +78,7 @@ function state.resetAcquireTargetState()
 end
 
 state.positioning = false
-state.positioningTimer = timer:new(5)
+state.positioningTimer = timer:new(5000)
 
 function state.handlePositioningState()
     if state.positioning then
@@ -118,13 +118,13 @@ function state.handleQueuedAction()
 end
 
 state.memSpell = false
-state.memSpellTimer = timer:new(10, true)
+state.memSpellTimer = timer:new(10000)
 state.restoreGem = nil
 
 function state.handleMemSpell()
     if state.memSpell then
-        if mq.TLO.Me.SpellReady(state.memSpell.name)() then
-            printf(logger.logLine('Memorized spell is ready: %s', state.memSpell.name))
+        if mq.TLO.Me.SpellReady(state.memSpell.Name)() then
+            printf(logger.logLine('Memorized spell is ready: %s', state.memSpell.Name))
             state.resetMemSpellState()
             return true
         elseif state.memSpellTimer:timerExpired() then
@@ -155,15 +155,15 @@ function state.handleCastingState()
         mq.doevents()
         if not mq.TLO.Me.Casting() then
             if state.fizzled then
-                printf(logger.logLine('Fizzled casting %s', state.casting.name))
+                printf(logger.logLine('Fizzled casting %s', state.casting.Name))
             elseif state.interrupted then
-                printf(logger.logLine('Interrupted casting %s', state.casting.name))
+                printf(logger.logLine('Interrupted casting %s', state.casting.Name))
             --else
-            --    printf(logger.logLine('Finished casting %s', state.casting.name))
+            --    printf(logger.logLine('Finished casting %s', state.casting.Name))
             end
             state.resetCastingState()
             return true
-        elseif state.casting.targettype == 'Single' and not mq.TLO.Target() then
+        elseif (state.casting.TargetType == 'Single' or state.casting.TargetType == 'Line of Sight') and not mq.TLO.Target() then
             mq.cmd('/stopcast')
             state.resetCastingState()
             return true
@@ -184,11 +184,12 @@ end
 
 function state.setCastingState(ability)
     state.resetCastingState()
-    if ability.casttime > 0 then
+    if ability.MyCastTime > 0 then
         state.casting = ability
         state.actionTaken = true
     end
-    state[ability.name] = timer:new(2, true)
+    --state[ability.Name] = timer:new(2000)
+    ability.timer:reset()
 end
 
 function state.resetCastingState()

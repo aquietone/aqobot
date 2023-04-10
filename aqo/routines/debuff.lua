@@ -21,7 +21,7 @@ function debuff.shouldUseDebuff(ability)
     elseif ability.opt == 'USESNARE' then
         return mq.TLO.Target() and not mq.TLO.Target.Snared() and not debuff.SNARE_IMMUNES[mq.TLO.Target.CleanName()] and (mq.TLO.Target.PctHPs() or 100) < 40
     else
-        return (not ability.condition and not mq.TLO.Target.Buff(ability.checkfor or ability.name)() and mq.TLO.Spell(ability.checkfor or ability.name).StacksTarget()) or (ability.condition and ability.condition())
+        return (not ability.condition and not mq.TLO.Target.Buff(ability.CheckFor or ability.Name)() and mq.TLO.Spell(ability.CheckFor or ability.Name).StacksTarget()) or (ability.condition and ability.condition())
     end
 end
 

@@ -33,7 +33,7 @@ function class.initClassOptions()
     class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
     class.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
     class.addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox')
-    class.addOption('USEDOT', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
+    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
     class.addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW')
     class.addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW')
     class.addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox')
@@ -51,12 +51,14 @@ function class.initSpellLines(_aqo)
     class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
     class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
     class.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    class.addSpell('summer', {'Summer\'s Torrent', 'Scorched Earth', 'Hearth Embers', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
-    class.addSpell('boon', {'Lunarflare boon', 'Ancient: North Wind'}) -- 
+    class.addSpell('firenuke1', {'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
+    class.addSpell('firenuke2', {'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
+    class.addSpell('coldnuke1', {'Lunarflare boon', 'Ancient: North Wind'}) -- 
+    class.addSpell('coldnuke2', {'Frost Wind'}) -- 
     class.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
     class.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
-    class.addSpell('dot', {'Bloodbeetle Swarm', 'Locust Swarm', 'Flame Lick'}) -- main DoT
-    class.addSpell('dotds', {'Swarm of Bloodflies'}) -- DoT + reverse DS, Swarm of Hyperboreads
+    class.addSpell('dot', {'Bloodbeetle Swarm', 'Locust Swarm', 'Flame Lick'}, {opt='USEDOTS'}) -- main DoT
+    class.addSpell('dotds', {'Swarm of Bloodflies'}, {opt='USEDOTS'}) -- DoT + reverse DS, Swarm of Hyperboreads
     class.addSpell('dmgbuff', {'Arbor Stalker\'s Enrichment'}) -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     class.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
     class.addSpell('buffs', {'Shout of the Dusksage Stalker'}) -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
@@ -88,8 +90,10 @@ function class.initSpellRotations(_aqo)
     table.insert(class.arrow_spells, class.spells.composite)
     table.insert(class.arrow_spells, class.spells.heart)
     class.dd_spells = {}
-    table.insert(class.dd_spells, class.spells.boon)
-    table.insert(class.dd_spells, class.spells.summer)
+    table.insert(class.dd_spells, class.spells.firenuke1)
+    table.insert(class.dd_spells, class.spells.coldnuke1)
+    table.insert(class.dd_spells, class.spells.firenuke2)
+    table.insert(class.dd_spells, class.spells.coldnuke2)
 
     -- entries in the dot_spells table are pairs of {spell id, spell name} in priority order
     class.dot_spells = {}
@@ -108,6 +112,7 @@ function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
     table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
     -- table.insert(mashDiscs, common.getAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
+    table.insert(class.DPSAbilities, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
 
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
 end
@@ -115,11 +120,11 @@ end
 function class.initBurns(_aqo)
     -- entries in the AAs table are pairs of {aa name, aa id}
     if state.emu then
-        table.insert(class.burnAbilities, common.getAA('Fundament: Third Spire of the Pathfinders'))
+        table.insert(class.burnAbilities, common.getAA('Fundament: First Spire of the Pathfinders'))
     else
         table.insert(class.burnAbilities, common.getAA('Spire of the Pathfinders')) -- 7.5min CD
     end
-    table.insert(class.burnAbilities, common.getAA('Auspice of the Hunter')) -- crit buff, 9min CD
+    
     table.insert(class.burnAbilities, common.getAA('Pack Hunt')) -- swarm pets, 15min CD
     table.insert(class.burnAbilities, common.getAA('Empowered Blades')) -- melee dmg burn, 10min CD
     table.insert(class.burnAbilities, common.getAA('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
@@ -129,7 +134,8 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Silent Strikes')) -- silent casting
     table.insert(class.burnAbilities, common.getAA('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
     --table.insert(class.burnAbilities, common.getBestDisc({'Warder\'s Wrath'}))
-
+    class.poison = common.getAA('Poison Arrows')
+    table.insert(class.burnAbilities, common.getAA('Poison Arrows', {opt='USEPOISONARROW', nodmz=true}))
     class.meleeBurnDiscs = {}
     table.insert(class.meleeBurnDiscs, common.getBestDisc({'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
     class.rangedBurnDiscs = {}
@@ -158,8 +164,8 @@ function class.initBuffs(_aqo)
         table.insert(class.healAbilities, class.spells.heal)
         table.insert(class.selfBuffs, class.spells.buffs)
     else
-        table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Azia)', {opt='USEUNITYAZIA', checkfor='Devastating Barrage'}))
-        table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Beza)', {opt='USEUNITYBEZA', checkfor='Vociferous Blades'}))
+        table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Azia)', {opt='USEUNITYAZIA', CheckFor='Devastating Barrage'}))
+        table.insert(class.selfBuffs, common.getAA('Wildstalker\'s Unity (Beza)', {opt='USEUNITYBEZA', CheckFor='Vociferous Blades'}))
         table.insert(class.selfBuffs, class.spells.rune)
     end
     class.unity_beza = common.getAA('Wildstalker\'s Unity (Beza)')
@@ -168,15 +174,16 @@ function class.initBuffs(_aqo)
     --Slot 3: 	Protection of the Valley
     --Slot 4: 	Eyes of the Senshali
     --Slot 5: 	Moonthorn Coat
-    class.poison = common.getAA('Poison Arrows')
-    table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW', nodmz=true}))
+    
     class.fire = common.getAA('Flaming Arrows')
     table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW', nodmz=true}))
 
     table.insert(class.selfBuffs, class.spells.dmgbuff)
+    class.auspice = common.getAA('Auspice of the Hunter')
 
     class.addRequestAlias(class.spells.predator, 'predator')
     class.addRequestAlias(class.spells.strength, 'strength')
+    class.addRequestAlias(class.auspice, 'auspice')
 end
 
 function class.initDebuffs(_aqo)
@@ -187,10 +194,9 @@ end
 function class.initDefensiveAbilities(_aqo)
     table.insert(class.fadeAbilities, common.getAA('Cover Tracks'))
     table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
-    table.insert(class.aggroReducers, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
 end
 
-local rangedTimer = timer:new(5)
+local rangedTimer = timer:new(5000)
 function class.resetClassTimers()
     rangedTimer:reset(0)
 end
@@ -280,7 +286,7 @@ end
 
 local function useOpener()
     if mq.TLO.Me.CombatState() == 'COMBAT' or not class.spells.opener then return end
-    if assist.shouldAssist() and state.assistMobID > 0 and class.spells.opener.name and mq.TLO.Me.SpellReady(class.spells.opener.name)() then
+    if assist.shouldAssist() and state.assistMobID > 0 and class.spells.opener.Name and mq.TLO.Me.SpellReady(class.spells.opener.Name)() then
         class.spells.opener:use()
     end
 end
@@ -301,7 +307,7 @@ local function findNextSpell()
         end
     end
     for _,spell in ipairs(class.dot_spells) do
-        if spell.name ~= class.spells.dot.name or class.isEnabled('USEDOTS')
+        if spell.Name ~= class.spells.dot.Name or class.isEnabled('USEDOTS')
                 or (state.burnActive and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName()))
                 or (config.get('BURNALWAYS') and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if common.isSpellReady(spell) then
@@ -310,7 +316,7 @@ local function findNextSpell()
         end
     end
     for _,spell in ipairs(class.arrow_spells) do
-        if not class.spells.composite or spell.name ~= class.spells.composite.name or class.isEnabled('USECOMPOSITE') then
+        if not class.spells.composite or spell.Name ~= class.spells.composite.Name or class.isEnabled('USECOMPOSITE') then
             if common.isSpellReady(spell) then
                 return spell
             end
@@ -336,8 +342,8 @@ function class.cast()
                 return true
             end
             for _,clicky in ipairs(class.castClickies) do
-                if (clicky.duration > 0 and mq.TLO.Target.Buff(clicky.checkfor)()) or
-                        (clicky.casttime >= 0 and mq.TLO.Me.Moving()) then
+                if (clicky.Duration > 0 and mq.TLO.Target.Buff(clicky.CheckFor)()) or
+                        (clicky.MyCastTime >= 0 and mq.TLO.Me.Moving()) then
                     movement.stop()
                     if clicky:use() then return end
                 end
@@ -432,7 +438,7 @@ local function target_missing_buff(name)
 end
 
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
-local checkSpellTimer = timer:new(30)
+local checkSpellTimer = timer:new(30000)
 function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
     local spellSet = class.OPTS.SPELLSET.value

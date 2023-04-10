@@ -6,6 +6,7 @@ local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local abilities = require('ability')
+local castUtil = require('cast')
 local config = require('configuration')
 local state = require('state')
 
@@ -33,21 +34,18 @@ local function getSpell(spellName)
     local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
     if not mq.TLO.Me.Book(rankname)() then return nil end
-    if spell.HasSPA(32)() then
-        local summonID = spell.Base(1)()
-    end
-    return {id=spell.ID(), name=rankname, targettype=spell.TargetType(), casttime=spell.CastTime()}
+    return {ID=spell.ID(), Name=rankname}
 end
 
 function common.getBestSpell(spells, options)
     for i,spellName in ipairs(spells) do
         local bestSpell = getSpell(spellName)
         if bestSpell then
-            if options and type(options.summons) == 'table' then
-                options.summons = options.summons[i]
+            if not options then options = {} end
+            for key,value in pairs(options) do
+                bestSpell[key] = value
             end
-            local spell = abilities.Spell:new(bestSpell.id, bestSpell.name, bestSpell.targettype, bestSpell.casttime, options)
-            return spell
+            return abilities.Spell:new(bestSpell)
         end
     end
     return nil
@@ -61,21 +59,11 @@ function common.getAA(aaName, options)
     local aaData = mq.TLO.Me.AltAbility(aaName)
     if aaData() then
         if not options then options = {} end
-        if not options.checkfor then
-            if aaData.Spell.HasSPA(470)() then
-                options.checkfor = aaData.Spell.Trigger(1)()
-            else
-                options.checkfor = aaData.Spell()
-            end
+        local spellData = {ID=aaData.ID(), Name=aaData.Name()}
+        for key,value in pairs(options) do
+            spellData[key] = value
         end
-        if not options.summons then
-            if aaData.Spell.HasSPA(32)() then
-                options.summons = aaData.Spell.Base(1)()
-                options.summonMinimum = 1
-            end
-        end
-        local aa = abilities.AA:new(aaData.ID(), aaData.Name(), aaData.Spell.TargetType(), aaData.Spell.CastTime(), options)
-        return aa
+        return abilities.AA:new(spellData)
     end
     return nil
 end
@@ -84,7 +72,7 @@ local function getDisc(discName)
     local disc = mq.TLO.Spell(discName)
     local rankName = disc.RankName()
     if not rankName or not mq.TLO.Me.CombatAbility(rankName)() then return nil end
-    return {name=rankName, id=disc.ID(), targettype=disc.TargetType(), casttime=disc.CastTime()}
+    return {ID=disc.ID(), Name=rankName}
 end
 
 ---Lookup the ID for a given disc.
@@ -95,9 +83,12 @@ function common.getBestDisc(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
-            print(logger.logLine('Found Disc: %s (%s)', bestDisc.name, bestDisc.id))
-            local disc = abilities.Disc:new(bestDisc.id, bestDisc.name, bestDisc.targettype, bestDisc.casttime, options)
-            return disc
+            print(logger.logLine('Found Disc: %s (%s)', bestDisc.Name, bestDisc.ID))
+            if not options then options = {} end
+            for key,value in pairs(options) do
+                bestDisc[key] = value
+            end
+            return abilities.Disc:new(bestDisc)
         end
     end
     print(logger.logLine('[%s] Could not find disc!', discs[1]))
@@ -109,34 +100,23 @@ function common.getItem(itemName, options)
     local itemRef = mq.TLO.FindItem('='..itemName)
     if itemRef() and itemRef.Clicky() then
         if not options then options = {} end
-        local spell = itemRef.Clicky.Spell
-        options.checkfor = spell.Name()
-        options.duration = spell.Duration.TotalSeconds()
-        if itemRef.Clicky.Spell.HasSPA(374)() then
-            for i=1,5 do
-                if spell.Attrib(i)() == 374 then
-                    -- mount blessing buff
-                    if not spell.Trigger(i).Name():find('Illusion') then
-                        options.checkfor = spell.Trigger(i).Name()
-                        options.removesong = spell()
-                    else
-                        options.removesong = spell.Trigger(i).Name()
-                    end
-                elseif spell.Attrib(i)() == 113 then
-                    -- summon mount SPA
-                end
-            end
+        local spellData = {ID=itemRef.ID(), Name=itemRef.Name()}
+        for key,value in pairs(options) do
+            spellData[key] = value
         end
-        local item = abilities.Item:new(itemRef.ID(), itemRef.Name(), spell.TargetType(), itemRef.CastTime(), options)
-        return item
+        return abilities.Item:new(spellData)
     end
     return nil
 end
 
 function common.getSkill(name, options)
     if not mq.TLO.Me.Ability(name) or not mq.TLO.Me.Skill(name)() or mq.TLO.Me.Skill(name)() == 0 then return nil end
-    local skill = abilities.Skill:new(name, options)
-    return skill
+    if not options then options = {} end
+    local spellData = {Name=name}
+    for key,value in pairs(options) do
+        spellData[key] = value
+    end
+    return abilities.Skill:new(spellData)
 end
 
 function common.setSwapGem()
@@ -223,7 +203,7 @@ end
 -- Movement Functions
 
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
-local checkChaseTimer = timer:new(1)
+local checkChaseTimer = timer:new(1000)
 function common.checkChase()
     if config.get('MODE'):getName() ~= 'chase' then return end
     --if not checkChaseTimer:timerExpired() then return end
@@ -245,7 +225,7 @@ function common.checkChase()
     end
     if common.checkDistance(me_x, me_y, chase_x, chase_y) > config.get('CHASEDISTANCE') then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        if not movement.navToSpawn('pc ='..config.get('CHASETARGET')) then
+        if not movement.navToSpawn('pc ='..config.get('CHASETARGET'), 'dist=20') then
             local chaseSpawn = mq.TLO.Spawn('pc '..config.get('CHASETARGET'))
             if not mq.TLO.Navigation.Active() and chaseSpawn.LineOfSight() then
                 mq.cmdf('/moveto id %s', chaseSpawn.ID())
@@ -294,8 +274,8 @@ end
 function common.isSpellReady(spell, skipCheckTarget)
     if not spell then return false end
 
-    if not mq.TLO.Me.SpellReady(spell.name)() then return false end
-    local spellData = mq.TLO.Spell(spell.name)
+    if not mq.TLO.Me.SpellReady(spell.Name)() then return false end
+    local spellData = mq.TLO.Spell(spell.Name)
     if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and state.loop.PctMana < state.minMana) then
         return false
     end
@@ -309,8 +289,8 @@ function common.isSpellReady(spell, skipCheckTarget)
     if spellData.Duration.Ticks() > 0 then
         local buff_duration = 0
         local remaining_cast_time = 0
-        buff_duration = mq.TLO.Target.MyBuffDuration(spell.name)()
-        if not common.isTargetDottedWith(spell.id, spell.name) then
+        buff_duration = mq.TLO.Target.MyBuffDuration(spell.Name)()
+        if not common.isTargetDottedWith(spell.ID, spell.Name) then
             -- target does not have the dot, we are ready
             return true
         else
@@ -323,110 +303,6 @@ function common.isSpellReady(spell, skipCheckTarget)
     else
         return true
     end
-end
-
---- Stacking check stuff
-function common.shouldUseSpell(spell, skipselfstack)
-    local result = false
-    local dist = mq.TLO.Target.Distance3D()
-    if spell.Beneficial() then
-        -- duration is number of ticks, so it tostring'd
-        if spell.Duration() ~= '0' then
-            if spell.TargetType() == 'Self' then
-                -- skipselfstack == true when its a disc, so that a defensive disc can still replace a always up sort of disc
-                -- like war resolute stand should be able to replace primal defense
-                result = ((skipselfstack or spell.Stacks()) and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()) == true
-            elseif spell.TargetType() == 'Single' then
-                result = (dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())()) == true
-            else
-                -- no one to check stacking on, sure
-                result = true
-            end
-        else
-            if spell.TargetType() == 'Single' then
-                result = (dist and dist <= spell.MyRange()) == true
-            else
-                -- instant beneficial spell, sure
-                result = true
-            end
-        end
-    else
-        -- duration is number of ticks, so it tostring'd
-        if spell.Duration() ~= '0' then
-            if spell.TargetType() == 'Single' or spell.TargetType() == 'Targeted AE' then
-                result = (dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight() and spell.StacksTarget() and not mq.TLO.Target.MyBuff(spell.Name())()) == true
-            else
-                -- no one to check stacking on, sure
-                result = true
-            end
-        else
-            if spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' then
-                result = (dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight()) == true
-            else
-                -- instant detrimental spell that requires no target, sure
-                result = true
-            end
-        end
-    end
-    logger.debug(logger.flags.common.cast, 'Should use spell: \ag%s\ax=%s', spell.Name(), result)
-    return result
-end
-
---- Spell requirements, i.e. enough mana, enough reagents, have a target, target in range, not casting, in control
-function common.canUseSpell(spell, type)
-    if not spell() then return false end
-    local result = true
-    if type == 'spell' and not mq.TLO.Me.SpellReady(spell.Name())() then result = false end
-    if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then result = false end
-    if spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance() then result = false end
-    -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
-    if state.class ~= 'brd' then
-        for i=1,3 do
-            local reagentid = spell.ReagentID(i)()
-            if reagentid ~= -1 then
-                local reagent_count = spell.ReagentCount(i)()
-                if mq.TLO.FindItemCount(reagentid)() < reagent_count then
-                    logger.debug(logger.flags.common.cast, 'Missing Reagent (%s)', reagentid)
-                    result = false
-                end
-            else
-                break
-            end
-        end
-    end
-    logger.debug(logger.flags.common.cast, 'Can use spell: \ag%s\ax=%s', spell.Name(), result)
-    return result
-end
-
-local function itemReady(item)
-    if state.subscription ~= 'GOLD' and item.Prestige() then return false end
-    if item() and item.Clicky.Spell() and item.Timer() == '0' then
-        local spell = item.Clicky.Spell
-        return common.canUseSpell(spell, 'item') and common.shouldUseSpell(spell)
-    else
-        return false
-    end
-end
-
----Use the item specified by item.
----@param item MQItem @The MQ Item userdata object.
----@return boolean @Returns true if the item was fired, otherwise false.
-function common.useItem(item)
-    if type(item) == 'table' then item = mq.TLO.FindItem(item.id) end
-    if itemReady(item) then
-        --state.casting = common.getItem(item.Name())
-        print(logger.logLine('Use Item: \ag%s\ax', item))
-        if state.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
-        mq.cmdf('/useitem "%s"', item)
-        if state.useStateMachine then
-            state.actionTaken = true
-            return true
-        else
-            mq.delay(500+item.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
-            return true
-        end
-    end
-    return false
 end
 
 -- Burn Helper Functions
@@ -497,9 +373,9 @@ end
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
 function common.swapSpell(spell, gem, other_names)
     if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
-    if mq.TLO.Me.Gem(gem)() == spell.name then return end
+    if mq.TLO.Me.Gem(gem)() == spell.Name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
-    mq.cmdf('/memspell %d "%s"', gem, spell.name)
+    mq.cmdf('/memspell %d "%s"', gem, spell.Name)
     if state.useStateMachine then
         state.actionTaken = true
         state.memSpell = spell
@@ -507,18 +383,18 @@ function common.swapSpell(spell, gem, other_names)
         return true
     else
         -- Low meditate skill or non-casters may take more time to memorize stuff
-        mq.delay(15000, function() return common.swapGemReady(spell.name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
-        logger.debug(logger.flags.common.memspell, "Delayed for mem_spell "..spell.name)
+        mq.delay(15000, function() return common.swapGemReady(spell.Name, gem) or not mq.TLO.Window('SpellBookWnd').Open() end)
+        logger.debug(logger.flags.common.memspell, "Delayed for mem_spell "..spell.Name)
         if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
-        return common.swapGemReady(spell.name, gem)
+        return common.swapGemReady(spell.Name, gem)
     end
 end
 
 function common.swapAndCast(spell, gem)
     if not spell then return false end
     if state.useStateMachine then
-        if not mq.TLO.Me.Gem(spell.name)() then
-            state.restore_gem = {name=mq.TLO.Me.Gem(gem)(),gem=gem}
+        if not mq.TLO.Me.Gem(spell.Name)() then
+            state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
             if not common.swapSpell(spell, gem) then
                 -- failed to mem?
                 return
@@ -527,7 +403,6 @@ function common.swapAndCast(spell, gem)
                 abilities.use(spell)
                 if state.restore_gem then
                     return function()
-                        print('mem original called')
                         common.swapSpell(state.restore_gem, gem)
                     end
                 end
@@ -538,17 +413,17 @@ function common.swapAndCast(spell, gem)
         end
     else
         local restore_gem = nil
-        if not mq.TLO.Me.Gem(spell.name)() then
-            restore_gem = {name=mq.TLO.Me.Gem(gem)()}
+        if not mq.TLO.Me.Gem(spell.Name)() then
+            restore_gem = {Name=mq.TLO.Me.Gem(gem)()}
             if not common.swapSpell(spell, gem) then
                 -- failed to mem?
             end
         end
         -- if we swapped a spell then at least try to give it enough time to become ready or why did we swap
-        mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.name)() end)
-        logger.debug(logger.flags.common.memspell, "Delayed for spell swap "..spell.name)
+        mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
+        logger.debug(logger.flags.common.memspell, "Delayed for spell swap "..spell.Name)
         local did_cast = spell:use()
-        if restore_gem and restore_gem.name then
+        if restore_gem and restore_gem.Name then
             if not common.swapSpell(restore_gem, gem) then
                 -- failed to mem?
             end
@@ -561,9 +436,10 @@ end
 function common.checkCombatBuffs()
     if state.emu then return end
     if not mq.TLO.Me.Buff('Geomantra')() then
-        local charmSpell = mq.TLO.InvSlot('Charm').Item.Clicky.Spell()
+        local charm = mq.TLO.Me.Inventory('Charm')
+        local charmSpell = charm.Clicky.Spell()
         if charmSpell and charmSpell:lower():find('geomantra') then
-            common.useItem(mq.TLO.InvSlot('Charm').Item)
+            abilities.use(abilities.Item:new({Name=charm(), ID=charm.ID()}))
         end
     end
 end
@@ -571,17 +447,22 @@ end
 ---Check and cast any missing familiar, illusion or mount buffs. Removes illusion and dismounts after casting.
 function common.checkItemBuffs()
     if familiar and familiar > 0 and not mq.TLO.Me.Buff('Familiar:')() then
-        common.useItem(mq.TLO.FindItem(familiar))
+        local familiarItem = mq.TLO.FindItem(familiar)
+        abilities.use(abilities.Item:new({Name=familiarItem(), ID=familiarItem.ID()}))
+        mq.delay(500+familiarItem.CastTime())
+        mq.cmdf('/removebuff %s', familiarItem.Clicky())
     end
     if illusion and illusion > 0 and not mq.TLO.Me.Buff('Illusion Benefit')() then
-        common.useItem(mq.TLO.FindItem(illusion))
-        mq.delay(50)
+        local illusionItem = mq.TLO.FindItem(illusion)
+        abilities.use(abilities.Item:new({Name=illusionItem(), ID=illusionItem.ID()}))
+        mq.delay(500+illusionItem.CastTime())
         mq.cmd('/removebuff illusion:')
     end
     if mount and mount > 0 and not mq.TLO.Me.Buff('Mount Blessing')() and mq.TLO.Me.CanMount() then
-        common.useItem(mq.TLO.FindItem(mount))
-        mq.delay(50)
-        mq.cmdf('/removebuff %s', mq.TLO.FindItem(mount).Clicky())
+        local mountItem = mq.TLO.FindItem(mount)
+        abilities.use(abilities.Item:new({Name=mountItem(), ID=mountItem.ID()}))
+        mq.delay(500+mountItem.CastTime())
+        mq.cmdf('/removebuff %s', mountItem.Clicky())
     end
 end
 
@@ -604,23 +485,23 @@ function common.checkMana()
         for item,_ in pairs(modrods) do
             local modrod = mq.TLO.FindItem(item)
             if mq.TLO.Me.PctHPs() > 70 then
-                common.useItem(modrod)
+                abilities.use(abilities.Item:new({Name=item, ID=modrod.ID()}))
             end
         end
         -- use feather for self if not grouped (group.LowMana is null if not grouped)
         if feather() and not group_mana and not mq.TLO.Me.Song(feather.Spell.Name())() then
-            common.useItem(feather)
+            abilities.use(abilities.Item:new({Name=feather(), ID=feather.ID()}))
         end
     end
     -- use feather for group if > 2 members are below 70% mana
     if feather() and group_mana and group_mana > 2 and not mq.TLO.Me.Song(feather.Spell.Name())() then
-        common.useItem(feather)
+        abilities.use(abilities.Item:new({Name=feather(), ID=feather.ID()}))
     end
 
-    if mq.TLO.Zone.ShortName() ~= 'poknowledge' then
+    if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.Class.CanCast() then
         local manastone = mq.TLO.FindItem('Manastone')
         if manastone() and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and state.loop.PctHPs > config.get('MANASTONESTARTHP') then
-            local manastoneTimer = timer:new(config.get('MANASTONETIME'), true)
+            local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000, true)
             while mq.TLO.Me.PctHPs() > config.get('MANASTONESTOPHP') and not manastoneTimer:timerExpired() do
                 mq.cmd('/useitem manastone')
             end
@@ -628,7 +509,7 @@ function common.checkMana()
     end
 end
 
-local sitTimer = timer:new(5)
+local sitTimer = timer:new(10000)
 ---Sit down to med if the conditions for resting are met.
 function common.rest()
     if not config.get('MEDCOMBAT') and (mq.TLO.Me.CombatState() == 'COMBAT' or state.assistMobID ~= 0) then return end
@@ -653,11 +534,13 @@ function common.rest()
 end
 
 -- keep cursor clear for spell swaps and such
-local autoInventoryTimer = timer:new(15)
+local autoInventoryTimer = timer:new(15000)
 ---Autoinventory an item if it has been on the cursor for 15 seconds.
 function common.checkCursor()
     if mq.TLO.Cursor() then
-        if autoInventoryTimer.start_time == 0 then
+        if common.amIDead() and lists.deleteWhenDead[mq.TLO.Cursor.Name()] then
+            print(logger.logLine('Deleting %s from cursor because im dead and have no bags!', mq.TLO.Cursor.Name()))
+        elseif autoInventoryTimer.start_time == 0 then
             autoInventoryTimer:reset()
             print(logger.logLine('Dropping cursor item into inventory in 15 seconds'))
         elseif autoInventoryTimer:timerExpired() then
@@ -703,22 +586,13 @@ end
 function common.processList(aList, returnOnFirstUse)
     for _,entry in ipairs(aList) do
         if state.useStateMachine then
-            if abilities.use(entry) and returnOnFirstUse then return end
+            if abilities.use(entry) and returnOnFirstUse then return true end
         else
             if not entry.condition or entry.condition(entry) then
                 local used = false
                 used = entry:use()
-                if used and returnOnFirstUse then return end
+                if used and returnOnFirstUse then return true end
             end
-            --[[if entry.beforeUse then entry.beforeUse() end
-            local used = false
-            if entry.swap then
-                used = common.swapAndCast(entry, state.swapGem)
-            else
-                used = entry:use()
-            end
-            if entry.afterUse then entry.afterUse() end
-            if used and returnOnFirstUse then return end]]
         end
     end
 end

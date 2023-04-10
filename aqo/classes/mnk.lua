@@ -33,14 +33,19 @@ end
 
 function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of the Sensei'))
-    table.insert(class.burnAbilities, common.getBestDisc({'Speed Focus Discipline'}))
-    table.insert(class.burnAbilities, common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'}))
-    table.insert(class.burnAbilities, common.getBestDisc({'Heel of Kai', 'Heel of Kanji'}))
-    table.insert(class.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE', condition=_aqo.conditions.isEnabled}))
+    local speedFocus = common.getBestDisc({'Speed Focus Discipline'})
+    local crystalPalm = common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'})
+    local heel = common.getBestDisc({'Heel of Kai', 'Heel of Kanji'})
+    crystalPalm.condition = function() return not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end
+    heel.condition = function() return not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end
+    table.insert(class.burnAbilities, speedFocus)
+    table.insert(class.burnAbilities, crystalPalm)
+    table.insert(class.burnAbilities, heel)
+    table.insert(class.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE'}))
 end
 
 function class.initBuffs(_aqo)
-    table.insert(class.auras, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {checkfor='Disciples Aura'}))
+    table.insert(class.auras, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {CheckFor='Disciples Aura'}))
     table.insert(class.combatBuffs, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
     table.insert(class.combatBuffs, common.getBestDisc({'Fists of Wu'}))
     table.insert(class.combatBuffs, common.getAA('Zan Fi\'s Whistle'))

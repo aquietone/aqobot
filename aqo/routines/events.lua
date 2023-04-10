@@ -52,7 +52,7 @@ function events.zoned()
     aqo.state.currentZone = mq.TLO.Zone.ID()
     mq.cmd('/pet ghold on')
     if not aqo.state.paused and config.get('MODE'):isPullMode() then
-        config.MODE = aqo.mode.fromString('manual')
+        config.MODE.value = aqo.mode.fromString('manual')
         aqo.camp.setCamp()
         aqo.movement.stop()
     end
@@ -134,14 +134,18 @@ function events.eventRequest(line, requester, requested)
         if requested == 'list buffs' then
             local buffList = ''
             for alias,ability in pairs(aqo.class.requestAliases) do
-                buffList = ('%s | %s : %s'):format(buffList, alias, ability.name)
+                buffList = ('%s | %s : %s'):format(buffList, alias, ability.Name)
             end
             mq.cmdf('/t %s %s', requester, buffList)
             return
         end
+        if requested == 'armpet' and state.class == 'mag' then
+            table.insert(aqo.class.requests, {requester=requester, requested='armpet', expiration=timer:new(15000)})
+            return
+        end
         local requestedAbility = aqo.class.getAbilityForAlias(requested)
         if requestedAbility then
-            local expiration = timer:new(15, true)
+            local expiration = timer:new(15000)
             table.insert(aqo.class.requests, {requester=requester, requested=requestedAbility, expiration=expiration, tranquil=tranquil, mgb=mgb})
         end
     end

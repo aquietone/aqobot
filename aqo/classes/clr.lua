@@ -5,7 +5,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.spellRotations = {standard={}}
-    class.classOrder = {'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest', 'rez'}
+    class.classOrder = {'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'rez', 'recover', 'buff', 'rest'}
     class.initBase(_aqo, 'clr')
 
 
@@ -33,7 +33,7 @@ function class.initClassOptions()
 end
 
 function class.initSpellLines(_aqo)
-    class.addSpell('heal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {tank=true, panic=true, regular=true})
+    class.addSpell('heal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Light Healing', 'Minor Healing'}, {tank=true, panic=true, regular=false})
     --class.addSpell('remedy', {'Pious Remedy', 'Supernal Remedy', 'Remedy'}, {regular=true, panic=true, pet=60})
     class.addSpell('desperate', {'Desperate Renewal'}, {panic=true, pet=15})
     class.addSpell('aura', {'Aura of Divinity'}, {aura=true})
@@ -41,7 +41,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('armor', {'Armor of the Pious', 'Armor of the Zealot'})
     class.addSpell('spellhaste', {'Aura of Devotion'})
     class.addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
-    class.addSpell('groupheal', {'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'}, {threshold=3, group=true, pct=70})
+    class.addSpell('groupheal', {'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'}, {threshold=3, regular=true, single=true, group=true, pct=70})
     class.addSpell('hottank', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing'}, {opt='USEHOTTANK', hot=true})
     class.addSpell('hotdps', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing'}, {opt='USEHOTDPS', hot=true})
     class.addSpell('hotgroup', {'Elixir of Divinity'}, {opt='USEHOTGROUP', grouphot=true})
@@ -80,7 +80,7 @@ end
 
 function class.initBuffs(_aqo)
     -- Project Lazarus only
-    local aaAura = common.getAA('Spirit Mastery', {checkfor='Aura of Pious Divinity'})
+    local aaAura = common.getAA('Spirit Mastery', {CheckFor='Aura of Pious Divinity'})
     if aaAura then
         table.insert(class.auras, aaAura)
     else
@@ -89,8 +89,8 @@ function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, class.spells.yaulp)
     table.insert(class.selfBuffs, class.spells.armor)
     table.insert(class.selfBuffs, class.spells.spellhaste)
-    table.insert(class.selfBuffs, common.getItem('Earring of Pain Deliverance', {checkfor='Reyfin\'s Random Musings'}))
-    table.insert(class.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {checkfor='Reyfin\'s Racing Thoughts'}))
+    table.insert(class.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
+    table.insert(class.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
 
     table.insert(class.singleBuffs, class.spells.grpsymbol)
     table.insert(class.singleBuffs, class.spells.aego)

@@ -92,7 +92,7 @@ end
 
 local medding = false
 local healers = {CLR=true,DRU=true,SHM=true}
-local holdPullTimer = timer:new(5)
+local holdPullTimer = timer:new(5000)
 local holdPulls = false
 function pull.checkPullConditions()
     if mq.TLO.Group.Members() then
@@ -148,6 +148,32 @@ function pull.checkPullConditions()
     return true
 end
 
+local pullRadarTimer = timer:new(1000)
+function pull.pullRadarB()
+    if not pullRadarTimer:timerExpired() then return 0 end
+    pullRadarTimer:reset()
+    local pull_radius = config.get('PULLRADIUS')
+    if not pull_radius then return 0 end
+    local shortest_path = pull_radius
+    local pull_id = 0
+
+    local function pullPredicate(spawn)
+        if spawn.Type() ~= 'NPC' then return false end
+        if spawn.Distance3D() > pull_radius then return false end
+        local path_len = mq.TLO.Navigation.PathLength(string.format('id %s', spawn.ID()))()
+        if not validatePull(spawn, path_len, mq.TLO.Zone.ShortName()) then return false end
+        if path_len < shortest_path then
+            shortest_path = path_len
+            pull_id = spawn.ID()
+        end
+        return true
+    end
+
+    mq.getFilteredSpawns(pullPredicate)
+    state.pullMobID = pull_id
+    return pull_id
+end
+
 --loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
 local pull_count = 'npc nopet radius %d'-- zradius 50'
 local pull_spawn = '%d, npc nopet radius %d'-- zradius 50'
@@ -156,7 +182,6 @@ local pull_spawn_camp = '%d, npc nopet loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.pullMobID to the mob ID of the first matching spawn.
-local pullRadarTimer = timer:new(1)
 function pull.pullRadar()
     if not pullRadarTimer:timerExpired() then return 0 end
     pullRadarTimer:reset()
@@ -296,7 +321,7 @@ local function pullEngage(pull_spawn)
         if pullWith == 'item' then
             local pull_item = nil
             for _,clicky in ipairs(aqo.class.pullClickies) do
-                if mq.TLO.Me.ItemReady(clicky.name)() then
+                if mq.TLO.Me.ItemReady(clicky.Name)() then
                     pull_item = clicky
                     break
                 end
@@ -324,7 +349,7 @@ local function pullEngage(pull_spawn)
                 mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
             end
         elseif pullWith == 'spell' then
-            if mq.TLO.Me.SpellReady(aqo.class.pullSpell)() then
+            if mq.TLO.Me.SpellReady(aqo.class.pullSpell.Name)() then
                 movement.stop()
                 mq.delay(50)
                 if state.useStateMachine then
@@ -348,7 +373,7 @@ local function pullEngage(pull_spawn)
     return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target()
 end
 
-local pullReturnTimer = timer:new(120)
+local pullReturnTimer = timer:new(120000)
 ---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
 local function pullReturn(noMobs)
     --print(logger.logLine('Bringing pull target back to camp (%s)', common.pullMobID))
@@ -378,7 +403,7 @@ end
 ---Sets common.tankMobID to the mob being pulled.
 function pull.pullMob()
     local pull_state = state.pullStatus
-    if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or aqo.lists.DMZ[mq.TLO.Zone.ID()] then
+    if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or aqo.lists.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
         if pull_state == lists.pullStates.APPROACHING or pull_state == lists.pullStates.ENGAGING then
             clearPullVars('pullMob-deadOrInjured')
             movement.stop()

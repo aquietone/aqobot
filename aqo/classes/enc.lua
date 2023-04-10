@@ -4,6 +4,7 @@ local class = require('classes.classbase')
 local mez = require('routines.mez')
 local timer = require('utils.timer')
 local common = require('common')
+local config = require('configuration')
 local state = require('state')
 
 function class.init(_aqo)
@@ -95,8 +96,8 @@ function class.initSpellLines(_aqo)
     class.addSpell('groupspellrune', {'Legion of Liako', 'Legion of Kildrukaun'})
     class.addSpell('groupaggrorune', {'Eclipsed Rune'}) -- group rune + aggro reduction proc
 
-    class.addSpell('dot', {'Mind Vortex', 'Mind Coil', 'Mind Shatter'}) -- big dot
-    class.addSpell('dot2', {'Throttling Grip', 'Pulmonary Grip'}) -- decent dot
+    class.addSpell('dot', {'Mind Vortex', 'Mind Coil', 'Mind Shatter'}, {opt='USEDOT'}) -- big dot
+    class.addSpell('dot2', {'Throttling Grip', 'Pulmonary Grip', 'Arcane Noose'}, {opt='USEDOT'}) -- decent dot
     class.addSpell('debuffdot', {'Perplexing Constriction'}) -- debuff + nuke + dot
     class.addSpell('manadot', {'Tears of Xenacious'}) -- hp + mana DoT
     class.addSpell('nukerune', {'Chromatic Flare'}) -- 15k nuke + self rune
@@ -136,9 +137,9 @@ function class.initSpellLines(_aqo)
 
     class.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
     if class.spells.synergy then
-        if class.spells.synergy.name:find('reap') then
+        if class.spells.synergy.Name:find('reap') then
             class.addSpell('nuke5', {'Mindrift', 'Mindslash'})
-        elseif class.spells.synergy.name:find('rift') then
+        elseif class.spells.synergy.Name:find('rift') then
             class.addSpell('nuke5', {'Mindslash'})
         end
     end
@@ -224,12 +225,15 @@ function class.initBuffs(_aqo)
 
     table.insert(class.petBuffs, class.spells.pethaste)
     if state.emu then
-        table.insert(class.auras, common.getAA('Auroria Mastery', {checkfor='Aura of Bedazzlement'}))
+        table.insert(class.auras, common.getAA('Auroria Mastery', {CheckFor='Aura of Bedazzlement'}))
         class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}
         table.insert(class.singleBuffs, class.spells.procbuff)
         table.insert(class.selfBuffs, class.spells.procbuff)
+        local epic = common.getItem('Staff of Eternal Eloquence')
+        epic.classes = class.spells.procbuff.classes
+        table.insert(class.singleBuffs, epic)
     else
-        table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {checkfor='Ward of the Beguiler'}))
+        table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {CheckFor='Ward of the Beguiler'}))
     end
 end
 
@@ -259,8 +263,8 @@ function class.initDefensiveAbilities(_aqo)
 end
 
 local function castSynergy()
-    if class.spells.synergy and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.name)() then
-        if mq.TLO.Spell(class.spells.synergy.name).Mana() > mq.TLO.Me.CurrentMana() then
+    if class.spells.synergy and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(class.spells.synergy.Name)() then
+        if mq.TLO.Spell(class.spells.synergy.Name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
         class.spells.synergy:use()
@@ -296,15 +300,15 @@ function class.recover()
     --end
     if mq.TLO.Me.PctMana() < 70 and class.azure then
         local cursor = mq.TLO.Cursor()
-        if cursor and cursor:find(class.azure.name) then mq.cmd('/autoinventory') end
-        local manacrystal = mq.TLO.FindItem(class.azure.name)
+        if cursor and cursor:find(class.azure.Name) then mq.cmd('/autoinventory') end
+        local manacrystal = mq.TLO.FindItem(class.azure.Name)
         common.useItem(manacrystal)
     end
-    if mq.TLO.Me.PctMana() < 25 and mq.TLO.Me.PctHPs() > 70 then
+    if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then
         local manastone = mq.TLO.FindItem('Manastone')
         if not manastone() then return end
-        local manastoneTimer = timer:new(1, true)
-        while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
+        local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000)
+        while mq.TLO.Me.PctHPs() > config.get('MANASTONESTOPHP') and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
             if manastoneTimer:timerExpired() then break end
         end
@@ -321,7 +325,7 @@ local function missing_unity_buffs(name)
 end
 
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
-local checkSpellTimer = timer:new(30)
+local checkSpellTimer = timer:new(30000)
 function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
     local spellSet = class.OPTS.SPELLSET.value

@@ -176,7 +176,7 @@ end
 -- Combine Assist and Camp categories
 local assistTabConfigs = {
     'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA',
-    'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','RESISTSTOPCOUNT',
+    'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASEPAUSED','RESISTSTOPCOUNT',
     'MAINTANK','LOOTMOBS','AUTODETECTRAID'
 }
 local function drawAssistTab()
@@ -439,9 +439,9 @@ local function drawAbilityInspector()
                 if ImGui.TreeNode('Spells') then
                     for alias,spell in pairs(aqo.class.spells) do
                         if ImGui.TreeNode(alias..'##spellalias') then
-                            ImGui.Text('Name: %s', spell.name)
+                            ImGui.Text('Name: %s', spell.Name)
                             for opt,value in pairs(spell) do
-                                if opt ~= 'name' and (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then
+                                if opt ~= 'Name' and (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then
                                     ImGui.Text('%s: %s', opt, value)
                                 end
                             end
@@ -454,7 +454,7 @@ local function drawAbilityInspector()
                     for spellSetName,spellSet in pairs(aqo.class.spellRotations) do
                         if ImGui.TreeNode(spellSetName..'##spellset') then
                             for _,spell in ipairs(spellSet) do
-                                ImGui.Text(spell.name)
+                                ImGui.Text(spell.Name)
                             end
                             ImGui.TreePop()
                         end
@@ -467,9 +467,9 @@ local function drawAbilityInspector()
                     if #aqo.class[list] > 0 then
                         if ImGui.TreeNode(list..'##lists'..i) then
                             for j,ability in ipairs(aqo.class[list]) do
-                                if ImGui.TreeNode(ability.name..'##list'..list..i..j) then
+                                if ImGui.TreeNode(ability.Name..'##list'..list..i..j) then
                                     for opt,value in pairs(ability) do
-                                        if opt ~= 'name' and (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then
+                                        if opt ~= 'Name' and (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then
                                             local color = WHITE
                                             if opt == 'opt' then if aqo.class.isEnabled(value) then color = GREEN else color = RED end end
                                             ImGui.TextColored(color, '%s: %s', opt, value)

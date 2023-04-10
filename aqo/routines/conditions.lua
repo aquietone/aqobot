@@ -21,7 +21,7 @@ end
 ---@field overwritedisc? string # name of disc which is acceptable to overwrite
 ---@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
 ---@field tot? boolean # flag to indicate if spell is target-of-target
----@field removesong? string # name of buff / song to remove after cast
+---@field RemoveBuff? string # name of buff / song to remove after cast
 
 function conditions.isEnabled(ability)
     return not ability.opt or aqo.class.isEnabled(ability.opt)
@@ -55,12 +55,20 @@ function conditions.classes(ability, spawn)
     return not ability.classes or ability.classes[spawn.Class.ShortName()]
 end
 
+function conditions.missingPetCheckfor(ability)
+    return not mq.TLO.Pet.Buff(ability.CheckFor)()
+end
+
+function conditions.missingPetBuff(ability)
+    return not mq.TLO.Pet.Buff(ability.Name)()
+end
+
 function conditions.missingBuff(ability)
     return not conditions.hasBuff(ability)
 end
 
 function conditions.hasBuff(ability)
-    return mq.TLO.Me.Buff(ability.name)() or mq.TLO.Me.Song(ability.name)()
+    return mq.TLO.Me.Buff(ability.Name)() or mq.TLO.Me.Song(ability.Name)()
 end
 
 function conditions.missingCheckFor(ability)
@@ -68,7 +76,7 @@ function conditions.missingCheckFor(ability)
 end
 
 function conditions.checkFor(ability)
-    return not ability.checkfor or mq.TLO.Me.Buff(ability.checkfor)() or mq.TLO.Me.Song(ability.checkfor)()
+    return not ability.CheckFor or mq.TLO.Me.Buff(ability.CheckFor)() or mq.TLO.Me.Song(ability.CheckFor)()
 end
 
 function conditions.skipIfBuff(ability)
@@ -80,7 +88,7 @@ function conditions.dmz(ability)
 end
 
 function conditions.summonMinimum(ability)
-    return not ability.summonMinimum or mq.TLO.FindItemCount('='..ability.summons)() < ability.summonMinimum
+    return not ability.summonMinimum or mq.TLO.FindItemCount(ability.SummonID)() < ability.summonMinimum
 end
 
 function conditions.summonComponent(ability)
@@ -88,11 +96,11 @@ function conditions.summonComponent(ability)
 end
 
 function conditions.stacksPet(ability)
-    return not mq.TLO.Pet.Buff(ability.name)() and mq.TLO.Spell(ability.name).StacksPet()
+    return not mq.TLO.Pet.Buff(ability.Name)() and mq.TLO.Spell(ability.Name).StacksPet()
 end
 
 function conditions.checkMana(ability)
-    return mq.TLO.Me.CurrentMana() >= mq.TLO.Spell(ability.name).Mana()
+    return mq.TLO.Me.CurrentMana() >= mq.TLO.Spell(ability.Name).Mana()
 end
 
 -- Recover Ability conditions

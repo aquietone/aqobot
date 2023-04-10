@@ -1,4 +1,48 @@
 return {
+    --[[ Lazarus HC Zones ]]--
+    ['oot'] = {
+        ['Dixl Drool'] = true,
+        ['Gornit'] = true,
+        ['Toko Binlittle'] = true,
+    },
+    ['crushbone'] = {
+        ['The Prophet'] = true,
+        ['Lord Darish'] = true,
+        ['Ambassador Dvinn'] = true,
+        ['Emperor Crush'] = true,
+    },
+    ['oasis'] = {
+
+    },
+    ['qey2qrg'] = {
+
+    },
+    ['soldungb'] = {
+
+    },
+    ['unrest'] = {
+
+    },
+    ['cazicthule'] = {
+
+    },
+    ['southkarana'] = {
+        ['Tesch Val Deval`Nmak'] = true,
+        ['Mroon'] = true,
+        ['Shaman Ren`Rex'] = true,
+        ['Synger Foxfyre'] = true,
+        ['Rosch Val L`Vlor'] = true,
+        ['Nisch Val Torash Mashk'] = true,
+        ['Narra Tanith'] = true,
+        ['Marik Clubthorn'] = true,
+        ['Grizzleknot'] = true,
+        ['Gnashmaw'] = true,
+    },
+    ['everfrost'] = {
+        ['Redwind'] = true,
+        ['Martar IceBear'] = true,
+    },
+
     --[[ Terror of Luclin ]]--
 
     ['vexthaltwo'] = { -- Vex Thal Two

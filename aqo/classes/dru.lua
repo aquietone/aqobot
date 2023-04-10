@@ -38,7 +38,7 @@ function class.init(_aqo)
 
     class.rezAbility = common.getAA('Call of the Wild')
 
-    class.nuketimer = timer:new(1)
+    class.nuketimer = timer:new(1000)
 end
 
 function class.initClassOptions()
@@ -120,7 +120,7 @@ function class.initBurns(_aqo)
 end
 
 function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getItem('Nature Walker\'s Scimitar'))
+    table.insert(class.DPSAbilities, common.getItem('Nature Walkers Scimitar'))
     table.insert(class.DPSAbilities, common.getAA('Storm Strike'))
 end
 
@@ -129,7 +129,7 @@ function class.initBuffs(_aqo)
     table.insert(class.auras, class.spells.aura)
 
     table.insert(class.singleBuffs, class.spells.reptile)
-    table.insert(class.singleBuffs, common.getAA('Wrath of the Wild', {classes={WAR=true,SHD=true,PAL=true}}))
+    table.insert(class.singleBuffs, common.getAA('Wrath of the Wild', {classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}))
     table.insert(class.selfBuffs, class.spells.reptile)
     table.insert(class.selfBuffs, common.getAA('Spirit of the Black Wolf'))
     local arcanum1 = common.getAA('Focus of Arcanum')

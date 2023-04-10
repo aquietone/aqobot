@@ -46,7 +46,7 @@ local function needsCure(spell, buffTarget)
         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
         buffTarget = mq.TLO.Target
     end
-    return not buffTarget.Buff(spell.name)() and mq.TLO.Spell(spell.name).StacksSpawn(buffTarget)
+    return not buffTarget.Buff(spell.Name)() and mq.TLO.Spell(spell.Name).StacksSpawn(buffTarget)
 end
 
 function cure.singleCure(spell, buffTarget)

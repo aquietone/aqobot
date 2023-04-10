@@ -42,15 +42,15 @@ function class.initSpellLines(_aqo)
     class.addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
                         'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                         'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
-    class.addSpell('petbuff', {'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
+    class.addSpell('petbuff', {'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
     class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
-    class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summons={'Molten Orb','Lava Orb'}, summonMinimum=1, nodmz=true})
+    class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summons={'Molten Orb','Lava Orb'}, summonMinimum=1, nodmz=true, pause=true})
     class.addSpell('petds', {'Iceflame Guard'})
-    class.addSpell('servant', {'Rampaging Servant'})
+    class.addSpell('servant', {'Raging Servant', 'Rampaging Servant'})
     class.addSpell('ds', {'Circle of Fireskin'}, {opt='USEDS'})
     class.addSpell('bigds', {'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, {opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}})
 
-    class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
+    --class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
     class.addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
     class.addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
 
@@ -94,7 +94,7 @@ function class.initBuffs(_aqo)
 
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
-    table.insert(class.selfBuffs, class.spells.manaregen)
+    --table.insert(class.selfBuffs, class.spells.manaregen)
     table.insert(class.selfBuffs, class.spells.acregen)
     table.insert(class.selfBuffs, class.spells.orb)
     table.insert(class.selfBuffs, class.spells.ds)
@@ -102,9 +102,11 @@ function class.initBuffs(_aqo)
     table.insert(class.combatBuffs, common.getAA('Fire Core'))
     table.insert(class.singleBuffs, class.spells.bigds)
 
+    table.insert(class.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction'}))
     table.insert(class.petBuffs, class.spells.petbuff)
     table.insert(class.petBuffs, class.spells.petstrbuff)
     table.insert(class.petBuffs, class.spells.petds)
+    table.insert(class.petBuffs, common.getAA('Aegis of Kildrukaun'))
 
     class.addRequestAlias(class.spells.orb, 'orb')
     class.addRequestAlias(class.spells.ds, 'ds')
@@ -157,9 +159,10 @@ local summonedItemMap = {
     ['Grant Spectral Plate'] = 'Folded Pack of Spectral Plate',
     ['Grant Enibik\'s Heirlooms'] = 'Folded Pack of Enibik\'s Heirlooms',
 }
+local EnchanterPetPrimaryWeaponId = 10702
 
 -- Checks pets for items and re-equips if necessary.
-local armPetTimer = timer:new(60)
+local armPetTimer = timer:new(60000)
 function class.autoArmPets()
     if common.hostileXTargets() then return end
     if not class.isEnabled('ARMPETS') or not class.spells.weapons then return end
@@ -241,8 +244,10 @@ function class.armPets()
         print('Unable to clear cursor, not summoning pet toys.')
         return
     end
+    if not class.petWeapons then return end
     print('Begin arming pets')
     state.useStateMachine = false
+    local restoreGem = {Name=mq.TLO.Me.Gem(12)()}
 
     local petPrimary = mq.TLO.Pet.Primary()
     local petID = mq.TLO.Pet.ID()
@@ -263,7 +268,7 @@ function class.armPets()
                 local ownerPetDistance = ownerSpawn.Pet.Distance3D() or 300
                 local ownerPetLevel = ownerSpawn.Pet.Level() or 0
                 local ownerPetPrimary = ownerSpawn.Pet.Primary() or -1
-                if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and ownerPetPrimary == 0 then -- or theirPetPrimary == EnchanterPetPrimaryWeaponId
+                if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and (ownerPetPrimary == 0 or ownerPetPrimary == EnchanterPetPrimaryWeaponId) then
                     state.armPet = ownerPetID
                     state.armPetOwner = owner
                     mq.delay(2000, function() return class.spells.weapons:isReady() end)
@@ -272,7 +277,31 @@ function class.armPets()
             end
         end
     end
+    common.swapSpell(restoreGem, 12)
     state.useStateMachine = true
+end
+
+function class.armPetRequest(requester)
+    if not class.petWeapons then return end
+    local weapons = class.petWeapons[requester]
+    if not weapons then return end
+    local ownerSpawn = mq.TLO.Spawn('pc ='..requester)
+    if ownerSpawn() then
+        local ownerPetID = ownerSpawn.Pet.ID()
+        local ownerPetDistance = ownerSpawn.Pet.Distance3D() or 300
+        local ownerPetLevel = ownerSpawn.Pet.Level() or 0
+        local ownerPetPrimary = ownerSpawn.Pet.Primary() or -1
+        if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and (ownerPetPrimary == 0 or ownerPetPrimary == EnchanterPetPrimaryWeaponId) then
+            state.useStateMachine = false
+            local restoreGem = {Name=mq.TLO.Me.Gem(12)()}
+            state.armPet = ownerPetID
+            state.armPetOwner = requester
+            mq.delay(2000, function() return class.spells.weapons:isReady() end)
+            class.armPet(ownerPetID, weapons, requester)
+            common.swapSpell(restoreGem, 12)
+            state.useStateMachine = true
+        end
+    end
 end
 
 function class.armPet(petID, weapons, owner)
@@ -364,6 +393,7 @@ function class.checkForWeapons(primary, secondary)
     if not foundPrimary() or not foundSecondary() then
         local foundWeaponBag = mq.TLO.FindItem('='..weaponBag)
         if foundWeaponBag() then
+            if not class.safeToDestroy(foundWeaponBag) then return false end
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', weaponBag)
             mq.delay(1000, function() return mq.TLO.Cursor() end)
             if mq.TLO.Cursor.ID() == foundWeaponBag.ID() then
@@ -401,7 +431,7 @@ function class.pickupWeapon(weaponName)
 end
 
 function class.giveOther(petID, spell)
-    local itemName = summonedItemMap[spell.name]
+    local itemName = summonedItemMap[spell.Name]
     local item = mq.TLO.FindItem('='..itemName)
     if not item() then
         local summonResult = class.summonItem(spell)
@@ -420,22 +450,24 @@ function class.giveOther(petID, spell)
 end
 
 function class.summonItem(spell, inventoryItem)
-    printf('going to summon item %s', spell.name)
+    printf('going to summon item %s', spell.Name)
     mq.cmd('/mqt 0')
-    if not spell:isReady() then printf('Spell %s was not ready', spell.name) return false end
+    common.swapSpell(spell, 12)
+    mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
+    if not spell:isReady() then printf('Spell %s was not ready', spell.Name) return false end
     if not spell:use() then
-        printf('Failed to cast %s', spell.name)
+        printf('Failed to cast %s', spell.Name)
         return false
     end
     mq.delay(100)
     if not mq.TLO.Cursor.ID() then
-        printf('Cursor was empty after casting %s', spell.name)
+        printf('Cursor was empty after casting %s', spell.Name)
         return false
     end
 
     mq.cmd('/autoinv')
     mq.delay(100)
-    local summonedItem = summonedItemMap[spell.name]
+    local summonedItem = summonedItemMap[spell.Name]
     mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonedItem)
     mq.delay(3000, function() return mq.TLO.Cursor() end)
     mq.delay(1)
@@ -471,12 +503,25 @@ function class.giveCursorItemToTarget(moveback, clearTarget)
     end
 end
 
+function class.safeToDestroy(bag)
+    for i = 1, bag.Container() do
+        local bagSlot = bag.Item(i)
+        if bagSlot() and not bagSlot.NoRent() then
+            printf('DO NOT DESTROY: Found non-NoRent item: %s in summoned bag', bagSlot.Name())
+            return false
+        end
+    end
+    return true
+end
+
 function class.checkInventory()
     local pouch = 'Pouch of Quellious'
-    local pouchID = mq.TLO.FindItem('='..pouch).ID()
+    local bag = mq.TLO.FindItem('='..pouch)
+    local pouchID = bag.ID()
     local summonedItemCount = mq.TLO.FindItemCount('='..pouch)()
-    print('cleanup pouches')
+    print('cleanup Pouch of Quellious')
     for i=1,summonedItemCount do
+        if not class.safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', pouch)
         mq.delay(1000, function() return mq.TLO.Cursor.ID() == pouchID end)
         if mq.TLO.Cursor.ID() ~= pouchID then
@@ -485,10 +530,12 @@ function class.checkInventory()
         mq.cmd('/destroy')
     end
 
-    print('cleanup bags')
-    local bagID = mq.TLO.FindItem('='..disenchantedBag).ID()
+    print('cleanup Disenchanted Bags')
+    bag = mq.TLO.FindItem('='..disenchantedBag)
+    local bagID = bag.ID()
     summonedItemCount = mq.TLO.FindItemCount('='..disenchantedBag)()
     for i=1,summonedItemCount do
+        if not class.safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', disenchantedBag)
         mq.delay(1000, function() return mq.TLO.Cursor.ID() == bagID end)
         if mq.TLO.Cursor.ID() ~= bagID then
@@ -505,8 +552,8 @@ function class.checkInventory()
     print('find bag slot')
     for i=1,10 do
         local currentSlot = i
-        local containerSlots = mq.TLO.Me.Inventory('pack'..i).Container()
-        local containerItemCount = mq.TLO.InvSlot('pack'..i).Item.Items()
+        local containerSlots = mq.TLO.Me.Inventory('pack'..i).Container() or 0
+        local containerItemCount = mq.TLO.InvSlot('pack'..i).Item.Items() or 0
 
         -- slots empty
         if not containerSlots then

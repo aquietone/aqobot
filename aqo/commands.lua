@@ -2,7 +2,9 @@
 local mq = require('mq')
 local lists = require('data.lists')
 local logger = require('utils.logger')
+local timer = require('utils.timer')
 local config = require('configuration')
+local state = require('state')
 
 local aqo
 local commands = {
@@ -83,7 +85,7 @@ function commands.commandHandler(...)
     end
 
     local opt = args[1]:lower()
-    local new_value = args[2] and args[2]:lower() or nil
+    local new_value = args[2] and args[2]:lower()
     local configName = config.getNameForAlias(opt)
     if opt == 'help' then
         showHelp()
@@ -219,7 +221,7 @@ function commands.commandHandler(...)
     elseif opt == 'manastone' then
         local manastone = mq.TLO.FindItem('Manastone')
         if not manastone() then return end
-        local manastoneTimer = aqo.timer:new(5, true)
+        local manastoneTimer = aqo.timer:new(5000)
         while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
             if manastoneTimer:timerExpired() then break end
@@ -231,6 +233,16 @@ function commands.commandHandler(...)
     elseif opt == 'sicklist' then
         local sickList = aqo.common.split(args[3])
         aqo.state.sick[new_value] = sickList
+    elseif opt == 'pauseforbuffs' then
+        if config.get('MODE'):getName() == 'huntertank' then
+            aqo.movement.stop()
+            state.holdForBuffs = timer:new(15000)
+            print(logger.logLine('Holding pulls for 15 seconds for buffing'))
+        end
+    elseif opt == 'resumeforbuffs' then
+        if config.get('MODE'):getName() == 'huntertank' then
+            state.holdForBuffs = nil
+        end
     elseif opt == 'armpets' then
         aqo.class.armPets()
     else

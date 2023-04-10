@@ -3,6 +3,7 @@ local mq = require('mq')
 local class = require('classes.classbase')
 local lists = require('data.lists')
 local common = require('common')
+local config = require('configuration')
 
 --[[
     spirit of rashara
@@ -119,14 +120,16 @@ function class.initBuffs(_aqo)
     table.insert(class.singleBuffs, class.spells.feralvigor)
 
     local petBuffCondition = function(ability)
-        return _aqo.conditions.checkMana(ability) and _aqo.conditions.stacksPet(ability)
+        return _aqo.conditions.checkMana(ability) and _aqo.conditions.stacksPet(ability) and _aqo.conditions.missingPetBuff(ability)
     end
     if class.spells.pethaste then class.spells.pethaste.condition = petBuffCondition end
     if class.spells.petbuff then class.spells.petbuff.condition = petBuffCondition end
     table.insert(class.petBuffs, class.spells.pethaste)
     table.insert(class.petBuffs, class.spells.petbuff)
-    table.insert(class.petBuffs, common.getItem('Savage Lord\'s Totem', {checkfor='Savage Wildcaller\'s Blessing'}))
-    table.insert(class.petBuffs, common.getAA('Taste of Blood', {checkfor='Blood Frenzy'}))
+    --local epicOpts = {CheckFor='Savage Wildcaller\'s Blessing', condition=_aqo.conditions.missingPetCheckFor}
+    local epicOpts = {CheckFor='Might of the Wild Spirits', condition=_aqo.conditions.missingPetCheckFor}
+    table.insert(class.petBuffs, common.getItem('Spiritcaller Totem of the Feral', epicOpts) or common.getItem('Savage Lord\'s Totem', epicOpts))
+    table.insert(class.petBuffs, common.getAA('Taste of Blood', {CheckFor='Blood Frenzy', condition=_aqo.conditions.missingPetCheckFor}))
 
     class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
     class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
@@ -149,6 +152,11 @@ function class.initDefensiveAbilities(_aqo)
 end
 
 function class.initRecoverAbilities(_aqo)
+    if class.fParagon then
+        class.fParagon.condition = function(ability)
+            return mq.TLO.Me.PctMana() <= config.get('RECOVERPCT')
+        end
+    end
     table.insert(class.recoverAbilities, class.fParagon)
 end
 
@@ -175,10 +183,10 @@ function class.recoverClass()
                 local memberPctMana = member.PctMana() or 100
                 local memberDistance = member.Distance3D() or 300
                 local memberClass = member.Class.ShortName() or 'WAR'
-                if lists.manaClasses[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.name)() then
+                if lists.manaClasses[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.Name)() then
                     member.DoTarget()
                     class.fParagon:use()
-                    if originalTargetID > 0 then mq.cmdf('/mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
+                    if originalTargetID > 0 then mq.cmdf('/squelch /mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
                     return
                 end
             end

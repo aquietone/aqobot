@@ -98,7 +98,7 @@ local function tankMobInRange(tank_spawn)
     end
 end
 
-local stickTimer = timer:new(3)
+local stickTimer = timer:new(3000)
 ---Tank the mob whose ID is stored in common.tankMobID.
 function tank.tankMob()
     if state.tankMobID == 0 then return end

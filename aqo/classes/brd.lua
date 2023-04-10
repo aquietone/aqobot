@@ -97,10 +97,10 @@ function class.initSpellLines(_aqo)
     class.addSpell('debuff', {'Harmony of Sound'})
 
     if state.emu then
-        if class.spells.chantflame then class.spells.chantflame.checkfor = 'Chant of Flame' end
-        if class.spells.chantfrost then class.spells.chantfrost.checkfor = 'Chant of Frost' end
-        if class.spells.chantdisease then class.spells.chantdisease.checkfor = 'Chant of Plague' end
-        if class.spells.chantpoison then class.spells.chantpoison.checkfor = 'Chant of Venom' end
+        if class.spells.chantflame then class.spells.chantflame.CheckFor = 'Chant of Flame' end
+        if class.spells.chantfrost then class.spells.chantfrost.CheckFor = 'Chant of Frost' end
+        if class.spells.chantdisease then class.spells.chantdisease.CheckFor = 'Chant of Plague' end
+        if class.spells.chantpoison then class.spells.chantpoison.CheckFor = 'Chant of Venom' end
         class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
     end
 end
@@ -216,10 +216,10 @@ function class.initRecoverAbilities(_aqo)
     class.rallyingcall = common.getAA('Rallying Call')
 end
 
-local selosTimer = timer:new(30)
-local crescendoTimer = timer:new(53)
-local bellowTimer = timer:new(30)
-local synergyTimer = timer:new(18)
+local selosTimer = timer:new(30000)
+local crescendoTimer = timer:new(53000)
+local bellowTimer = timer:new(30000)
+local synergyTimer = timer:new(18000)
 
 class.resetClassTimers = function()
     bellowTimer:reset(0)
@@ -228,7 +228,7 @@ end
 
 -- Casts alliance if we are fighting, alliance is enabled, the spell is ready, alliance isn't already on the mob, there is > 1 necro in group or raid, and we have at least a few dots on the mob.
 local function tryAlliance()
-    local alliance = class.spells.alliance and class.spells.alliance.name
+    local alliance = class.spells.alliance and class.spells.alliance.Name
     if class.isEnabled('USEALLIANCE') and alliance then
         if mq.TLO.Spell(alliance).Mana() > mq.TLO.Me.CurrentMana() then
             return false
@@ -243,7 +243,7 @@ end
 
 local function castSynergy()
     -- don't nuke if i'm not attacking
-    local synergy = class.spells.insult and class.spells.insult.name
+    local synergy = class.spells.insult and class.spells.insult.Name
     if class.isEnabled('USEINSULTS') and synergyTimer:timerExpired() and synergy and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(synergy)() and mq.TLO.Me.GemTimer(synergy)() == 0 then
             if mq.TLO.Spell(synergy).Mana() > mq.TLO.Me.CurrentMana() then
@@ -325,10 +325,10 @@ local function findNextSong()
         return class.spells.snare
     end
     for _,song in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
-        local song_id = song.id
-        local song_name = song.name
-        if isSongReady(song_id, song_name) and class.isAbilityEnabled(song.opt) and not mq.TLO.Target.Buff(song.checkfor)() then
-            if song_name ~= (class.spells.composite and class.spells.composite.name) or mq.TLO.Target() then
+        local song_id = song.ID
+        local song_name = song.Name
+        if isSongReady(song_id, song_name) and class.isAbilityEnabled(song.opt) and not mq.TLO.Target.Buff(song.CheckFor)() then
+            if song_name ~= (class.spells.composite and class.spells.composite.Name) or mq.TLO.Target() then
                 return song
             end
         end
@@ -343,15 +343,15 @@ function class.cast()
             if class.useEpic() then mq.delay(250) return true end
         end
         for _,clicky in ipairs(class.castClickies) do
-            if clicky.targettype == 'Single' and mq.TLO.Target.Type() == 'NPC' then
+            if clicky.TargetType == 'Single' and mq.TLO.Target.Type() == 'NPC' then
                 -- if single target clicky then make sure in combat
-                if (clicky.duration == 0 or not mq.TLO.Target.Buff(clicky.checkfor)()) and mq.TLO.Me.CombatState() == 'COMBAT' then
+                if (clicky.Duration == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and mq.TLO.Me.CombatState() == 'COMBAT' then
                     if clicky:use() then
                         mq.delay(250)
                         return true
                     end
                 end
-            elseif clicky.duration == 0 or (not mq.TLO.Me.Buff(clicky.checkfor)() and not mq.TLO.Me.Song(clicky.checkfor)()) then
+            elseif clicky.Duration == 0 or (not mq.TLO.Me.Buff(clicky.CheckFor)() and not mq.TLO.Me.Song(clicky.CheckFor)()) then
                 -- otherwise just use the clicky if its instant or we don't already have the buff/song
                 if clicky:use() then
                     mq.delay(250)
@@ -362,7 +362,7 @@ function class.cast()
         local spell = findNextSong() -- find the first available dot to cast that is missing from the target
         if spell then -- if a song was found
             local didCast = false
-            if spell.targettype == 'Single' and mq.TLO.Target.Type() == 'NPC' then
+            if spell.TargetType == 'Single' and mq.TLO.Target.Type() == 'NPC' then
                 if mq.TLO.Me.CombatState() == 'COMBAT' then didCast = spell:use() end
             else
                 didCast = spell:use()
@@ -371,7 +371,7 @@ function class.cast()
                 -- not casting, so either we just played selos or missed a note, take some time for unknown reasons
                 mq.delay(500)
             end
-            if spell.name == (class.spells.crescendo and class.spells.crescendo.name) then crescendoTimer:reset() end
+            if spell.Name == (class.spells.crescendo and class.spells.crescendo.Name) then crescendoTimer:reset() end
             return didCast
         end
     end
@@ -386,7 +386,7 @@ function class.useEpic()
         if epic then return epic:use() end
         return
     end
-    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.name)()
+    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.Name)()
     if epic:isReady() and fierceeye_rdy then
         mq.cmd('/stopsong')
         mq.delay(100)
@@ -404,7 +404,7 @@ function class.mashClass()
 end
 
 function class.hold()
-    if class.rallyingsolo and (mq.TLO.Me.Song(class.rallyingsolo.name)() or mq.TLO.Me.Buff(class.rallyingsolo.name)()) then
+    if class.rallyingsolo and (mq.TLO.Me.Song(class.rallyingsolo.Name)() or mq.TLO.Me.Buff(class.rallyingsolo.Name)()) then
         if state.mobCount >= 3 then
             return false
         elseif mq.TLO.Target() and mq.TLO.Target.Named() then
@@ -426,7 +426,7 @@ function class.invis()
 end
 
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
-local checkSpellTimer = timer:new(30)
+local checkSpellTimer = timer:new(30000)
 function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
     if not class.doneSinging() then return end

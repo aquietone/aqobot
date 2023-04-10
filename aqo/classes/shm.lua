@@ -26,11 +26,12 @@ function class.init(_aqo)
 
     class.rezAbility = common.getAA('Call of the Wild')
 
-    class.nuketimer = timer:new(3)
+    class.nuketimer = timer:new(3000)
 end
 
 function class.initClassOptions()
     class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox')
+    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Toggle use of dispel', 'checkbox')
     class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox')
     class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox')
@@ -46,10 +47,12 @@ function class.initSpellLines(_aqo)
     class.addSpell('proc', {'Spirit of the Leopard', 'Spirit of the Jaguar'}, {classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}})
     class.addSpell('champion', {'Champion', 'Ferine Avatar'})
     class.addSpell('cure', {'Blood of Nadox'})
-    class.addSpell('nuke', {'Spear of Torment'}, {opt='USENUKES'})
+    class.addSpell('nuke', {'Yoppa\'s Spear of Venom', 'Spear of Torment'}, {opt='USENUKES'})
+    class.addSpell('slownuke', {'Ice Age'}, {opt='USENUKES'})
     class.addSpell('dot1', {'Nectar of Pain'}, {opt='USEDOTS'})
     class.addSpell('dot2', {'Curse of Sisslak'}, {opt='USEDOTS'})
     class.addSpell('dot3', {'Blood of Yoppa'}, {opt='USEDOTS'})
+    class.addSpell('dot4', {'Breath of Wunshi', {opt='USEDOTS'}})
     class.addSpell('hottank', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTTANK', hot=true})
     class.addSpell('hotdps', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTDPS', hot=true})
     class.addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=true}})
@@ -60,6 +63,8 @@ function class.initSpellLines(_aqo)
     class.addSpell('idol', {'Idol of Malos'}, {opt='USEDEBUFF'})
     class.addSpell('talisman', {'Talisman of Unification'}, {group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
     class.addSpell('focus', {'Talisman of Wunshi'}, {classes={WAR=true,SHD=true,PAL=true}})
+    class.addSpell('dispel', {'Abashi\'s Disempowerment'}, {opt='USEDISPEL'})
+    class.addSpell('debuff', {'Crippling Spasm'}, {opt='USEDEBUFF'})
 end
 
 function class.initSpellConditions(_aqo)
@@ -78,9 +83,11 @@ end
 
 function class.initSpellRotations(_aqo)
     table.insert(class.spellRotations.standard, class.spells.twincast)
+    table.insert(class.spellRotations.standard, class.spells.slownuke)
     table.insert(class.spellRotations.standard, class.spells.dot1)
     table.insert(class.spellRotations.standard, class.spells.dot2)
     table.insert(class.spellRotations.standard, class.spells.dot3)
+    table.insert(class.spellRotations.standard, class.spells.dot4)
     table.insert(class.spellRotations.standard, class.spells.nuke)
 end
 
@@ -91,9 +98,10 @@ end
 function class.initBurns(_aqo)
     local epic = common.getItem('Blessed Spiritstaff of the Heyokah', {opt='USEEPIC'}) or common.getItem('Crafted Talisman of Fates', {opt='USEEPIC'})
 
-    --table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
+    table.insert(class.burnAbilities, common.getAA('Ancestral Aid'))
     table.insert(class.burnAbilities, epic)
     table.insert(class.burnAbilities, common.getAA('Rabid Bear'))
+    table.insert(class.burnAbilities, common.getAA('Fundament: First spire of Ancestors'))
 end
 
 function class.initHeals(_aqo)
@@ -118,13 +126,17 @@ function class.initBuffs(_aqo)
     table.insert(class.combatBuffs, arcanum2)
     table.insert(class.combatBuffs, arcanum3)
 
-    table.insert(class.selfBuffs, common.getItem('Earring of Pain Deliverance', {checkfor='Reyfin\'s Random Musings'}))
-    table.insert(class.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {checkfor='Reyfin\'s Racing Thoughts'}))
-    table.insert(class.selfBuffs, class.spells.panther)
+    table.insert(class.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
+    table.insert(class.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
+    local pantherTablet = mq.TLO.FindItem('Imbued Rune of the Panther')()
+    if not pantherTablet then
+        table.insert(class.selfBuffs, class.spells.panther)
+    end
     table.insert(class.singleBuffs, class.spells.slowproc)
     table.insert(class.singleBuffs, class.spells.proc)
-    table.insert(class.selfBuffs, common.getAA('Pact of the Wolf', {removesong='Pact of the Wolf Effect'}))
+    table.insert(class.selfBuffs, common.getAA('Pact of the Wolf', {RemoveBuff='Pact of the Wolf Effect'}))
     table.insert(class.selfBuffs, class.spells.champion)
+    table.insert(class.selfBuffs, common.getAA('Languid Bite'))
     table.insert(class.singleBuffs, class.spells.focus)
     table.insert(class.singleBuffs, class.spells.talisman)
     table.insert(class.singleBuffs, common.getAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}}))
@@ -139,9 +151,11 @@ function class.initBuffs(_aqo)
 end
 
 function class.initDebuffs(_aqo)
+    table.insert(class.debuffs, class.spells.dispel)
     table.insert(class.debuffs, class.spells.idol)
     table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
     table.insert(class.debuffs, common.getAA('Turgur\'s Swarm', {opt='USESLOW'}) or class.spells.slow)
+    table.insert(class.debuffs, class.spells.debuff)
 end
 
 function class.initDefensiveAbilities(_aqo)

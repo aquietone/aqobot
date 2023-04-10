@@ -51,28 +51,28 @@ function class.initTankAbilities(_aqo)
     table.insert(class.tankAbilities, common.getBestDisc({'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'}, {condition=_aqo.conditions.withinMeleeDistance}))
     table.insert(class.tankAbilities, common.getBestDisc({'Composite Shield'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Finish the Fight'}))
-    table.insert(class.tankAbilities, common.getBestDisc({'Phantom Aggressor'}, {opt='USEPHANTOM', condition=_aqo.conditions.isEnabled}))
-    table.insert(class.tankAbilities, common.getBestDisc({'Confluent Precision'}, {opt='USEPRECISION', condition=_aqo.conditions.isEnabled}))
+    table.insert(class.tankAbilities, common.getBestDisc({'Phantom Aggressor'}, {opt='USEPHANTOM'}))
+    table.insert(class.tankAbilities, common.getBestDisc({'Confluent Precision'}, {opt='USEPRECISION'}))
 
     table.insert(class.tankAbilities, common.getAA('Blast of Anger', {maxdistance=100, condition=_aqo.conditions.withinMaxDistance}))
     table.insert(class.tankAbilities, common.getAA('Blade Guardian'))
     table.insert(class.tankAbilities, common.getAA('Brace for Impact'))
-    table.insert(class.tankAbilities, common.getAA('Call of Challenge', {opt='USESNARE', condition=_aqo.conditions.isEnabled}))
-    table.insert(class.tankAbilities, common.getAA('Grappling Strike', {opt='USEGRAPPLE', condition=_aqo.conditions.isEnabled}))
-    table.insert(class.tankAbilities, common.getAA('Projection of Fury', {opt='USEPROJECTION', condition=_aqo.conditions.isEnabled}))
-    table.insert(class.tankAbilities, common.getAA('Warlord\'s Grasp', {opt='USEGRASP', condition=_aqo.conditions.isEnabled}))
+    table.insert(class.tankAbilities, common.getAA('Call of Challenge', {opt='USESNARE'}))
+    table.insert(class.tankAbilities, common.getAA('Grappling Strike', {opt='USEGRAPPLE'}))
+    table.insert(class.tankAbilities, common.getAA('Warlord\'s Grasp', {opt='USEGRASP'}))
 
     table.insert(class.AETankAbilities, common.getBestDisc({'Roar of Challenge'}, {threshold=2, condition=_aqo.conditions.aboveMobThreshold}))
-    table.insert(class.AETankAbilities, common.getBestDisc({'Confluent Expanse'}, {opt='USEEXPANSE', threshold=2, condition=function(ability) return _aqo.conditions.isEnabled(ability) and _aqo.condition.aboveMobThreshold(ability) end}))
+    table.insert(class.AETankAbilities, common.getBestDisc({'Confluent Expanse'}, {opt='USEEXPANSE', threshold=2, condition=_aqo.conditions.aboveMobThreshold}))
     table.insert(class.AETankAbilities, common.getBestDisc({'Wade into Battle'}, {threshold=4, condition=_aqo.conditions.aboveMobThreshold}))
     local aeTauntOpts = {threshold=3, condition=_aqo.conditions.aboveMobThreshold}
     table.insert(class.AETankAbilities, common.getAA('Extended Area Taunt', aeTauntOpts) or common.getAA('Area Taunt', aeTauntOpts))
 
     table.insert(class.tankBurnAbilities, common.getBestDisc({'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'}, {condition=_aqo.conditions.withinMeleeDistance}))
-    --table.insert(class.tankBurnAbilities, common.getBestDisc({'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.name or nil}))
-    table.insert(class.tankBurnAbilities, common.getBestDisc({'Armor of Akhevan Runes'}, {overwritedisc=class.mash_defensive and class.mash_defensive.name or nil}))
-    table.insert(class.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=class.mash_defensive and class.mash_defensive.name or nil}))
+    --table.insert(class.tankBurnAbilities, common.getBestDisc({'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.Name or nil}))
+    table.insert(class.tankBurnAbilities, common.getBestDisc({'Armor of Akhevan Runes'}, {overwritedisc=class.mash_defensive and class.mash_defensive.Name or nil}))
+    table.insert(class.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=class.mash_defensive and class.mash_defensive.Name or nil}))
     table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=_aqo.conditions.aggroBelow})) -- big taunt
+    table.insert(class.tankBurnAbilities, common.getAA('Projection of Fury', {opt='USEPROJECTION'}))
     table.insert(class.tankBurnAbilities, common.getAA('Warlord\'s Fury')) -- more big aggro
     table.insert(class.tankBurnAbilities, common.getAA('Mark of the Mage Hunter')) -- 25% spell dmg absorb
     table.insert(class.tankBurnAbilities, common.getAA('Resplendent Glory')) -- increase incoming heals
@@ -89,7 +89,7 @@ function class.initTankAbilities(_aqo)
     -- what to do with this one..
     class.attraction = common.getBestDisc({'Forceful Attraction'})
 
-    class.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE', condition=_aqo.conditions.isEnabled})
+    class.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE'})
     class.flash = common.getBestDisc({'Flash of Anger'})
     class.resurgence = common.getAA('Warlord\'s Resurgence') -- 10min cd, 60k heal
 end
@@ -115,9 +115,8 @@ end
 
 function class.initBuffs(_aqo)
     -- Buffs and Other
-
     local breatherCondition = function(ability)
-        return false
+        return mq.TLO.Me.PctEndurance() <= config.get('RECOVERPCT') and (ability.combat or mq.TLO.Me.CombatState() ~= 'COMBAT')
     end
     table.insert(class.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20, condition=breatherCondition}))
 
@@ -141,10 +140,10 @@ function class.ohShitClass()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if class.resurgence then class.resurgence:use() end
         if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
-            if class.flash and mq.TLO.Me.CombatAbilityReady(class.flash.name)() then
+            if class.flash and mq.TLO.Me.CombatAbilityReady(class.flash.Name)() then
                 class.flash:use()
             elseif class.fortitude and class.isEnabled(class.fortitude.opt) then
-                class.fortitude:use(class.mash_defensive and class.mash_defensive.name or nil)
+                class.fortitude:use(class.mash_defensive and class.mash_defensive.Name or nil)
             end
         end
     end

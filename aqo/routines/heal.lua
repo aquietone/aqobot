@@ -23,7 +23,7 @@ local HEAL_TYPES = {
 local tankClasses = {WAR=true,PAL=true,SHD=true}
 local melees = {MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true,RNG=true}
 local hottimers = {}
-local reztimer = timer:new(30)
+local reztimer = timer:new(30000)
 
 local function healEnabled(opts, key)
     return opts[key] == nil or opts[key].value
@@ -158,7 +158,7 @@ local function getHurt(opts)
         if mostHurtPct < config.get('PANICHEALPCT') then
             return mostHurtID, HEAL_TYPES.PANIC
         elseif mostHurtPct < config.get('HEALPCT') and mostHurtDistance < 200 then
-            return mostHurtID, HEAL_TYPES.REGULAR
+            return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.get('PRIORITYTARGET')) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
         elseif mostHurtPct < config.get('HOTHEALPCT') and melees[mostHurtClass] and mostHurtDistance < 100 then
             local hotTimer = hottimers[mostHurtName]
             if (not hotTimer or hotTimer:timerExpired()) then
@@ -169,20 +169,20 @@ local function getHurt(opts)
     return nil, HEAL_TYPES.GROUPHOT
 end
 
-local groupHOTTimer = timer:new(60)
+local groupHOTTimer = timer:new(60000)
 local function getHeal(healAbilities, healType, whoToHeal, opts)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] and healEnabled(opts, heal.opt) then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
-                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
-                elseif heal.type == abilities.Types.Spell then
-                    local spell = mq.TLO.Spell(heal.name)
+                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() then return heal end
+                elseif heal.CastType == abilities.Types.Spell then
+                    local spell = mq.TLO.Spell(heal.Name)
                     if abilities.canUseSpell(spell, heal.type) then
                         return heal
                     end
-                elseif heal.type == abilities.Types.Item then
-                    local theItem = mq.TLO.FindItem(heal.id)
+                elseif heal.CastType == abilities.Types.Item then
+                    local theItem = mq.TLO.FindItem(heal.ID)
                     if heal:isReady(theItem) then return heal end
                 else
                     if heal:isReady() then return heal end
@@ -209,7 +209,7 @@ function healing.heal(healAbilities, opts)
             if not targetName then return end
             local hotTimer = hottimers[targetName]
             if not hotTimer then
-                hottimers[targetName] = timer:new(60, true)
+                hottimers[targetName] = timer:new(60000, true)
             else
                 hotTimer:reset()
             end
@@ -231,9 +231,9 @@ function healing.healPetOrSelf(healAbilities, opts)
             else
                 if heal:use() then return true end
             end
-            --[[if heal.type == abilities.Types.Spell then
-                local spell = mq.TLO.Spell(heal.name)
-                if abilities.canUseSpell(spell, heal.type) then
+            --[[if heal.CastType == abilities.Types.Spell then
+                local spell = mq.TLO.Spell(heal.Name)
+                if abilities.canUseSpell(spell, heal.CastType) then
                     heal:use()
                     return
                 end
@@ -252,51 +252,27 @@ function healing.healSelf(healAbilities, opts)
     for _,heal in ipairs(healAbilities) do
         if heal.self then
             local originalTargetID = mq.TLO.Target.ID()
-            if heal.targettype == 'Single' then
+            if heal.TargetType == 'Single' then
                 mq.TLO.Me.DoTarget()
             end
             if state.useStateMachine then
                 if abilities.use(heal) then
                     state.queuedAction = function()
-                        if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', originalTargetID) end
+                        if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/squelch /mqt id %s', originalTargetID) end
                     end
                     return true
                 end
             else
                 if heal:use() then
-                    if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', originalTargetID) end
+                    if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/squelch /mqt id %s', originalTargetID) end
                     return true
                 end
             end
-            --[[if heal.type == abilities.Types.Spell then
-                local spell = mq.TLO.Spell(heal.name)
-                if abilities.canUseSpell(spell, heal.type) then
-                    local targetID = mq.TLO.Target.ID()
-                    if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
-                        mq.TLO.Me.DoTarget()
-                    end
-                    heal:use()
-                    if targetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', targetID) end
-                    return
-                end
-            else
-                if heal:isReady() then
-                    local targetID = mq.TLO.Target.ID()
-                    if heal.type == abilities.Types.AA then
-                        local spell = mq.TLO.AltAbility(heal.name).Spell
-                        if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
-                            mq.TLO.Me.DoTarget()
-                        end
-                    end
-                    heal:use()
-                    if targetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', targetID) end
-                    return
-                end
-            end]]
         end
     end
 end
 
+local newCorpses = {}
 local function doRezFor(rezAbility)
     local corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
     if not corpse() then
@@ -309,7 +285,15 @@ local function doRezFor(rezAbility)
         end
     end
     local corpseName = corpse.Name()
+    -- no corpse to rez
     if not corpseName then return false end
+    if not newCorpses[corpseName] then
+        -- don't try to rez a freshly seen corpse immediately, because zone times
+        newCorpses[corpseName] = timer:new(3000)
+        return false
+    end
+    -- if corpse has been seen before but too fresh, don't rez yet
+    if newCorpses[corpseName] and not newCorpses[corpseName]:timerExpired() then return false end
     corpseName = corpseName:gsub('\'s corpse.*', '')
     if (config.get('REZGROUP') and mq.TLO.Group.Member(corpseName)()) or (config.get('REZRAID') and mq.TLO.Raid.Member(corpseName)()) then
         corpse.DoTarget()
@@ -327,7 +311,11 @@ local function doRezFor(rezAbility)
             mq.cmd('/corpse')
             mq.delay(50)
             if state.useStateMachine then
-                if abilities.use(rezAbility) then return true end
+                if abilities.use(rezAbility) then
+                    mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
+                    reztimer:reset()
+                    return true
+                end
             else
                 rezAbility:use()
                 if not rezAbility:isReady() then
@@ -341,22 +329,22 @@ local function doRezFor(rezAbility)
     end
 end
 
-local rezCheckTimer = timer:new(3)
+local rezCheckTimer = timer:new(3000)
 function healing.rez(rezAbility)
     if not rezCheckTimer:timerExpired() or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     -- if not rezAbility:isReady() then return end
-    if rezAbility.type == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then
+    if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.Name)() then
         return
-    elseif rezAbility.type == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then
+    elseif rezAbility.CastType == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.Name)() then
         return
-    elseif rezAbility.type == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then
+    elseif rezAbility.CastType == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.Name)() then
         return
     end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if rezAbility.name == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
-    if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') end
+    if rezAbility.Name == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
+    if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') newCorpses = {} end
     return doRezFor(rezAbility)
 end
 

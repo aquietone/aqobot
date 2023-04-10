@@ -22,16 +22,40 @@ function camp.init(aqo)
 
 end
 
-local function campPredicate(spawn)
-    if spawn.Type() ~= 'NPC' then return false end
+local function distance(x1, x2, y1, y2, z1, z2)
+    return math.sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
+end
+
+function camp.mobRadarB()
+    local distanceFromCamp = false
     local x, y, z
-    if not camp.Active or config.get('MODE'):getName() == 'huntertank' then
-        x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
-    else
+    if camp.Active or config.get('MODE'):getName() ~= 'huntertank' then
+        distanceFromCamp = true
         x, y, z = camp.X, camp.Y, camp.Z
     end
+    local xtarIDs = {}
+    for i=1,20 do
+        local xtarID = mq.TLO.Me.XTarget(i).ID()
+        if xtarID then
+            xtarIDs[xtarID] = true
+        end
+    end
+    local function campPredicate(spawn)
+        if spawn.Type() ~= 'NPC' then return false end
+        if distanceFromCamp then
+            local d = distance(x, spawn.X(), y, spawn.Y(), z, spawn.Z())
+            if d > config.get('CAMPRADIUS') then return false end
+        else
+            if spawn.Distance3D() > config.get('CAMPRADIUS') then return false end
+        end
+        if not xtarIDs[spawn.ID()] then return false end
+        return true
+    end
+
+    state.targets = mq.getFilteredSpawns(campPredicate)
+    state.mobCount = #state.targets
+    state.mobCountNoPets = #state.targets
 end
--- mq.getFilteredSpawns(campPredicate)
 
 local xtar_count = 'xtarhater npc radius %d zradius 50 loc %d %d %d'
 local xtar_spawn = '%d, xtarhater npc radius %d zradius 50 loc %d %d %d'
@@ -60,7 +84,7 @@ function camp.mobRadar()
                     state.targets[mob_id] = nil
                 elseif not state.targets[mob_id] then
                     logger.debug(logger.flags.routines.camp, 'Adding mob_id %d', mob_id)
-                    state.targets[mob_id] = {meztimer=timer:new(30, true)}
+                    state.targets[mob_id] = {meztimer=timer:new(30000, true)}
                 end
             end
         end
@@ -78,7 +102,7 @@ function camp.cleanTargets()
 end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
-local checkCampTimer = timer:new(2)
+local checkCampTimer = timer:new(2000)
 function camp.checkCamp()
     if not config.get('MODE'):isReturnToCampMode() or not camp.Active then return end
     if not checkCampTimer:timerExpired() then return end
@@ -144,6 +168,9 @@ end
 ---@param reset boolean|nil @If true, then reset the camp to pickup the latest options.
 function camp.setCamp(reset)
     local mode = config.get('MODE')
+    if not mode then
+        printf('MODE is nil somehow??? %s %s', mode, config.MODE.value)
+    end
     if mode:isCampMode() then
         mq.cmd('/squelch /maploc remove')
         if not camp.Active or reset then

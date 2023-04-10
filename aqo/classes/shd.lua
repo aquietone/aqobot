@@ -95,7 +95,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('pet', {'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
     class.addSpell('pethaste', {'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}) -- pet haste
     -- Unity Buffs
-    class.addSpell('shroud', {'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}) -- Shroud of Zelinstein Strike proc
+    class.addSpell('shroud', {'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, {swap=false}) -- Shroud of Zelinstein Strike proc
     class.addSpell('bezaproc', {'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
     class.addSpell('aziaproc', {'Brightfield\'s Horror'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
     class.addSpell('ds', {'Tekuel Skin'}) -- large damage shield self buff
@@ -263,7 +263,7 @@ end
 function class.ohshit()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
-            if class.flash and mq.TLO.Me.AltAbilityReady(class.flash.name)() then
+            if class.flash and mq.TLO.Me.AltAbilityReady(class.flash.Name)() then
                 class.flash:use()
             elseif class.deflection and class.isEnabled(class.deflection.opt)  then
                 class.deflection:use()
@@ -274,7 +274,7 @@ function class.ohshit()
 end
 
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
-local checkSpellTimer = timer:new(30)
+local checkSpellTimer = timer:new(30000)
 function class.checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
     local spellSet = class.OPTS.SPELLSET.value
@@ -318,8 +318,8 @@ end
     if class.spells.challenge then
         movement.stop()
         for _=1,3 do
-            if mq.TLO.Me.SpellReady(class.spells.terror.name)() then
-                mq.cmdf('/cast %s', class.spells.terror.name)
+            if mq.TLO.Me.SpellReady(class.spells.terror.Name)() then
+                mq.cmdf('/cast %s', class.spells.terror.Name)
                 break
             end
             mq.delay(100)

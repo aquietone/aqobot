@@ -131,13 +131,21 @@ local function checkFD()
 end
 
 ---Remove harmful buffs such as lich if HP is getting low, regardless of paused state
+local torporLandedInCombat = false
 local function buffSafetyCheck()
     if aqo.state.class == 'nec' and aqo.state.loop.PctHPs < 40 and aqo.class.spells.lich then
-        mq.cmdf('/removebuff %s', aqo.class.spells.lich.name)
+        mq.cmdf('/removebuff %s', aqo.class.spells.lich.Name)
+    end
+    if not torporLandedInCombat and mq.TLO.Me.Song('Transcendent Torpor')() and mq.TLO.Me.CombatState() == 'COMBAT' then
+        torporLandedInCombat = true
+    end
+    if torporLandedInCombat and mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Me.Song('Transcendent Torpor')() then
+        mq.cmdf('/removebuff "Transcendent Torpor"')
+        torporLandedInCombat = false
     end
 end
 
-local lootMyCorpseTimer = aqo.timer:new(5)
+local lootMyCorpseTimer = aqo.timer:new(5000)
 local function doLooting()
     local myCorpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
     if myCorpse() and lootMyCorpseTimer:timerExpired() then
@@ -179,7 +187,7 @@ end
 local function main()
     init()
 
-    local debugTimer = aqo.timer:new(3)
+    local debugTimer = aqo.timer:new(3000)
     -- Main Loop
     while true do
         if aqo.state.debug and debugTimer:timerExpired() then
@@ -211,7 +219,7 @@ local function main()
                     local pet_target_id = mq.TLO.Pet.Target.ID() or 0
                     if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
                     aqo.camp.mobRadar()
-                    if (aqo.mode:isTankMode() and aqo.state.mobCount > 0) or (aqo.mode:isAssistMode() and aqo.assist.shouldAssist()) then mq.cmd('/makemevis') end
+                    if (aqo.mode:isTankMode() and aqo.state.mobCount > 0) or (aqo.mode:isAssistMode() and aqo.assist.shouldAssist()) or aqo.mode:getName() == 'huntertank' then mq.cmd('/makemevis') end
                     aqo.camp.checkCamp()
                     aqo.common.checkChase()
                     aqo.common.rest()
@@ -223,6 +231,9 @@ local function main()
                 -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
                 local pet_target_id = mq.TLO.Pet.Target.ID() or 0
                 if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
+            end
+            if config.get('CHASEPAUSED') then
+                aqo.common.checkChase()
             end
             mq.delay(500)
         end

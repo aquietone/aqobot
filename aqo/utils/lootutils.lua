@@ -315,7 +315,7 @@ function eventCantLoot()
     cantLootID = mq.TLO.Target.ID()
 end
 --[[
-local lootItemTimer = timer:new(1, true)
+local lootItemTimer = timer:new(1000)
 local function lootItem(index, doWhat, button)
     loot.logger.Debug('Enter lootItem')
     if not shouldLootActions[doWhat] then return false end
@@ -379,19 +379,19 @@ local function lootCorpse(corpseID)
             if corpseItem() then
                 local stackable = corpseItem.Stackable()
                 local freeStack = corpseItem.FreeStack()
+                local lootRule = getRule(corpseItem)
                 if corpseItem.NoDrop() then
-                    table.insert(noDropItems, corpseItem.ItemLink('CLICKABLE')())
+                    if shouldLootActions[lootRule] then table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')()) end
                 elseif corpseItem.Lore() then
                     local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
                     local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
-                    local lootRule = getRule(corpseItem)
                     if haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots then
                         if shouldLootActions[lootRule] then table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')()) end
                     else
                         lootItem(i, lootRule, 'leftmouseup')
                     end
                 elseif freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0) then
-                    lootItem(i, getRule(corpseItem), 'leftmouseup')
+                    lootItem(i, lootRule, 'leftmouseup')
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
@@ -426,8 +426,8 @@ local function corpseLocked(corpseID)
     return true
 end
 --[[
-local goToCorpseTimer = timer:new(3, true)
-local openCorpseTimer = timer:new(3, true)
+local goToCorpseTimer = timer:new(3000)
+local openCorpseTimer = timer:new(3000)
 loot.lootMobs = function(limit)
     loot.logger.Debug('Enter lootMobs')
     if not loot.state.looting then

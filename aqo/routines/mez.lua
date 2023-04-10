@@ -36,7 +36,7 @@ end
 ---@param ae_count number @The mob threshold for using AE mez.
 function mez.doAE(mez_spell, ae_count)
     if state.mobCount >= ae_count and mez_spell then
-        if mq.TLO.Me.Gem(mez_spell.name)() and mq.TLO.Me.GemTimer(mez_spell.name)() == 0 then
+        if mq.TLO.Me.Gem(mez_spell.Name)() and mq.TLO.Me.GemTimer(mez_spell.Name)() == 0 then
             print(logger.logLine('AE Mezzing (mobCount=%d)', state.mobCount))
             if state.useStateMachine then abilities.use(mez_spell) else mez_spell:use() end
             mez.initMezTimers()
@@ -48,10 +48,10 @@ end
 ---Cast single target mez spell if adds in camp.
 ---@param mez_spell table @The name of the single target mez spell to cast.
 function mez.doSingle(mez_spell)
-    if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.name)() then return end
+    if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.Name)() then return end
     for id,mobdata in pairs(state.targets) do
         if state.debug then
-            logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, timer.currentTime(), mobdata['meztimer']:timerExpired())
+            logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, mq.gettime(), mobdata['meztimer']:timerExpired())
         end
         if id ~= state.assistMobID and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timerExpired()) then
             local mob = mq.TLO.Spawn('id '..id)
