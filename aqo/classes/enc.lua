@@ -30,7 +30,7 @@ function class.init(_aqo)
 
     if class.spells.mezst then
         function class.beforeMez()
-            if not mq.TLO.Target.Tashed() and class.OPTS.TASHTHENMEZ.value and class.spells.tash then
+            if not mq.TLO.Target.Tashed() and class.isEnabled('TASHTHENMEZ') and class.spells.tash then
                 class.spells.tash:use()
             end
             return true
@@ -274,7 +274,7 @@ end
 -- nuke5
 -- dot2
 function class.findNextSpell()
-    if not mq.TLO.Target.Tashed() and class.OPTS.USEDEBUFF.value and common.isSpellReady(class.spells.tash) then return class.spells.tash end
+    if not mq.TLO.Target.Tashed() and class.isEnabled('USEDEBUFF') and common.isSpellReady(class.spells.tash) then return class.spells.tash end
     if common.isSpellReady(class.spells.composite) then return class.spells.composite end
     if castSynergy() then return nil end
     --if state.emu and common.isSpellReady(class.spells.spasm) then return class.spells.spasm end
@@ -303,28 +303,10 @@ function class.recover()
     if mq.TLO.Me.PctMana() < 25 and mq.TLO.Me.PctHPs() > 70 then
         local manastone = mq.TLO.FindItem('Manastone')
         if not manastone() then return end
-        local manastoneTimer = timer:new(1)
-        manastoneTimer:reset()
+        local manastoneTimer = timer:new(1, true)
         while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
             if manastoneTimer:timerExpired() then break end
-        end
-    end
-end
-
-local checkAggroTimer = timer:new(10)
-function class.aggroOld()
-    if state.loop.PctHPs < 40 and class.sanguine then
-        local cursor = mq.TLO.Cursor()
-        if cursor and cursor:find(class.sanguine.name) then mq.cmd('/autoinventory') end
-        local hpcrystal = mq.TLO.FindItem('='..class.sanguine.name)
-        common.useItem(hpcrystal)
-    end
-    if mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or checkAggroTimer:timerExpired() then
-            if mq.TLO.Me.PctAggro() >= 90 then
-
-            end
         end
     end
 end
@@ -338,97 +320,13 @@ local function missing_unity_buffs(name)
     return false
 end
 
--- group guards - legion of liako / xetheg
-function class.buff_unused()
-    if mq.TLO.Me.Moving() then return end
--- now buffs:
--- - class.spells.guard (shield of inevitability - quick-refresh, strong direct damage spell guard and melee-strike rune combined into one.)
--- - class.spells.stunaerune (polyluminous rune - quick-refresh, damage absorption rune with a PB AE stun once consumed.)
--- - rune (eldritch rune - AA rune, always pre-buffed.)
--- - veil (Veil of the Mindshadow – AA rune, always pre-buffed.)
-    local tempName
-    if class.spells.guard and not mq.TLO.Me.Buff(tempName)() then
-        tempName = class.spells.guard.name
-        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-        if class.spells.guard:use() then return end
-    end
-    if class.spells.stunaerune and not mq.TLO.Me.Buff(tempName)() then
-        tempName = class.spells.stunaerune.name
-        if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
-        if class.spells.stunaerune:use() then return end
-    end
-    if class.rune and not mq.TLO.Me.Buff(class.rune.name)() then
-        if class.rune:use() then return end
-    end
-    if class.veil and not mq.TLO.Me.Buff(class.veil.name)() then
-        if class.veil:use() then return end
-    end
-    common.checkCombatBuffs()
-    if not common.clearToBuff() then return end
-
-    if class.unity and missing_unity_buffs(class.unity.name) then
-        if class.unity:use() then return end
-    end
-
-    local hpcrystal = class.sanguine and mq.TLO.FindItem(class.sanguine.name)
-    local manacrystal = class.azure and mq.TLO.FindItem(class.azure.name)
-    if hpcrystal and not hpcrystal() then
-        if class.sanguine:use() then
-            mq.cmd('/autoinv')
-            return
-        end
-    end
-    if manacrystal and not manacrystal() then
-        if class.azure:use() then
-            mq.cmd('/autoinv')
-            return
-        end
-    end
-
-    if state.emu and #class.auras > 0 then
-        for _,aura in ipairs(class.auras) do
-            if not mq.TLO.Me.Aura(aura.checkfor)() and not mq.TLO.Me.Song(aura.checkfor)() then
-                aura:use()
-            end
-        end
-    else
-        if class.OPTS.AURA1.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
-            if common.swapAndCast(class.spells[class.OPTS.AURA1.value], 13) then return end
-        elseif class.OPTS.AURA1.value ~= 'twincast' and class.spells[class.OPTS.AURA1.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA1.value].name)() then
-            if common.swapAndCast(class.spells[class.OPTS.AURA1.value], 13) then return end
-        end
-        if class.OPTS.AURA2.value == 'twincast' and class.spells.twincast and not mq.TLO.Me.Aura('Twincast Aura')() then
-            if common.swapAndCast(class.spells[class.OPTS.AURA2.value], 13) then return end
-        elseif class.OPTS.AURA2.value ~= 'twincast' and class.spells[class.OPTS.AURA2.value] and not mq.TLO.Me.Aura(class.spells[class.OPTS.AURA2.value].name)() then
-            if common.swapAndCast(class.spells[class.OPTS.AURA2.value], 13) then return end
-        end
-    end
-
-    -- kei
-    for _,buff in ipairs(class.selfBuffs) do
-        if not mq.TLO.Me.Buff(buff.name)() then
-            if buff:use() then return end
-        end
-    end
-    -- haste
-
-    common.checkItemBuffs()
-
-    if class.OPTS.BUFFPET.value and mq.TLO.Pet.ID() > 0 then
-        --for _,buff in ipairs(buffs.pet) do
-        --    if not mq.TLO.Pet.Buff(buff.name)() and mq.TLO.Spell(buff.name).StacksPet() and mq.TLO.Spell(buff.name).Mana() < mq.TLO.Me.CurrentMana() then
-        --        common.swapAndCast(buff.name, 13)
-        --    end
-        --end
-    end
-end
-
 local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 local checkSpellTimer = timer:new(30)
 function class.checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
-        if class.OPTS.SPELLSET.value == 'standard' then
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
+    local spellSet = class.OPTS.SPELLSET.value
+    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
+        if spellSet == 'standard' then
             common.swapSpell(class.spells.tash, 1)
             common.swapSpell(class.spells.dotmiti, 2)
             common.swapSpell(class.spells.meznoblur, 3)
@@ -442,7 +340,7 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.guard, 11)
             common.swapSpell(class.spells.nightsterror, 12)
             common.swapSpell(class.spells.combatinnate, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
+            state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
     end

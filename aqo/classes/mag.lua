@@ -28,10 +28,10 @@ function class.initClassOptions()
     class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM')
     class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox')
     class.addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox')
-    class.addOption('USEDEBUFF', 'Use Malo', false, nil, '', 'checkbox')
-    class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, '', 'checkbox')
-    class.addOption('USEDS', 'Use Group DS', true, nil, '', 'checkbox')
-    class.addOption('USETEMPDS', 'Use Temp DS', true, nil, '', 'checkbox')
+    class.addOption('USEDEBUFF', 'Use Malo', false, nil, 'Toggle use of Malo', 'checkbox')
+    class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox')
+    class.addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox')
+    class.addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox')
 end
 
 function class.initSpellLines(_aqo)
@@ -77,6 +77,7 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
     table.insert(class.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
     table.insert(class.burnAbilities, common.getAA('Frenzied Burnout'))
+    table.insert(class.burnAbilities, common.getAA('Improved Twincast'))
 end
 
 function class.initHeals(_aqo)
@@ -173,6 +174,67 @@ function class.clearCursor()
     mq.delay(100)
 end
 
+local armPetStates = {
+    MOVETO='MOVETO',
+    MAKEROOM='MAKEROOM',
+    CASTWEAPONS='CASTWEAPONS',UNFOLDWEAPONS='UNFOLDWEAPONS',TRADEWEAPONS='TRADEWEAPONS',
+    CASTARMOR='CASTARMOR',UNFOLDARMOR='UNFOLDARMOR',TRADEARMOR='TRADEARMOR',
+    CASTJEWELRY='CASTJEWELRY',UNFOLDJEWELRY='UNFOLDJEWELRY',TRADEJEWELRY='TRADEJEWELRY',
+    MOVEBACK='MOVEBACK',
+}
+function class.armPetsStateMachine()
+    if state.armPetState == armPetStates.MOVETO then
+        -- while not at pet return
+        -- at pet, set state to makeroom
+    elseif state.armPetState == armPetStates.MAKEROOM then
+        -- shuffle bags, can this fit in a pulse?
+        -- set state to castweapons
+    elseif state.armPetState == armPetStates.CASTWEAPONS then
+        -- start cast, set state to unfold weapons
+    elseif state.armPetState == armPetStates.UNFOLDWEAPONS then
+        -- while not folded bag, return
+        -- unfold bag, set state to trade weapons
+    elseif state.armPetState == armPetStates.TRADEWEAPONS then
+        -- trade weapons
+        -- set state to castarmor
+    elseif state.armPetState == armPetStates.CASTARMOR then
+        -- while not spell ready, return
+        -- start cast, set state to unfoldarmor
+    elseif state.armPetState == armPetStates.UNFOLDARMOR then
+        -- while not folded bag, return
+        -- unfold bag, set state to tradearmor
+    elseif state.armPetState == armPetStates.TRADEARMOR then
+        -- trade armor
+        -- set state to castjewelry
+    elseif state.armPetState == armPetStates.CASTJEWELRY then
+        -- while not spell ready, return
+        -- start cast, set state to unfoldjewelry
+    elseif state.armPetState == armPetStates.UNFOLDJEWELRY then
+        -- while not folded bag, return
+        -- unfold bag, set state to tradejewelry
+    elseif state.armPetState == armPetStates.TRADEJEWELRY then
+        -- trade jewelry
+        -- move back, set state to moveback
+    elseif state.armPetState == armPetStates.MOVEBACK then
+        -- clear state
+    end
+end
+
+--[[
+    states:
+    move to pet
+    make bag space
+    cast weapon bag
+    unfold weapon bag
+    trade weapons
+    cast armor
+    unfold armor
+    trade armor
+    cast jewelry
+    unfold jewelry
+    trade jewelry
+    move back
+]]
 function class.armPets()
     if mq.TLO.Cursor() then class.clearCursor() end
     if mq.TLO.Cursor() then
@@ -180,10 +242,13 @@ function class.armPets()
         return
     end
     print('Begin arming pets')
+    state.useStateMachine = false
 
     local petPrimary = mq.TLO.Pet.Primary()
     local petID = mq.TLO.Pet.ID()
     if petID > 0 and petPrimary == 0 then
+        state.armPet = petID
+        state.armPetOwner = mq.TLO.Me.CleanName()
         local weapons = class.petWeapons.Self
         if weapons then
             class.armPet(petID, weapons, 'Me')
@@ -199,12 +264,15 @@ function class.armPets()
                 local ownerPetLevel = ownerSpawn.Pet.Level() or 0
                 local ownerPetPrimary = ownerSpawn.Pet.Primary() or -1
                 if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and ownerPetPrimary == 0 then -- or theirPetPrimary == EnchanterPetPrimaryWeaponId
+                    state.armPet = ownerPetID
+                    state.armPetOwner = owner
                     mq.delay(2000, function() return class.spells.weapons:isReady() end)
                     class.armPet(ownerPetID, weapons, owner)
                 end
             end
         end
     end
+    state.useStateMachine = true
 end
 
 function class.armPet(petID, weapons, owner)

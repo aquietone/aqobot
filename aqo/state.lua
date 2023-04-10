@@ -50,7 +50,7 @@ end
 state.actionTaken = false
 
 state.acquireTarget = false
-state.acquireTargetTimer = timer:new(1, true)
+state.acquireTargetTimer = timer:new(1)
 
 function state.handleTargetState()
     if state.acquireTarget then
@@ -58,7 +58,7 @@ function state.handleTargetState()
             if state.queuedAction then state.queuedAction() end
             state.resetAcquireTargetState()
             return true
-        elseif state.acquireTargetTimer:timer_expired() then
+        elseif state.acquireTargetTimer:timerExpired() then
             -- timer expired, target not acquired, reset state
             state.resetAcquireTargetState()
             return true
@@ -78,11 +78,11 @@ function state.resetAcquireTargetState()
 end
 
 state.positioning = false
-state.positioningTimer = timer:new(5, true)
+state.positioningTimer = timer:new(5)
 
 function state.handlePositioningState()
     if state.positioning then
-        if state.positioningTimer:timer_expired() or not mq.TLO.Navigation.Active() then
+        if state.positioningTimer:timerExpired() or not mq.TLO.Navigation.Active() then
             mq.cmd('/squelch /nav stop')
             state.resetPositioningState()
             return true
@@ -103,11 +103,11 @@ state.queuedAction = nil
 
 function state.handleQueuedAction()
     if state.queuedAction then
-        local result =state.queuedAction()
+        local result = state.queuedAction()
         if type(result) ~= 'function' then
             state.queuedAction = nil
             state.actionTaken = false
-            return true
+            return false
         else
             state.queuedAction = result
             return false
@@ -127,7 +127,7 @@ function state.handleMemSpell()
             printf(logger.logLine('Memorized spell is ready: %s', state.memSpell.name))
             state.resetMemSpellState()
             return true
-        elseif state.memSpellTimer:timer_expired() then
+        elseif state.memSpellTimer:timerExpired() then
             -- timer expired, spell not memorized, reset state
             state.resetMemSpellState()
             return true
@@ -150,6 +150,9 @@ state.casting = false
 
 function state.handleCastingState()
     if state.casting then
+        -- non-plugin mode needs time before it actually detects casting
+        mq.delay(300)
+        mq.doevents()
         if not mq.TLO.Me.Casting() then
             if state.fizzled then
                 printf(logger.logLine('Fizzled casting %s', state.casting.name))
@@ -165,11 +168,27 @@ function state.handleCastingState()
             state.resetCastingState()
             return true
         else
+            if state.class == 'brd' then
+                if not mq.TLO.Me.Invis() and mq.TLO.Me.CastTimeLeft() > 4000 then
+                    mq.cmd('/stopsong')
+                else
+                    return true
+                end
+            end
             return false
         end
     else
         return true
     end
+end
+
+function state.setCastingState(ability)
+    state.resetCastingState()
+    if ability.casttime > 0 then
+        state.casting = ability
+        state.actionTaken = true
+    end
+    state[ability.name] = timer:new(2, true)
 end
 
 function state.resetCastingState()

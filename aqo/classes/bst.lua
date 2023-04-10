@@ -4,6 +4,20 @@ local class = require('classes.classbase')
 local lists = require('data.lists')
 local common = require('common')
 
+--[[
+    spirit of rashara
+    ancient: savage ice
+    growl of the beast
+    muada's mending
+    chimera blood
+    ferocity of irionu
+    spiritual rejuvination
+    glacier spear
+    sha's legacy
+    reptilian venom
+    growl of the panther
+    spirit of oroshar
+]]
 function class.init(_aqo)
     class.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     class.spellRotations = {standard={}}
@@ -19,6 +33,8 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
     class.initRecoverAbilities(_aqo)
+
+    class.useCommonListProcessor = true
 end
 
 function class.initClassOptions()
@@ -28,6 +44,7 @@ function class.initClassOptions()
     class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
     class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox')
+    class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox')
 end
 
 function class.initSpellLines(_aqo)
@@ -45,6 +62,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('grouphp', {'Spiritual Vitality'}, {swap=true})
     class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
     class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
+    class.addSpell('slow', {'Sha\'s Legacy'}, {opt='USESLOW'})
 end
 
 function class.initSpellRotations()

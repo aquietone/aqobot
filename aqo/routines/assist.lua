@@ -56,13 +56,14 @@ mq.event('enrageOff', '#1# is no longer enraged.', eventEnragedOff)
 ---@return integer @Returns the spawn ID of the configured main assist, otherwise 0.
 function assist.getAssistID()
     local assist_id = 0
-    if config.ASSIST.value == 'group' then
+    local assistValue = config.get('ASSIST')
+    if assistValue == 'group' then
         assist_id = mq.TLO.Group.MainAssist.ID()
-    elseif config.ASSIST.value == 'raid1' then
+    elseif assistValue == 'raid1' then
         assist_id = mq.TLO.Raid.MainAssist(1).ID()
-    elseif config.ASSIST.value == 'raid2' then
+    elseif assistValue == 'raid2' then
         assist_id = mq.TLO.Raid.MainAssist(2).ID()
-    elseif config.ASSIST.value == 'raid3' then
+    elseif assistValue == 'raid3' then
         assist_id = mq.TLO.Raid.MainAssist(3).ID()
     end
     return assist_id
@@ -71,15 +72,16 @@ end
 ---Returns the MQ Spawn userdata of the configured main assists current target.
 function assist.getAssistSpawn()
     local assist_target = nil
-    if config.ASSIST.value == 'group' then
+    local assistValue = config.get('ASSIST')
+    if assistValue == 'group' then
         assist_target = mq.TLO.Me.GroupAssistTarget
-    elseif config.ASSIST.value == 'raid1' then
+    elseif assistValue == 'raid1' then
         assist_target = mq.TLO.Me.RaidAssistTarget(1)
-    elseif config.ASSIST.value == 'raid2' then
+    elseif assistValue == 'raid2' then
         assist_target = mq.TLO.Me.RaidAssistTarget(2)
-    elseif config.ASSIST.value == 'raid3' then
+    elseif assistValue == 'raid3' then
         assist_target = mq.TLO.Me.RaidAssistTarget(3)
-    elseif config.ASSIST.value == 'manual' then
+    elseif assistValue == 'manual' then
         assist_target = -1
     end
     return assist_target
@@ -91,7 +93,7 @@ function assist.forceAssist(assist_id)
     else
         local assist_spawn = assist.getAssistSpawn()
         if assist_spawn == -1 then
-            mq.cmdf('/assist %s', config.CHASETARGET.value)
+            mq.cmdf('/assist %s', config.get('CHASETARGET'))
             mq.delay(100)
             state.assistMobID = mq.TLO.Target.ID()
         end
@@ -118,11 +120,10 @@ function assist.shouldAssist(assist_target)
     local mob_x = assist_target.X()
     local mob_y = assist_target.Y()
     if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
-    --print(('%s %s %s %s %s %s %s %s'):format(camp.Active, mob_type, camp.X, camp.Y, mob_x, mob_y, config.CAMPRADIUS.value, config.AUTOASSISTAT.value))
-    if mob_type == 'NPC' and hp < config.AUTOASSISTAT.value then
-        if camp.Active and common.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.CAMPRADIUS.value then
+    if mob_type == 'NPC' and hp < config.get('AUTOASSISTAT') then
+        if camp.Active and common.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS') then
             return true
-        elseif not camp.Active and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.CAMPRADIUS.value then
+        elseif not camp.Active and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS') then
             return true
         else
             return false
@@ -147,7 +148,7 @@ end
 ---Sets state.assistMobID to 0 or the ID of the mob to assist on.
 ---@param resetTimers function @An optional function to be called to reset combat timers specific to the class calling this function.
 function assist.checkTarget(resetTimers)
-    if config.MODE.value:getName() ~= 'manual' then
+    if config.get('MODE'):getName() ~= 'manual' then
         local assist_target = assist.getAssistSpawn()
         local originalTargetID = mq.TLO.Target.ID()
         -- manual assist mode hacks
@@ -156,7 +157,7 @@ function assist.checkTarget(resetTimers)
         if assist_target == -1 then
             if mq.TLO.Me.XTarget() > 0 then
                 if manualAssistTimer:timerExpired() or not mq.TLO.Target() then
-                    local assistNames = common.split(config.ASSISTNAMES.value, ',')
+                    local assistNames = common.split(config.get('ASSISTNAMES'), ',')
                     for _,assistName in ipairs(assistNames) do
                         if mq.TLO.Spawn('pc ='..assistName)() then
                             mq.cmdf('/assist %s', assistName)
@@ -189,7 +190,7 @@ function assist.checkTarget(resetTimers)
                 -- already fighting the MAs target, make sure assistMobID is accurate
                 state.assistMobID = assist_target.ID()
                 return
-            elseif not config.SWITCHWITHMA.value then
+            elseif not config.get('SWITCHWITHMA') then
                 -- not fighting the MAs target, and switch with MA is disabled, so stay on current target
                 logger.debug(logger.flags.routines.assist, "checkTarget not switching targets with MA, staying on "..(mq.TLO.Target.CleanName() or ''))
                 return
@@ -204,21 +205,21 @@ function assist.checkTarget(resetTimers)
         if assist.shouldAssist(assist_target) then
             if mq.TLO.Target.ID() ~= assist_target.ID() then
                 assist_target.DoTarget()
-                --[[
-                state.acquireTarget = assist_target.ID()
-                state.queuedAction = function()
-                    state.assist_mob_id = assist_target.ID()
-                    if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-                    if mq.TLO.Target.ID() ~= originalTargetID then
-                        reset_combat_timers()
-                        if reset_timers then reset_timers() end
-                        printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
+                if state.useStateMachine then
+                    state.acquireTarget = assist_target.ID()
+                    state.queuedAction = function()
+                        state.assist_mob_id = assist_target.ID()
+                        if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
+                        if mq.TLO.Target.ID() ~= originalTargetID then
+                            resetCombatTimers()
+                            if resetTimers then resetTimers() end
+                            printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
+                        end
                     end
+                    state.actionTaken = true
+                    state.acquireTargetTimer:reset()
+                    return true
                 end
-                state.actionTaken = true
-                state.acquireTargetTimer:reset()
-                return true
-                ]]
             end
             state.assistMobID = assist_target.ID()
             if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
@@ -237,36 +238,38 @@ function assist.getCombatPosition()
     local target_id = mq.TLO.Target.ID()
     local target_distance = mq.TLO.Target.Distance3D()
     local max_range_to = mq.TLO.Target.MaxRangeTo() or 0
-    if not target_id or target_id == 0 or (target_distance and target_distance > config.CAMPRADIUS.value) or state.paused then
+    if not target_id or target_id == 0 or (target_distance and target_distance > config.get('CAMPRADIUS')) or state.paused then
         return
     end
-    movement.navToTarget(nil, 5000)
-    --[[
-    movement.navToTarget('dist='max_range_to*.6)
-    state.positioning = true
-    state.positioningTimer:reset()
-    ]]
+    if state.useStateMachine then
+        movement.navToTarget('dist='..max_range_to*.6)
+        state.positioning = true
+        state.positioningTimer:reset()
+    else
+        movement.navToTarget(nil, 5000)
+    end
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
 function assist.checkLOS()
-    local cur_mode = config.MODE.value
+    local cur_mode = config.get('MODE')
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) then
         local maxRangeTo = (mq.TLO.Target.MaxRangeTo() or 0) + 20
         if not mq.TLO.Target.LineOfSight() and maxRangeTo then
-            movement.navToTarget('dist='..maxRangeTo, 5000)
-            --[[
-            movement.navToTarget('dist='..maxRangeTo*.6)
-            state.positioning = true
-            state.positioningTimer:reset()
-            ]]
+            if state.useStateMachine then
+                movement.navToTarget('dist='..maxRangeTo*.6)
+                state.positioning = true
+                state.positioningTimer:reset()
+            else
+                movement.navToTarget('dist='..maxRangeTo, 5000)
+            end
         end
     end
 end
 
 ---Begin attacking the assist target if not already attacking.
 function assist.attack(skip_no_los)
-    if config.MODE.value:getName() == 'manual' then return end
+    if config.get('MODE'):getName() == 'manual' then return end
     if state.assistMobID == 0 or mq.TLO.Target.ID() ~= state.assistMobID or not assist.shouldAssist() then
         if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
         return
@@ -282,14 +285,14 @@ function assist.attack(skip_no_los)
     end
     --movement.stop()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
-    if config.MODE.value:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
+    if config.get('MODE'):getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
         mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
         --mq.cmd('/stick snaproll uw')
         --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
         local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
         --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
-        if config.ASSIST.value == 'manual' then
+        if config.get('ASSIST') == 'manual' then
             mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
         else
             mq.cmdf('/squelch /stick !front uw')
@@ -304,14 +307,14 @@ function assist.attack(skip_no_los)
 end
 
 function assist.isFighting()
-    local cur_mode = config.MODE.value
+    local cur_mode = config.get('MODE')
     return (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.CombatState() == 'COMBAT')
 end
 
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 function assist.sendPet()
     local targethp = mq.TLO.Target.PctHPs()
-    if sendPetTimer:timerExpired() and targethp and targethp <= config.AUTOASSISTAT.value then
+    if sendPetTimer:timerExpired() and targethp and targethp <= config.get('AUTOASSISTAT') then
         if assist.isFighting() then
             if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and not state.petDontAttack then
                 mq.cmd('/multiline ; /pet attack ; /pet swarm')

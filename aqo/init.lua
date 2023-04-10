@@ -18,7 +18,7 @@ aqo.timer = require('utils.timer')
 aqo.ability = require('ability')
 aqo.commands = require('commands')
 aqo.common = require('common')
-aqo.config = require('configuration')
+local config = require('configuration')
 aqo.mode = require('mode')
 aqo.state = require('state')
 aqo.ui = require('ui')
@@ -43,7 +43,7 @@ local function init()
     aqo.state.currentZone = mq.TLO.Zone.ID()
     aqo.state.subscription = mq.TLO.Me.Subscription()
     aqo.common.setSwapGem()
-    aqo.config.loadIgnores()
+    config.loadIgnores()
 
     if aqo.state.emu then
         mq.cmd('/hidecorpse looted')
@@ -85,18 +85,18 @@ end
 ---For EMU servers, detect if in a raid and set assist mode to manual as raid and group MA roles do Not
 ---work in a raid. Also disable automatic burns.
 local function detectRaidOrGroup()
-    if not aqo.config.AUTODETECTRAID.value then return end
+    if not config.get('AUTODETECTRAID') then return end
     if mq.TLO.Raid.Members() > 0 then
         local leader = mq.TLO.Group.Leader() or nil
-        if aqo.config.ASSIST.value == 'group' and leader and leader ~= mq.TLO.Me.CleanName() then
-            aqo.config.ASSIST.value = 'manual'
-            aqo.config.CHASETARGET.value = mq.TLO.Group.Leader()
-            aqo.config.BURNALWAYS.value = false
-            aqo.config.BURNCOUNT.value = 100
+        if config.get('ASSIST') == 'group' and leader and leader ~= mq.TLO.Me.CleanName() then
+            config.set('ASSIST', 'manual')
+            config.set('CHASETARGET', mq.TLO.Group.Leader())
+            config.set('BURNALWAYS', false)
+            config.set('BURNCOUNT', 100)
         end
     else
-        if aqo.config.ASSIST.value == 'manual' then
-            aqo.config.ASSIST.value = 'group'
+        if config.get('ASSIST') == 'manual' then
+            config.set('ASSIST', 'group')
         end
     end
 end
@@ -120,6 +120,7 @@ local function checkTarget()
         if mq.TLO.Stick.Active() then
             mq.cmd('/squelch /stick off')
         end
+        if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
     end
 end
 
@@ -157,7 +158,7 @@ local function doLooting()
             end
         end
     end
-    if aqo.config.LOOTMOBS.value and mq.TLO.Me.CombatState() ~= 'COMBAT' and not aqo.state.pullStatus then
+    if config.get('LOOTMOBS') and mq.TLO.Me.CombatState() ~= 'COMBAT' and not aqo.state.pullStatus then
         aqo.state.actionTaken = aqo.loot.lootMobs()
         if aqo.state.lootBeforePull then aqo.state.lootBeforePull = false end
     end
@@ -165,9 +166,9 @@ end
 
 local function handleStates()
     -- Async state handling
-    if aqo.state.looting then aqo.loot.lootMobs() return true end
-    if aqo.state.selling then aqo.loot.sellStuff() return true end
-    if aqo.state.banking then aqo.loot.bankStuff() return true end
+    --if aqo.state.looting then aqo.loot.lootMobs() return true end
+    --if aqo.state.selling then aqo.loot.sellStuff() return true end
+    --if aqo.state.banking then aqo.loot.bankStuff() return true end
     if not aqo.state.handleTargetState() then return true end
     if not aqo.state.handlePositioningState() then return true end
     if not aqo.state.handleMemSpell() then return true end
@@ -186,12 +187,12 @@ local function main()
             debugTimer:reset()
         end
 
-        if not aqo.state.useStateMachine or not handleStates() then
-            mq.doevents()
-            updateLoopState()
-            detectRaidOrGroup()
-            buffSafetyCheck()
-            if not aqo.state.paused and aqo.common.inControl() then
+        mq.doevents()
+        updateLoopState()
+        detectRaidOrGroup()
+        buffSafetyCheck()
+        if not aqo.state.paused and aqo.common.inControl() then
+            if not aqo.state.useStateMachine or not handleStates() then
                 aqo.camp.cleanTargets()
                 checkTarget()
                 if not aqo.state.loop.Invis and not aqo.common.isBlockingWindowOpen() then
@@ -216,17 +217,17 @@ local function main()
                     aqo.common.rest()
                     mq.delay(50)
                 end
-            else
-                if aqo.state.loop.Invis then
-                    -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
-                    local pet_target_id = mq.TLO.Pet.Target.ID() or 0
-                    if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
-                end
-                mq.delay(500)
             end
-            -- broadcast some buff and poison/disease/curse state around netbots style
-            aqo.buff.broadcast()
+        else
+            if aqo.state.loop.Invis then
+                -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
+                local pet_target_id = mq.TLO.Pet.Target.ID() or 0
+                if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end
+            end
+            mq.delay(500)
         end
+        -- broadcast some buff and poison/disease/curse state around netbots style
+        aqo.buff.broadcast()
     end
 end
 

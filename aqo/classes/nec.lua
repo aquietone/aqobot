@@ -309,7 +309,7 @@ function class.swapSpells()
     local pyrelongDuration = mq.TLO.Target.MyBuffDuration(pyrelongName)()
     local fireshadowDuration = mq.TLO.Target.MyBuffDuration(fireshadowName)()
     if mq.TLO.Me.Gem(woundsName)() then
-        if not class.OPTS.USEWOUNDS.value or (woundsDuration and woundsDuration > 20000) then
+        if not class.isEnabled('USEWOUNDS') or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swapSpell(class.spells.pyrelong, class.swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
@@ -318,7 +318,7 @@ function class.swapSpells()
         end
     elseif mq.TLO.Me.Gem(pyrelongName)() then
         if pyrelongDuration and pyrelongDuration > 20000 then
-            if class.OPTS.USEWOUNDS.value and (not woundsDuration or woundsDuration < 20000) then
+            if class.isEnabled('USEWOUNDS') and (not woundsDuration or woundsDuration < 20000) then
                 common.swapSpell(class.spells.wounds, class.swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
                 common.swapSpell(class.spells.fireshadow, class.swap_gem or 10)
@@ -326,7 +326,7 @@ function class.swapSpells()
         end
     elseif mq.TLO.Me.Gem(fireshadowName)() then
         if fireshadowDuration and fireshadowDuration > 20000 then
-            if class.OPTS.USEWOUNDS.value and (not woundsDuration or woundsDuration < 20000) then
+            if class.isEnabled('USEWOUNDS') and (not woundsDuration or woundsDuration < 20000) then
                 common.swapSpell(class.spells.wounds, class.swap_gem or 10)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
                 common.swapSpell(class.spells.pyrelong, class.swap_gem or 10)
@@ -344,7 +344,7 @@ local function targetHasProliferation()
 end
 
 local function isNecBurnConditionMet()
-    if class.OPTS.BURNPROC.value and targetHasProliferation() then
+    if class.isEnabled('BURNPROC') and targetHasProliferation() then
         print(logger.logLine('\arActivating Burns (proliferation proc)\ax'))
         state.burnActiveTimer:reset()
         state.burnActive = true
@@ -393,12 +393,12 @@ function class.burnClass()
         mq.delay(1500)
     end
 
-    if class.isEnabled('USEGLYPH') and class.intensity and class.glyph then
+    if config.get('USEGLYPH') and class.intensity and class.glyph then
         if not mq.TLO.Me.Song(class.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.glyph:use()
         end
     end
-    if class.isEnabled('USEINTENSITY') and class.glyph and class.intensity then
+    if config.get('USEINTENSITY') and class.glyph and class.intensity then
         if not mq.TLO.Me.Buff(class.glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.intensity:use()
         end
@@ -422,7 +422,7 @@ function class.preburn()
         aa:use()
     end
 
-    if class.isEnabled('USEGLYPH') and class.intensity and class.glyph then
+    if config.get('USEGLYPH') and class.intensity and class.glyph then
         if not mq.TLO.Me.Song(class.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
             class.glyph:use()
         end
@@ -471,8 +471,8 @@ end
 local checkAggroTimer = timer:new(10)
 function class.aggroOld()
     if state.emu then return end
-    if config.MODE.value:isManualMode() then return end
-    if class.OPTS.USEFD.value and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
+    if config.get('MODE'):isManualMode() then return end
+    if class.isEnabled('USEFD') and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or checkAggroTimer:timerExpired() then
             if class.deathseffigy and mq.TLO.Me.PctAggro() >= 90 then
                 if class.dyinggrasp and state.loop.PctHPs < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
@@ -505,9 +505,10 @@ end
 local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 local checkSpellTimer = timer:new(30)
 function class.checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() then return end
-    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
-        if class.OPTS.SPELLSET.value == 'standard' then
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
+    local spellSet = class.OPTS.SPELLSET.value
+    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
+        if spellSet == 'standard' then
             common.swapSpell(class.spells.composite, 1, composite_names)
             common.swapSpell(class.spells.pyreshort, 2)
             common.swapSpell(class.spells.venom, 3)
@@ -518,8 +519,8 @@ function class.checkSpellSet()
             --common.swapSpell(class.spells.decay, 11)
             common.swapSpell(class.spells.combodisease, 11)
             common.swapSpell(class.spells.synergy, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
-        elseif class.OPTS.SPELLSET.value == 'short' then
+            state.spellSetLoaded = spellSet
+        elseif spellSet == 'short' then
             common.swapSpell(class.spells.composite, 1, composite_names)
             common.swapSpell(class.spells.pyreshort, 2)
             common.swapSpell(class.spells.venom, 3)
@@ -530,12 +531,12 @@ function class.checkSpellSet()
             --common.swapSpell(class.spells.decay, 11)
             common.swapSpell(class.spells.combodisease, 11)
             common.swapSpell(class.spells.synergy, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
+            state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
         setSwapGems()
     end
-    if class.OPTS.SPELLSET.value == 'standard' then
+    if spellSet == 'standard' then
         if class.isEnabled('USEMANATAP') then
             common.swapSpell(class.spells.manatap, 8)
         else
@@ -561,12 +562,12 @@ function class.checkSpellSet()
                 common.swapSpell(class.spells.corruption, 12)
             end
         end
-        if not class.OPTS.USEWOUNDS then
+        if not class.isEnabled('USEWOUNDS') then
             common.swapSpell(class.spells.pyrelong, 10)
         else
             common.swapSpell(class.spells.wounds, 10)
         end
-    elseif class.OPTS.SPELLSET.value == 'short' then
+    elseif spellSet == 'short' then
         if class.isEnabled('USEMANATAP') then
             common.swapSpell(class.spells.manatap, 8)
         else
@@ -592,7 +593,7 @@ function class.checkSpellSet()
                 common.swapSpell(class.spells.venin, 12)
             end
         end
-        if not class.OPTS.USEWOUNDS then
+        if not class.isEnabled('USEWOUNDS') then
             common.swapSpell(class.spells.pyrelong, 10)
         else
             common.swapSpell(class.spells.swarm, 10)
@@ -602,7 +603,7 @@ end
 
 local necCountTimer = timer:new(60)
 
--- if class.OPTS.USEALLIANCE.value and necCountTimer:timerExpired() then
+-- if class.isEnabled('USEALLIANCE') and necCountTimer:timerExpired() then
 --    countNecros()
 --    necCountTimer:reset()
 -- end

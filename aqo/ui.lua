@@ -6,6 +6,7 @@ require 'ImGui'
 local lists = require('data.lists')
 local camp = require('routines.camp')
 local logger = require('utils.logger')
+local commands = require('commands')
 local common = require('common')
 local config = require('configuration')
 local mode = require('mode')
@@ -60,11 +61,13 @@ local function helpMarker(desc)
     end
 end
 
-function ui.drawComboBox(label, resultvar, options, bykey, xOffset, yOffset)
+function ui.drawComboBox(label, resultvar, options, bykey, helpText, xOffset, yOffset)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
     ImGui.Text(label)
+    ImGui.SameLine()
+    helpMarker(helpText)
     ImGui.SameLine()
     ImGui.SetCursorPosX(mid_x + xOffset)
     local _,y = ImGui.GetCursorPos()
@@ -145,30 +148,51 @@ function ui.getNextXY(startY, yAvail, xOffset, yOffset, maxY)
     return xOffset, yOffset, maxY
 end
 
+local function drawConfigurationForCategory(configs)
+    local x, y = ImGui.GetCursorPos()
+    local xOffset = x
+    local yOffset = y
+    local maxY = yOffset
+    local _, yAvail = ImGui.GetContentRegionAvail()
+
+    for _,cfgKey in ipairs(configs) do
+        local cfg = config[cfgKey]
+        if (cfg.emu == nil or (cfg.emu and state.emu) or (cfg.emu == false and not state.emu)) and
+                (cfg.classes == nil or cfg.classes[state.class]) then
+            if cfg.type == 'checkbox' then
+                config.set(cfgKey, ui.drawCheckBox(cfg.label, '##'..cfgKey, cfg.value, cfg.tip, xOffset, yOffset))
+            elseif cfg.type == 'combobox' then
+                config.set(cfgKey, ui.drawComboBox(cfg.label, cfg.value, cfg.options, true, cfg.tip, xOffset, yOffset))
+            elseif cfg.type == 'inputint' then
+                config.set(cfgKey, ui.drawInputInt(cfg.label, '##'..cfgKey, cfg.value, cfg.tip, xOffset, yOffset))
+            elseif cfg.type == 'inputtext' then
+                config.set(cfgKey, ui.drawInputText(cfg.label, '##'..cfgKey, cfg.value, cfg.tip, xOffset, yOffset))
+            end
+            xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
+        end
+    end
+end
+
+-- Combine Assist and Camp categories
+local assistTabConfigs = {
+    'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA',
+    'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','RESISTSTOPCOUNT',
+    'MAINTANK','LOOTMOBS','AUTODETECTRAID'
+}
 local function drawAssistTab()
     local x,_ = ImGui.GetContentRegionAvail()
     if ImGui.Button('Reset Camp', x, BUTTON_HEIGHT) then
         camp.setCamp(true)
     end
-    config.ASSIST.value = ui.drawComboBox('Assist', config.ASSIST.value, lists.assists, true)
-    config.AUTOASSISTAT.value = ui.drawInputInt('Assist %', '##assistat', config.AUTOASSISTAT.value, 'Percent HP to assist at')
-    config.ASSISTNAMES.value = ui.drawInputText('Assist Names', '##assistnames', config.ASSISTNAMES.value, 'Command separated, ordered list of names to assist, mainly for manual assist mode in raids.')
-    config.SWITCHWITHMA.value = ui.drawCheckBox('Switch With MA', '##switchwithma', config.SWITCHWITHMA.value, 'Switch targets with MA')
-    local current_camp_radius = config.CAMPRADIUS.value
-    config.CAMPRADIUS.value = ui.drawInputInt('Camp Radius', '##campradius', config.CAMPRADIUS.value, 'Camp radius to assist within')
-    config.CHASETARGET.value = ui.drawInputText('Chase Target', '##chasetarget', config.CHASETARGET.value, 'Chase Target')
-    config.CHASEDISTANCE.value = ui.drawInputInt('Chase Distance', '##chasedist', config.CHASEDISTANCE.value, 'Distance to follow chase target')
-    config.RESISTSTOPCOUNT.value = ui.drawInputInt('Resist Stop Count', '##resiststopcount', config.RESISTSTOPCOUNT.value, 'The number of resists after which to stop trying casting a spell on a mob')
-    if state.emu then
-        config.MAINTANK.value = ui.drawCheckBox('Main Tank', '##maintank', config.MAINTANK.value, 'Am i main tank')
-        config.LOOTMOBS.value = ui.drawCheckBox('Loot Mobs', '##lootmobs', config.LOOTMOBS.value, 'Loot corpses')
-        config.AUTODETECTRAID.value = ui.drawCheckBox('Auto-Detect Raid', '##detectraid', config.AUTODETECTRAID.value, 'Set raid assist settings automatically if in a raid')
-    end
+    local current_camp_radius = config.get('CAMPRADIUS')
 
-    if current_camp_radius ~= config.CAMPRADIUS.value then
+
+    drawConfigurationForCategory(assistTabConfigs)
+
+    if current_camp_radius ~= config.get('CAMPRADIUS') then
         camp.setCamp()
     end
-    uiTheme = ui.drawComboBox('Theme', uiTheme, lists.uiThemes, true)
+    --uiTheme = ui.drawComboBox('Theme', uiTheme, lists.uiThemes, true, 'Pick a UI color scheme')
 end
 
 local function drawSkillsTab()
@@ -184,7 +208,7 @@ local function drawSkillsTab()
                 option.value = ui.drawCheckBox(option.label, '##'..key, option.value, option.tip, xOffset, yOffset)
                 if option.value and option.exclusive then aqo.class.OPTS[option.exclusive].value = false end
             elseif option.type == 'combobox' then
-                option.value = ui.drawComboBox(option.label, option.value, option.options, true, xOffset, yOffset)
+                option.value = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
             elseif option.type == 'inputint' then
                 option.value = ui.drawInputInt(option.label, '##'..key, option.value, option.tip, xOffset, yOffset)
             end
@@ -198,18 +222,7 @@ local function drawSkillsTab()
 end
 
 local function drawHealTab()
-    config.HEALPCT.value = ui.drawInputInt('Heal Pct', '##healpct', config.HEALPCT.value, 'Percent HP to begin casting regular heals on self or others')
-    if lists.healClasses[state.class] then
-        config.PANICHEALPCT.value = ui.drawInputInt('Panic Heal Pct', '##panichealpct', config.PANICHEALPCT.value, 'Percent HP to begin casting panic heals')
-        config.GROUPHEALPCT.value = ui.drawInputInt('Group Heal Pct', '##grouphealpct', config.GROUPHEALPCT.value, 'Percent HP to begin casting group heals')
-        config.GROUPHEALMIN.value = ui.drawInputInt('Group Heal Min', '##grouphealmin', config.GROUPHEALMIN.value, 'Minimum number of hurt group members to begin casting group heals')
-        config.HOTHEALPCT.value = ui.drawInputInt('HoT Pct', '##hothealpct', config.HOTHEALPCT.value, 'Percent HP to begin casting HoTs')
-        config.PRIORITYTARGET.value = ui.drawInputText('Priority Target', '##prioritytarget', config.PRIORITYTARGET.value, 'Main focus for heals')
-        config.XTARGETHEAL.value = ui.drawCheckBox('Heal XTarget', '##healxtarget', config.XTARGETHEAL.value, 'Toggle healing of PCs on XTarget')
-    end
-    config.REZGROUP.value = ui.drawCheckBox('Rez Group', '##rezgroup', config.REZGROUP.value, 'Rez Group Members')
-    config.REZRAID.value = ui.drawCheckBox('Rez Raid', '##rezraid', config.REZRAID.value, 'Rez Raid Members')
-    config.REZINCOMBAT.value = ui.drawCheckBox('Rez In Combat', '##rezincombat', config.REZINCOMBAT.value, 'Rez In Combat')
+    drawConfigurationForCategory(config.getByCategory('Heal'))
 end
 
 local function drawBurnTab()
@@ -224,12 +237,7 @@ local function drawBurnTab()
     if ImGui.Button('Long Burn', 112, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow long', state.class)
     end
-    config.BURNCOUNT.value = ui.drawInputInt('Burn Count', '##burncnt', config.BURNCOUNT.value, 'Trigger burns if this many mobs are on aggro')
-    config.BURNPCT.value = ui.drawInputInt('Burn Percent', '##burnpct', config.BURNPCT.value, 'Percent health to begin burns')
-    config.BURNALWAYS.value = ui.drawCheckBox('Burn Always', '##burnalways', config.BURNALWAYS.value, 'Always be burning')
-    config.BURNALLNAMED.value = ui.drawCheckBox('Burn Named', '##burnnamed', config.BURNALLNAMED.value, 'Burn all named')
-    config.USEGLYPH.value = ui.drawCheckBox('Use Glyph', '##glyph', config.USEGLYPH.value, 'Use Glyph of Destruction on Burn')
-    config.USEINTENSITY.value = ui.drawCheckBox('Use Intensity', '##intensity', config.USEINTENSITY.value, 'Use Intensity of the Resolute on Burn')
+    drawConfigurationForCategory(config.getByCategory('Burn'))
     if aqo.class.drawBurnTab then aqo.class.drawBurnTab() end
 end
 
@@ -241,50 +249,18 @@ local function drawPullTab()
     if ImGui.Button('Remove Ignore', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
         mq.cmdf('/%s unignore', state.class)
     end
-    local x, y = ImGui.GetCursorPos()
-    local xOffset = x
-    local yOffset = y
-    local maxY = yOffset
-    local _, yAvail = ImGui.GetContentRegionAvail()
-    config.PULLWITH.value = ui.drawComboBox('Pull With', config.PULLWITH.value, lists.pullWith, true, xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
     local current_radius = config.PULLRADIUS.value
     local current_pullarc = config.PULLARC.value
-    config.PULLRADIUS.value = ui.drawInputInt('Pull Radius', '##pullrad', config.PULLRADIUS.value, 'Radius to pull mobs within', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.PULLLOW.value = ui.drawInputInt('Pull ZLow', '##pulllow', config.PULLLOW.value, 'Z Low pull range', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.PULLHIGH.value = ui.drawInputInt('Pull ZHigh', '##pullhigh', config.PULLHIGH.value, 'Z High pull range', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.PULLMINLEVEL.value = ui.drawInputInt('Pull Min Level', '##pullminlvl', config.PULLMINLEVEL.value, 'Minimum level mobs to pull', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.PULLMAXLEVEL.value = ui.drawInputInt('Pull Max Level', '##pullmaxlvl', config.PULLMAXLEVEL.value, 'Maximum level mobs to pull', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.PULLARC.value = ui.drawInputInt('Pull Arc', '##pullarc', config.PULLARC.value, 'Only pull from this slice of the radius, centered around your current heading', xOffset, yOffset)
-    xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
-    config.GROUPWATCHWHO.value = ui.drawComboBox('Group Watch', config.GROUPWATCHWHO.value, lists.groupWatchOptions, true, xOffset, yOffset)
-    if current_radius ~= config.PULLRADIUS.value or current_pullarc ~= config.PULLARC.value then
+
+    drawConfigurationForCategory(config.getByCategory('Pull'))
+
+    if current_radius ~= config.get('PULLRADIUS') or current_pullarc ~= config.get('PULLARC') then
         camp.setCamp()
     end
-    local xAvail, yAvail = ImGui.GetContentRegionAvail()
-    local x, y = ImGui.GetWindowSize()
-    if x < xOffset + X_COLUMN_OFFSET or xAvail > 20 then x = math.max(MINIMUM_WIDTH, xOffset + X_COLUMN_OFFSET) ImGui.SetWindowSize(x, y) end
-    if y < maxY or y > maxY+35 then ImGui.SetWindowSize(x, maxY+35) end
 end
 
 local function drawRestTab()
-    config.MEDCOMBAT.value = ui.drawCheckBox('Med In Combat', '##medcombat', config.MEDCOMBAT.value, 'Toggle medding during combat')
-    config.RECOVERPCT.value = ui.drawInputInt('Recover Pct', '##recoverpct', config.RECOVERPCT.value, 'Percent Mana or End to use class recover abilities')
-    config.MEDMANASTART.value = ui.drawInputInt('Med Mana Start', '##medmanastart', config.MEDMANASTART.value, 'Pct Mana to begin medding')
-    config.MEDMANASTOP.value = ui.drawInputInt('Med Mana Stop', '##medmanastop', config.MEDMANASTOP.value, 'Pct Mana to stop medding')
-    config.MEDENDSTART.value = ui.drawInputInt('Med End Start', '##medendstart', config.MEDENDSTART.value, 'Pct End to begin medding')
-    config.MEDENDSTOP.value = ui.drawInputInt('Med End Stop', '##medendstop', config.MEDENDSTOP.value, 'Pct End to stop medding')
-    if state.emu and mq.TLO.Me.Class.CanCast() then
-        config.MANASTONESTART.value = ui.drawInputInt('Manastone Start', '##manastonestart', config.MANASTONESTART.value, 'Pct Mana to start using manastone')
-        config.MANASTONESTARTHP.value = ui.drawInputInt('Manastone Start HP', '##manastonestarthp', config.MANASTONESTARTHP.value, 'Only begin manastone if Pct HP above this pct')
-        config.MANASTONESTOPHP.value = ui.drawInputInt('Manastone Stop HP', '##manastonestophp', config.MANASTONESTOPHP.value, 'Stop manastone once Pct HP reaches this pct')
-        config.MANASTONETIME.value = ui.drawInputInt('Manastone Duration', '##manastonetime', config.MANASTONETIME.value, 'Use manastone for up to this number of seconds')
-    end
+    drawConfigurationForCategory(config.getByCategory('Rest'))
 end
 
 local function drawDebugComboBox()
@@ -348,82 +324,31 @@ local function drawDebugTab()
     end
 end
 
+local uiTabs = {
+    {label='General', draw=drawAssistTab},
+    {label='Skills', draw=drawSkillsTab},
+    {label=lists.icons.FA_HEART..' Heal', draw=drawHealTab, color=LIGHT_BLUE},
+    {label=lists.icons.FA_FIRE..' Burn', draw=drawBurnTab, color=ORANGE},
+    {label='Pull', draw=drawPullTab},
+    {label='Rest', draw=drawRestTab},
+    {label='Debug', draw=drawDebugTab},
+}
 local function drawBody()
     if ImGui.BeginTabBar('##tabbar') then
-        if ImGui.BeginTabItem('General') then
-            if ImGui.BeginChild('General', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawAssistTab()
-                ImGui.PopItemWidth()
+        for _,tab in ipairs(uiTabs) do
+            if tab.color then ImGui.PushStyleColor(ImGuiCol.Text, tab.color) end
+            if ImGui.BeginTabItem(tab.label) then
+                if tab.color then ImGui.PopStyleColor() end
+                if ImGui.BeginChild(tab.label, -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
+                    ImGui.PushItemWidth(item_width)
+                    tab.draw()
+                    ImGui.PopItemWidth()
+                end
+                ImGui.EndChild()
                 ImGui.EndTabItem()
+            elseif tab.color then
+                ImGui.PopStyleColor()
             end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
-        end
-        if ImGui.BeginTabItem('Skills') then
-            if ImGui.BeginChild('Skills', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawSkillsTab()
-                ImGui.PopItemWidth()
-            end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
-        end
-        ImGui.PushStyleColor(ImGuiCol.Text, LIGHT_BLUE)
-        if ImGui.BeginTabItem(lists.icons.FA_HEART..' Heal') then
-            ImGui.PopStyleColor()
-            if ImGui.BeginChild('Heal', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawHealTab()
-                ImGui.PopItemWidth()
-                ImGui.EndTabItem()
-            end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
-        else
-            ImGui.PopStyleColor()
-        end
-        ImGui.PushStyleColor(ImGuiCol.Text, ORANGE)
-        if ImGui.BeginTabItem(lists.icons.FA_FIRE..' Burn') then
-            ImGui.PopStyleColor()
-            if ImGui.BeginChild('Burn', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawBurnTab()
-                ImGui.PopItemWidth()
-                ImGui.EndTabItem()
-            end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
-        else
-            ImGui.PopStyleColor()
-        end
-        if ImGui.BeginTabItem('Pull') then
-            if ImGui.BeginChild('Pull', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawPullTab()
-                ImGui.PopItemWidth()
-            end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
-        end
-        if ImGui.BeginTabItem('Rest') then
-            if ImGui.BeginChild('Rest', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawRestTab()
-                ImGui.PopItemWidth()
-            end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
-        end
-        if ImGui.BeginTabItem('Debug') then
-            if ImGui.BeginChild('Debug', -1, -1, false, ImGuiWindowFlags.HorizontalScrollbar) then
-                ImGui.PushItemWidth(item_width)
-                drawDebugTab()
-                ImGui.PopItemWidth()
-                ImGui.EndTabItem()
-            end
-            ImGui.EndChild()
-            ImGui.EndTabItem()
         end
         ImGui.EndTabBar()
     end
@@ -466,10 +391,10 @@ local function drawHeader()
     local current_mode = config.MODE.value:getName()
     ImGui.PushItemWidth(item_width)
     mid_x = buttonWidth+8
-    config.MODE.value = mode.fromString(ui.drawComboBox('Mode', config.MODE.value:getName(), mode.mode_names))
+    config.MODE.value = mode.fromString(ui.drawComboBox('Mode', config.MODE.value:getName(), mode.mode_names, false, config.MODE.tip))
     mid_x = 140
     ImGui.PopItemWidth()
-    if current_mode ~= config.MODE.value:getName() and not state.paused then
+    if current_mode ~= config.get('MODE'):getName() and not state.paused then
         camp.setCamp()
     end
 end
@@ -577,7 +502,7 @@ local function drawHelpWindow()
         if shouldDrawHelpGUI then
             ImGui.PushTextWrapPos(750)
             if ImGui.TreeNode('General Commands') then
-                for _,command in ipairs(aqo.commands.help) do
+                for _,command in ipairs(commands.help) do
                     ImGui.TextColored(YELLOW, '/aqo '..command.command) ImGui.SameLine() ImGui.Text(command.tip)
                 end
                 ImGui.TreePop()
@@ -602,7 +527,7 @@ local function drawHelpWindow()
                     if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
                         ImGui.TextColored(YELLOW, '/aqo ' .. key .. ' <' .. valueType .. '>')
                         ImGui.SameLine()
-                        ImGui.Text(value.tip)
+                        ImGui.Text('%s', value.tip)
                     end
                 end
                 ImGui.TreePop()

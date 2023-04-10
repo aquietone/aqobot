@@ -11,7 +11,7 @@ local tank = require('routines.tank')
 local logger = require('utils.logger')
 local persistence = require('utils.persistence')
 local timer = require('utils.timer')
-local Abilities = require('ability')
+local abilities = require('ability')
 local common = require('common')
 local config = require('configuration')
 local state = require('state')
@@ -140,10 +140,6 @@ function base.addCommonOptions()
     if base.class == 'clr' then
         base.addOption('HEALPET', 'Heal Pets', true, nil, 'Toggle healing of pets', 'checkbox')
     end
-    if not state.emu then
-        base.addOption('USEGLYPH', 'Use DPS Glyph', false, nil, 'Use glyph of destruction during burns', 'checkbox')
-        base.addOption('USEINTENSITY', 'Use Intensity', false, nil, 'Use intensity of the resolute during burns', 'checkbox')
-    end
     if lists.buffClasses[base.class] then
         base.addOption('SERVEBUFFREQUESTS', 'Serve Buff Requests', true, nil, 'Toggle serving buff requests', 'checkbox')
     end
@@ -160,6 +156,10 @@ function base.addCommonAbilities()
     base.silent = common.getAA('Silent Casting')
     base.mgb = common.getAA('Mass Group Buff')
     base.rezAbility = common.getItem('Token of Resurrection')
+    if not state.emu then
+        base.glyph = common.getAA('Mythic Glyph of Ultimate Power V')
+        base.intensity = common.getAA('Intensity of the Resolute')
+    end
 end
 
 -- Return true only if the option is both defined and true
@@ -276,12 +276,11 @@ end
 function base.assist()
     if common.amIDead() then return end
     if lists.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
-    --if lists.healClasses[base.class] and config.ASSIST.value == 'manual' then return end
-    if config.MODE.value:isAssistMode() then
+    if config.get('MODE'):isAssistMode() then
         assist.checkTarget(base.resetClassTimers)
         logger.debug(logger.flags.class.assist, "after check target "..tostring(state.assistMobID))
         -- Get assist target still even if medding, incase we need to do debuffs or anything more important
-        if not state.medding or not config.MEDCOMBAT.value then
+        if not state.medding or not config.get('MEDCOMBAT') then
             if base.isAbilityEnabled('USEMELEE') then
                 if state.assistMobID and not mq.TLO.Me.Combat() and base.beforeEngage then
                     base.beforeEngage()
@@ -297,7 +296,7 @@ end
 
 function base.tank()
     if lists.DMZ[mq.TLO.Zone.ID()] then return end
-    if config.MODE.value:getName() == 'pullertank' and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.CAMPRADIUS.value-5) then
+    if config.get('MODE'):getName() == 'pullertank' and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')-5) then
         state.pullStatus = lists.pullStates.RETURNING
         state.actionTaken = true
     else
@@ -342,7 +341,7 @@ local function doCombatLoop(list, burn_type)
     for _,ability in ipairs(list) do
         if (ability.name or ability.id) and (base.isAbilityEnabled(ability.opt)) and
                 (ability.threshold == nil or ability.threshold <= state.mobCountNoPets) and
-                (ability.type ~= Abilities.Types.Skill or dist < maxdist) and
+                (ability.type ~= abilities.Types.Skill or dist < maxdist) and
                 (ability.maxdistance == nil or dist <= ability.maxdistance) and
                 (ability.usebelowpct == nil or mobhp <= ability.usebelowpct) and
                 (burn_type == nil or ability[burn_type]) and
@@ -372,19 +371,19 @@ end
 
 function base.mash()
     if mq.TLO.Target.ID() == state.loop.ID then return end
-    if state.medding and config.MEDCOMBAT.value then return end
-    local cur_mode = config.MODE.value
+    if state.medding and config.get('MEDCOMBAT') then return end
+    local cur_mode = config.get('MODE')
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
         if base.mashClass then base.mashClass() end
-        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
+        if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if base.useCommonListProcessor then
-                common.processList(base.tankAbilities, false)
+                common.processList(base.tankAbilities, true)
             else
                 doCombatLoop(base.tankAbilities)
             end
         end
         if base.useCommonListProcessor then
-            common.processList(base.DPSAbilities, false)
+            common.processList(base.DPSAbilities, true)
         else
             doCombatLoop(base.DPSAbilities)
         end
@@ -394,20 +393,20 @@ end
 
 function base.ae()
     if mq.TLO.Target.ID() == state.loop.ID then return end
-    if state.medding and config.MEDCOMBAT.value then return end
+    if state.medding and config.get('MEDCOMBAT') then return end
     if not base.isEnabled('USEAOE') then return end
-    local cur_mode = config.MODE.value
+    local cur_mode = config.get('MODE')
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
-        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
+        if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if base.aeClass then base.aeClass() end
             if base.useCommonListProcessor then
-                common.processList(base.AETankAbilities, false)
+                common.processList(base.AETankAbilities, true)
             else
                 doCombatLoop(base.AETankAbilities)
             end
         end
         if base.useCommonListProcessor then
-            common.processList(base.AEDPSAbilities, false)
+            common.processList(base.AEDPSAbilities, true)
         else
             doCombatLoop(base.AEDPSAbilities)
         end
@@ -418,12 +417,12 @@ function base.burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
     if mq.TLO.Target.ID() == state.loop.ID then return end
-    if state.medding and config.MEDCOMBAT.value then return end
+    if state.medding and config.get('MEDCOMBAT') then return end
     if base.doneSinging and not base.doneSinging() then return end
     if common.isBurnConditionMet() then
         if base.burnClass then base.burnClass() end
 
-        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then
+        if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if base.useCommonListProcessor then
                 common.processList(base.tankBurnAbilities, false)
             else
@@ -435,6 +434,16 @@ function base.burn()
         else
             doCombatLoop(base.burnAbilities, state.burn_type)
         end
+        if config.get('USEGLYPH') and base.intensity and base.glyph then
+            if not mq.TLO.Me.Song(base.intensity.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+                base.glyph:use()
+            end
+        end
+        if config.get('USEINTENSITY') and base.glyph and base.intensity then
+            if not mq.TLO.Me.Buff(base.glyph.name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
+                base.intensity:use()
+            end
+        end
     end
 end
 
@@ -443,8 +452,9 @@ function base.findNextSpell()
     -- synergy
     for _,spell in ipairs(base.spellRotations[base.OPTS.SPELLSET.value]) do
         local resistCount = state.resists[spell.name] or 0
+        local resistStopCount = config.get('RESISTSTOPCOUNT')
         if common.isSpellReady(spell) and base.isAbilityEnabled(spell.opt)
-                and (config.RESISTSTOPCOUNT.value == 0 or resistCount < config.RESISTSTOPCOUNT.value)
+                and (resistStopCount == 0 or resistCount < resistStopCount)
                 and (not spell.condition or spell.condition()) then
             return spell
         end
@@ -457,8 +467,8 @@ end
 
 base.nuketimer = timer:new(0)
 function base.cast()
-    if mq.TLO.Me.SpellInCooldown() or base.isEnabled('DONTCAST') then return end
-    if state.medding and config.MEDCOMBAT.value then return end
+    if mq.TLO.Me.SpellInCooldown() or base.isEnabled('DONTCAST') or mq.TLO.Me.Invis() then return end
+    if state.medding and config.get('MEDCOMBAT') then return end
     if assist.isFighting() then
         if base.nuketimer:timerExpired() then
             for _,clicky in ipairs(base.castClickies) do
@@ -507,7 +517,7 @@ end
 function base.buff()
     if common.amIDead() then return end
     if base.doneSinging and not base.doneSinging() then return end
-    if state.medding and config.MEDCOMBAT.value then return end
+    if state.medding and config.get('MEDCOMBAT') then return end
     if buffing.buff(base) then state.actionTaken = true end
 end
 
@@ -517,17 +527,17 @@ end
 
 function base.mez()
     -- don't try to mez in manual mode
-    if config.MODE.value:isManualMode() or config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then return end
-    if base.OPTS.MEZAE.value and base.spells.mezae then
+    if config.get('MODE'):isManualMode() or config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then return end
+    if base.isEnabled('MEZAE') and base.spells.mezae then
         if mez.doAE(base.spells.mezae, base.OPTS.MEZAECOUNT.value) then state.actionTaken = true end
     end
-    if base.OPTS.MEZST.value and base.spells.mezst then
+    if base.isEnabled('MEZST') and base.spells.mezst then
         if mez.doSingle(base.spells.mezst) then state.actionTaken = true end
     end
 end
 
 function base.aggro()
-    if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.MAINTANK.value then return end
+    if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then return end
     local pctAggro = mq.TLO.Me.PctAggro() or 0
     -- 1. Am i on aggro? Use fades or defensives immediately
     if mq.TLO.Target() and mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID and mq.TLO.Target.Named() then
@@ -583,27 +593,31 @@ function base.recover()
     local pct_end = state.loop.PctEndurance
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
-    for _,ability in ipairs(base.recoverAbilities) do
-        if base.isAbilityEnabled(ability.opt) and (not ability.nodmz or not lists.DMZ[mq.TLO.Zone.ID()]) then
-            if ability.mana and pct_mana < (ability.threshold or config.RECOVERPCT.value) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
-                useAbility = ability
-                break
-            elseif ability.endurance and pct_end < (ability.threshold or config.RECOVERPCT.value) and (ability.combat or combat_state ~= 'COMBAT') then
-                useAbility = ability
-                break
+    --if base.useCommonListProcessor then
+    --    common.processList(base.recoverAbilities, true)
+    --else
+        for _,ability in ipairs(base.recoverAbilities) do
+            if base.isAbilityEnabled(ability.opt) and (not ability.nodmz or not lists.DMZ[mq.TLO.Zone.ID()]) then
+                if ability.mana and pct_mana < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
+                    useAbility = ability
+                    break
+                elseif ability.endurance and pct_end < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') then
+                    useAbility = ability
+                    break
+                end
             end
         end
-    end
-    if useAbility and useAbility:isReady() then
-        if mq.TLO.Me.MaxHPs() < 6000 then return end
-        local originalTargetID = 0
-        if useAbility.targettype == 'Single' and mq.TLO.Target.ID() ~= state.loop.ID then
-            originalTargetID = mq.TLO.Target.ID()
-            mq.TLO.Me.DoTarget()
+        if useAbility and useAbility:isReady() then
+            if mq.TLO.Me.MaxHPs() < 6000 then return end
+            local originalTargetID = 0
+            if useAbility.targettype == 'Single' and mq.TLO.Target.ID() ~= state.loop.ID then
+                originalTargetID = mq.TLO.Target.ID()
+                mq.TLO.Me.DoTarget()
+            end
+            if useAbility:use() then state.actionTaken = true end
+            if originalTargetID > 0 then mq.cmdf('/squelch /mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
         end
-        if useAbility:use() then state.actionTaken = true end
-        if originalTargetID > 0 then mq.cmdf('/mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
-    end
+    --end
 end
 
 function base.rez()
@@ -613,14 +627,18 @@ end
 function base.managepet()
     if not base.isEnabled('SUMMONPET') or not base.spells.pet then return end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.CAMPRADIUS.value))() > 0 then return end
+    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
     local petSpell = mq.TLO.Spell(base.spells.pet.name)
     if (petSpell.Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
     local reagentID = petSpell.ReagentID(1)()
     if reagentID > 0 and not mq.TLO.FindItem(reagentID)() then return end
     common.swapAndCast(base.spells.pet, state.swapGem)
-    mq.cmd('/multiline ; /pet ghold on')
-    state.actionTaken = true
+    if state.useStateMachine then
+        state.queuedAction = function() mq.cmd('/multiline ; /pet ghold on') end
+    else
+        mq.cmd('/multiline ; /pet ghold on')
+        state.actionTaken = true
+    end
 end
 
 function base.hold()
@@ -666,7 +684,7 @@ local function handleRequests()
             local requesterSpawn = mq.TLO.Spawn(requesterSpawn)
             if (requesterSpawn.Distance3D() or 300) < 100 then
                 local restoreGem
-                if request.requested.type == Abilities.Types.Spell and not mq.TLO.Me.Gem(request.requested.name)() then
+                if request.requested.type == abilities.Types.Spell and not mq.TLO.Me.Gem(request.requested.name)() then
                     restoreGem = {name=mq.TLO.Me.Gem(state.swapGem)()}
                     common.swapSpell(request.requested, state.swapGem)
                     mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.name)() end)
@@ -720,7 +738,7 @@ local function lifesupport()
 end
 
 function base.mainLoop()
-    if config.LOOTMOBS.value and state.assistMobID > 0 and not state.lootBeforePull then
+    if config.get('LOOTMOBS') and state.assistMobID > 0 and not state.lootBeforePull then
         -- some attempt at forcing a round of looting before beginning another pull,
         -- otherwise, depending where we are in the loop when a mob dies, we might go
         -- directly into another pull before trying to loot what we just killed.
@@ -731,7 +749,7 @@ function base.mainLoop()
         handleRequests()
         -- get mobs in camp
         camp.mobRadar()
-        if config.MODE.value:isTankMode() then
+        if config.get('MODE'):isTankMode() then
             base.tank()
             -- tank check may determine pull return interrupted / ended early for some reason, and put us back
             -- into pull return to try to get back to camp
@@ -752,7 +770,7 @@ function base.mainLoop()
             end
         end
     end
-    if config.MODE.value:isPullMode() and not base.hold() and not state.lootBeforePull then
+    if config.get('MODE'):isPullMode() and not base.hold() and not state.lootBeforePull then
         aqo.pull.pullMob()
     end
 end

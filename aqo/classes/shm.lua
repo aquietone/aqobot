@@ -3,6 +3,7 @@ local mq = require 'mq'
 local class = require('classes.classbase')
 local timer = require('utils.timer')
 local common = require('common')
+local config = require('configuration')
 
 function class.init(_aqo)
     class.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
@@ -38,6 +39,7 @@ end
 
 function class.initSpellLines(_aqo)
     class.addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
+    class.addSpell('groupheal', {'Word of Restoration'}, {group=true})
     class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
     class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
     class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'}, {opt='USESLOW'})
@@ -63,7 +65,7 @@ end
 function class.initSpellConditions(_aqo)
     if class.spells.twincast then
         class.spells.twincast.precast = function()
-            mq.cmdf('/mqtar pc =%s', mq.TLO.Group.MainTank() or _aqo.config.CHASETARGET.value)
+            mq.cmdf('/mqtar pc =%s', mq.TLO.Group.MainTank() or config.get('CHASETARGET'))
             mq.delay(1)
         end
     end

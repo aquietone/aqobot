@@ -107,6 +107,7 @@ There is also no flag for combat looting. It will only loot if no mobs are withi
 ---@type Mq
 local mq = require 'mq'
 local movement = require('routines.movement')
+local timer = require('utils.timer')
 local success, Write = pcall(require, 'lib.Write')
 if not success then printf('\arERROR: Write.lua could not be loaded\n%s\ax', Write) return end
 
@@ -139,6 +140,10 @@ local loot = {
     Terminate = true,
 }
 loot.logger.prefix = 'lootutils'
+loot.state = {
+    looting = false,
+    selling = false,
+}
 
 -- Internal settings
 local lootData = {}
@@ -309,7 +314,19 @@ end
 function eventCantLoot()
     cantLootID = mq.TLO.Target.ID()
 end
-
+--[[
+local lootItemTimer = timer:new(1, true)
+local function lootItem(index, doWhat, button)
+    loot.logger.Debug('Enter lootItem')
+    if not shouldLootActions[doWhat] then return false end
+    local corpseItemID = mq.TLO.Corpse.Item(index).ID()
+    local itemName = mq.TLO.Corpse.Item(index).Name()
+    mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
+    loot.state.lootItem = corpseItemID
+    lootItemTimer:reset()
+    return true
+end
+]]
 ---@param index number @The current index we are looking at in loot window, 1-based.
 ---@param doWhat string @The action to take for the item.
 ---@param button string @The mouse button to use to loot the item. Currently only leftmouseup implemented.
@@ -391,6 +408,7 @@ local function lootCorpse(corpseID)
         end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
+    loot.state.lootingCorpse = nil
     mq.delay(3000, function() return not mq.TLO.Window('LootWnd').Open() end)
     -- if the corpse doesn't poof after looting, there may have been something we weren't able to loot or ignored
     -- mark the corpse as not lootable for a bit so we don't keep trying
@@ -407,6 +425,115 @@ local function corpseLocked(corpseID)
     end
     return true
 end
+--[[
+local goToCorpseTimer = timer:new(3, true)
+local openCorpseTimer = timer:new(3, true)
+loot.lootMobs = function(limit)
+    loot.logger.Debug('Enter lootMobs')
+    if not loot.state.looting then
+        loot.state.looting = true
+        loot.state.lootedCount = 0
+    end
+    if loot.state.corpseToLoot then
+        local corpse = mq.TLO.Spawn('npccorpse id '..loot.state.corpseToLoot)
+        local corpseID = corpse.ID()
+        local corpseDistance = corpse.Distance3D() or 300
+        if corpseID == mq.TLO.Target.ID() and corpseDistance < 15 and not mq.TLO.Window('LootWnd').Open() then
+            mq.cmd('/multiline ; /nav stop ; /timed 5 /loot')
+            loot.state.lootingCorpse = corpseID
+            loot.state.corpseToLoot = nil
+            loot.state.lootedCount = loot.state.lootedCount + 1
+            openCorpseTimer:reset()
+            return true
+        elseif goToCorpseTimer:timerExpired() then
+            loot.state.corpseToLoot = nil
+            loot.state.lootedCount = loot.state.lootedCount + 1
+            return true
+        else
+            return false
+        end
+    elseif loot.state.lootItem then
+        if mq.TLO.Cursor.ID() == loot.state.lootItem then
+            mq.cmd('/autoinv')
+            loot.state.lootItem = nil
+            return
+        elseif lootItemTimer:timerExpired() then
+            loot.state.lootItem = nil
+            return
+        end
+    elseif loot.state.lootingCorpse then
+        if not mq.TLO.Window('LootWnd').Open() then
+            return false
+        elseif openCorpseTimer:timerExpired() then
+            loot.state.lootingCorpse = false
+            return true
+        else
+            local items = mq.TLO.Corpse.Items() or 0
+            loot.logger.Debug(('Loot window open. Items: %s'):format(items))
+            if mq.TLO.Window('LootWnd').Open() and items > 0 then
+                for i=1,items do
+                    local freeSpace = mq.TLO.Me.FreeInventory()
+                    local corpseItem = mq.TLO.Corpse.Item(i)
+                    local stackable = corpseItem.Stackable()
+                    local freeStack = corpseItem.FreeStack()
+                    if corpseItem() and not corpseItem.Lore() and (freeSpace > 0 or (stackable and freeStack > 0)) then
+                        if lootItem(i, getRule(corpseItem), 'leftmouseup') then return end
+                    end
+                    if not mq.TLO.Window('LootWnd').Open() then break end
+                end
+                for i=1,items do
+                    local freeSpace = mq.TLO.Me.FreeInventory()
+                    local corpseItem = mq.TLO.Corpse.Item(i)
+                    if corpseItem() then
+                        local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
+                        local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
+                        if (corpseItem.Lore() and (haveItem or haveItemBank)) or freeSpace == 0 then
+                            loot.logger.Warn('Cannot loot lore item')
+                        else
+                            if lootItem(i, getRule(corpseItem), 'leftmouseup') then return end
+                        end
+                    end
+                    if not mq.TLO.Window('LootWnd').Open() then break end
+                end
+            end
+            loot.state.lootingCorpse = nil
+            mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
+        end
+    else
+        if loot.state.lootedCount == limit then
+            loot.state.looting = false
+            return false
+        end
+        local deadCount = mq.TLO.SpawnCount(spawnSearch:format('npccorpse', loot.CorpseRadius))()
+        loot.logger.Debug(string.format('There are %s corpses in range.', deadCount))
+        local mobsNearby = mq.TLO.SpawnCount(spawnSearch:format('xtarhater', loot.MobsTooClose))()
+        -- options for combat looting or looting disabled
+        if deadCount == 0 or mobsNearby > 0 or mq.TLO.Me.Combat() then return false end -- or mq.TLO.Me.FreeInventory() == 0 then return false end
+        local corpseList = {}
+        for i=1,math.max(deadCount, limit or 0) do
+            local corpse = mq.TLO.NearestSpawn(('%d,'..spawnSearch):format(i, 'npccorpse', loot.CorpseRadius))
+            table.insert(corpseList, corpse)
+            -- why is there a deity check?
+        end
+        local didLoot = false
+        loot.logger.Debug(string.format('Trying to loot %d corpses.', #corpseList))
+        for i=1,#corpseList do
+            local corpse = corpseList[i]
+            local corpseID = corpse.ID()
+            if corpseID and corpseID > 0 and not corpseLocked(corpseID) and (mq.TLO.Navigation.PathLength('spawn id '..tostring(corpseID))() or 100) < 60 then
+                loot.logger.Debug('Moving to corpse ID='..tostring(corpseID))
+                movement.stop()
+                movement.navToID(corpseID)
+                corpse.DoTarget()
+                loot.state.corpseToLoot = corpseID
+                goToCorpseTimer:reset()
+                return true
+            end
+        end
+        loot.state.looting = false
+        return false
+    end
+end]]
 
 function loot.lootMobs(limit)
     loot.logger.Debug('Enter lootMobs')

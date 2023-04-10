@@ -54,6 +54,7 @@ AbilityTypes = {
 ---@field removesong? string # name of buff / song to remove after cast
 ---@field nodmz? boolean #flag to indicate if this ability should be used in DMZ list zones
 ---@field condition? function # function to evaluate to determine whether to use the ability
+---@field overwrite? string # name of disc which may be overwritten by this disc
 local Ability = {
     id=0,
     name = '',
@@ -70,14 +71,16 @@ end
 ---@param name string|nil #
 ---@param type AbilityTypes #
 ---@param targettype string|nil #
+---@param casttime number #
 ---@param options table|nil #
 ---@return Ability #
-function Ability:new(ID, name, type, targettype, options)
+function Ability:new(ID, name, type, targettype, casttime, options)
     local ability = {
         id = ID,
         name = name,
         type = type,
         targettype = targettype,
+        casttime = casttime,
     }
     setmetatable(ability, self)
     self.__index = self
@@ -184,31 +187,58 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
     return true
 end
 
+function Ability.use(theAbility, doSwap)
+    local result = false
+    logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.name)
+    if state[theAbility.name] and not state[theAbility.name]:timerExpired() then return result end
+    if (theAbility:isReady() or (theAbility.type == AbilityTypes.Spell and doSwap)) and (not theAbility.condition or theAbility.condition(theAbility)) and aqo.class.isAbilityEnabled(theAbility.opt) then
+        if theAbility.type == AbilityTypes.Spell and doSwap then
+            aqo.common.swapAndCast(theAbility, state.swapGem)
+        else
+            if theAbility.precast then theAbility.precast() end
+            result = theAbility:execute()
+            if theAbility.postcast then theAbility.postcast() end
+        end
+    end
+    return result
+end
+
 ---@class Spell : Ability
 local Spell = {}
 
 function Spell:isReady()
-    return Ability.canUseSpell(mq.TLO.Spell(self.name), self.type)
+    local spellData = mq.TLO.Spell(self.name)
+    return Ability.canUseSpell(spellData, self.type) and Ability.shouldUseSpell(spellData)
 end
 
 ---Initialize a new spell instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
+---@param casttime number #
 ---@param options table|nil #
 ---@return Ability #
-function Spell:new(ID, name, targettype, options)
-    local spell = Ability:new(ID, name, AbilityTypes.Spell, targettype, options)
+function Spell:new(ID, name, targettype, casttime, options)
+    local spell = Ability:new(ID, name, AbilityTypes.Spell, targettype, casttime, options)
     setmetatable(spell, self)
     self.__index = self
     return spell
 end
 
+function Spell:execute()
+    logger.debug(logger.flags.ability.spell, 'ENTER Spell:use \ag%s\ax', self.name)
+    local requiresTarget = self.targettype == 'Single'
+    if logger.flags.announce.spell then print(logger.logLine('Casting \ag%s\ax%s', self.name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    mq.cmdf('/cast "%s"', self.name)
+    state.setCastingState(self)
+    return true
+end
+
 function Spell:use()
     logger.debug(logger.flags.ability.spell, 'ENTER spell:use \ag%s\ax', self.name)
     local spell = mq.TLO.Spell(self.name)
-    --if (not state[self.name] or state[self.name]:timer_expired()) and Ability.canUseSpell(spell, self.type) then
-    if Ability.canUseSpell(spell, self.type) then
+    if (state.useStateMachine and state[self.name] and not state[self.name]:timerExpired()) or not Ability.canUseSpell(spell, self.type) then return end
+    --if Ability.canUseSpell(spell, self.type) then
         local result, requiresTarget =  Ability.shouldUseSpell(spell)
         if not result then return false end
         if state.class == 'brd' then mq.cmd('/stopsong') end
@@ -218,8 +248,7 @@ function Spell:use()
             state.resetCastingState()
             state.casting = self
             state.actionTaken = true
-            state[self.name] = timer:new(2)
-            state[self.name]:reset()
+            state[self.name] = timer:new(2, true)
             return true
         else
             mq.delay(200)
@@ -238,21 +267,21 @@ function Spell:use()
             end
             return not mq.TLO.Me.SpellReady(self.name)()
         end
-    end
+    --end
 end
 
 ---@class Disc : Ability
 local Disc = {}
 
----Initialize a new spell instance
----Initialize a new spell instance
+---Initialize a new Disc instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
+---@param casttime number #
 ---@param options table|nil #
 ---@return Ability #
-function Disc:new(ID, name, targettype, options)
-    local disc = Ability:new(ID, name, AbilityTypes.Disc, targettype, options)
+function Disc:new(ID, name, targettype, casttime, options)
+    local disc = Ability:new(ID, name, AbilityTypes.Disc, targettype, casttime, options)
     setmetatable(disc, self)
     self.__index = self
     return disc
@@ -276,13 +305,28 @@ function Disc:isReady()
     end
 end
 
+function Disc:execute()
+    logger.debug(logger.flags.ability.disc, 'ENTER disc:use \ag%s\ax', self.name)
+    if self.overwrite and mq.TLO.Me.ActiveDisc() == self.overwrite then mq.cmd('/stopdisc') end
+    if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
+        if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+        if self.name:find('Composite') then
+            mq.cmdf('/disc %s', self.id)
+        else
+            mq.cmdf('/disc %s', self.name)
+        end
+        state.setCastingState(self)
+        return true
+    end
+end
+
 ---Use the disc specified in the passed in table disc.
 ---@param overwrite string|nil @The name of a disc which should be stopped in order to run this disc.
 function Disc:use(overwrite)
     logger.debug(logger.flags.ability.disc, 'ENTER disc:use \ag%s\ax', self.name)
     local spell = mq.TLO.Spell(self.name)
-    --if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady() then
-    if self:isReady() then
+    if (state.useStateMachine and state[self.name] and not state[self.name]:timerExpired()) or not self:isReady() then return end
+    --if self:isReady() then
         if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
             if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
             if self.name:find('Composite') then
@@ -296,8 +340,7 @@ function Disc:use(overwrite)
                     state.casting = self
                     state.actionTaken = true
                 end
-                state[self.name] = timer:new(2)
-                state[self.name]:reset()
+                state[self.name] = timer:new(2, true)
             else
                 mq.delay(250+spell.CastTime())
                 mq.delay(250, function() return not mq.TLO.Me.CombatAbilityReady(self.name)() end)
@@ -313,8 +356,7 @@ function Disc:use(overwrite)
                 state.resetCastingState()
                 state.casting = self
                 state.actionTaken = true
-                state[self.name] = timer:new(2)
-                state[self.name]:reset()
+                state[self.name] = timer:new(2, true)
                 return true
             else
                 mq.delay(250+spell.CastTime())
@@ -325,22 +367,22 @@ function Disc:use(overwrite)
         else
             logger.debug(logger.flags.ability.disc, 'Not casting due to conflicting active disc (%s)', self.name)
         end
-    end
-    return false
+    --end
+    --return false
 end
 
 ---@class AA : Ability
 local AA = {}
 
----Initialize a new spell instance
----Initialize a new spell instance
+---Initialize a new AA instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
+---@param casttime number #
 ---@param options table|nil #
 ---@return Ability #
-function AA:new(ID, name, targettype, options)
-    local aa = Ability:new(ID, name, AbilityTypes.AA, targettype, options)
+function AA:new(ID, name, targettype, casttime, options)
+    local aa = Ability:new(ID, name, AbilityTypes.AA, targettype, casttime, options)
     setmetatable(aa, self)
     self.__index = self
     return aa
@@ -357,12 +399,22 @@ function AA:isReady()
     end
 end
 
+function AA:execute()
+    logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.name)
+    if logger.flags.announce.aa then
+        print(logger.logLine('Use AA: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or ''))
+    end
+    mq.cmdf('/alt activate %d', self.id)
+    state.setCastingState(self)
+    return true
+end
+
 ---Use the AA specified in the passed in table aa.
 ---@return boolean @Returns true if the ability was fired, otherwise false.
 function AA:use()
     logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.name)
-    --if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady() then
-    if self:isReady() then
+    if (state.useStateMachine and state[self.name] and not state[self.name]:timerExpired()) or not self:isReady() then return false end
+    --if self:isReady() then
         if logger.flags.announce.aa then print(logger.logLine('Use AA: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/alt activate %d', self.id)
         if state.useStateMachine then
@@ -371,8 +423,7 @@ function AA:use()
                 state.casting = self
                 state.actionTaken = true
             end
-            state[self.name] = timer:new(2)
-            state[self.name]:reset()
+            state[self.name] = timer:new(2, true)
             return true
         else
             mq.delay(250+mq.TLO.Me.AltAbility(self.name).Spell.CastTime()) -- wait for cast time + some buffer so we don't skip over stuff
@@ -380,22 +431,22 @@ function AA:use()
             logger.debug(logger.flags.ability.aa, "Delayed for use_aa %s", self.name)
             return not mq.TLO.Me.AltAbilityReady(self.name)()
         end
-    end
-    return false
+    --end
+    --return false
 end
 
 ---@class Item : Ability
 local Item = {}
 
----Initialize a new spell instance
----Initialize a new spell instance
+---Initialize a new Item instance
 ---@param ID number|nil #
 ---@param name string|nil #
 ---@param targettype string|nil #
+---@param casttime number #
 ---@param options table|nil #
 ---@return Ability #
-function Item:new(ID, name, targettype, options)
-    local item = Ability:new(ID, name, AbilityTypes.Item, targettype, options)
+function Item:new(ID, name, targettype, casttime, options)
+    local item = Ability:new(ID, name, AbilityTypes.Item, targettype, casttime, options)
     setmetatable(item, self)
     self.__index = self
     return item
@@ -414,13 +465,22 @@ function Item:isReady(item)
     end
 end
 
+function Item:execute()
+    logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.name)
+    if state.class == 'brd' and mq.TLO.Me.Casting() and self.casttime > 500 then mq.cmd('/stopcast') mq.delay(250) end
+    if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', self.name, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    mq.cmdf('/useitem "%s"', self.name)
+    state.setCastingState(self)
+    return true
+end
+
 ---Use the item specified by item.
 ---@return boolean @Returns true if the item was fired, otherwise false.
 function Item:use()
     logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.name)
     local theItem = mq.TLO.FindItem(self.id)
-    --if (not state[self.name] or state[self.name]:timer_expired()) and self:isReady(theItem) then
-    if self:isReady(theItem) then
+    if (state.useStateMachine and state[self.name] and not state[self.name]:timerExpired()) or not self:isReady(theItem) then return false end
+    --if self:isReady(theItem) then
         if state.class == 'brd' and mq.TLO.Me.Casting() and self.casttime > 500 then mq.cmd('/stopcast') mq.delay(250) end
         if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', theItem, self.targettype == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/useitem "%s"', theItem)
@@ -430,8 +490,7 @@ function Item:use()
                 state.casting = self
                 state.actionTaken = true
             end
-            state[self.name] = timer:new(2)
-            state[self.name]:reset()
+            state[self.name] = timer:new(2, true)
             return true
         else
             if self.targettype == 'Single' and self.casttime > 0 then
@@ -442,19 +501,19 @@ function Item:use()
             end
             return true
         end
-    end
-    return false
+    --end
+    --return false
 end
 
 ---@class Skill : Ability
 local Skill = {}
 
----Initialize a new spell instance
+---Initialize a new Skill instance
 ---@param name string|nil #
 ---@param options table|nil #
 ---@return Ability #
 function Skill:new(name, options)
-    local skill = Ability:new(nil, name, AbilityTypes.Skill, nil, options)
+    local skill = Ability:new(nil, name, AbilityTypes.Skill, nil, 0, options)
     setmetatable(skill, self)
     self.__index = self
     return skill
@@ -464,6 +523,14 @@ function Skill:isReady()
     return mq.TLO.Me.AbilityReady(self.name)() and mq.TLO.Me.Skill(self.name)() > 0
 end
 
+function Skill:execute()
+    logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.name)
+    if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    mq.cmdf('/doability "%s"', self.name)
+    state.setCastingState(self)
+    return true
+end
+
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 function Skill:use()
     logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.name)
@@ -471,8 +538,7 @@ function Skill:use()
         if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/doability "%s"', self.name)
         if state.useStateMachine then
-            state[self.name] = timer:new(2)
-            state[self.name]:reset()
+            state[self.name] = timer:new(2, true)
             return true
         else
             mq.delay(500, function() return not mq.TLO.Me.AbilityReady(self.name)() end)
@@ -486,6 +552,7 @@ return {
     init=Ability.init,
     Types=AbilityTypes,
     canUseSpell=Ability.canUseSpell,
+    use=Ability.use,
     Spell=Spell,
     Disc=Disc,
     AA=AA,

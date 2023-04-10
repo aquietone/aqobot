@@ -44,7 +44,7 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, nil, 'combobox')
+    class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, 'Set how to use bard epic', 'combobox')
     class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
     class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
     class.addOption('MEZAECOUNT', 'Mez AE Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
@@ -244,7 +244,7 @@ end
 local function castSynergy()
     -- don't nuke if i'm not attacking
     local synergy = class.spells.insult and class.spells.insult.name
-    if class.OPTS.USEINSULTS.value and synergyTimer:timerExpired() and synergy and mq.TLO.Me.Combat() then
+    if class.isEnabled('USEINSULTS') and synergyTimer:timerExpired() and synergy and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(synergy)() and mq.TLO.Me.GemTimer(synergy)() == 0 then
             if mq.TLO.Spell(synergy).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
@@ -321,7 +321,7 @@ end
 local function findNextSong()
     if tryAlliance() then return nil end
     if castSynergy() then return nil end
-    if not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value and ((mq.TLO.Target.PctHPs() or 100) < 30) then
+    if not mq.TLO.Target.Snared() and class.isEnabled('USESNARE') and ((mq.TLO.Target.PctHPs() or 100) < 30) then
         return class.spells.snare
     end
     for _,song in ipairs(class.spellRotations[class.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
@@ -337,7 +337,7 @@ local function findNextSong()
 end
 
 function class.cast()
-    if class.OPTS.USETWIST.value then return false end
+    if class.isEnabled('USETWIST') or mq.TLO.Me.Invis() then return false end
     if not state.loop.Invis and class.doneSinging() then
         if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' and (class.OPTS.USEEPIC.value == 'always' or state.burnActive or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
             if class.useEpic() then mq.delay(250) return true end
@@ -398,16 +398,10 @@ function class.useEpic()
 end
 
 function class.mashClass()
-    if class.OPTS.USEBELLOW.value and class.bellow and bellowTimer:timerExpired() and class.bellow:use() then
+    if class.isEnabled('USEBELLOW') and class.bellow and bellowTimer:timerExpired() and class.bellow:use() then
         bellowTimer:reset()
     end
 end
-
---[[function class.burnClass()
-    if class.OPTS.USEEPIC.value == 'burn' then
-        useEpic()
-    end
-end]]
 
 function class.hold()
     if class.rallyingsolo and (mq.TLO.Me.Song(class.rallyingsolo.name)() or mq.TLO.Me.Buff(class.rallyingsolo.name)()) then
@@ -434,10 +428,11 @@ end
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 local checkSpellTimer = timer:new(30)
 function class.checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
     if not class.doneSinging() then return end
-    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
-        if class.OPTS.SPELLSET.value == 'melee' then
+    local spellSet = class.OPTS.SPELLSET.value
+    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
+        if spellSet == 'melee' then
             common.swapSpell(class.spells.aria, 1)
             common.swapSpell(class.spells.arcane, 2)
             common.swapSpell(class.spells.spiteful, 3)
@@ -451,8 +446,8 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.pulse, 11)
             common.swapSpell(class.spells.composite, 12, composite_names)
             common.swapSpell(class.spells.dirge, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
-        elseif class.OPTS.SPELLSET.value == 'caster' then
+            state.spellSetLoaded = spellSet
+        elseif spellSet == 'caster' then
             common.swapSpell(class.spells.aria, 1)
             common.swapSpell(class.spells.arcane, 2)
             common.swapSpell(class.spells.firenukebuff, 3)
@@ -466,8 +461,8 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.pulse, 11)
             common.swapSpell(class.spells.composite, 12, composite_names)
             common.swapSpell(class.spells.dirge, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
-        elseif class.OPTS.SPELLSET.value == 'meleedot' then
+            state.spellSetLoaded = spellSet
+        elseif spellSet == 'meleedot' then
             common.swapSpell(class.spells.aria, 1)
             common.swapSpell(class.spells.chantflame, 2)
             common.swapSpell(class.spells.chantfrost, 3)
@@ -481,7 +476,7 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.pulse, 11)
             common.swapSpell(class.spells.composite, 12, composite_names)
             common.swapSpell(class.spells.dirge, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
+            state.spellSetLoaded = spellSet
         else -- emu spellsets
             common.swapSpell(class.spells.emuaura, 1)
             common.swapSpell(class.spells.pulse, 2)
@@ -508,7 +503,7 @@ function class.pullCustom()
 end
 
 function class.doneSinging()
-    if class.OPTS.USETWIST.value then return true end
+    if class.isEnabled('USETWIST') then return true end
     if mq.TLO.Me.CastTimeLeft() > 4000 or not mq.TLO.Me.Casting() then
         if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
         mq.delay(100)

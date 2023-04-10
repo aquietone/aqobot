@@ -4,6 +4,7 @@ local assist = require('routines.assist')
 local camp = require('routines.camp')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
+local abilities = require('ability')
 local common = require('common')
 local state = require('state')
 local config = require('configuration')
@@ -37,7 +38,7 @@ function mez.doAE(mez_spell, ae_count)
     if state.mobCount >= ae_count and mez_spell then
         if mq.TLO.Me.Gem(mez_spell.name)() and mq.TLO.Me.GemTimer(mez_spell.name)() == 0 then
             print(logger.logLine('AE Mezzing (mobCount=%d)', state.mobCount))
-            mez_spell:use()
+            if state.useStateMachine then abilities.use(mez_spell) else mez_spell:use() end
             mez.initMezTimers()
             return true
         end
@@ -70,7 +71,7 @@ function mez.doSingle(mez_spell)
                             state.mezTargetID = id
                             print(logger.logLine('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID()))
                             if mez_spell.precast then mez_spell.precast() end
-                            mez_spell:use()
+                            if state.useStateMachine then abilities.use(mez_spell) else mez_spell:use() end
                             logger.debug(logger.flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
                             state.targets[id].meztimer:reset()
                             mq.doevents('eventMezImmune')

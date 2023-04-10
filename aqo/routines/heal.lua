@@ -1,7 +1,7 @@
 --- @type Mq
 local mq = require('mq')
 local timer = require('utils.timer')
-local Abilities = require('ability')
+local abilities = require('ability')
 local config = require('configuration')
 local state = require('state')
 
@@ -59,24 +59,24 @@ local function getHurt(opts)
     local mostHurtClass = nil
     local mostHurtDistance = 300
     local myHP = state.loop.PctHPs
-    if myHP < config.PANICHEALPCT.value then
+    if myHP < config.get('PANICHEALPCT') then
         return state.loop.ID, HEAL_TYPES.PANIC
-    elseif myHP < config.HOTHEALPCT.value then
+    elseif myHP < config.get('HOTHEALPCT') then
         mostHurtName = mq.TLO.Me.CleanName()
         mostHurtID = state.loop.ID
         mostHurtPct = myHP
         mostHurtClass = mq.TLO.Me.Class.ShortName()
         mostHurtDistance = 0
-        if myHP < config.HEALPCT.value then numHurt = numHurt + 1 end
+        if myHP < config.get('HEALPCT') then numHurt = numHurt + 1 end
     end
     local tank = mq.TLO.Group.MainTank
-    if not tank() and config.PRIORITYTARGET.value:len() > 0 then
-        tank = mq.TLO.Spawn('='..config.PRIORITYTARGET.value)
+    if not tank() and config.get('PRIORITYTARGET'):len() > 0 then
+        tank = mq.TLO.Spawn('='..config.get('PRIORITYTARGET'))
     end
     if tank() and not tank.Dead() then
         local tankHP = tank.PctHPs() or 100
         local distance = tank.Distance3D() or 300
-        if tankHP < config.PANICHEALPCT.value and distance < 200 then return tank.ID(), HEAL_TYPES.PANIC end
+        if tankHP < config.get('PANICHEALPCT') and distance < 200 then return tank.ID(), HEAL_TYPES.PANIC end
     end
     if healEnabled(opts, 'HEALPET') and mq.TLO.Pet.ID() > 0 then
         local memberPetHP = mq.TLO.Pet.PctHPs() or 100
@@ -96,7 +96,7 @@ local function getHurt(opts)
             if not member.Dead() then
                 local memberHP = member.PctHPs() or 100
                 local distance = member.Distance3D() or 300
-                if memberHP < config.HOTHEALPCT.value and distance < 200 then
+                if memberHP < config.get('HOTHEALPCT') and distance < 200 then
                     if memberHP < mostHurtPct then
                         mostHurtName = member.CleanName()
                         mostHurtID = member.ID()
@@ -104,16 +104,16 @@ local function getHurt(opts)
                         mostHurtClass = member.Class.ShortName()
                         mostHurtDistance = distance
                     end
-                    if memberHP < config.GROUPHEALPCT.value and distance < 80 then numHurt = numHurt + 1 end
+                    if memberHP < config.get('GROUPHEALPCT') and distance < 80 then numHurt = numHurt + 1 end
                     -- work around lazarus Group.MainTank never working, tank just a group member
-                    if tankClasses[member.Class.ShortName()] and memberHP < config.PANICHEALPCT.value and distance < 200 then
+                    if tankClasses[member.Class.ShortName()] and memberHP < config.get('PANICHEALPCT') and distance < 200 then
                         return member.ID(), HEAL_TYPES.PANIC
                     end
                 end
                 if healEnabled(opts, 'HEALPET') then
                     local memberPetHP = member.Pet.PctHPs() or 100
                     local memberPetDistance = member.Pet.Distance3D() or 300
-                    if memberPetHP < config.HEALPCT.value and memberPetDistance < 200 then
+                    if memberPetHP < config.get('HEALPCT') and memberPetDistance < 200 then
                         mostHurtName = member.Pet.CleanName()
                         mostHurtID = member.Pet.ID()
                         mostHurtPct = memberPetHP
@@ -124,19 +124,19 @@ local function getHurt(opts)
             end
         end
     end
-    if mostHurtPct < config.PANICHEALPCT.value then
+    if mostHurtPct < config.get('PANICHEALPCT') then
         return mostHurtID, HEAL_TYPES.PANIC
-    elseif numHurt > config.GROUPHEALMIN.value then
+    elseif numHurt > config.get('GROUPHEALMIN') then
         return nil, HEAL_TYPES.GROUP
-    elseif mostHurtPct < config.HEALPCT.value and mostHurtDistance < 200 then
-        return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.PRIORITYTARGET.value) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
-    elseif mostHurtPct < config.HOTHEALPCT.value and melees[mostHurtClass] and mostHurtDistance < 100 then
+    elseif mostHurtPct < config.get('HEALPCT') and mostHurtDistance < 200 then
+        return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.get('PRIORITYTARGET')) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
+    elseif mostHurtPct < config.get('HOTHEALPCT') and melees[mostHurtClass] and mostHurtDistance < 100 then
         local hotTimer = hottimers[mostHurtName]
         if (not hotTimer or hotTimer:timerExpired()) then
             return mostHurtID, HEAL_TYPES.HOT
         end
     end
-    if config.XTARGETHEAL.value then
+    if config.get('XTARGETHEAL') then
         mostHurtPct = 100
         for i=1,13 do
             local xtarSpawn = mq.TLO.Me.XTarget(i)
@@ -144,7 +144,7 @@ local function getHurt(opts)
             if xtarType == 'PC' or xtarType == 'Pet' then
                 local xtargetHP = xtarSpawn.PctHPs() or 100
                 local xtarDistance = xtarSpawn.Distance3D() or 300
-                if xtargetHP < config.HOTHEALPCT.value and xtarDistance < 200 then
+                if xtargetHP < config.get('HOTHEALPCT') and xtarDistance < 200 then
                     if xtargetHP < mostHurtPct then
                         mostHurtName = xtarSpawn.CleanName()
                         mostHurtID = xtarSpawn.ID()
@@ -155,11 +155,11 @@ local function getHurt(opts)
                 end
             end
         end
-        if mostHurtPct < config.PANICHEALPCT.value then
+        if mostHurtPct < config.get('PANICHEALPCT') then
             return mostHurtID, HEAL_TYPES.PANIC
-        elseif mostHurtPct < config.HEALPCT.value and mostHurtDistance < 200 then
+        elseif mostHurtPct < config.get('HEALPCT') and mostHurtDistance < 200 then
             return mostHurtID, HEAL_TYPES.REGULAR
-        elseif mostHurtPct < config.HOTHEALPCT.value and melees[mostHurtClass] and mostHurtDistance < 100 then
+        elseif mostHurtPct < config.get('HOTHEALPCT') and melees[mostHurtClass] and mostHurtDistance < 100 then
             local hotTimer = hottimers[mostHurtName]
             if (not hotTimer or hotTimer:timerExpired()) then
                 return mostHurtID, HEAL_TYPES.HOT
@@ -176,12 +176,12 @@ local function getHeal(healAbilities, healType, whoToHeal, opts)
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.name)() and heal:isReady() then return heal end
-                elseif heal.type == Abilities.Types.Spell then
+                elseif heal.type == abilities.Types.Spell then
                     local spell = mq.TLO.Spell(heal.name)
-                    if Abilities.canUseSpell(spell, heal.type) then
+                    if abilities.canUseSpell(spell, heal.type) then
                         return heal
                     end
-                elseif heal.type == Abilities.Types.Item then
+                elseif heal.type == abilities.Types.Item then
                     local theItem = mq.TLO.FindItem(heal.id)
                     if heal:isReady(theItem) then return heal end
                 else
@@ -199,14 +199,17 @@ function healing.heal(healAbilities, opts)
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             mq.cmdf('/mqt id %s', whoToHeal)
         end
-        healToUse:use()
+        if state.useStateMachine then
+            abilities.use(healToUse)
+        else
+            healToUse:use()
+        end
         if typeOfHeal == HEAL_TYPES.HOT then
             local targetName = mq.TLO.Target.CleanName()
             if not targetName then return end
             local hotTimer = hottimers[targetName]
             if not hotTimer then
-                hottimers[targetName] = timer:new(60)
-                hottimers[targetName]:reset()
+                hottimers[targetName] = timer:new(60, true)
             else
                 hotTimer:reset()
             end
@@ -221,9 +224,16 @@ function healing.healPetOrSelf(healAbilities, opts)
     if not healEnabled(opts, 'HEALPET') then return end
     for _,heal in ipairs(healAbilities) do
         if heal.pet and petHP < heal.pet then
-            if heal.type == Abilities.Types.Spell then
+            if state.useStateMachine then
+                if abilities.use(heal) then
+                    return true
+                end
+            else
+                if heal:use() then return true end
+            end
+            --[[if heal.type == abilities.Types.Spell then
                 local spell = mq.TLO.Spell(heal.name)
-                if Abilities.canUseSpell(spell, heal.type) then
+                if abilities.canUseSpell(spell, heal.type) then
                     heal:use()
                     return
                 end
@@ -232,18 +242,35 @@ function healing.healPetOrSelf(healAbilities, opts)
                     heal:use()
                     return
                 end
-            end
+            end]]
         end
     end
 end
 
 function healing.healSelf(healAbilities, opts)
-    if state.loop.PctHPs > config.HEALPCT.value then return end
+    if state.loop.PctHPs > config.get('HEALPCT') then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
-            if heal.type == Abilities.Types.Spell then
+            local originalTargetID = mq.TLO.Target.ID()
+            if heal.targettype == 'Single' then
+                mq.TLO.Me.DoTarget()
+            end
+            if state.useStateMachine then
+                if abilities.use(heal) then
+                    state.queuedAction = function()
+                        if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', originalTargetID) end
+                    end
+                    return true
+                end
+            else
+                if heal:use() then
+                    if originalTargetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', originalTargetID) end
+                    return true
+                end
+            end
+            --[[if heal.type == abilities.Types.Spell then
                 local spell = mq.TLO.Spell(heal.name)
-                if Abilities.canUseSpell(spell, heal.type) then
+                if abilities.canUseSpell(spell, heal.type) then
                     local targetID = mq.TLO.Target.ID()
                     if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                         mq.TLO.Me.DoTarget()
@@ -255,7 +282,7 @@ function healing.healSelf(healAbilities, opts)
             else
                 if heal:isReady() then
                     local targetID = mq.TLO.Target.ID()
-                    if heal.type == Abilities.Types.AA then
+                    if heal.type == abilities.Types.AA then
                         local spell = mq.TLO.AltAbility(heal.name).Spell
                         if spell.TargetType() == 'Single' and targetID ~= state.loop.ID then
                             mq.TLO.Me.DoTarget()
@@ -265,7 +292,7 @@ function healing.healSelf(healAbilities, opts)
                     if targetID ~= mq.TLO.Target.ID() then mq.cmdf('/mqt id %s', targetID) end
                     return
                 end
-            end
+            end]]
         end
     end
 end
@@ -284,7 +311,7 @@ local function doRezFor(rezAbility)
     local corpseName = corpse.Name()
     if not corpseName then return false end
     corpseName = corpseName:gsub('\'s corpse.*', '')
-    if (config.REZGROUP.value and mq.TLO.Group.Member(corpseName)()) or (config.REZRAID.value and mq.TLO.Raid.Member(corpseName)()) then
+    if (config.get('REZGROUP') and mq.TLO.Group.Member(corpseName)()) or (config.get('REZRAID') and mq.TLO.Raid.Member(corpseName)()) then
         corpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/keypress CONSIDER')
@@ -299,12 +326,16 @@ local function doRezFor(rezAbility)
             end
             mq.cmd('/corpse')
             mq.delay(50)
-            rezAbility:use()
-            if not rezAbility:isReady() then
-                --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
-                mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
-                reztimer:reset()
-                return true
+            if state.useStateMachine then
+                if abilities.use(rezAbility) then return true end
+            else
+                rezAbility:use()
+                if not rezAbility:isReady() then
+                    --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
+                    mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
+                    reztimer:reset()
+                    return true
+                end
             end
         end
     end
@@ -314,13 +345,13 @@ local rezCheckTimer = timer:new(3)
 function healing.rez(rezAbility)
     if not rezCheckTimer:timerExpired() or not rezAbility then return end
     rezCheckTimer:reset()
-    if not config.REZINCOMBAT.value and mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     -- if not rezAbility:isReady() then return end
-    if rezAbility.type == Abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then
+    if rezAbility.type == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.name)() then
         return
-    elseif rezAbility.type == Abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then
+    elseif rezAbility.type == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.name)() then
         return
-    elseif rezAbility.type == Abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then
+    elseif rezAbility.type == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.name)() then
         return
     end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end

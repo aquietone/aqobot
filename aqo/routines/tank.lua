@@ -77,8 +77,8 @@ local function tankMobInRange(tank_spawn)
     local mob_x = tank_spawn.X()
     local mob_y = tank_spawn.Y()
     if not mob_x or not mob_y then return false end
-    local camp_radius = config.CAMPRADIUS.value
-    if config.MODE.value:isReturnToCampMode() and camp.Active then
+    local camp_radius = config.get('CAMPRADIUS')
+    if config.get('MODE'):isReturnToCampMode() and camp.Active then
         local dist = common.checkDistance(camp.X, camp.Y, mob_x, mob_y)
         if dist < camp_radius then
             return true
@@ -135,7 +135,7 @@ function tank.tankMob()
     elseif state.dontAttack and state.enrageTimer:timerExpired() then
         state.dontAttack = false
     end
-    if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and config.MODE.value:getName() ~= 'manual' then
+    if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and config.get('MODE'):getName() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')
         stickTimer:reset()
     end

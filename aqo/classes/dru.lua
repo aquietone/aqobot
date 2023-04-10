@@ -4,6 +4,20 @@ local class = require('classes.classbase')
 local timer = require('utils.timer')
 local common = require('common')
 
+--[[
+    wasp swarm
+    ancient: chlorobon
+    hand of ro
+    vengeance of the sun
+    sunburst blessing
+    incarnate anew
+    word of restoration
+    moonshadow
+    blank
+    remove greater curse
+    circle of knowledge
+    skin of the reptile
+]]
 function class.init(_aqo)
     class.classOrder = {'heal', 'assist', 'debuff', 'cast', 'mash', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
     class.spellRotations = {standard={}}
@@ -19,25 +33,28 @@ function class.init(_aqo)
     class.initBuffs(_aqo)
     class.initBurns(_aqo)
     class.initDPSAbilities(_aqo)
+    class.initDefensiveAbilities(_aqo)
     class.initDebuffs(_aqo)
 
     class.rezAbility = common.getAA('Call of the Wild')
 
-    class.nuketimer = timer:new(5)
+    class.nuketimer = timer:new(1)
 end
 
 function class.initClassOptions()
     class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
     class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', 'checkbox')
     class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
-    class.addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, '', 'checkbox')
+    class.addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox')
 end
 
 function class.initSpellLines(_aqo)
     class.addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
-    class.addSpell('groupheal', {'Moonshadow', 'Word of Restoration'}, {group=true})
+    class.addSpell('groupheal', {'Word of Restoration', 'Moonshadow'}, {group=true})
     class.addSpell('firenuke', {'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
-    class.addSpell('dot', {'Swarming Death', 'Winged Death'}, {opt='USEDOTS'})
+    class.addSpell('coldnuke', {'Ancient: Glacier Frost'}, {opt='USENUKES'})
+    class.addSpell('twincast', {'Sunburst Blessing'}, {opt='USENUKES'})
+    class.addSpell('dot', {'Wasp Swarm', 'Swarming Death', 'Winged Death'}, {opt='USEDOTS'})
     class.addSpell('dot2', {'Vengeance of the Sun'}, {opt='USEDOTS'})
     class.addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
     class.addSpell('aura', {'Aura of Life', 'Aura of the Grove'})
@@ -47,9 +64,11 @@ function class.initSpellLines(_aqo)
 end
 
 function class.initSpellRotations(_aqo)
-    table.insert(class.spellRotations.standard, class.spells.firenuke)
     table.insert(class.spellRotations.standard, class.spells.dot)
     table.insert(class.spellRotations.standard, class.spells.dot2)
+    table.insert(class.spellRotations.standard, class.spells.firenuke)
+    table.insert(class.spellRotations.standard, class.spells.coldnuke)
+    table.insert(class.spellRotations.standard, class.spells.twincast)
 end
 
 function class.initHeals(_aqo)
@@ -61,7 +80,7 @@ end
 
 function class.initCures(_aqo)
     table.insert(class.cures, class.radiant)
-    table.insert(class.cures, class.spells.rgc) 
+    table.insert(class.cures, class.spells.rgc)
 end
 
 -- Group Spirit of the Black Wolf
@@ -110,8 +129,19 @@ function class.initBuffs(_aqo)
     table.insert(class.auras, class.spells.aura)
 
     table.insert(class.singleBuffs, class.spells.reptile)
+    table.insert(class.singleBuffs, common.getAA('Wrath of the Wild', {classes={WAR=true,SHD=true,PAL=true}}))
     table.insert(class.selfBuffs, class.spells.reptile)
     table.insert(class.selfBuffs, common.getAA('Spirit of the Black Wolf'))
+    local arcanum1 = common.getAA('Focus of Arcanum')
+    local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
+    local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
+    local arcanum4 = common.getAA('Empowered Focus of Arcanum')
+    table.insert(class.combatBuffs, arcanum2)
+    table.insert(class.combatBuffs, arcanum3)
+end
+
+function class.initDefensiveAbilities(_aqo)
+    table.insert(class.defensiveAbilities, common.getAA('Protection of Direwood'))
 end
 
 function class.initDebuffs(_aqo)

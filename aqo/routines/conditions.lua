@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require('mq')
+local config = require('configuration')
 
 local aqo
 local conditions = {}
@@ -29,19 +30,19 @@ end
 -- Heal Ability conditions
 
 function conditions.spawnBelowHealPct(spawn)
-    return (spawn.PctHPs() or 100) < aqo.config.HEALPCT.value
+    return (spawn.PctHPs() or 100) < config.get('HEALPCT')
 end
 
 function conditions.spawnBelowPanicHealPct(spawn)
-    return (spawn.PctHPs() or 100) < aqo.config.PANICHEALPCT.value
+    return (spawn.PctHPs() or 100) < config.get('PANICHEALPCT')
 end
 
 function conditions.spawnBelowGroupHealPct(spawn)
-    return (spawn.PctHPs() or 100) < aqo.config.GROUPHEALPCT.value
+    return (spawn.PctHPs() or 100) < config.get('GROUPHEALPCT')
 end
 
 function conditions.spawnBelowHoTHealPct(spawn)
-    return (spawn.PctHPs() or 100) < aqo.config.HOTHEALPCT.value
+    return (spawn.PctHPs() or 100) < config.get('HOTHEALPCT')
 end
 
 -- Buff Ability conditions

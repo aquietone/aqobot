@@ -140,10 +140,10 @@ end
 function class.ohShitClass()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if class.resurgence then class.resurgence:use() end
-        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.CombatAbilityReady(class.flash.name)() then
                 class.flash:use()
-            elseif class.OPTS.USEFORTITUDE.value then
+            elseif class.fortitude and class.isEnabled(class.fortitude.opt) then
                 class.fortitude:use(class.mash_defensive and class.mash_defensive.name or nil)
             end
         end

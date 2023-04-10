@@ -1,6 +1,8 @@
 --- @type Mq
 local mq = require('mq')
 local lists = require('data.lists')
+local logger = require('utils.logger')
+local config = require('configuration')
 
 local aqo
 local commands = {
@@ -14,6 +16,7 @@ local commands = {
         {command='resetcamp', tip='Reset the centerpoint of the camp to your current X,Y,Z coordinates'},
         {command='addclicky <mash|burn|buff|heal>', tip='Adds the currently held item to the clicky group specified'},
         {command='removeclicky', tip='Removes the currently held item from clickies'},
+        {command='listclickies', tip='Displays the list of added clickies'},
         {command='door', tip='Click the nearest door'},
         {command='ignore', tip='Adds the targeted mob to the ignore list for the current zone'},
         {command='unignore', tip='Removes the targeted mob from the ignore list for the current zone'},
@@ -38,15 +41,15 @@ end
 local function showHelp()
     local myClass = mq.TLO.Me.Class.ShortName():lower()
     local prefix = '\n- /'..aqo.state.class..' '
-    local output = aqo.logger.logLine('AQO Bot 1.0\n')
+    local output = logger.logLine('AQO Bot 1.0\n')
     output = output .. '\ayCommands:\aw'
     for _,command in ipairs(commands.help) do
         output = output .. prefix .. command.command .. ' -- ' .. command.tip
     end
-    for _,category in ipairs(aqo.config.categories()) do
+    for _,category in ipairs(config.categories()) do
         output = output .. '\n\ay' .. category .. ' configuration:\aw'
-        for _,key in ipairs(aqo.config.getByCategory(category)) do
-            local cfg = aqo.config[key]
+        for _,key in ipairs(config.getByCategory(category)) do
+            local cfg = config[key]
             if type(cfg) == 'table' and (not cfg.classes or cfg.classes[myClass]) then
                 output = output .. prefix .. key .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
             end
@@ -81,7 +84,7 @@ function commands.commandHandler(...)
 
     local opt = args[1]:lower()
     local new_value = args[2] and args[2]:lower() or nil
-    local configName = aqo.config.getNameForAlias(opt)
+    local configName = config.getNameForAlias(opt)
     if opt == 'help' then
         showHelp()
     elseif opt == 'restart' then
@@ -89,8 +92,8 @@ function commands.commandHandler(...)
     elseif opt == 'debug' then
         local section = args[2]
         local subsection = args[3]
-        if aqo.logger.flags[section] and aqo.logger.flags[section][subsection] ~= nil then
-            aqo.logger.flags[section][subsection] = not aqo.logger.flags[section][subsection]
+        if logger.flags[section] and logger.flags[section][subsection] ~= nil then
+            logger.flags[section][subsection] = not logger.flags[section][subsection]
         end
     elseif opt == 'sell' and not new_value then
         aqo.loot.sellStuff()
@@ -124,44 +127,44 @@ function commands.commandHandler(...)
         aqo.ui.toggleGUI(false)
     elseif opt == 'mode' then
         if new_value then
-            aqo.config.MODE.value = aqo.mode.fromString(new_value) or aqo.config.MODE.value
+            config.set('MODE', aqo.mode.fromString(new_value) or config.get('MODE'))
             aqo.state.resetCombatState()
         else
-            print(aqo.logger.logLine('Mode: %s', aqo.config.MODE.value:getName()))
+            print(logger.logLine('Mode: %s', config.get('MODE'):getName()))
         end
         aqo.camp.setCamp()
     elseif opt == 'resetcamp' then
         aqo.camp.setCamp(true)
     elseif opt == 'campradius' or opt == 'radius' or opt == 'pullarc' then
-        aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
+        config.getOrSetOption(opt, config.get(configName), new_value, configName)
         aqo.camp.setCamp()
     elseif opt == 'timestamps' then
-        aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
-        aqo.logger.timestamps = aqo.config[configName].value
+        config.getOrSetOption(opt, config.get(configName), new_value, configName)
+        logger.timestamps = config.get(configName)
     elseif configName then
-        aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
+        config.getOrSetOption(opt, config.get(configName), new_value, configName)
     elseif opt == 'groupwatch' and lists.groupWatchOptions[new_value] then
-        aqo.config.getOrSetOption(opt, aqo.config[configName].value, new_value, configName)
+        config.getOrSetOption(opt, config.get(configName), new_value, configName)
     elseif opt == 'assist' then
         if new_value and lists.assists[new_value] then
-            aqo.config.ASSIST.value = new_value
+            config.set('ASSIST', new_value)
         end
-        print(aqo.logger.logLine('assist: %s', aqo.config.ASSIST.value))
+        print(logger.logLine('assist: %s', config.get('ASSIST')))
     elseif opt == 'ignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            aqo.config.addIgnore(zone, args[2]) -- use not lowercased value
+            config.addIgnore(zone, args[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
-            if target_name then aqo.config.addIgnore(zone, target_name) end
+            if target_name then config.addIgnore(zone, target_name) end
         end
     elseif opt == 'unignore' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then
-            aqo.config.removeIgnore(zone, args[2]) -- use not lowercased value
+            config.removeIgnore(zone, args[2]) -- use not lowercased value
         else
             local target_name = mq.TLO.Target.CleanName()
-            if target_name then aqo.config.removeIgnore(zone, target_name) end
+            if target_name then config.removeIgnore(zone, target_name) end
         end
     elseif opt == 'addclicky' then
         local clickyType = new_value
@@ -171,7 +174,7 @@ function commands.commandHandler(...)
             aqo.class.addClicky(clicky)
             aqo.class.saveSettings()
         else
-            print(aqo.logger.logLine('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', aqo.state.class))
+            print(logger.logLine('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', aqo.state.class))
         end
     elseif opt == 'removeclicky' then
         local itemName = mq.TLO.Cursor()
@@ -179,14 +182,14 @@ function commands.commandHandler(...)
             aqo.class.removeClicky(itemName)
             aqo.class.saveSettings()
         else
-            print(aqo.logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', aqo.state.class))
+            print(logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', aqo.state.class))
         end
     elseif opt == 'listclickies' then
         local clickies = ''
         for clickyName,clickyType in pairs(aqo.class.clickies) do
             clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clickyType .. ')'
         end
-        print(aqo.logger.logLine('Clickies: %s', clickies))
+        print(logger.logLine('Clickies: %s', clickies))
     elseif opt == 'invis' then
         if aqo.class.invis then
             aqo.class.invis()
@@ -216,8 +219,7 @@ function commands.commandHandler(...)
     elseif opt == 'manastone' then
         local manastone = mq.TLO.FindItem('Manastone')
         if not manastone() then return end
-        local manastoneTimer = aqo.timer:new(5)
-        manastoneTimer:reset()
+        local manastoneTimer = aqo.timer:new(5, true)
         while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
             if manastoneTimer:timerExpired() then break end
@@ -240,41 +242,41 @@ function commands.classSettingsHandler(opt, new_value)
     if new_value then
         if opt == 'SPELLSET' and aqo.class.OPTS.SPELLSET ~= nil then
             if aqo.class.spellRotations[new_value] then
-                print(aqo.logger.logLine('Setting %s to: %s', opt, new_value))
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 aqo.class.OPTS.SPELLSET.value = new_value
             end
         elseif opt == 'USEEPIC' and aqo.class.OPTS.USEEPIC ~= nil then
             if aqo.class.EPIC_OPTS[new_value] then
-                print(aqo.logger.logLine('Setting %s to: %s', opt, new_value))
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 aqo.class.OPTS.USEEPIC.value = new_value
             end
         elseif opt == 'AURA1' and aqo.class.OPTS.AURA1 ~= nil then
             if aqo.class.AURAS[new_value] then
-                print(aqo.logger.logLine('Setting %s to: %s', opt, new_value))
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 aqo.class.OPTS.AURA1.value = new_value
             end
         elseif opt == 'AURA2' and aqo.class.OPTS.AURA2 ~= nil then
             if aqo.class.AURAS[new_value] then
-                print(aqo.logger.logLine('Setting %s to: %s', opt, new_value))
+                print(logger.logLine('Setting %s to: %s', opt, new_value))
                 aqo.class.OPTS.AURA2.value = new_value
             end
         elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'boolean' then
             if lists.booleans[new_value] == nil then return end
             aqo.class.OPTS[opt].value = lists.booleans[new_value]
-            print(aqo.logger.logLine('Setting %s to: %s', opt, lists.booleans[new_value]))
+            print(logger.logLine('Setting %s to: %s', opt, lists.booleans[new_value]))
         elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'number' then
             if tonumber(new_value) then
-                print(aqo.logger.logLine('Setting %s to: %s', opt, tonumber(new_value)))
+                print(logger.logLine('Setting %s to: %s', opt, tonumber(new_value)))
                 if aqo.class.OPTS[opt].value ~= nil then aqo.class.OPTS[opt].value = tonumber(new_value) end
             end
         else
-            print(aqo.logger.logLine('Unsupported command line option: %s %s', opt, new_value))
+            print(logger.logLine('Unsupported command line option: %s %s', opt, new_value))
         end
     else
         if aqo.class.OPTS[opt] ~= nil then
-            print(aqo.logger.logLine('%s: %s', opt:lower(), aqo.class.OPTS[opt].value))
+            print(logger.logLine('%s: %s', opt:lower(), aqo.class.OPTS[opt].value))
         else
-            print(aqo.logger.logLine('Unrecognized option: %s', opt))
+            print(logger.logLine('Unrecognized option: %s', opt))
         end
     end
 end

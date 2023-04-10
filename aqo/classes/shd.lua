@@ -8,6 +8,19 @@ local common = require('common')
 local config = require('configuration')
 local state = require('state')
 
+--[[
+    touch of the devourer
+    theft of agony
+    terror of discord
+    dread gaze
+    spear of muram
+    terror of thule
+    voice of innoruuk
+    blood of inruku
+    touch of draygun
+    ancient: bite of muram
+    decrepit skin
+]]
 function class.init(_aqo)
     class.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
     class.spellRotations = {standard={},dps={}}
@@ -34,17 +47,17 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, '', 'checkbox')
-    class.addOption('USEPROJECTION', 'Use Projection', true, nil, '', 'checkbox')
-    class.addOption('USEAZIA', 'Use Unity Azia', true, nil, '', 'checkbox', 'USEBEZA')
-    class.addOption('USEBEZA', 'Use Unity Beza', false, nil, '', 'checkbox', 'USEAZIA')
-    class.addOption('USEDISRUPTION', 'Use Disruption', true, nil, '', 'checkbox')
-    class.addOption('USEINSIDIOUS', 'Use Insidious', false, nil, '', 'checkbox')
-    class.addOption('USELIFETAP', 'Use Lifetap', true, nil, '', 'checkbox')
-    class.addOption('USEVOICEOFTHULE', 'Use Voice of Thule', false, nil, '', 'checkbox')
-    class.addOption('USETORRENT', 'Use Torrent', true, nil, '', 'checkbox')
-    class.addOption('USESWARM', 'Use Snare', true, nil, '', 'checkbox')
-    class.addOption('USEDEFLECTION', 'Use Deflection', false, nil, '', 'checkbox')
+    class.addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, 'Toggle use of Hates Attraction AA', 'checkbox')
+    class.addOption('USEPROJECTION', 'Use Projection', true, nil, 'Toggle use of Projection AA', 'checkbox')
+    class.addOption('USEAZIA', 'Use Unity Azia', true, nil, 'Toggle use of Unity (Azia) AA', 'checkbox', 'USEBEZA')
+    class.addOption('USEBEZA', 'Use Unity Beza', false, nil, 'Toggle use of Unity (Beza) AA', 'checkbox', 'USEAZIA')
+    class.addOption('USEDISRUPTION', 'Use Disruption', true, nil, 'Toggle use of Disruption', 'checkbox')
+    class.addOption('USEINSIDIOUS', 'Use Insidious', false, nil, 'Toggle use of Insidious', 'checkbox')
+    class.addOption('USELIFETAP', 'Use Lifetap', true, nil, 'Toggle use of lifetap spells', 'checkbox')
+    class.addOption('USEVOICEOFTHULE', 'Use Voice of Thule', false, nil, 'Toggle use of Voice of Thule buff', 'checkbox')
+    class.addOption('USETORRENT', 'Use Torrent', true, nil, 'Toggle use of torrent', 'checkbox')
+    class.addOption('USESWARM', 'Use Snare', true, nil, 'Toggle use of swarm pets', 'checkbox')
+    class.addOption('USEDEFLECTION', 'Use Deflection', false, nil, 'Toggle use of deflection discipline', 'checkbox')
     class.addOption('DONTCAST', 'Don\'t Cast', false, nil, 'Don\'t cast spells in combat', 'checkbox')
     class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
 end
@@ -106,8 +119,8 @@ function class.initSpellConditions(_aqo)
         end
     end
 
-    if class.spells.aeterror then class.spells.aeterror.condition = function() return config.MODE.value:isTankMode() and state.loop.PctHPs > 70 and mobsMissingAggro() end end
-    local aggroCondition = function() return config.MODE.value:isTankMode() and state.loop.PctHPs > 70 end
+    if class.spells.aeterror then class.spells.aeterror.condition = function() return config.get('MODE'):isTankMode() and state.loop.PctHPs > 70 and mobsMissingAggro() end end
+    local aggroCondition = function() return config.get('MODE'):isTankMode() and state.loop.PctHPs > 70 end
     if class.spells.challenge then class.spells.challenge.condition = aggroCondition end
     --if class.spells.terror then class.spells.terror.condition = aggroCondition end
     local lifetapCondition = function() return state.loop.PctHPs < 85 end
@@ -229,16 +242,16 @@ function class.mashClass()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+    if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         -- hate's attraction
-        if class.OPTS.USEHATESATTRACTION.value and class.attraction and mobhp and mobhp > 95 then
+        if class.attraction and class.isEnabled(class.attraction.opt) and mobhp and mobhp > 95 then
             class.attraction:use()
         end
     end
 end
 
 function class.burnClass()
-    if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+    if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
         if class.mantle then class.mantle:use() end
         if class.carapace then class.carapace:use() end
         if class.guardian then class.guardian:use() end
@@ -249,10 +262,10 @@ end
 
 function class.ohshit()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if config.MODE.value:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.AltAbilityReady(class.flash.name)() then
                 class.flash:use()
-            elseif class.OPTS.USEDEFLECTION.value and class.deflection then
+            elseif class.deflection and class.isEnabled(class.deflection.opt)  then
                 class.deflection:use()
             end
             if class.leechtouch then class.leechtouch:use() end
@@ -263,9 +276,10 @@ end
 local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 local checkSpellTimer = timer:new(30)
 function class.checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
-        if class.OPTS.SPELLSET.value == 'standard' then
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
+    local spellSet = class.OPTS.SPELLSET.value
+    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
+        if spellSet == 'standard' then
             common.swapSpell(class.spells.tap1, 1)
             common.swapSpell(class.spells.tap2, 2)
             common.swapSpell(class.spells.largetap, 3)
@@ -279,8 +293,8 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.stance, 11)
             common.swapSpell(class.spells.skin, 12)
             common.swapSpell(class.spells.acdebuff, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
-        elseif class.OPTS.SPELLSET.value == 'dps' then
+            state.spellSetLoaded = spellSet
+        elseif spellSet == 'dps' then
             common.swapSpell(class.spells.tap1, 1)
             common.swapSpell(class.spells.tap2, 2)
             common.swapSpell(class.spells.largetap, 3)
@@ -294,7 +308,7 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.stance, 11)
             common.swapSpell(class.spells.skin, 12)
             common.swapSpell(class.spells.acdebuff, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
+            state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
     end

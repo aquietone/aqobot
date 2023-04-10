@@ -1,6 +1,8 @@
 --- @type Mq
 local mq = require('mq')
 local timer = require('utils.timer')
+local config = require('configuration')
+local state = require('state')
 
 local aqo
 local events = {}
@@ -18,6 +20,10 @@ function events.init(_aqo)
     mq.event('eventResist', 'Your target resisted the #1# spell#*#', events.eventResist)
     mq.event('eventOMMMask', '#*#You feel a gaze of deadly power focusing on you#*#', events.eventOMMMask)
     mq.event('eventCannotRez', '#*#This corpse cannot be resurrected#*#', events.cannotRez)
+    mq.event('eventFizzles', 'Your #*#spell fizzles#*#', events.fizzled)
+    mq.event('eventMissedNote', 'You miss a note, bringing your song to a close#*#', events.fizzled)
+    mq.event('eventInterrupt', 'Your spell is interrupted#*#', events.interrupted)
+    mq.event('eventInterruptedB', 'Your casting has been interrupted#*#', events.interrupted)
 end
 
 function events.initClassBasedEvents()
@@ -45,15 +51,15 @@ function events.zoned()
     end
     aqo.state.currentZone = mq.TLO.Zone.ID()
     mq.cmd('/pet ghold on')
-    if not aqo.state.paused and aqo.config.MODE.value:isPullMode() then
-        aqo.config.MODE.value = aqo.mode.fromString('manual')
+    if not aqo.state.paused and config.get('MODE'):isPullMode() then
+        config.MODE = aqo.mode.fromString('manual')
         aqo.camp.setCamp()
         aqo.movement.stop()
     end
 end
 
 function events.movecloser()
-    if aqo.config.MODE.value:isAssistMode() and not aqo.state.paused then
+    if config.get('MODE'):isAssistMode() and not aqo.state.paused then
         aqo.movement.navToTarget(nil, 1000)
     end
 end
@@ -135,8 +141,7 @@ function events.eventRequest(line, requester, requested)
         end
         local requestedAbility = aqo.class.getAbilityForAlias(requested)
         if requestedAbility then
-            local expiration = timer:new(15)
-            expiration:reset()
+            local expiration = timer:new(15, true)
             table.insert(aqo.class.requests, {requester=requester, requested=requestedAbility, expiration=expiration, tranquil=tranquil, mgb=mgb})
         end
     end
@@ -178,6 +183,14 @@ end
 
 function events.cannotRez()
     aqo.state.cannotRez = true
+end
+
+function events.fizzled()
+    state.fizzled = true
+end
+
+function events.interrupted()
+    state.interrupted = true
 end
 
 return events

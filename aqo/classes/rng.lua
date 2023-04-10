@@ -301,20 +301,22 @@ local function findNextSpell()
         end
     end
     for _,spell in ipairs(class.dot_spells) do
-        if spell.name ~= class.spells.dot.name or class.OPTS.USEDOT.value or (state.burnActive and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) or (config.BURNALWAYS.value and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
+        if spell.name ~= class.spells.dot.name or class.isEnabled('USEDOTS')
+                or (state.burnActive and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName()))
+                or (config.get('BURNALWAYS') and common.isNamedMob(mq.TLO.Zone.ShortName(), mq.TLO.Target.CleanName())) then
             if common.isSpellReady(spell) then
                 return spell
             end
         end
     end
     for _,spell in ipairs(class.arrow_spells) do
-        if not class.spells.composite or spell.name ~= class.spells.composite.name or class.OPTS.USECOMPOSITE.value then
+        if not class.spells.composite or spell.name ~= class.spells.composite.name or class.isEnabled('USECOMPOSITE') then
             if common.isSpellReady(spell) then
                 return spell
             end
         end
     end
-    if class.OPTS.USENUKES.value then
+    if class.isEnabled('USENUKES') then
         for _,spell in ipairs(class.dd_spells) do
             if common.isSpellReady(spell) then
                 return spell
@@ -387,7 +389,7 @@ function class.aggroClass()
     end
     if state.loop.PctHPs < 50 and class.isEnabled('USERANGE') then
         -- If ranged, we might be in some bad position aggroing extra stuff, return to camp
-        if config.MODE.value:isReturnToCampMode() then
+        if config.get('MODE'):isReturnToCampMode() then
             movement.navToLoc(camp.X, camp.Y, camp.Z)
         end
     end
@@ -429,104 +431,13 @@ local function target_missing_buff(name)
     return false
 end
 
-local groupBuffTimer = timer:new(60)
-function class.buff_classb()
-    common.checkCombatBuffs()
-    if class.brownies and not mq.TLO.Me.Buff(class.brownies.name)() then
-        class.brownies:use()
-    end
-    if class.chameleon and not mq.TLO.Me.Song(class.chameleon.name)() and mq.TLO.Me.AltAbilityReady(class.chameleon.name)() then
-        mq.cmd('/mqtar myself')
-        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
-        class.chameleon:use()
-    end
-    if not common.clearToBuff() or mq.TLO.Me.AutoFire() then return end
-    --if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get_camp_radius()))() > 0 then return end
-
-    if class.OPTS.USEPOISONARROW.value then
-        if class.poison and not mq.TLO.Me.Buff('Poison Arrows')() then
-            if class.poison:use() then return end
-        end
-    elseif class.OPTS.USEFIREARROW.value then
-        if class.fire and not mq.TLO.Me.Buff('Fire Arrows')() then
-            if class.fire:use() then return end
-        end
-    end
-
-    common.checkItemBuffs()
-
-    -- ranger unity aa
-    if class.unity_azia and class.OPTS.USEUNITYAZIA.value then
-        if missing_unity_buffs(class.unity_azia.name) then
-            if class.unity_azia:use() then return end
-        end
-    elseif class.unity_beza and class.OPTS.USEUNITYBEZA.value then
-        if missing_unity_buffs(class.unity_beza.name) then
-            if class.unity_beza:use() then return end
-        end
-    end
-
-    if class.spells.dmgbuff and not mq.TLO.Me.Buff(class.spells.dmgbuff.name)() then
-        if class.spells.dmgbuff:use() then return end
-    end
-
-    if class.spells.rune and not mq.TLO.Me.Buff(class.spells.rune.name)() then
-        if class.spells.rune:use() then return end
-    end
-
-    if class.OPTS.USEREGEN.value and class.spells.regen and not mq.TLO.Me.Buff(class.spells.regen.name)() then
-        mq.cmdf('/mqtarget %s', mq.TLO.Me.CleanName())
-        mq.delay(500)
-        if common.swapAndCast(class.spells.regen, 13) then return end
-    end
-
-    if class.OPTS.DSTANK.value then
-        if mq.TLO.Group.MainTank() then
-            local tank_spawn = mq.TLO.Group.MainTank.Spawn
-            if tank_spawn() then
-                if class.spells.ds and spawn_missing_cachedbuff(tank_spawn, class.spells.ds.name) then
-                    tank_spawn.DoTarget()
-                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
-                    if target_missing_buff(class.spells.ds.name) then
-                        if common.swapAndCast(class.spells.ds, 13) then return end
-                    end
-                end
-            end
-        end
-    end
-    if class.OPTS.BUFFGROUP.value and groupBuffTimer:timerExpired() then
-        if mq.TLO.Group.Members() then
-            for i=1,mq.TLO.Group.Members() do
-                local group_member = mq.TLO.Group.Member(i).Spawn
-                if group_member() and group_member.Class.ShortName() ~= 'RNG' then
-                    if class.spells.buffs and spawn_missing_cachedbuff(group_member, class.spells.buffs.name) and not group_member.CachedBuff('Spiritual Vigor')() then
-                        group_member.DoTarget()
-                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
-                        if target_missing_buff(class.spells.buffs.name) and not mq.TLO.Target.Buff('Spiritual Vigor')() then
-                            -- extra dumb check for spiritual vigor since it seems to be checking stacking against lower level spell
-                            if class.spells.buffs:use() then return end
-                        end
-                    end
-                    if class.spells.dmgbuff and spawn_missing_cachedbuff(group_member, class.spells.dmgbuff.name) then
-                        group_member.DoTarget()
-                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end) -- time to target and for buffs to be populated
-                        if target_missing_buff(class.spells.dmgbuff.name) then
-                            if class.spells.dmgbuff:use() then return end
-                        end
-                    end
-                end
-            end
-        end
-        groupBuffTimer:reset()
-    end
-end
-
 local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 local checkSpellTimer = timer:new(30)
 function class.checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.OPTS.BYOS.value then return end
-    if state.spellSetLoaded ~= class.OPTS.SPELLSET.value or checkSpellTimer:timerExpired() then
-        if class.OPTS.SPELLSET.value == 'standard' then
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or class.isEnabled('BYOS') then return end
+    local spellSet = class.OPTS.SPELLSET.value
+    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
+        if spellSet == 'standard' then
             common.swapSpell(class.spells.shots, 1)
             common.swapSpell(class.spells.focused, 2)
             common.swapSpell(class.spells.composite, 3, composite_names)
@@ -539,7 +450,7 @@ function class.checkSpellSet()
             common.swapSpell(class.spells.dotds, 10)
             common.swapSpell(class.spells.dmgbuff, 12)
             common.swapSpell(class.spells.buffs, 13)
-            state.spellSetLoaded = class.OPTS.SPELLSET.value
+            state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
     end
@@ -547,14 +458,14 @@ end
 
 function class.assist()
     if mq.TLO.Navigation.Active() then return end
-    if config.MODE.value:isAssistMode() then
+    if config.get('MODE'):isAssistMode() then
         assist.checkTarget(class.resetClassTimers)
         useOpener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
         if state.loop.PctHPs > 40 then
-            if not class.OPTS.USERANGE.value or not attackRanged() then
-                if class.OPTS.USEMELEE.value then assist.attack() end
+            if not class.isEnabled('USERANGE') or not attackRanged() then
+                if class.isEnabled('USEMELEE') then assist.attack() end
             end
         end
         assist.sendPet()
