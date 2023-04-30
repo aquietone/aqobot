@@ -5,7 +5,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.spellRotations = {standard={}}
-    class.classOrder = {'heal', 'assist', 'debuff', 'mash', 'cast', 'burn', 'rez', 'recover', 'buff', 'rest'}
+    class.classOrder = {'heal', 'rez', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest'}
     class.initBase(_aqo, 'clr')
 
 

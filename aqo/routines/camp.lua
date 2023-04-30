@@ -84,7 +84,7 @@ function camp.mobRadar()
                     state.targets[mob_id] = nil
                 elseif not state.targets[mob_id] then
                     logger.debug(logger.flags.routines.camp, 'Adding mob_id %d', mob_id)
-                    state.targets[mob_id] = {meztimer=timer:new(30000, true)}
+                    state.targets[mob_id] = {meztimer=timer:new(30000)}
                 end
             end
         end

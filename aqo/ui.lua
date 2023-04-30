@@ -510,6 +510,18 @@ local function drawAbilityInspector()
                         end
                     end
                 end
+                if aqo.class.rezAbility then
+                    if ImGui.TreeNode('rezAbility') then
+                        for opt,value in pairs(aqo.class.rezAbility) do
+                            if (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then  -- opt ~= 'Name' and 
+                                local color = WHITE
+                                if opt == 'opt' then if aqo.class.isEnabled(value) then color = GREEN else color = RED end end
+                                ImGui.TextColored(color, '%s: %s', opt, value)
+                            end
+                        end
+                        ImGui.TreePop()
+                    end
+                end
                 ImGui.TreePop()
             end
         end

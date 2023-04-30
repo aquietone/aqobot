@@ -27,7 +27,8 @@ local function haveBuff(buffName)
 end
 
 local function summonItem(buff)
-    if mq.TLO.FindItemCount(buff.SummonID)() < (buff.summonMinimum or 1) and not mq.TLO.Me.Moving() and (not buff.summonComponent or mq.TLO.FindItemCount(buff.summonComponent)() > 0) then
+    if mq.TLO.FindItemCount(buff.SummonID)() < (buff.summonMinimum or 1) and not mq.TLO.Me.Moving()
+            and (not buff.ReagentID or mq.TLO.FindItemCount(buff.ReagentID)() >= buff.ReagentCount) then
         if abilities.use(buff) then
             state.queuedAction = function() mq.cmd('/autoinv') end
             return true
@@ -253,7 +254,7 @@ local function checkClickiesLoaded(base)
             if t then
                 local found = false
                 for _,clicky in ipairs(t) do
-                    if clicky.name == clickyName then
+                    if clicky.CastName == clickyName then
                         found = true
                         break
                     end

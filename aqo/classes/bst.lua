@@ -129,7 +129,7 @@ function class.initBuffs(_aqo)
     --local epicOpts = {CheckFor='Savage Wildcaller\'s Blessing', condition=_aqo.conditions.missingPetCheckFor}
     local epicOpts = {CheckFor='Might of the Wild Spirits', condition=_aqo.conditions.missingPetCheckFor}
     table.insert(class.petBuffs, common.getItem('Spiritcaller Totem of the Feral', epicOpts) or common.getItem('Savage Lord\'s Totem', epicOpts))
-    table.insert(class.petBuffs, common.getAA('Taste of Blood', {CheckFor='Blood Frenzy', condition=_aqo.conditions.missingPetCheckFor}))
+    table.insert(class.petBuffs, common.getAA('Taste of Blood', {CheckFor='Taste of Blood', condition=_aqo.conditions.missingPetCheckFor}))
 
     class.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
     class.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})

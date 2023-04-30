@@ -205,7 +205,7 @@ function healing.heal(healAbilities, opts)
             if not targetName then return end
             local hotTimer = hottimers[targetName]
             if not hotTimer then
-                hottimers[targetName] = timer:new(60000, true)
+                hottimers[targetName] = timer:new(60000)
             else
                 hotTimer:reset()
             end
@@ -247,20 +247,27 @@ end
 
 local newCorpses = {}
 local function doRezFor(rezAbility)
-    local corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
+    local waitForZoning = true
+    local corpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
     if not corpse() then
-        corpse = mq.TLO.Spawn('pccorpse healer radius 100 noalert 0')
+        corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
         if not corpse() then
-            corpse = mq.TLO.Spawn('pccorpse radius 100 noalert 0')
+            corpse = mq.TLO.Spawn('pccorpse healer radius 100 noalert 0')
             if not corpse() then
-                return false
+                corpse = mq.TLO.Spawn('pccorpse radius 100 noalert 0')
+                if not corpse() then
+                    return false
+                end
             end
         end
+    else
+        -- my own corpse, no need to wait
+        waitForZoning = false
     end
     local corpseName = corpse.Name()
     -- no corpse to rez
     if not corpseName then return false end
-    if not newCorpses[corpseName] then
+    if not newCorpses[corpseName] and waitForZoning then
         -- don't try to rez a freshly seen corpse immediately, because zone times
         newCorpses[corpseName] = timer:new(3000)
         return false
@@ -275,7 +282,6 @@ local function doRezFor(rezAbility)
             mq.delay(100)
             mq.doevents('eventCannotRez')
             if state.cannotRez then
-                --mq.cmdf('/squelch /alert add 0 corpse "%s"', corpse.CleanName())
                 mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
                 state.cannotRez = nil
                 reztimer:reset()
@@ -283,7 +289,7 @@ local function doRezFor(rezAbility)
             end
             mq.cmd('/corpse')
             mq.delay(50)
-            if abilities.use(rezAbility) then
+            if mq.TLO.Target.Type() == 'Corpse' and abilities.use(rezAbility) then
                 mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
                 reztimer:reset()
                 return true
@@ -292,21 +298,20 @@ local function doRezFor(rezAbility)
     end
 end
 
-local rezCheckTimer = timer:new(3000)
+local rezCheckTimer = timer:new(10000)
 function healing.rez(rezAbility)
     if not rezCheckTimer:timerExpired() or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
-    -- if not rezAbility:isReady() then return end
-    if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.Name)() then
+    if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.CastName)() then
         return
-    elseif rezAbility.CastType == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.Name)() then
+    elseif rezAbility.CastType == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.CastName)() then
         return
-    elseif rezAbility.CastType == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.Name)() then
+    elseif rezAbility.CastType == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.CastName)() then
         return
     end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if rezAbility.Name == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
+    if rezAbility.CastName == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
     if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') newCorpses = {} end
     return doRezFor(rezAbility)
 end

@@ -36,7 +36,7 @@ end
 ---@param ae_count number @The mob threshold for using AE mez.
 function mez.doAE(mez_spell, ae_count)
     if state.mobCount >= ae_count and mez_spell then
-        if mq.TLO.Me.Gem(mez_spell.Name)() and mq.TLO.Me.GemTimer(mez_spell.Name)() == 0 then
+        if mq.TLO.Me.Gem(mez_spell.CastName)() and mq.TLO.Me.GemTimer(mez_spell.CastName)() == 0 then
             print(logger.logLine('AE Mezzing (mobCount=%d)', state.mobCount))
             abilities.use(mez_spell)
             mez.initMezTimers()
@@ -48,7 +48,7 @@ end
 ---Cast single target mez spell if adds in camp.
 ---@param mez_spell table @The name of the single target mez spell to cast.
 function mez.doSingle(mez_spell)
-    if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.Name)() then return end
+    if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.CastName)() then return end
     for id,mobdata in pairs(state.targets) do
         if state.debug then
             logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, mq.gettime(), mobdata['meztimer']:timerExpired())
@@ -56,7 +56,9 @@ function mez.doSingle(mez_spell)
         if id ~= state.assistMobID and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timerExpired()) then
             local mob = mq.TLO.Spawn('id '..id)
             if mob() and not state.mezImmunes[mob.CleanName()] then
-                if id ~= state.assistMobID and mob.Level() <= 123 and mob.Type() == 'NPC' then
+                local spellData = mq.TLO.Spell(mez_spell.CastName)
+                local maxLevel = spellData.Max(1)() or mq.TLO.Me.Level()
+                if id ~= state.assistMobID and mob.Level() <= maxLevel and mob.Type() == 'NPC' then
                     mq.cmd('/attack off')
                     mq.delay(100, function() return not mq.TLO.Me.Combat() end)
                     mob.DoTarget()

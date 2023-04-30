@@ -382,13 +382,13 @@ function base.mash()
         if base.mashClass then base.mashClass() end
         if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if base.useCommonListProcessor then
-                common.processList(base.tankAbilities, true)
+                common.processList(base.tankAbilities, false)--true)
             else
                 doCombatLoop(base.tankAbilities)
             end
         end
         if base.useCommonListProcessor then
-            common.processList(base.DPSAbilities, true)
+            common.processList(base.DPSAbilities, false)--true)
         else
             doCombatLoop(base.DPSAbilities)
         end
@@ -405,13 +405,13 @@ function base.ae()
         if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if base.aeClass then base.aeClass() end
             if base.useCommonListProcessor then
-                common.processList(base.AETankAbilities, true)
+                common.processList(base.AETankAbilities, false)--true)
             else
                 doCombatLoop(base.AETankAbilities)
             end
         end
         if base.useCommonListProcessor then
-            common.processList(base.AEDPSAbilities, true)
+            common.processList(base.AEDPSAbilities, false)--true)
         else
             doCombatLoop(base.AEDPSAbilities)
         end
@@ -648,10 +648,8 @@ function base.managepet()
     if not base.isEnabled('SUMMONPET') or not base.spells.pet then return end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
-    local petSpell = mq.TLO.Spell(base.spells.pet.Name)
-    if (petSpell.Mana() or 0) > mq.TLO.Me.CurrentMana() then return end
-    local reagentID = petSpell.ReagentID(1)()
-    if reagentID > 0 and not mq.TLO.FindItem(reagentID)() then return end
+    if base.spells.pet.Mana > mq.TLO.Me.CurrentMana() then return end
+    if base.spells.pet.ReagentID and mq.TLO.FindItemCount(base.spells.pet.ReagentID)() < base.spells.pet.ReagentCount then return end
     common.swapAndCast(base.spells.pet, state.swapGem)
     state.queuedAction = function() mq.cmd('/multiline ; /pet ghold on') end
 end
@@ -667,7 +665,7 @@ function base.nowCast(args)
         local target = args[3]:lower()
         if sendTo == 'me' or sendTo == mq.TLO.Me.CleanName():lower() then
             local spellToCast = base.spells[alias] or base[alias]
-            table.insert(base.requests, {requester=target, requested=spellToCast, expiration=timer:new(15000, true), tranquil=false, mgb=false})
+            table.insert(base.requests, {requester=target, requested=spellToCast, expiration=timer:new(15000), tranquil=false, mgb=false})
         else
             local sendToSpawn = mq.TLO.Spawn('pc ='..sendTo)
             if sendToSpawn() then
@@ -680,7 +678,7 @@ function base.nowCast(args)
         local target = args[2]:lower()
         local spellToCast = base.spells[alias] or base[alias]
         if spellToCast then
-            table.insert(base.requests, {requester=target, requested=spellToCast, expiration=timer:new(15000, true), tranquil=false, mgb=false})
+            table.insert(base.requests, {requester=target, requested=spellToCast, expiration=timer:new(15000), tranquil=false, mgb=false})
         end
     end
 end

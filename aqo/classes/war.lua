@@ -131,7 +131,7 @@ function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, common.getAA('Infused by Rage'))
 
     if not state.emu then
-        table.insert(class.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summons='Ethereal Arrow', summonMinimum=101, condition=_aqo.conditions.summonMinimum}))
+        table.insert(class.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summonMinimum=101, condition=_aqo.conditions.summonMinimum}))
         table.insert(class.combatBuffs, common.getBestDisc({'Commanding Voice'}))
     end
 end

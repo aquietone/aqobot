@@ -147,6 +147,7 @@ function class.initSpellLines(_aqo)
     if state.emu then
         class.addSpell('nuke5', {'Chromaburst', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
         class.addSpell('nuke4', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
+        class.addSpell('nuke3', {'Colored Chaos'})
         class.addSpell('unified', {'Unified Alacrity'})
         class.addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'}, {opt='USEDISPEL'})
         class.addSpell('spasm', {'Synapsis Spasm'}, {opt='USEDEBUFF'})
@@ -162,6 +163,8 @@ function class.initSpellRotations(_aqo)
     table.insert(class.spellRotations.standard, class.spells.dot)
     table.insert(class.spellRotations.standard, class.spells.dot2)
     table.insert(class.spellRotations.standard, class.spells.synergy)
+    table.insert(class.spellRotations.standard, class.spells.nuke3)
+    table.insert(class.spellRotations.standard, class.spells.nuke4)
     table.insert(class.spellRotations.standard, class.spells.nuke5)
     table.insert(class.spellRotations.standard, class.spells.composite)
     table.insert(class.spellRotations.standard, class.spells.stunaerune)
@@ -201,10 +204,10 @@ function class.initBuffs(_aqo)
     -- Buffs
     class.unity = common.getAA('Orator\'s Unity')
     -- Mana Recovery AAs
-    class.azure = common.getAA('Azure Mind Crystal', {summons='Azure Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky mana heal
+    class.azure = common.getAA('Azure Mind Crystal', {summonMinimum=1, nodmz=true}) -- summon clicky mana heal
     class.gathermana = common.getAA('Gather Mana')
     class.manadraw = common.getAA('Mana Draw')
-    class.sanguine = common.getAA('Sanguine Mind Crystal', {summons='Sanguine Mind Crystal', summonMinimum=1, nodmz=true}) -- summon clicky hp heal
+    class.sanguine = common.getAA('Sanguine Mind Crystal', {summonMinimum=1, nodmz=true}) -- summon clicky hp heal
 
     table.insert(class.selfBuffs, class.spells.guard)
     table.insert(class.selfBuffs, class.spells.stunaerune)
@@ -303,7 +306,7 @@ function class.recover()
         local cursor = mq.TLO.Cursor()
         if cursor and cursor:find(class.azure.Name) then mq.cmd('/autoinventory') mq.delay(1) end
         local manacrystal = mq.TLO.FindItem(class.azure.Name)
-        if manacrystal then
+        if manacrystal() then
             abilities.use(abilities.Item:new({Name=manacrystal(), ID=manacrystal.ID()}))
         end
     end

@@ -69,7 +69,7 @@ function class.initBuffs(_aqo)
 
     table.insert(class.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 
-    table.insert(class.selfBuffs, common.getBestDisc({'Bonesplicer Axe'}, {summons='Bonesplicer Axe', summonMinimum=101, summonComponent='Axe Components'}))
+    table.insert(class.selfBuffs, common.getBestDisc({'Bonesplicer Axe'}, {summonMinimum=101}))
 end
 
 function class.initDefensiveAbilities(_aqo)

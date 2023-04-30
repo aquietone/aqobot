@@ -321,7 +321,7 @@ local function pullEngage(pull_spawn)
         if pullWith == 'item' then
             local pull_item = nil
             for _,clicky in ipairs(aqo.class.pullClickies) do
-                if mq.TLO.Me.ItemReady(clicky.Name)() then
+                if mq.TLO.Me.ItemReady(clicky.CastName)() then
                     pull_item = clicky
                     break
                 end
@@ -345,7 +345,7 @@ local function pullEngage(pull_spawn)
                 mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
             end
         elseif pullWith == 'spell' then
-            if mq.TLO.Me.SpellReady(aqo.class.pullSpell.Name)() then
+            if mq.TLO.Me.SpellReady(aqo.class.pullSpell.CastName)() then
                 movement.stop()
                 mq.delay(50)
                 abilities.use(aqo.class.pullSpell)

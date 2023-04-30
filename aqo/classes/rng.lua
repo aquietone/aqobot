@@ -134,8 +134,7 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getAA('Silent Strikes')) -- silent casting
     table.insert(class.burnAbilities, common.getAA('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
     --table.insert(class.burnAbilities, common.getBestDisc({'Warder\'s Wrath'}))
-    class.poison = common.getAA('Poison Arrows')
-    table.insert(class.burnAbilities, common.getAA('Poison Arrows', {opt='USEPOISONARROW', nodmz=true}))
+    table.insert(class.burnAbilities, common.getAA('Poison Arrows', {nodmz=true}))--{opt='USEPOISONARROW', nodmz=true}))
     class.meleeBurnDiscs = {}
     table.insert(class.meleeBurnDiscs, common.getBestDisc({'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
     class.rangedBurnDiscs = {}
@@ -175,7 +174,7 @@ function class.initBuffs(_aqo)
     --Slot 4: 	Eyes of the Senshali
     --Slot 5: 	Moonthorn Coat
     
-    class.fire = common.getAA('Flaming Arrows')
+    table.insert(class.selfBuffs, common.getAA('Poison Arrows', {opt='USEPOISONARROW', nodmz=true}))
     table.insert(class.selfBuffs, common.getAA('Flaming Arrows', {opt='USEFIREARROW', nodmz=true}))
 
     table.insert(class.selfBuffs, class.spells.dmgbuff)

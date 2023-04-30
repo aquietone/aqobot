@@ -11,7 +11,7 @@ function class.init(_aqo)
     class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
     class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
     if state.emu then
-        class.spellRotations = {emuancient={},emuaura65={},emuaura55={},emunoaura={}}
+        class.spellRotations = {emuancient={},emucaster70={},emuaura65={},emuaura55={},emunoaura={}}
         class.DEFAULT_SPELLSET='emuancient'
     else
         class.spellRotations = {melee={},caster={},meleedot={}}
@@ -116,7 +116,16 @@ function class.initSpellRotations(_aqo)
         table.insert(class.spellRotations.emuancient, class.spells.suffering)
         table.insert(class.spellRotations.emuancient, class.spells.pulse)
         table.insert(class.spellRotations.emuancient, class.spells.bardhaste)
-        --table.insert(class.spellRotations.emuancient, class.spells.arcane)
+
+        table.insert(class.spellRotations.emucaster70, class.spells.selos)
+        table.insert(class.spellRotations.emucaster70, class.spells.chantflame)
+        table.insert(class.spellRotations.emucaster70, class.spells.chantfrost)
+        table.insert(class.spellRotations.emucaster70, class.spells.chantdisease)
+        table.insert(class.spellRotations.emucaster70, class.spells.chantpoison)
+        table.insert(class.spellRotations.emucaster70, class.spells.overhaste)
+        table.insert(class.spellRotations.emucaster70, class.spells.arcane)
+        table.insert(class.spellRotations.emucaster70, class.spells.pulse)
+        table.insert(class.spellRotations.emucaster70, class.spells.bardhaste)
 
         table.insert(class.spellRotations.emuaura65, class.spells.selos)
         table.insert(class.spellRotations.emuaura65, class.spells.suffering)
@@ -339,23 +348,25 @@ end
 function class.cast()
     if class.isEnabled('USETWIST') or mq.TLO.Me.Invis() then return false end
     if not state.loop.Invis and class.doneSinging() then
-        if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' and (class.OPTS.USEEPIC.value == 'always' or state.burnActive or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
-            if class.useEpic() then mq.delay(250) return true end
-        end
-        for _,clicky in ipairs(class.castClickies) do
-            if clicky.TargetType == 'Single' and mq.TLO.Target.Type() == 'NPC' then
-                -- if single target clicky then make sure in combat
-                if (clicky.Duration == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and mq.TLO.Me.CombatState() == 'COMBAT' then
+        if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' then
+            if (class.OPTS.USEEPIC.value == 'always' or state.burnActive or (class.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
+                if class.useEpic() then mq.delay(250) return true end
+            end
+            for _,clicky in ipairs(class.castClickies) do
+                if clicky.TargetType == 'Single' then
+                    -- if single target clicky then make sure in combat
+                    if (clicky.Duration == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) then
+                        if clicky:use() then
+                            mq.delay(250)
+                            return true
+                        end
+                    end
+                elseif clicky.Duration == 0 or (not mq.TLO.Me.Buff(clicky.CheckFor)() and not mq.TLO.Me.Song(clicky.CheckFor)()) then
+                    -- otherwise just use the clicky if its instant or we don't already have the buff/song
                     if clicky:use() then
                         mq.delay(250)
                         return true
                     end
-                end
-            elseif clicky.Duration == 0 or (not mq.TLO.Me.Buff(clicky.CheckFor)() and not mq.TLO.Me.Song(clicky.CheckFor)()) then
-                -- otherwise just use the clicky if its instant or we don't already have the buff/song
-                if clicky:use() then
-                    mq.delay(250)
-                    return true
                 end
             end
         end

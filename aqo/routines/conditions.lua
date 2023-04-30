@@ -55,7 +55,7 @@ function conditions.classes(ability, spawn)
     return not ability.classes or ability.classes[spawn.Class.ShortName()]
 end
 
-function conditions.missingPetCheckfor(ability)
+function conditions.missingPetCheckFor(ability)
     return not mq.TLO.Pet.Buff(ability.CheckFor)()
 end
 
@@ -89,10 +89,6 @@ end
 
 function conditions.summonMinimum(ability)
     return not ability.summonMinimum or mq.TLO.FindItemCount(ability.SummonID)() < ability.summonMinimum
-end
-
-function conditions.summonComponent(ability)
-    return not ability.summonComponent or mq.TLO.FindItemCount('='..ability.summonComponent)() > 0
 end
 
 function conditions.stacksPet(ability)

@@ -46,7 +46,8 @@ AbilityTypes = {
 ---@field skipifbuff? string # do not use this ability if the buff indicated by this string is already present
 ---@field SummonID? string # name of item summoned by this ability
 ---@field summonMinimum? number # minimum amount of summoned item to keep
----@field summonComponent? string # reagent required for summon ability to function
+---@field ReagentID? number # reagent ID required for summon ability to function
+---@field ReagentCount? number # number of ReagentID item required to cast the spell
 ---@field precast? string # function to call prior to using an ability
 ---@field postcast? string # function to call after to using an ability
 ---@field usebelowpct? number # percent hp to begin using an ability, like executes
@@ -176,13 +177,13 @@ function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
         return false
     end
     -- emu hack for bard for the time being, songs requiring an instrument are triggering reagent logic?
-    if state.class ~= 'brd' and not skipReagentCheck then
+    if not skipReagentCheck then
         for i=1,3 do
             local reagentid = spell.ReagentID(i)()
             if reagentid ~= -1 then
                 local reagent_count = spell.ReagentCount(i)()
                 if mq.TLO.FindItemCount(reagentid)() < reagent_count then
-                    if logger.flags.common.cast then
+                    if logger.flags.ability.validation then
                         logger.debug(logger.flags.ability.validation, 'Missing Reagent for (id=%d, name=%s, type=%s, reagentid=%s)', spell.ID(), spell.Name(), abilityType, reagentid)
                     end
                     return false
@@ -596,14 +597,20 @@ function Ability:setCommonSpellData(spellRef)
         self.CheckFor = spellRef()
     end
     if spellRef.HasSPA(32)() then
-        self.SummonsID = spellRef.Base(1)()
+        self.SummonID = spellRef.Base(1)()
         self.SummonMinimum = 1
-        self.ReagentID = spellRef.ReagentID(1)()
-        self.ReagentCount = spellRef.ReagentCount(1)()
     end
     if spellRef.HasSPA(33)() then
         -- familiar
         self.RemoveFamiliar = true
+    end
+    if spellRef.ReagentID(1)() > 0 then
+        self.ReagentID = spellRef.ReagentID(1)()
+        self.ReagentCount = spellRef.ReagentCount(1)()
+    end
+    if not self.ReagentID and spellRef.NoExpendReagentID(1)() > 0 then
+        self.ReagentID = spellRef.NoExpendReagentID(1)()
+        self.ReagentCount = spellRef.ReagentCount(1)()
     end
 end
 
