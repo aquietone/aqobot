@@ -1,8 +1,10 @@
 ---@type Mq
 local mq = require('mq')
 local class = require('classes.classbase')
-local movement = require('routines.movement')
+local helpers = require('utils.helpers')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
+local abilities = require('ability')
 local castUtils = require('cast')
 local common = require('common')
 local state = require('state')
@@ -25,14 +27,14 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM')
-    class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM')
-    class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox')
-    class.addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox')
-    class.addOption('USEDEBUFF', 'Use Malo', false, nil, 'Toggle use of Malo', 'checkbox')
-    class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox')
-    class.addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox')
-    class.addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox')
+    class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM', 'EarthForm', 'bool')
+    class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM', 'FireForm', 'bool')
+    class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox', nil, 'UseFireNukes', 'bool')
+    class.addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox', nil, 'UseMagicNukes', 'bool')
+    class.addOption('USEDEBUFF', 'Use Malo', false, nil, 'Toggle use of Malo', 'checkbox', nil, 'UseDebuff', 'bool')
+    class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'SummonModRod', 'bool')
+    class.addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox', nil, 'UseDS', 'bool')
+    class.addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox', nil, 'UseTempDS', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -50,6 +52,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('servant', {'Raging Servant', 'Rampaging Servant'})
     class.addSpell('ds', {'Circle of Fireskin'}, {opt='USEDS'})
     class.addSpell('bigds', {'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, {opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}})
+    class.addSpell('shield', {'Elemental Aura'})
 
     --class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
     class.addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
@@ -71,6 +74,8 @@ end
 
 function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getAA('Force of Elements'))
+
+    class.summonCompanion = common.getAA('Summon Companion')
 end
 
 function class.initBurns(_aqo)
@@ -86,16 +91,10 @@ function class.initHeals(_aqo)
 end
 
 function class.initBuffs(_aqo)
-    local arcanum1 = common.getAA('Focus of Arcanum')
-    local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
-    local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
-    local arcanum4 = common.getAA('Empowered Focus of Arcanum')
-    table.insert(class.combatBuffs, arcanum2)
-    table.insert(class.combatBuffs, arcanum3)
-
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
     --table.insert(class.selfBuffs, class.spells.manaregen)
+    table.insert(class.selfBuffs, class.spells.shield)
     table.insert(class.selfBuffs, class.spells.acregen)
     table.insert(class.selfBuffs, class.spells.orb)
     table.insert(class.selfBuffs, class.spells.ds)
@@ -108,6 +107,7 @@ function class.initBuffs(_aqo)
     table.insert(class.petBuffs, class.spells.petstrbuff)
     table.insert(class.petBuffs, class.spells.petds)
     table.insert(class.petBuffs, common.getAA('Aegis of Kildrukaun'))
+    table.insert(class.petBuffs, common.getAA('Fortify Companion'))
 
     class.addRequestAlias(class.spells.orb, 'orb')
     class.addRequestAlias(class.spells.ds, 'ds')
@@ -249,7 +249,11 @@ function class.armPets()
     end
     if not class.petWeapons then return end
     print('Begin arming pets')
-    local restoreGem = {Name=mq.TLO.Me.Gem(12)()}
+    state.paused = true
+    local restoreGem1 = {Name=mq.TLO.Me.Gem(12)()}
+    local restoreGem2 = {Name=mq.TLO.Me.Gem(11)()}
+    local restoreGem3 = {Name=mq.TLO.Me.Gem(10)()}
+    local restoreGem4 = {Name=mq.TLO.Me.Gem(9)()}
 
     local petPrimary = mq.TLO.Pet.Primary()
     local petID = mq.TLO.Pet.ID()
@@ -279,7 +283,11 @@ function class.armPets()
             end
         end
     end
-    common.swapSpell(restoreGem, 12)
+    if mq.TLO.Me.Gem(12)() ~= restoreGem1.Name then abilities.swapSpell(restoreGem1, 12) end
+    if mq.TLO.Me.Gem(11)() ~= restoreGem2.Name then abilities.swapSpell(restoreGem2, 11) end
+    if mq.TLO.Me.Gem(10)() ~= restoreGem3.Name then abilities.swapSpell(restoreGem3, 10) end
+    if mq.TLO.Me.Gem(9)() ~= restoreGem4.Name then abilities.swapSpell(restoreGem4, 9) end
+    state.paused = false
 end
 
 function class.armPetRequest(requester)
@@ -293,12 +301,20 @@ function class.armPetRequest(requester)
         local ownerPetLevel = ownerSpawn.Pet.Level() or 0
         local ownerPetPrimary = ownerSpawn.Pet.Primary() or -1
         if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and (ownerPetPrimary == 0 or ownerPetPrimary == EnchanterPetPrimaryWeaponId) then
-            local restoreGem = {Name=mq.TLO.Me.Gem(12)()}
+            state.paused = true
+            local restoreGem1 = {Name=mq.TLO.Me.Gem(12)()}
+            local restoreGem2 = {Name=mq.TLO.Me.Gem(11)()}
+            local restoreGem3 = {Name=mq.TLO.Me.Gem(10)()}
+            local restoreGem4 = {Name=mq.TLO.Me.Gem(9)()}
             state.armPet = ownerPetID
             state.armPetOwner = requester
             mq.delay(2000, function() return class.spells.weapons:isReady() end)
             class.armPet(ownerPetID, weapons, requester)
-            common.swapSpell(restoreGem, 12)
+            if mq.TLO.Me.Gem(12)() ~= restoreGem1.Name then abilities.swapSpell(restoreGem1, 12) end
+            if mq.TLO.Me.Gem(11)() ~= restoreGem2.Name then abilities.swapSpell(restoreGem2, 12) end
+            if mq.TLO.Me.Gem(10)() ~= restoreGem3.Name then abilities.swapSpell(restoreGem3, 12) end
+            if mq.TLO.Me.Gem(9)() ~= restoreGem4.Name then abilities.swapSpell(restoreGem4, 12) end
+            state.paused = false
         end
     end
 end
@@ -346,7 +362,7 @@ function class.armPet(petID, weapons, owner)
 end
 
 function class.giveWeapons(petID, weaponString)
-    local weapons = common.split(weaponString, '|')
+    local weapons = helpers.split(weaponString, '|')
     local primary = weaponMap[weapons[1]]
     local secondary = weaponMap[weapons[2]]
 
@@ -411,7 +427,7 @@ function class.checkForWeapons(primary, secondary)
                 return false
             end
         end
-        local summonResult = class.summonItem(class.spells.weapons, true)
+        local summonResult = class.summonItem(class.spells.weapons, mq.TLO.Me.ID(), true, true)
         if not summonResult then
             print('Error occurred summoning items')
             return false
@@ -432,44 +448,47 @@ end
 function class.giveOther(petID, spell)
     local itemName = summonedItemMap[spell.Name]
     local item = mq.TLO.FindItem('='..itemName)
-    if not item() then
-        local summonResult = class.summonItem(spell)
+    --if not item() then
+        mq.cmdf('/mqt id %s', petID)
+        local summonResult = class.summonItem(spell, petID, false, false)
         if not summonResult then
             print('Error occurred summoning items')
             return false
         end
-    else
-        mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup')
-        mq.delay(3000, function() return mq.TLO.Cursor() end)
-    end
+    --else
+    --    mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup')
+    --    mq.delay(3000, function() return mq.TLO.Cursor() end)
+    --end
 
-    mq.cmdf('/mqt id %s', petID)
-    class.giveCursorItemToTarget()
+    --mq.cmdf('/mqt id %s', petID)
+    --class.giveCursorItemToTarget()
     return true
 end
 
-function class.summonItem(spell, inventoryItem)
+function class.summonItem(spell, targetID, summonsItem, inventoryItem)
     printf('going to summon item %s', spell.Name)
-    mq.cmd('/mqt 0')
+    --mq.cmd('/mqt 0')
     if not mq.TLO.Me.Gem(spell.Name)() then
-        common.swapSpell(spell, 12)
+        abilities.swapSpell(spell, 12)
     end
     mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
     if not spell:isReady() then printf('Spell %s was not ready', spell.Name) return false end
-    castUtils.cast(spell)
+    castUtils.cast(spell, targetID)
 
     mq.delay(300)
-    if not mq.TLO.Cursor.ID() then
-        printf('Cursor was empty after casting %s', spell.Name)
-        return false
-    end
+    if summonsItem then
+        if not mq.TLO.Cursor.ID() then
+            printf('Cursor was empty after casting %s', spell.Name)
+            return false
+        end
 
-    class.clearCursor()
-    local summonedItem = summonedItemMap[spell.Name]
-    mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonedItem)
-    mq.delay(3000, function() return mq.TLO.Cursor() end)
-    mq.delay(1)
-    if inventoryItem then class.clearCursor() end
+        class.clearCursor()
+        local summonedItem = summonedItemMap[spell.Name]
+        mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonedItem)
+        mq.delay(3000, function() return mq.TLO.Cursor() end)
+        mq.delay(1)
+        if inventoryItem then class.clearCursor() end
+    end
     return true
 end
 

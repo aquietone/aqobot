@@ -37,15 +37,15 @@ function class.init(_aqo)
     class.initDebuffs(_aqo)
 
     class.rezAbility = common.getAA('Call of the Wild')
-
-    class.nuketimer = timer:new(1000)
+    class.summonCompanion = common.getAA('Summon Companion')
+    class.nuketimer = timer:new(500)
 end
 
 function class.initClassOptions()
-    class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox')
-    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', 'checkbox')
-    class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
-    class.addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox')
+    class.addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nuke spells', 'checkbox', nil, 'UseNukes', 'bool')
+    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', 'checkbox', nil, 'UseDoTs', 'bool')
+    class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox', nil, 'UseSnare', 'bool')
+    class.addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox', nil, 'UseDebuff', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -66,9 +66,9 @@ end
 function class.initSpellRotations(_aqo)
     table.insert(class.spellRotations.standard, class.spells.dot)
     table.insert(class.spellRotations.standard, class.spells.dot2)
+    table.insert(class.spellRotations.standard, class.spells.twincast)
     table.insert(class.spellRotations.standard, class.spells.firenuke)
     table.insert(class.spellRotations.standard, class.spells.coldnuke)
-    table.insert(class.spellRotations.standard, class.spells.twincast)
 end
 
 function class.initHeals(_aqo)
@@ -132,12 +132,8 @@ function class.initBuffs(_aqo)
     table.insert(class.singleBuffs, common.getAA('Wrath of the Wild', {classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}))
     table.insert(class.selfBuffs, class.spells.reptile)
     table.insert(class.selfBuffs, common.getAA('Spirit of the Black Wolf'))
-    local arcanum1 = common.getAA('Focus of Arcanum')
-    local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
-    local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
-    local arcanum4 = common.getAA('Empowered Focus of Arcanum')
-    table.insert(class.combatBuffs, arcanum2)
-    table.insert(class.combatBuffs, arcanum3)
+    class.bear = common.getAA('Spirit of the Bear')
+    class.addRequestAlias(class.bear, 'bear')
 end
 
 function class.initDefensiveAbilities(_aqo)

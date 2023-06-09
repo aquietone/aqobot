@@ -25,11 +25,11 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox')
-    class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox')
-    class.addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox')
-    class.addOption('USESTUN', 'Use Stun', true, nil, 'Toggle use of stuns', 'checkbox')
-    class.addOption('USEDEBUFF', 'Use Reverse DS', true, nil, 'Toggle use of Mark reverse DS', 'checkbox')
+    class.addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox', nil, 'UseYaulp', 'bool')
+    class.addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox', nil, 'UseHammer', 'bool')
+    class.addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
+    class.addOption('USESTUN', 'Use Stun', true, nil, 'Toggle use of stuns', 'checkbox', nil, 'UseStun', 'bool')
+    class.addOption('USEDEBUFF', 'Use Reverse DS', true, nil, 'Toggle use of Mark reverse DS', 'checkbox', nil, 'UseDebuff', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -132,7 +132,9 @@ function class.initDebuffs(_aqo)
 end
 
 function class.initRecoverAbilities(_aqo)
-    table.insert(class.recoverAbilities, common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true}))
+    class.qm = common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true})
+    table.insert(class.recoverAbilities, class.qm)
+    class.addRequestAlias(class.qm, 'qm')
 end
 
 return class

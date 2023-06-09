@@ -3,7 +3,7 @@ local mq = require 'mq'
 local class = require('classes.classbase')
 local timer = require('utils.timer')
 local common = require('common')
-local config = require('configuration')
+local config = require('interface.configuration')
 
 function class.init(_aqo)
     class.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
@@ -25,17 +25,17 @@ function class.init(_aqo)
     class.initRecoverAbilities(_aqo)
 
     class.rezAbility = common.getAA('Call of the Wild')
-
+    class.summonCompanion = common.getAA('Summon Companion')
     class.nuketimer = timer:new(3000)
 end
 
 function class.initClassOptions()
-    class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox')
-    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Toggle use of dispel', 'checkbox')
-    class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox')
-    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
-    class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox')
-    class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox')
+    class.addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox', nil, 'UseDebuff', 'bool')
+    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Toggle use of dispel', 'checkbox', nil, 'UseDispel', 'bool')
+    class.addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox', nil, 'UseSlow', 'bool')
+    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
+    class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
+    class.addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox', nil, 'UseEpic', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -119,13 +119,7 @@ function class.initCures(_aqo)
 end
 
 function class.initBuffs(_aqo)
-    local arcanum1 = common.getAA('Focus of Arcanum')
-    local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
-    local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
-    local arcanum4 = common.getAA('Empowered Focus of Arcanum')
-    table.insert(class.combatBuffs, arcanum2)
-    table.insert(class.combatBuffs, arcanum3)
-
+    table.insert(class.combatBuffs, class.spells.champion)
     table.insert(class.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
     table.insert(class.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
     local pantherTablet = mq.TLO.FindItem('Imbued Rune of the Panther')()

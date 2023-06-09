@@ -31,6 +31,7 @@ return {
         ['Mroon'] = true,
         ['Shaman Ren`Rex'] = true,
         ['Synger Foxfyre'] = true,
+        ['Tesch Val Kadvem'] = true,
         ['Rosch Val L`Vlor'] = true,
         ['Nisch Val Torash Mashk'] = true,
         ['Narra Tanith'] = true,

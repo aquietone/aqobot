@@ -1,13 +1,14 @@
 --- @type Mq
 local mq = require 'mq'
-local lists = require('data.lists')
 local named = require('data.named')
-local movement = require('routines.movement')
+local config = require('interface.configuration')
+local helpers = require('utils.helpers')
 local logger = require('utils.logger')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
 local abilities = require('ability')
-local castUtil = require('cast')
-local config = require('configuration')
+local constants = require('constants')
+local mode = require('mode')
 local state = require('state')
 
 local common = {}
@@ -28,8 +29,8 @@ end
 -- MQ Helper Functions
 
 ---Lookup the ID for a given spell.
----@param spellName string @The name of the spell.
----@return table|nil @Returns a table containing the spell name with rank, spell ID and the provided option name.
+--- @param spellName string #The name of the spell.
+--- @return table|nil #Returns a table containing the spell rank name and spell ID
 local function getSpell(spellName)
     local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
@@ -159,7 +160,7 @@ function common.clearToBuff()
 end
 
 function common.isFightingModeBased()
-    local mode = config.get('MODE')
+    local mode = mode.currentMode
     if mode:isTankMode() then
 
     elseif mode:isAssistMode() then
@@ -171,20 +172,6 @@ function common.isFightingModeBased()
 
         end
     end
-end
-
----Calculate the distance between two points (x1,y1), (x2,y2).
----@param x1 number @The X value of the first coordinate.
----@param y1 number @The Y value of the first coordinate.
----@param x2 number @The X value of the second coordinate.
----@param y2 number @The Y value of the second coordinate.
----@return number @Returns the distance between the two points.
-function common.checkDistance(x1, y1, x2, y2)
-    return (x2 - x1) ^ 2 + (y2 - y1) ^ 2
-end
-
-function common.checkDistance3d(x, y, z)
-    return math.sqrt((x * mq.TLO.Me.X()) + (y * mq.TLO.Me.Y()) + (z * mq.TLO.Me.Z()))
 end
 
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
@@ -205,7 +192,7 @@ end
 ---Chase after the assigned chase target if alive and in chase mode and the chase distance is exceeded.
 local checkChaseTimer = timer:new(1000)
 function common.checkChase()
-    if config.get('MODE'):getName() ~= 'chase' then return end
+    if mode.currentMode:getName() ~= 'chase' then return end
     --if not checkChaseTimer:timerExpired() then return end
     --checkChaseTimer:reset()
     if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then
@@ -223,7 +210,7 @@ function common.checkChase()
         logger.debug(logger.flags.common.chase, 'Not chasing due to invalid chase spawn X=%s,Y=%s', chase_x, chase_y)
         return
     end
-    if common.checkDistance(me_x, me_y, chase_x, chase_y) > (config.get('CHASEDISTANCE')^2) then
+    if helpers.checkDistance(me_x, me_y, chase_x, chase_y) > (config.get('CHASEDISTANCE')^2) then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
         if not movement.navToSpawn('pc ='..config.get('CHASETARGET'), 'dist=20') then
             local chaseSpawn = mq.TLO.Spawn('pc '..config.get('CHASETARGET'))
@@ -234,39 +221,6 @@ function common.checkChase()
             end
         end
     end
-end
-
---[[
-Lua math degrees start from 0 on the right and go ccw
-      90
-       |
-190____|____0
-       |
-       |
-      270
-
-MQ degrees start from 0 on the top and go cw
-       0
-       |
-270____|____90
-       |
-       |
-      180
-]]--
----Convert an MQ heading degrees value to a "regular" degrees value.
----@param heading number @The MQ heading degrees value to convert.
----@return number @The regular heading degrees value.
-function common.convertHeading(heading)
-    if heading > 270 then
-        heading = 180 - heading + 270
-    elseif heading > 180 then
-        heading = 270 - heading + 180
-    elseif heading > 90 then
-        heading = 360 - heading + 90
-    else
-        heading = 90 - heading
-    end
-    return heading
 end
 
 -- Casting Functions
@@ -318,7 +272,6 @@ function common.isBurnConditionMet(alwaysCondition)
         state.burnActive = false
     end
     if state.burnNow then
-        print(logger.logLine('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or ''))
         state.burnActiveTimer:reset()
         state.burnActive = true
         state.burnNow = false
@@ -355,53 +308,6 @@ function common.isBurnConditionMet(alwaysCondition)
     state.burnActive = false
     state.burn_type = nil
     return false
-end
-
--- Spell Helper Functions
-
----Determine whether the specified spell is memorized in the gem.
----@param spell_name string @The spell name to check is memorized.
----@param gem number @The spell gem index the spell should be memorized in.
----@return boolean|nil @Returns true if the spell is memorized in the specified gem, otherwise false.
-function common.swapGemReady(spell_name, gem)
-    return mq.TLO.Me.Gem(gem).Name() == spell_name
-end
-
----Swap the specified spell into the specified gem slot.
----@param spell table @The MQ Spell to memorize.
----@param gem number @The gem index to memorize the spell into.
----@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
-function common.swapSpell(spell, gem, other_names)
-    if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
-    if mq.TLO.Me.Gem(gem)() == spell.Name then return end
-    if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
-    mq.cmdf('/memspell %d "%s"', gem, spell.Name)
-    state.actionTaken = true
-    state.memSpell = spell
-    state.memSpellTimer:reset()
-    return true
-end
-
-function common.swapAndCast(spell, gem)
-    if not spell then return false end
-    if not mq.TLO.Me.Gem(spell.Name)() then
-        state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
-        if not common.swapSpell(spell, gem) then
-            -- failed to mem?
-            return
-        end
-        state.queuedAction = function()
-            abilities.use(spell)
-            if state.restore_gem then
-                return function()
-                    common.swapSpell(state.restore_gem, gem)
-                end
-            end
-        end
-        return true
-    else
-        return abilities.use(spell)
-    end
 end
 
 ---Check Geomantra buff and click charm item if missing and item is ready.
@@ -485,7 +391,7 @@ local sitTimer = timer:new(10000)
 ---Sit down to med if the conditions for resting are met.
 function common.rest()
     if not config.get('MEDCOMBAT') and (mq.TLO.Me.CombatState() == 'COMBAT' or state.assistMobID ~= 0) then return end
-    if mq.TLO.Me.CombatState() == 'COMBAT' and (config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')) then return end
+    if state.mobCount > 0 and (mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sitTimer:timerExpired() then
         if (mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.get('MEDMANASTART')) or state.loop.PctEndurance < config.get('MEDENDSTART') then
@@ -510,7 +416,7 @@ local autoInventoryTimer = timer:new(15000)
 ---Autoinventory an item if it has been on the cursor for 15 seconds.
 function common.checkCursor()
     if mq.TLO.Cursor() then
-        if common.amIDead() and lists.deleteWhenDead[mq.TLO.Cursor.Name()] then
+        if common.amIDead() and constants.deleteWhenDead[mq.TLO.Cursor.Name()] then
             print(logger.logLine('Deleting %s from cursor because im dead and have no bags!', mq.TLO.Cursor.Name()))
         elseif autoInventoryTimer.start_time == 0 then
             autoInventoryTimer:reset()
@@ -523,36 +429,6 @@ function common.checkCursor()
         logger.debug(logger.flags.common.misc, 'Cursor is empty, resetting autoInventoryTimer')
         autoInventoryTimer:reset(0)
     end
-end
-
-function common.toggleTribute()
-    logger.debug(logger.flags.common.misc, 'Toggle tribute')
-    mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
-    mq.cmd('/notify TBW_PersonalPage TBWP_ActivateButton leftmouseup')
-    mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
-end
-
--- Split a string using the provided separator, | by default
-function common.split(input, sep)
-    if sep == nil then
-        sep = "|"
-    end
-    local t={}
-    for str in string.gmatch(input, "([^"..sep.."]+)") do
-        table.insert(t, str)
-    end
-    return t
-end
-
-function common.splitSet(input, sep)
-    if sep == nil then
-        sep = "|"
-    end
-    local t={}
-    for str in string.gmatch(input, "([^"..sep.."]+)") do
-        t[str] = true
-    end
-    return t
 end
 
 function common.processList(aList, returnOnFirstUse)

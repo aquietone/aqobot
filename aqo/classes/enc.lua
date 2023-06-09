@@ -5,7 +5,7 @@ local mez = require('routines.mez')
 local timer = require('utils.timer')
 local abilities = require('ability')
 local common = require('common')
-local config = require('configuration')
+local config = require('interface.configuration')
 local state = require('state')
 
 function class.init(_aqo)
@@ -29,7 +29,7 @@ function class.init(_aqo)
     class.aekbblur = common.getAA('Beguiler\'s Banishment')
     class.kbblur = common.getAA('Beguiler\'s Directed Banishment')
     class.aeblur = common.getAA('Blanket of Forgetfulness')
-
+    class.summonCompanion = common.getAA('Summon Companion')
     if class.spells.mezst then
         function class.beforeMez()
             if not mq.TLO.Target.Tashed() and class.isEnabled('TASHTHENMEZ') and class.spells.tash then
@@ -42,30 +42,29 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, 'The first aura to keep up', 'combobox')
-    class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, 'The second aura to keep up', 'combobox')
-    class.addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox')
-    class.addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, 'Toggle interrupting current spell casts to cast mez', 'checkbox')
-    class.addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, 'Toggle use of tash prior to attempting to mez mobs', 'checkbox')
-    class.addOption('USECHAOTIC', 'Use Chaotic', true, nil, 'Toggle use of Chaotic mez line', 'checkbox')
-    class.addOption('USECHARM', 'Use Charm', false, nil, 'Attempt to maintain a charm pet instead of using a regular pet', 'checkbox')
-    class.addOption('USEDOT', 'Use DoT', true, nil, 'Toggle use of DoTs', 'checkbox')
-    class.addOption('USEHASTE', 'Buff Haste', true, nil, 'Toggle use of haste buff line', 'checkbox')
-    class.addOption('MEZST', 'Use Mez', true, nil, 'Use single target mez on adds within camp radius', 'checkbox')
-    class.addOption('MEZAE', 'Use AE Mez', true, nil, 'Use AE Mez if 3 or more mobs are within camp radius', 'checkbox')
-    class.addOption('MEZAECOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
-    class.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, 'Toggle use of Mind over Matter', 'checkbox')
-    class.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, 'Toggle use of Nights Terror buff line', 'checkbox')
-    class.addOption('USENUKES', 'Use Nuke', true, nil, 'Toggle use of nukes', 'checkbox')
-    class.addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, 'Toggle use of Phantasmal', 'checkbox')
-    class.addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, 'Toggle use of Replication buff line', 'checkbox')
-    class.addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, 'Toggle use of Shield of Fate', 'checkbox')
-    class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle use of single target slow ability', 'checkbox')
-    class.addOption('USESLOWAOE', 'Use Slow AOE', true, nil, 'Toggle use of AOE slow ability', 'checkbox')
-    class.addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, 'Toggle use of Spell Guard', 'checkbox')
-    class.addOption('USEDEBUFF', 'Use Tash', false, nil, 'Toggle use of single target tash ability', 'checkbox')
-    class.addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, 'Toggle use of AOE tash ability', 'checkbox')
-    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
+    class.addOption('AURA1', 'Aura 1', 'twincast', class.AURAS, 'The first aura to keep up', 'combobox', nil, 'Aura1', 'string')
+    class.addOption('AURA2', 'Aura 2', 'combatinnate', class.AURAS, 'The second aura to keep up', 'combobox', nil, 'Aura2', 'string')
+    class.addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, 'Toggle interrupting current spell casts to cast mez', 'checkbox', nil, 'InterruptForMez', 'bool')
+    class.addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, 'Toggle use of tash prior to attempting to mez mobs', 'checkbox', nil, 'TashThenMez', 'bool')
+    class.addOption('USECHAOTIC', 'Use Chaotic', true, nil, 'Toggle use of Chaotic mez line', 'checkbox', nil, 'UseChaotic', 'bool')
+    class.addOption('USECHARM', 'Use Charm', false, nil, 'Attempt to maintain a charm pet instead of using a regular pet', 'checkbox', nil, 'UseCharm', 'bool')
+    class.addOption('USEDOT', 'Use DoT', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoT', 'bool')
+    class.addOption('USEHASTE', 'Buff Haste', true, nil, 'Toggle use of haste buff line', 'checkbox', nil, 'UseHaste', 'bool')
+    class.addOption('MEZST', 'Use Mez', true, nil, 'Use single target mez on adds within camp radius', 'checkbox', nil, 'MezST', 'bool')
+    class.addOption('MEZAE', 'Use AE Mez', true, nil, 'Use AE Mez if 3 or more mobs are within camp radius', 'checkbox', nil, 'MezAE', 'bool')
+    class.addOption('MEZAECOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint', nil, 'MezAECount', 'bool')
+    class.addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, 'Toggle use of Mind over Matter', 'checkbox', nil, 'UseMindOverMatter', 'bool')
+    class.addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, 'Toggle use of Nights Terror buff line', 'checkbox', nil, 'UseNDT', 'bool')
+    class.addOption('USENUKES', 'Use Nuke', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
+    class.addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, 'Toggle use of Phantasmal', 'checkbox', nil, 'UsePhantasmal', 'bool')
+    class.addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, 'Toggle use of Replication buff line', 'checkbox', nil, 'UseReplication', 'bool')
+    class.addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, 'Toggle use of Shield of Fate', 'checkbox', nil, 'UseShieldOfFate', 'bool')
+    class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle use of single target slow ability', 'checkbox', nil, 'UseSlow', 'bool')
+    class.addOption('USESLOWAOE', 'Use Slow AOE', true, nil, 'Toggle use of AOE slow ability', 'checkbox', nil, 'UseSlowAOE', 'bool')
+    class.addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, 'Toggle use of Spell Guard', 'checkbox', nil, 'UseSpellGuard', 'bool')
+    class.addOption('USEDEBUFF', 'Use Tash', false, nil, 'Toggle use of single target tash ability', 'checkbox', nil, 'UseDebuff', 'bool')
+    class.addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, 'Toggle use of AOE tash ability', 'checkbox', nil, 'UseDebuffAOE', 'bool')
+    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -177,8 +176,7 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
 
-    table.insert(class.burnAbilities, common.getAA('Silent Casting')) -- song, 12 minute CD
-    table.insert(class.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
+    table.insert(class.burnAbilities, class.silent) -- song, 12 minute CD
     table.insert(class.burnAbilities, common.getAA('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
     table.insert(class.burnAbilities, common.getAA('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
     if state.emu then
@@ -228,13 +226,13 @@ function class.initBuffs(_aqo)
     class.addRequestAlias(class.haste, 'haste')
 
     table.insert(class.petBuffs, class.spells.pethaste)
+    table.insert(class.petBuffs, common.getAA('Fortify Companion'))
     if state.emu then
         table.insert(class.auras, common.getAA('Auroria Mastery', {CheckFor='Aura of Bedazzlement'}))
-        class.spells.procbuff.classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}
+        if class.spells.procbuff then class.spells.procbuff.classes = {MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true} end
         table.insert(class.singleBuffs, class.spells.procbuff)
         table.insert(class.selfBuffs, class.spells.procbuff)
-        local epic = common.getItem('Staff of Eternal Eloquence')
-        epic.classes = class.spells.procbuff.classes
+        local epic = common.getItem('Staff of Eternal Eloquence', {classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}})
         table.insert(class.singleBuffs, epic)
     else
         table.insert(class.selfBuffs, common.getAA('Orator\'s Unity', {CheckFor='Ward of the Beguiler'}))
@@ -337,19 +335,19 @@ function class.checkSpellSet()
     local spellSet = class.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            common.swapSpell(class.spells.tash, 1)
-            common.swapSpell(class.spells.dotmiti, 2)
-            common.swapSpell(class.spells.meznoblur, 3)
-            common.swapSpell(class.spells.mezae, 4)
-            common.swapSpell(class.spells.dot, 5)
-            common.swapSpell(class.spells.dot2, 6)
-            common.swapSpell(class.spells.synergy, 7)
-            common.swapSpell(class.spells.nuke5, 8)
-            common.swapSpell(class.spells.composite, 9, composite_names)
-            common.swapSpell(class.spells.stunaerune, 10)
-            common.swapSpell(class.spells.guard, 11)
-            common.swapSpell(class.spells.nightsterror, 12)
-            common.swapSpell(class.spells.combatinnate, 13)
+            abilities.swapSpell(class.spells.tash, 1)
+            abilities.swapSpell(class.spells.dotmiti, 2)
+            abilities.swapSpell(class.spells.meznoblur, 3)
+            abilities.swapSpell(class.spells.mezae, 4)
+            abilities.swapSpell(class.spells.dot, 5)
+            abilities.swapSpell(class.spells.dot2, 6)
+            abilities.swapSpell(class.spells.synergy, 7)
+            abilities.swapSpell(class.spells.nuke5, 8)
+            abilities.swapSpell(class.spells.composite, 9, composite_names)
+            abilities.swapSpell(class.spells.stunaerune, 10)
+            abilities.swapSpell(class.spells.guard, 11)
+            abilities.swapSpell(class.spells.nightsterror, 12)
+            abilities.swapSpell(class.spells.combatinnate, 13)
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()

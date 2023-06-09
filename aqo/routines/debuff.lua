@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require('mq')
 local abilities = require('ability')
+local constants = require('constants')
 
 local aqo
 local debuff = {}
@@ -15,7 +16,7 @@ end
 function debuff.shouldUseDebuff(ability)
     if ability.opt == 'USEDISPEL' then
         local beneficial = mq.TLO.Target.Beneficial
-        return beneficial() and beneficial.Dispellable() and not aqo.lists.ignoreBuff[beneficial]
+        return beneficial() and beneficial.Dispellable() and not constants.ignoreBuff[beneficial]
     elseif ability.opt == 'USESLOWAOE' or ability.opt == 'USESLOW' then
         return mq.TLO.Target() and not mq.TLO.Target.Slowed() and not debuff.SLOW_IMMUNES[mq.TLO.Target.CleanName()]
     elseif ability.opt == 'USESNARE' then

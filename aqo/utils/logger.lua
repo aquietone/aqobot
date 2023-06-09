@@ -3,7 +3,7 @@ local logger = {
         routines={assist=false,buff=false,camp=false,cure=false,debuff=false,events=false,heal=false,mez=false,movement=false,pull=false,tank=false},
         class={ae=false,aggro=false,burn=false,cast=false,findspell=false,managepet=false,mash=false,ohshit=false,recover=false,rest=false},
         ability={validation=false,all=false,spell=false,aa=false,disc=false,item=false,skill=false},
-        common={chase=false,cast=false,memspell=false,misc=false},
+        common={chase=false,cast=false,memspell=false,misc=false,loot=false},
         aqo={main=false,commands=false,configuration=false},
         announce={spell=true,aa=true,disc=true,item=true,skill=true},
     },

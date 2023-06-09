@@ -1,6 +1,8 @@
 --- @type Mq
 local mq = require('mq')
-local config = require('configuration')
+local config = require('interface.configuration')
+local constants = require('constants')
+local state = require('state')
 
 local aqo
 local conditions = {}
@@ -8,20 +10,6 @@ local conditions = {}
 function conditions.init(_aqo)
     aqo = _aqo
 end
-
----@field delay? number # time in MS to delay after using an ability, primarily for swarm pets that take time to spawn after activation
----@field me? number # ignored currently. should be % hp to use self heal abilities since non-heal classes don't expose healer options
----@field pet? number # percent HP to begin casting pet heal
----@field self? boolean # indicates the heal ability is a self heal, like monk mend
----@field regular? boolean # flag to indicate heal should be used as a regular heal
----@field panic? boolean # flag to indicate heal should be used as a panic heal
----@field group? boolean # flag to indicate heal should be used as a group heal
----@field precast? string # function to call prior to using an ability
----@field postcast? string # function to call after to using an ability
----@field overwritedisc? string # name of disc which is acceptable to overwrite
----@field stand? boolean # flag to indicate if should stand after use, for FD dropping agro
----@field tot? boolean # flag to indicate if spell is target-of-target
----@field RemoveBuff? string # name of buff / song to remove after cast
 
 function conditions.isEnabled(ability)
     return not ability.opt or aqo.class.isEnabled(ability.opt)
@@ -84,7 +72,7 @@ function conditions.skipIfBuff(ability)
 end
 
 function conditions.dmz(ability)
-    return not ability.dmz or aqo.lists.DMZ[mq.TLO.Zone.ID()]
+    return not ability.dmz or constants.DMZ[mq.TLO.Zone.ID()]
 end
 
 function conditions.summonMinimum(ability)
@@ -132,7 +120,7 @@ end
 -- DPS Ability conditions
 
 function conditions.burnType(ability)
-    return not aqo.state.burn_type or ability[aqo.state.burn_type]
+    return not state.burn_type or ability[state.burn_type]
 end
 
 function conditions.targetHPBelow(ability)
@@ -152,7 +140,7 @@ function conditions.withinMeleeDistance(ability)
 end
 
 function conditions.aboveMobThreshold(ability)
-    return ability.threshold == nil or ability.threshold <= aqo.state.mobCountNoPets
+    return ability.threshold == nil or ability.threshold <= state.mobCountNoPets
 end
 
 function conditions.aggroBelow(ability)

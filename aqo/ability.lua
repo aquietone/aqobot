@@ -1,6 +1,5 @@
 ---@type Mq
 local mq = require('mq')
-local lists = require('data.lists')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local state = require('state')
@@ -48,8 +47,8 @@ AbilityTypes = {
 ---@field summonMinimum? number # minimum amount of summoned item to keep
 ---@field ReagentID? number # reagent ID required for summon ability to function
 ---@field ReagentCount? number # number of ReagentID item required to cast the spell
----@field precast? string # function to call prior to using an ability
----@field postcast? string # function to call after to using an ability
+---@field precast? function # function to call prior to using an ability
+---@field postcast? function # function to call after to using an ability
 ---@field usebelowpct? number # percent hp to begin using an ability, like executes
 ---@field maxdistance? number # distance within which an ability should be used, like don't leap from a mile away
 ---@field overwritedisc? string # name of disc which is acceptable to overwrite
@@ -204,13 +203,13 @@ function Ability.use(theAbility, doSwap)
     if mq.TLO.Me.Casting() and (state.class ~= 'BRD' or theAbility.MyCastTime >= 500) then return result end
     if (theAbility:isReady() or (theAbility.CastType == AbilityTypes.Spell and doSwap)) and (not theAbility.condition or theAbility.condition(theAbility)) and aqo.class.isAbilityEnabled(theAbility.opt) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap then
-            result = aqo.common.swapAndCast(theAbility, state.swapGem)
+            result = Ability.swapAndCast(theAbility, state.swapGem)
         else
             --if theAbility.pause then mq.cmd('/squelch /dga aqo /squelch /aqo pauseforbuffs') end
             if theAbility.precast then theAbility.precast() end
             result = theAbility:execute()
             if theAbility.postcast then theAbility.postcast() end
-            --if theAbility.pause then aqo.state.queuedAction = function() mq.cmd('/squelch /dga aqo /squelch /aqo resumeforbuffs') end end
+            --if theAbility.pause then state.queuedAction = function() mq.cmd('/squelch /dga aqo /squelch /aqo resumeforbuffs') end end
         end
     end
     return result
@@ -484,6 +483,43 @@ function Skill:use()
     end
 end
 
+---Swap the specified spell into the specified gem slot.
+---@param spell table @The MQ Spell to memorize.
+---@param gem number @The gem index to memorize the spell into.
+---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
+function Ability.swapSpell(spell, gem, other_names)
+    if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if mq.TLO.Me.Gem(gem)() == spell.Name then return end
+    if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
+    mq.cmdf('/memspell %d "%s"', gem, spell.Name)
+    state.actionTaken = true
+    state.memSpell = spell
+    state.memSpellTimer:reset()
+    return true
+end
+
+function Ability.swapAndCast(spell, gem)
+    if not spell then return false end
+    if not mq.TLO.Me.Gem(spell.Name)() then
+        state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
+        if not Ability.swapSpell(spell, gem) then
+            -- failed to mem?
+            return false
+        end
+        state.queuedAction = function()
+            Ability.use(spell)
+            if state.restore_gem then
+                return function()
+                    Ability.swapSpell(state.restore_gem, gem)
+                end
+            end
+        end
+        return true
+    else
+        return Ability.use(spell)
+    end
+end
+
 function Ability:setSpellType()
     if mq.TLO.Me.AltAbility(self.CastName).Spell() then
         self.CastType = AbilityTypes.AA
@@ -518,7 +554,7 @@ function Ability:setSpellData()
             self.MustEquip = true
         end
 
-        self.SpellName = itemSpellRef()
+        self.SpellName = itemSpellRef.Name()
         self.CastID = itemRef.ID()
     elseif self.CastType == AbilityTypes.AA then
         local aaRef = mq.TLO.Me.AltAbility(self.CastName)
@@ -526,7 +562,7 @@ function Ability:setSpellData()
         self:setCommonSpellData(aaSpellRef)
 
         self.RecastTime = aaRef.ReuseTime()
-        self.SpellName = aaSpellRef()
+        self.SpellName = aaSpellRef.Name()
         self.CastID = aaRef.ID()
     elseif self.CastType == AbilityTypes.Spell then
         local spellRef = mq.TLO.Spell(self.CastName)
@@ -581,10 +617,11 @@ function Ability:setCommonSpellData(spellRef)
         for i=1,5 do
             if spellRef.Attrib(i)() == 374 then
                 -- mount blessing buff
-                if not spellRef.Trigger(i).Name():find('Illusion') then
+                if not spellRef.Trigger(i).Name():find('Illusion') and not spellRef.Trigger(i).Name():find('Effect') and not spellRef.Trigger(i).Name():find('Form') then
                     self.CheckFor = spellRef.Trigger(i).Name()
                     self.RemoveBuff = spellRef()
                 else
+                    self.CheckFor = spellRef()
                     self.RemoveBuff = spellRef.Trigger(i).Name()
                 end
             elseif spellRef.Attrib(i)() == 113 then
@@ -600,7 +637,7 @@ function Ability:setCommonSpellData(spellRef)
         self.SummonID = spellRef.Base(1)()
         self.SummonMinimum = 1
     end
-    if spellRef.HasSPA(33)() then
+    if spellRef.HasSPA(33)() or spellRef.HasSPA(108)() then
         -- familiar
         self.RemoveFamiliar = true
     end
@@ -619,6 +656,8 @@ return {
     Types=AbilityTypes,
     canUseSpell=Ability.canUseSpell,
     use=Ability.use,
+    swapAndCast=Ability.swapAndCast,
+    swapSpell=Ability.swapSpell,
     Spell=Spell,
     Disc=Disc,
     AA=AA,

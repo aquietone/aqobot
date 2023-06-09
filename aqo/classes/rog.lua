@@ -18,7 +18,7 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox')
+    class.addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox', nil, 'UseEvade', 'bool')
 end
 
 function class.initDPSAbilities(_aqo)

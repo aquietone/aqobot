@@ -1,8 +1,8 @@
 --- @type Mq
 local mq = require('mq')
+local config = require('interface.configuration')
 local timer = require('utils.timer')
 local abilities = require('ability')
-local config = require('configuration')
 local state = require('state')
 
 local healing = {}

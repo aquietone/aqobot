@@ -1,14 +1,14 @@
 --- @type Mq
 local mq = require 'mq'
 local class = require('classes.classbase')
-local movement = require('routines.movement')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
+local abilities = require('ability')
 local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    class.classOrder = {'assist', 'mez', 'assist', 'aggro', 'burn', 'cast', 'mash', 'ae', 'recover', 'buff', 'rest'}
     class.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
     if state.emu then
         class.spellRotations = {emuancient={},emucaster70={},emuaura65={},emuaura55={},emunoaura={}}
@@ -44,24 +44,24 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, 'Set how to use bard epic', 'combobox')
-    class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox')
-    class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox')
-    class.addOption('MEZAECOUNT', 'Mez AE Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint')
-    class.addOption('USEINSULTS', 'Use Insults', true, nil, 'Use insult songs', 'checkbox')
-    class.addOption('USEINTIMIDATE', 'Use Intimidate', false, nil, 'Use Intimidate (It may fear mobs without the appropriate AA\'s)', 'checkbox')
-    class.addOption('USEBELLOW', 'Use Bellow', true, nil, 'Use Boastful Bellow AA', 'checkbox')
-    class.addOption('USECACOPHONY', 'Use Cacophony', true, nil, 'Use Cacophony AA', 'checkbox')
-    class.addOption('USEFADE', 'Use Fade', false, nil, 'Fade when aggro', 'checkbox')
-    class.addOption('RALLYGROUP', 'Rallying Group', false, nil, 'Use Rallying Group AA', 'checkbox')
-    class.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox')
-    class.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox')
-    class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox')
-    class.addOption('USEFIREDOTS', 'Use Fire DoT', false, nil, 'Toggle use of Fire DoT songs if they are in the selected song list', 'checkbox')
-    class.addOption('USEFROSTDOTS', 'Use Frost DoT', false, nil, 'Toggle use of Frost DoT songs if they are in the selected song list', 'checkbox')
-    class.addOption('USEPOISONDOTS', 'Use Poison DoT', false, nil, 'Toggle use of Poison DoT songs if they are in the selected song list', 'checkbox')
-    class.addOption('USEDISEASEDOTS', 'Use Disease DoT', false, nil, 'Toggle use of Disease DoT songs if they are in the selected song list', 'checkbox')
-    class.addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox')
+    class.addOption('USEEPIC', 'Epic', 'always', class.EPIC_OPTS, 'Set how to use bard epic', 'combobox', nil, 'UseEpic', 'string')
+    class.addOption('MEZST', 'Mez ST', true, nil, 'Mez single target', 'checkbox', nil, 'MezST', 'bool')
+    class.addOption('MEZAE', 'Mez AE', true, nil, 'Mez AOE', 'checkbox', nil, 'MezAE', 'bool')
+    class.addOption('MEZAECOUNT', 'Mez AE Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint', nil, 'MezAECount', 'int')
+    class.addOption('USEINSULTS', 'Use Insults', true, nil, 'Use insult songs', 'checkbox', nil, 'UseInsults', 'bool')
+    class.addOption('USEINTIMIDATE', 'Use Intimidate', false, nil, 'Use Intimidate (It may fear mobs without the appropriate AA\'s)', 'checkbox', nil, 'UseIntimidate', 'bool')
+    class.addOption('USEBELLOW', 'Use Bellow', true, nil, 'Use Boastful Bellow AA', 'checkbox', nil, 'UseBellow', 'bool')
+    class.addOption('USECACOPHONY', 'Use Cacophony', true, nil, 'Use Cacophony AA', 'checkbox', nil, 'UseCacophony', 'bool')
+    class.addOption('USEFADE', 'Use Fade', false, nil, 'Fade when aggro', 'checkbox', nil, 'UseFade', 'bool')
+    class.addOption('RALLYGROUP', 'Rallying Group', false, nil, 'Use Rallying Group AA', 'checkbox', nil, 'RallyGroup', 'bool')
+    class.addOption('USESWARM', 'Use Swarm', true, nil, 'Use swarm pet AAs', 'checkbox', nil, 'UseSwarm', 'bool')
+    class.addOption('USESNARE', 'Use Snare', false, nil, 'Use snare song', 'checkbox', nil, 'UseSnare', 'bool')
+    class.addOption('USETWIST', 'Use Twist', false, nil, 'Use MQ2Twist instead of managing songs', 'checkbox', nil, 'UseTwist', 'bool')
+    class.addOption('USEFIREDOTS', 'Use Fire DoT', false, nil, 'Toggle use of Fire DoT songs if they are in the selected song list', 'checkbox', nil, 'UseFireDoTs', 'bool')
+    class.addOption('USEFROSTDOTS', 'Use Frost DoT', false, nil, 'Toggle use of Frost DoT songs if they are in the selected song list', 'checkbox', nil, 'UseFrostDoTs', 'bool')
+    class.addOption('USEPOISONDOTS', 'Use Poison DoT', false, nil, 'Toggle use of Poison DoT songs if they are in the selected song list', 'checkbox', nil, 'UsePoisonDoTs', 'bool')
+    class.addOption('USEDISEASEDOTS', 'Use Disease DoT', false, nil, 'Toggle use of Disease DoT songs if they are in the selected song list', 'checkbox', nil, 'UseDiseaseDoTs', 'bool')
+    class.addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox', nil, 'UseRegenSong', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -176,7 +176,7 @@ function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
     table.insert(class.DPSAbilities, common.getAA('Selo\'s Kick'))
 
-    table.insert(class.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=4}))
+    table.insert(class.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=2}))
 end
 
 function class.initBurns(_aqo)
@@ -184,7 +184,11 @@ function class.initBurns(_aqo)
     table.insert(class.burnAbilities, common.getItem('Rage of Rolfron'))
     table.insert(class.burnAbilities, common.getAA('Quick Time'))
     table.insert(class.burnAbilities, common.getAA('Funeral Dirge'))
-    table.insert(class.burnAbilities, common.getAA('Spire of the Minstrels'))
+    if state.emu then
+        table.insert(class.burnAbilities, common.getAA('Third Spire of the Minstrels'))
+    else
+        table.insert(class.burnAbilities, common.getAA('Spire of the Minstrels'))
+    end
     table.insert(class.burnAbilities, common.getAA('Bladed Song'))
     table.insert(class.burnAbilities, common.getAA('Dance of Blades'))
     table.insert(class.burnAbilities, common.getAA('Flurry of Notes'))
@@ -400,13 +404,15 @@ function class.useEpic()
     local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.Name)()
     if epic:isReady() and fierceeye_rdy then
         mq.cmd('/stopsong')
-        mq.delay(100)
+        mq.delay(250)
         fierceeye:use()
-        mq.delay(50)
+        mq.delay(250)
         epic:use()
+        mq.delay(500)
         return true
     end
 end
+function class.burnClass() class.useEpic() end
 
 function class.mashClass()
     if class.isEnabled('USEBELLOW') and class.bellow and bellowTimer:timerExpired() and class.bellow:use() then
@@ -444,61 +450,61 @@ function class.checkSpellSet()
     local spellSet = class.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'melee' then
-            common.swapSpell(class.spells.aria, 1)
-            common.swapSpell(class.spells.arcane, 2)
-            common.swapSpell(class.spells.spiteful, 3)
-            common.swapSpell(class.spells.suffering, 4)
-            common.swapSpell(class.spells.insult, 5)
-            common.swapSpell(class.spells.warmarch, 6)
-            common.swapSpell(class.spells.sonata, 7)
-            common.swapSpell(class.spells.mezst, 8)
-            common.swapSpell(class.spells.mezae, 9)
-            common.swapSpell(class.spells.crescendo, 10)
-            common.swapSpell(class.spells.pulse, 11)
-            common.swapSpell(class.spells.composite, 12, composite_names)
-            common.swapSpell(class.spells.dirge, 13)
+            abilities.swapSpell(class.spells.aria, 1)
+            abilities.swapSpell(class.spells.arcane, 2)
+            abilities.swapSpell(class.spells.spiteful, 3)
+            abilities.swapSpell(class.spells.suffering, 4)
+            abilities.swapSpell(class.spells.insult, 5)
+            abilities.swapSpell(class.spells.warmarch, 6)
+            abilities.swapSpell(class.spells.sonata, 7)
+            abilities.swapSpell(class.spells.mezst, 8)
+            abilities.swapSpell(class.spells.mezae, 9)
+            abilities.swapSpell(class.spells.crescendo, 10)
+            abilities.swapSpell(class.spells.pulse, 11)
+            abilities.swapSpell(class.spells.composite, 12, composite_names)
+            abilities.swapSpell(class.spells.dirge, 13)
             state.spellSetLoaded = spellSet
         elseif spellSet == 'caster' then
-            common.swapSpell(class.spells.aria, 1)
-            common.swapSpell(class.spells.arcane, 2)
-            common.swapSpell(class.spells.firenukebuff, 3)
-            common.swapSpell(class.spells.suffering, 4)
-            common.swapSpell(class.spells.insult, 5)
-            common.swapSpell(class.spells.warmarch, 6)
-            common.swapSpell(class.spells.firemagicdotbuff, 7)
-            common.swapSpell(class.spells.mezst, 8)
-            common.swapSpell(class.spells.mezae, 9)
-            common.swapSpell(class.spells.crescendo, 10)
-            common.swapSpell(class.spells.pulse, 11)
-            common.swapSpell(class.spells.composite, 12, composite_names)
-            common.swapSpell(class.spells.dirge, 13)
+            abilities.swapSpell(class.spells.aria, 1)
+            abilities.swapSpell(class.spells.arcane, 2)
+            abilities.swapSpell(class.spells.firenukebuff, 3)
+            abilities.swapSpell(class.spells.suffering, 4)
+            abilities.swapSpell(class.spells.insult, 5)
+            abilities.swapSpell(class.spells.warmarch, 6)
+            abilities.swapSpell(class.spells.firemagicdotbuff, 7)
+            abilities.swapSpell(class.spells.mezst, 8)
+            abilities.swapSpell(class.spells.mezae, 9)
+            abilities.swapSpell(class.spells.crescendo, 10)
+            abilities.swapSpell(class.spells.pulse, 11)
+            abilities.swapSpell(class.spells.composite, 12, composite_names)
+            abilities.swapSpell(class.spells.dirge, 13)
             state.spellSetLoaded = spellSet
         elseif spellSet == 'meleedot' then
-            common.swapSpell(class.spells.aria, 1)
-            common.swapSpell(class.spells.chantflame, 2)
-            common.swapSpell(class.spells.chantfrost, 3)
-            common.swapSpell(class.spells.suffering, 4)
-            common.swapSpell(class.spells.insult, 5)
-            common.swapSpell(class.spells.warmarch, 6)
-            common.swapSpell(class.spells.chantdisease, 7)
-            common.swapSpell(class.spells.mezst, 8)
-            common.swapSpell(class.spells.mezae, 9)
-            common.swapSpell(class.spells.crescendo, 10)
-            common.swapSpell(class.spells.pulse, 11)
-            common.swapSpell(class.spells.composite, 12, composite_names)
-            common.swapSpell(class.spells.dirge, 13)
+            abilities.swapSpell(class.spells.aria, 1)
+            abilities.swapSpell(class.spells.chantflame, 2)
+            abilities.swapSpell(class.spells.chantfrost, 3)
+            abilities.swapSpell(class.spells.suffering, 4)
+            abilities.swapSpell(class.spells.insult, 5)
+            abilities.swapSpell(class.spells.warmarch, 6)
+            abilities.swapSpell(class.spells.chantdisease, 7)
+            abilities.swapSpell(class.spells.mezst, 8)
+            abilities.swapSpell(class.spells.mezae, 9)
+            abilities.swapSpell(class.spells.crescendo, 10)
+            abilities.swapSpell(class.spells.pulse, 11)
+            abilities.swapSpell(class.spells.composite, 12, composite_names)
+            abilities.swapSpell(class.spells.dirge, 13)
             state.spellSetLoaded = spellSet
         else -- emu spellsets
-            common.swapSpell(class.spells.emuaura, 1)
-            common.swapSpell(class.spells.pulse, 2)
-            common.swapSpell(class.spells.emuhaste, 3)
-            common.swapSpell(class.spells.suffering, 4)
-            common.swapSpell(class.spells.firenukebuff, 5)
-            common.swapSpell(class.spells.bardhaste, 6)
-            common.swapSpell(class.spells.overhaste, 7)
-            common.swapSpell(class.spells.selos, 8)
-            --common.swapSpell(class.spells.snare, 9)
-            --common.swapSpell(class.spells.chantflame, 10)
+            abilities.swapSpell(class.spells.emuaura, 1)
+            abilities.swapSpell(class.spells.pulse, 2)
+            abilities.swapSpell(class.spells.emuhaste, 3)
+            abilities.swapSpell(class.spells.suffering, 4)
+            abilities.swapSpell(class.spells.firenukebuff, 5)
+            abilities.swapSpell(class.spells.bardhaste, 6)
+            abilities.swapSpell(class.spells.overhaste, 7)
+            abilities.swapSpell(class.spells.selos, 8)
+            --abilities.swapSpell(class.spells.snare, 9)
+            --abilities.swapSpell(class.spells.chantflame, 10)
         end
         checkSpellTimer:reset()
     end
@@ -515,9 +521,12 @@ end
 
 function class.doneSinging()
     if class.isEnabled('USETWIST') then return true end
-    if mq.TLO.Me.CastTimeLeft() > 4000 or not mq.TLO.Me.Casting() then
-        if mq.TLO.Me.Casting() then mq.cmd('/stopsong') end
-        mq.delay(100)
+    if mq.TLO.Me.CastTimeLeft() > 0 and not mq.TLO.Window('CastingWindow').Open() then
+        mq.delay(250)
+        mq.cmd('/stopsong')
+        mq.delay(1)
+    end
+    if not mq.TLO.Me.Casting() then
         if not class.spells.selos and class.selos and selosTimer:timerExpired() then
             class.selos:use()
             selosTimer:reset()

@@ -1,17 +1,19 @@
 --- @type Mq
 local mq = require 'mq'
+local config = require('interface.configuration')
 local camp = require('routines.camp')
-local movement = require('routines.movement')
+local helpers = require('utils.helpers')
 local logger = require('utils.logger')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
-local common = require('common')
-local config = require('configuration')
+local mode = require('mode')
 local state = require('state')
 
 local assist = {}
+local aqo
 
-function assist.init(aqo)
-
+function assist.init(_aqo)
+    aqo = _aqo
 end
 
 state.enrageTimer = timer:new(10000)
@@ -69,7 +71,7 @@ function assist.getAssistID()
     return assist_id
 end
 
----Returns the MQ Spawn userdata of the configured main assists current target.
+---@return spawn|integer @Returns the MQ Spawn userdata of the configured main assists current target or -1 if manual assist
 function assist.getAssistSpawn()
     local assist_target = nil
     local assistValue = config.get('ASSIST')
@@ -81,7 +83,7 @@ function assist.getAssistSpawn()
         assist_target = mq.TLO.Me.RaidAssistTarget(2)
     elseif assistValue == 'raid3' then
         assist_target = mq.TLO.Me.RaidAssistTarget(3)
-    elseif assistValue == 'manual' then
+    else
         assist_target = -1
     end
     return assist_target
@@ -100,7 +102,7 @@ function assist.forceAssist(assist_id)
     end
 end
 
-local manualAssistTimer = timer:new(3000)
+local manualAssistTimer = timer:new(1500)
 ---Determine whether to begin assisting on a mob.
 ---Param: The MQ Spawn to be checked, otherwise the main assists target.
 ---@return boolean @Returns true if the spawn matches the assist criteria (within the camp radius and below autoassistat %), otherwise false.
@@ -121,9 +123,9 @@ function assist.shouldAssist(assist_target)
     local mob_y = assist_target.Y()
     if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
     if mob_type == 'NPC' and hp < config.get('AUTOASSISTAT') then
-        if camp.Active and common.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
+        if camp.Active and helpers.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
             return true
-        elseif not camp.Active and common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
+        elseif not camp.Active and helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
             return true
         else
             return false
@@ -142,94 +144,91 @@ local function resetCombatTimers()
     sendPetTimer:reset(0)
 end
 
+function assist.getAssistSpawnIncludeManual()
+    local assistMobID = 0
+    if mode.currentMode:getName() == 'manual' then return assistMobID end
+    local assistTarget = assist.getAssistSpawn()
+    -- manual assist mode hacks
+    -- if mobs are on xtarget and 3sec timer is expired, try a manual assist to get target
+    -- if the toon already has an npc on target (like something is hitting them), then that appears like the assist target too...
+    if assistTarget == -1 then
+        if mq.TLO.Me.XTarget() > 0 then
+            if manualAssistTimer:timerExpired() or not mq.TLO.Target() then
+                local assistNames = helpers.split(config.get('ASSISTNAMES'), ',')
+                for _,assistName in ipairs(assistNames) do
+                    if mq.TLO.Spawn('pc ='..assistName)() then
+                        mq.cmdf('/assist %s', assistName)
+                        mq.delay(100)
+                        manualAssistTimer:reset()
+                        break
+                    end
+                end
+            end
+            if mq.TLO.Target.Type() == 'NPC' then
+                assistMobID = mq.TLO.Target.ID()
+            end
+        end
+    else
+        assistMobID = assistTarget.ID()
+    end
+    return assistMobID
+end
+
+---@param assistMobID number @The Spawn ID of the target to assist on
+function assist.checkMATargetSwitch(assistMobID)
+    -- if we are targeting a mob, but the MA is targeting themself, then stop what we're doing
+    if mq.TLO.Target.Type() == 'NPC' and assistMobID == assist.getAssistID() then
+        mq.cmd('/multiline ; /target clear; /pet back; /attack off; /autofire off;')
+        state.assistMobID = 0
+        return false
+    end
+    -- If already fighting, check whether we're already on the MA's target. If not, only continue if switch with MA is enabled.
+    if mq.TLO.Me.CombatState() == 'COMBAT' then
+        logger.debug(logger.flags.routines.assist, "state is combat")
+        if mq.TLO.Target.ID() == assistMobID then
+            -- already fighting the MAs target, make sure assistMobID is accurate
+            state.assistMobID = assistMobID
+            return false
+        elseif not config.get('SWITCHWITHMA') then
+            -- not fighting the MAs target, and switch with MA is disabled, so stay on current target
+            logger.debug(logger.flags.routines.assist, "checkTarget not switching targets with MA, staying on "..(mq.TLO.Target.CleanName() or ''))
+            return false
+        end
+    end
+    return true
+end
+
+---@param assistMobID number @The Spawn ID of the target to assist on
+function assist.targetAssistSpawn(assistMobID)
+    local assistSpawn = mq.TLO.Spawn('id '..assistMobID)
+    if state.assistMobID == assistMobID and assistSpawn.Type() ~= 'Corpse' then
+        -- MAs target didn't change but we aren't currently fighting it for some reason, so reacquire target
+        mq.cmdf('/mqt id %s', assistMobID)
+    elseif assist.shouldAssist(assistSpawn) then
+        -- this is a brand new assist target
+        if mq.TLO.Target.ID() ~= assistMobID then
+            assistSpawn.DoTarget()
+            return true
+        end
+    end
+    return state.assistMobID ~= assistMobID
+end
+
+---@param assistMobID number @The Spawn ID of the target to assist on
+---@param reset_timers function @An optional function to be called to reset combat timers specific to the class calling this function.
+function assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
+    state.assistMobID = assistMobID
+    if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
+    state.resists = {}
+    resetCombatTimers()
+    if reset_timers then reset_timers() end
+    printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
+end
+
 ---Acquire the correct target when running in an assist mode. Clears target if the main assist targets themself.
 ---Targets the main assists target if assist conditions are met.
 ---If currently engaged, remains on the current target unless the switch with MA option is enabled.
 ---Sets state.assistMobID to 0 or the ID of the mob to assist on.
----@param resetTimers function @An optional function to be called to reset combat timers specific to the class calling this function.
-function assist.checkTarget(resetTimers)
-    if config.get('MODE'):getName() ~= 'manual' then
-        local assist_target = assist.getAssistSpawn()
-        local originalTargetID = mq.TLO.Target.ID()
-        -- manual assist mode hacks
-        -- if mobs are on xtarget and 3sec timer is expired, try a manual assist to get target
-        -- if the toon already has an npc on target (like something is hitting them), then that appears like the assist target too...
-        if assist_target == -1 then
-            if mq.TLO.Me.XTarget() > 0 then
-                if manualAssistTimer:timerExpired() or not mq.TLO.Target() then
-                    local assistNames = common.split(config.get('ASSISTNAMES'), ',')
-                    for _,assistName in ipairs(assistNames) do
-                        if mq.TLO.Spawn('pc ='..assistName)() then
-                            mq.cmdf('/assist %s', assistName)
-                            mq.delay(100)
-                            manualAssistTimer:reset()
-                            break
-                        end
-                    end
-                end
-                if mq.TLO.Target.Type() == 'NPC' then
-                    assist_target = mq.TLO.Target
-                else
-                    return
-                end
-            else
-                return
-            end
-        end
-        if not assist_target() then return end
-        -- if we are targeting a mob, but the MA is targeting themself, then stop what we're doing
-        if mq.TLO.Target.Type() == 'NPC' and assist_target.ID() == assist.getAssistID() then
-            mq.cmd('/multiline ; /target clear; /pet back; /attack off; /autofire off;')
-            state.assistMobID = 0
-            return
-        end
-        -- If already fighting, check whether we're already on the MA's target. If not, only continue if switch with MA is enabled.
-        if mq.TLO.Me.CombatState() == 'COMBAT' then
-            logger.debug(logger.flags.routines.assist, "state is combat")
-            if mq.TLO.Target.ID() == assist_target.ID() then
-                -- already fighting the MAs target, make sure assistMobID is accurate
-                state.assistMobID = assist_target.ID()
-                return
-            elseif not config.get('SWITCHWITHMA') then
-                -- not fighting the MAs target, and switch with MA is disabled, so stay on current target
-                logger.debug(logger.flags.routines.assist, "checkTarget not switching targets with MA, staying on "..(mq.TLO.Target.CleanName() or ''))
-                return
-            end
-        end
-        if state.assistMobID == assist_target.ID() and assist_target.Type() ~= 'Corpse' then
-            -- MAs target didn't change but we aren't currently fighting it for some reason, so reacquire target
-            assist_target.DoTarget()
-            return
-        end
-        -- this is a brand new assist target
-        if assist.shouldAssist(assist_target) then
-            if mq.TLO.Target.ID() ~= assist_target.ID() then
-                assist_target.DoTarget()
-                state.acquireTarget = assist_target.ID()
-                state.queuedAction = function()
-                    state.assist_mob_id = assist_target.ID()
-                    if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-                    if mq.TLO.Target.ID() ~= originalTargetID then
-                        resetCombatTimers()
-                        if resetTimers then resetTimers() end
-                        printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
-                    end
-                end
-                state.actionTaken = true
-                state.acquireTargetTimer:reset()
-                return true
-            end
-            state.assistMobID = assist_target.ID()
-            if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-            if mq.TLO.Target.ID() ~= originalTargetID then
-                state.resists = {}
-                resetCombatTimers()
-                if resetTimers then resetTimers() end
-                print(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
-            end
-        end
-    end
-end
 
 ---Navigate to the current target if the target is within the camp radius.
 function assist.getCombatPosition()
@@ -246,7 +245,7 @@ end
 
 ---Navigate to the current target if if isn't in LOS and should be.
 function assist.checkLOS()
-    local cur_mode = config.get('MODE')
+    local cur_mode = mode.currentMode
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) then
         local maxRangeTo = (mq.TLO.Target.MaxRangeTo() or 0) + 20
         if not mq.TLO.Target.LineOfSight() and maxRangeTo then
@@ -257,9 +256,60 @@ function assist.checkLOS()
     end
 end
 
+function assist.six(skip_no_los)
+    if mode.currentMode:getName() == 'manual' then return end
+    if state.assistMobID == 0 or mq.TLO.Target.ID() ~= state.assistMobID or not assist.shouldAssist() then
+        if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
+        return false
+    end
+    if not mq.TLO.Target.LineOfSight() then
+        if not mq.TLO.Navigation.Active() then
+            -- incase this is called during bard song, to avoid mq.delay inside mq.delay
+            if skip_no_los then return end
+            assist.getCombatPosition()
+        else
+            return false
+        end
+    end
+    return true
+end
+
+function assist.engage()
+    if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
+    if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
+        mq.cmd('/squelch /face fast')
+        -- pin, behindonce, behind, front, !front
+        --mq.cmd('/stick snaproll uw')
+        --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
+        local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
+        --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        if config.get('ASSIST') == 'manual' then
+            mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
+        else
+            mq.cmdf('/squelch /stick !front uw')
+        end
+        stickTimer:reset()
+    end
+    if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
+        mq.cmd('/attack on')
+    elseif state.dontAttack and state.enrageTimer:timerExpired() then
+        state.dontAttack = false
+    end
+end
+
+function assist.fsm(reset_timers)--, skip_no_los)
+    local assistMobID = assist.getAssistSpawnIncludeManual()
+    if assistMobID == 0 then return false end
+    if not assist.checkMATargetSwitch(assistMobID) then return false end
+    if not assist.targetAssistSpawn(assistMobID) then return false end
+    assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
+    --if not assist.six(skip_no_los) then return false end
+    --assist.seven()
+end
+
 ---Begin attacking the assist target if not already attacking.
 function assist.attack(skip_no_los)
-    if config.get('MODE'):getName() == 'manual' then return end
+    if mode.currentMode:getName() == 'manual' then return end
     if state.assistMobID == 0 or mq.TLO.Target.ID() ~= state.assistMobID or not assist.shouldAssist() then
         if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
         return
@@ -275,7 +325,7 @@ function assist.attack(skip_no_los)
     end
     --movement.stop()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
-    if config.get('MODE'):getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
+    if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
         mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
         --mq.cmd('/stick snaproll uw')
@@ -297,7 +347,7 @@ function assist.attack(skip_no_los)
 end
 
 function assist.isFighting()
-    local cur_mode = config.get('MODE')
+    local cur_mode = mode.currentMode
     return (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.CombatState() == 'COMBAT')
 end
 
@@ -307,6 +357,9 @@ function assist.sendPet()
     if sendPetTimer:timerExpired() and targethp and targethp <= config.get('AUTOASSISTAT') then
         if assist.isFighting() then
             if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and not state.petDontAttack then
+                if aqo.class.summonCompanion and helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Pet.X(), mq.TLO.Pet.Y()) > 625 then
+                    aqo.class.summonCompanion:use()
+                end
                 mq.cmd('/multiline ; /pet attack ; /pet swarm')
             else
                 mq.cmd('/pet swarm')

@@ -5,7 +5,7 @@ local common = require('common')
 local state = require('state')
 
 function class.init(_aqo)
-    class.classOrder = {'assist', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
+    class.classOrder = {'assist', 'ae', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     class.initBase(_aqo, 'ber')
 
     class.initClassOptions()
@@ -14,11 +14,13 @@ function class.init(_aqo)
     class.initBurns(_aqo)
     class.initBuffs(_aqo)
     class.initDefensiveAbilities(_aqo)
+
+    class.epic = 'Raging Taelosian Alloy Axe'
 end
 
 function class.initClassOptions()
     if state.emu then
-        class.addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox')
+        class.addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox', nil, 'UseDecap', 'bool')
     end
 end
 
@@ -70,6 +72,7 @@ function class.initBuffs(_aqo)
     table.insert(class.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 
     table.insert(class.selfBuffs, common.getBestDisc({'Bonesplicer Axe'}, {summonMinimum=101}))
+    table.insert(class.selfBuffs, common.getAA('Desperation'))
 end
 
 function class.initDefensiveAbilities(_aqo)

@@ -221,10 +221,10 @@ function casting.cast(spell, targetID, interruptCheck)
                 end
             end
             mq.delay(50)
-            if state.paused then
-                casting.interrupt()
-                return casting.CastReturn.CAST_INTERRUPTED
-            end
+            --if state.paused then
+            --    casting.interrupt()
+            --    return casting.CastReturn.CAST_INTERRUPTED
+            --end
             if mq.TLO.Me.Invis() then
                 return casting.CastReturn.CAST_INVIS
             end

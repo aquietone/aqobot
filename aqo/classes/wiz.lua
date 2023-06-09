@@ -5,7 +5,7 @@ local common = require('common')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
-    class.spellRotations = {standard={}}
+    class.spellRotations = {standard={}, ae={}}
     class.initBase(_aqo, 'wiz')
 
     class.loadSettings()
@@ -22,12 +22,20 @@ function class.initSpellLines(_aqo)
     class.addSpell('nuke2', {'Ancient: Spear of Gelaqua', 'Fire Spiral of Al\'Kabor'})
     class.addSpell('Swarm', {'Solist\'s Frozen Sword'})
     class.addSpell('rain', {'Gelid Rains'})
+    class.addSpell('ae1', {'Circle of Thunder'})
+    class.addSpell('ae2', {'Jyll\'s Static Pulse'})
+    class.addSpell('ae3', {'Jyll\'s Zephyr of Ice'})
+    class.addSpell('ae4', {'Jyll\'s Wave of Heat'})
 end
 
 function class.initSpellRotations(_aqo)
     table.insert(class.spellRotations.standard, class.spells.swarm)
     table.insert(class.spellRotations.standard, class.spells.nuke1)
     table.insert(class.spellRotations.standard, class.spells.nuke2)
+    table.insert(class.spellRotations.ae, class.spells.ae1)
+    table.insert(class.spellRotations.ae, class.spells.ae2)
+    table.insert(class.spellRotations.ae, class.spells.ae3)
+    table.insert(class.spellRotations.ae, class.spells.ae4)
 end
 
 function class.initDPSAbilities(_aqo)

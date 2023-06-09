@@ -34,7 +34,7 @@ function cure.selfCure(spell)
         shouldCast = true
     elseif spell.HasSPA(116)() and mq.TLO.Me.Cursed() and mq.TLO.Me.CountersCurse() > 0 then
         shouldCast = true
-    elseif spell.HasSPA(369)() and mq.TLO.Me.Corruption() and mq.TLO.Me.CountersCorruption() > 0 then
+    elseif spell.HasSPA(369)() and mq.TLO.Me.Corrupted() and mq.TLO.Me.CountersCorruption() > 0 then
         shouldCast = true
     end
     if shouldCast then return spell:use() end

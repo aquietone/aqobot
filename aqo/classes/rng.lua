@@ -1,13 +1,16 @@
 --- @type Mq
 local mq = require 'mq'
 local class = require('classes.classbase')
+local config = require('interface.configuration')
 local assist = require('routines.assist')
 local camp = require('routines.camp')
-local movement = require('routines.movement')
+local helpers = require('utils.helpers')
 local logger = require('utils.logger')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
+local abilities = require('ability')
 local common = require('common')
-local config = require('configuration')
+local mode = require('mode')
 local state = require('state')
 
 function class.init(_aqo)
@@ -29,28 +32,30 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA')
-    class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA')
-    class.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox')
-    class.addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox')
-    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox')
-    class.addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW')
-    class.addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW')
-    class.addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox')
-    class.addOption('DSTANK', 'DS Tank', false, nil, 'DS Tank', 'checkbox')
-    class.addOption('USENUKES', 'Use Nukes', false, nil, 'Cast nukes on all mobs', 'checkbox')
-    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Entropy AA', 'checkbox')
-    class.addOption('USEREGEN', 'Use Regen', false, nil, 'Buff regen on self', 'checkbox')
-    class.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox')
-    class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox')
+    class.addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA', 'UseUnityAzia', 'bool')
+    class.addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA', 'UseUnityBeza', 'bool')
+    class.addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox', nil, 'UseRange', 'bool')
+    class.addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox', nil, 'UseMelee', 'bool')
+    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox', nil, 'UseDoTs', 'bool')
+    class.addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW', 'UsePoisonArrow', 'bool')
+    class.addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW', 'UseFireArrow', 'bool')
+    class.addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox', nil, 'BuffGroup', 'bool')
+    class.addOption('DSTANK', 'DS Tank', false, nil, 'DS Tank', 'checkbox', nil, 'DSTank', 'bool')
+    class.addOption('USENUKES', 'Use Nukes', false, nil, 'Cast nukes on all mobs', 'checkbox', nil, 'UseNukes', 'bool')
+    class.addOption('USEARROWSPELLS', 'Use Arrow Spells', true, nil, 'Cast arrow spells', 'checkbox', nil, 'UseArrowSpells', 'bool')
+    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Entropy AA', 'checkbox', nil, 'UseDispel', 'bool')
+    class.addOption('USEREGEN', 'Use Regen', false, nil, 'Buff regen on self', 'checkbox', nil, 'UseRegen', 'bool')
+    class.addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox', nil, 'UseComposite', 'bool')
+    class.addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox', nil, 'UseSnare', 'bool')
+    class.addOption('USEFADE', 'Use Fade', true, nil, 'Use Cover Tracks AA to reduce aggro', 'checkbox', nil, 'UseFade', 'bool')
 end
 
 function class.initSpellLines(_aqo)
-    class.addSpell('shots', {'Claimed Shots'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+    class.addSpell('shots', {'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
     class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
-    class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
-    class.addSpell('opener', {'Stealthy Shot'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
+    class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    class.addSpell('opener', {'Stealthy Shot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     class.addSpell('firenuke1', {'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
     class.addSpell('firenuke2', {'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
     class.addSpell('coldnuke1', {'Lunarflare boon', 'Ancient: North Wind'}) -- 
@@ -124,7 +129,8 @@ function class.initBurns(_aqo)
     else
         table.insert(class.burnAbilities, common.getAA('Spire of the Pathfinders')) -- 7.5min CD
     end
-    
+
+    table.insert(class.burnAbilities, common.getAA('Auspice of the Hunter'))
     table.insert(class.burnAbilities, common.getAA('Pack Hunt')) -- swarm pets, 15min CD
     table.insert(class.burnAbilities, common.getAA('Empowered Blades')) -- melee dmg burn, 10min CD
     table.insert(class.burnAbilities, common.getAA('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
@@ -191,7 +197,11 @@ function class.initDebuffs(_aqo)
 end
 
 function class.initDefensiveAbilities(_aqo)
-    table.insert(class.fadeAbilities, common.getAA('Cover Tracks'))
+    local postCT = function()
+        mq.delay(1000)
+        mq.cmdf('/multiline ; /makemevis')
+    end
+    table.insert(class.fadeAbilities, common.getAA('Cover Tracks', {opt='USEFADE', postcast=postCT}))
     table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
 end
 
@@ -212,8 +222,8 @@ local function getRangedCombatPosition(radius)
     local my_heading = degrees
     local base_radian = 10
     for i=1,36 do
-        local x_move = math.cos(math.rad(common.convertHeading(base_radian * i + my_heading)))
-        local y_move = math.sin(math.rad(common.convertHeading(base_radian * i + my_heading)))
+        local x_move = math.cos(math.rad(helpers.convertHeading(base_radian * i + my_heading)))
+        local y_move = math.sin(math.rad(helpers.convertHeading(base_radian * i + my_heading)))
         local x_off = mob_x + radius * x_move
         local y_off = mob_y + radius * y_move
         local z_off = mob_z
@@ -314,10 +324,12 @@ local function findNextSpell()
             end
         end
     end
-    for _,spell in ipairs(class.arrow_spells) do
-        if not class.spells.composite or spell.Name ~= class.spells.composite.Name or class.isEnabled('USECOMPOSITE') then
-            if common.isSpellReady(spell) then
-                return spell
+    if class.isEnabled('USEARROWSPELLS') then
+        for _,spell in ipairs(class.arrow_spells) do
+            if not class.spells.composite or spell.Name ~= class.spells.composite.Name or class.isEnabled('USECOMPOSITE') then
+                if common.isSpellReady(spell) then
+                    return spell
+                end
             end
         end
     end
@@ -394,7 +406,7 @@ function class.aggroClass()
     end
     if state.loop.PctHPs < 50 and class.isEnabled('USERANGE') then
         -- If ranged, we might be in some bad position aggroing extra stuff, return to camp
-        if config.get('MODE'):isReturnToCampMode() then
+        if mode.currentMode:isReturnToCampMode() then
             movement.navToLoc(camp.X, camp.Y, camp.Z)
         end
     end
@@ -443,18 +455,18 @@ function class.checkSpellSet()
     local spellSet = class.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            common.swapSpell(class.spells.shots, 1)
-            common.swapSpell(class.spells.focused, 2)
-            common.swapSpell(class.spells.composite, 3, composite_names)
-            common.swapSpell(class.spells.heart, 4)
-            common.swapSpell(class.spells.opener, 5)
-            common.swapSpell(class.spells.summer, 6)
-            common.swapSpell(class.spells.healtot, 7)
-            common.swapSpell(class.spells.rune, 8)
-            common.swapSpell(class.spells.dot, 9)
-            common.swapSpell(class.spells.dotds, 10)
-            common.swapSpell(class.spells.dmgbuff, 12)
-            common.swapSpell(class.spells.buffs, 13)
+            abilities.swapSpell(class.spells.shots, 1)
+            abilities.swapSpell(class.spells.focused, 2)
+            abilities.swapSpell(class.spells.composite, 3, composite_names)
+            abilities.swapSpell(class.spells.heart, 4)
+            abilities.swapSpell(class.spells.opener, 5)
+            abilities.swapSpell(class.spells.summer, 6)
+            abilities.swapSpell(class.spells.healtot, 7)
+            abilities.swapSpell(class.spells.rune, 8)
+            abilities.swapSpell(class.spells.dot, 9)
+            abilities.swapSpell(class.spells.dotds, 10)
+            abilities.swapSpell(class.spells.dmgbuff, 12)
+            abilities.swapSpell(class.spells.buffs, 13)
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
@@ -463,8 +475,8 @@ end
 
 function class.assist()
     if mq.TLO.Navigation.Active() then return end
-    if config.get('MODE'):isAssistMode() then
-        assist.checkTarget(class.resetClassTimers)
+    if mode.currentMode:isAssistMode() then
+        assist.fsm(class.resetClassTimers)
         useOpener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
@@ -475,6 +487,22 @@ function class.assist()
         end
         assist.sendPet()
     end
+    --[[if mode.currentMode:isAssistMode() then
+        assist.doAssist(class.resetClassTimers, true)
+        useOpener()
+        -- if we should be assisting but aren't in los, try to be?
+        -- try to deal with ranger noobishness running out to ranged and dying
+        if state.loop.PctHPs > 40 then
+            if not class.isEnabled('USERANGE') or not attackRanged() then
+                if class.isEnabled('USEMELEE') then
+                    --assist.attack()
+                    assist.getCombatPosition()
+                    assist.engage()
+                end
+            end
+        end
+        assist.sendPet()
+    end]]
 end
 
 return class

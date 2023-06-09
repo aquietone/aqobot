@@ -1,9 +1,10 @@
 ---@type Mq
 local mq = require('mq')
 local class = require('classes.classbase')
-local lists = require('data.lists')
+local config = require('interface.configuration')
+local constants = require('constants')
 local common = require('common')
-local config = require('configuration')
+local state = require('state')
 
 --[[
     spirit of rashara
@@ -39,13 +40,13 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
-    class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox')
-    class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox')
-    class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox')
-    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox')
-    class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox')
-    class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox')
+    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
+    class.addOption('USEFOCUSEDPARAGON', 'Use Focused Paragon (Self)', true, nil, 'Toggle use of Focused Paragon of Spirits', 'checkbox', nil, 'UseFocusedParagon', 'bool')
+    class.addOption('PARAGONOTHERS', 'Use Focused Paragon (Group)', true, nil, 'Toggle use of Focused Paragon of Spirits on others', 'checkbox', nil, 'ParagonOthers', 'bool')
+    class.addOption('USEPARAGON', 'Use Group Paragon', false, nil, 'Toggle use of Paragon of Spirit', 'checkbox', nil, 'UseParagon', 'bool')
+    class.addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
+    class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox', nil, 'UseFD', 'bool')
+    class.addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox', nil, 'UseSlow', 'bool')
 end
 
 function class.initSpellLines(_aqo)
@@ -62,6 +63,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}, {swap=true}) -- group buff
     class.addSpell('grouphp', {'Spiritual Vitality'}, {swap=true})
     class.addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
+    if class.spells.dot then class.spells.dot.condition = function() return state.burnActive end end
     class.addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
     class.addSpell('slow', {'Sha\'s Legacy'}, {opt='USESLOW'})
 end
@@ -82,6 +84,8 @@ function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getAA('Roar of Thunder', {conditions=_aqo.conditions.withinMeleeDistance}))
     table.insert(class.DPSAbilities, common.getAA('Gorilla Smash', {conditions=_aqo.conditions.withinMeleeDistance}))
     table.insert(class.DPSAbilities, common.getAA('Raven Claw', {conditions=_aqo.conditions.withinMeleeDistance}))
+
+    class.summonCompanion = common.getAA('Summon Companion')
 end
 
 function class.initBurns(_aqo)
@@ -126,6 +130,7 @@ function class.initBuffs(_aqo)
     if class.spells.petbuff then class.spells.petbuff.condition = petBuffCondition end
     table.insert(class.petBuffs, class.spells.pethaste)
     table.insert(class.petBuffs, class.spells.petbuff)
+    table.insert(class.petBuffs, common.getAA('Fortify Companion'))
     --local epicOpts = {CheckFor='Savage Wildcaller\'s Blessing', condition=_aqo.conditions.missingPetCheckFor}
     local epicOpts = {CheckFor='Might of the Wild Spirits', condition=_aqo.conditions.missingPetCheckFor}
     table.insert(class.petBuffs, common.getItem('Spiritcaller Totem of the Feral', epicOpts) or common.getItem('Savage Lord\'s Totem', epicOpts))
@@ -153,6 +158,10 @@ end
 
 function class.initRecoverAbilities(_aqo)
     if class.fParagon then
+        class.fParagon.precast = function()
+            mq.cmdf('/mqtar 0')
+            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
+        end
         class.fParagon.condition = function(ability)
             return mq.TLO.Me.PctMana() <= config.get('RECOVERPCT')
         end
@@ -183,7 +192,7 @@ function class.recoverClass()
                 local memberPctMana = member.PctMana() or 100
                 local memberDistance = member.Distance3D() or 300
                 local memberClass = member.Class.ShortName() or 'WAR'
-                if lists.manaClasses[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.Name)() then
+                if constants.manaClasses[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(class.fParagon.Name)() then
                     member.DoTarget()
                     class.fParagon:use()
                     if originalTargetID > 0 then mq.cmdf('/squelch /mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end

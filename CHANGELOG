@@ -1,3 +1,10 @@
+# 2023/05/20
+- Add code for TLOs/datatype
+- Refactor some spell code out of common into ability
+- Move some subtables out of aqo into requires
+- Break up tank and assist code into a few functions incase i ever try to move more towards a state machine again
+- Various class updates
+
 # 2023/04/30
 - Fix SummonID setting
 - Adjust rezzing to hopefully be more proactive

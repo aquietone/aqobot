@@ -1,9 +1,11 @@
 ---@type Mq
 local mq = require('mq')
+local logger = require('utils.logger')
 local timer = require('utils.timer')
 local abilities = require('ability')
 local castUtil = require('cast')
 local common = require('common')
+local constants = require('constants')
 local state = require('state')
 
 local aqo
@@ -27,7 +29,7 @@ local function haveBuff(buffName)
 end
 
 local function summonItem(buff)
-    if mq.TLO.FindItemCount(buff.SummonID)() < (buff.summonMinimum or 1) and not mq.TLO.Me.Moving()
+    if ((buff.summonMinimum or 1) < 0 or mq.TLO.FindItemCount(buff.SummonID)() < (buff.summonMinimum or 1)) and not mq.TLO.Me.Moving()
             and (not buff.ReagentID or mq.TLO.FindItemCount(buff.ReagentID)() >= buff.ReagentCount) then
         if abilities.use(buff) then
             state.queuedAction = function() mq.cmd('/autoinv') end
@@ -76,18 +78,18 @@ local function buffSelf(base)
         --[[if buff.CastName then
             local buffName = buff.SpellName
             if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
-            if not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buffName).Stacks() and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
+            if not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buffName).Stacks() and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
                 castUtil.cast(buff)
             end
         else]]
             local buffName = buff.Name -- TODO: buff name may not match AA or item name
             if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
             if buff.SummonID then
-                if base.isAbilityEnabled(buff.opt) and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
+                if base.isAbilityEnabled(buff.opt) and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
                     return summonItem(buff)
                 end
             else
-                if not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buff.Name).Stacks() and (not buff.nodmz or not aqo.lists.DMZ[mq.TLO.Zone.ID()]) then
+                if not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buff.Name).Stacks() and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
                     if buff.TargetType == 'Single' then mq.TLO.Me.DoTarget() end
                     result = abilities.use(buff, true)
                     if result then
@@ -96,15 +98,24 @@ local function buffSelf(base)
                                 if mq.TLO.Me.Casting() then
                                     return state.queuedAction
                                 else
-                                    mq.delay(100) mq.cmdf('/removebuff "%s"', buff.RemoveBuff)
+                                    mq.delay(100, function() return mq.TLO.Me.Buff(buff.RemoveBuff)() end)
+                                    if mq.TLO.Me.Buff(buff.RemoveBuff)() then
+                                        print(logger.logLine('Removing buff \ag%s\ax', buff.RemoveBuff))
+                                        mq.cmdf('/removebuff "%s"', buff.RemoveBuff)
+                                    end
                                 end
                             end
                         elseif buff.RemoveFamiliar then
+                            state.giveUpTimer = timer:new(5000)
                             state.queuedAction = function()
-                                if mq.TLO.Me.Casting() then
+                                if mq.TLO.Me.Casting() or mq.TLO.Pet.ID() == 0 then
+                                    if state.giveUpTimer:timerExpired() then state.giveUpTimer = nil return nil end
                                     return state.queuedAction
                                 else
-                                    if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.CleanName():find('familiar') then mq.delay(100) mq.cmdf('/squelch /pet get lost') end
+                                    if mq.TLO.Pet.ID() > 0 and (mq.TLO.Pet.Level() == 1 or mq.TLO.Pet.CleanName():find('familiar')) then
+                                        print(logger.logLine('Removing familiar'))
+                                        mq.cmdf('/squelch /pet get lost')
+                                    end
                                 end
                             end
                         end
@@ -154,7 +165,7 @@ local function buffGroup(base)
                 end
             end
             if anyoneMissing then
-                if common.swapAndCast(aBuff, state.swapGem) then return true end
+                if abilities.swapAndCast(aBuff, state.swapGem) then return true end
             end
         elseif aBuff.CastType == abilities.Types.Disc then
             
@@ -175,6 +186,7 @@ local function buffOOC(base)
         if base.buff_class() then return true end
     end
     common.checkItemBuffs()
+    if mq.TLO.SpawnCount('pccorpse radius 25')() > 0 then return false end
     -- find an actual buff spell that takes time to cast
     if buffAuras(base) then return true end
     if buffSelf(base) then return true end
@@ -189,7 +201,7 @@ local function buffPet(base)
         local distance = mq.TLO.Pet.Distance3D() or 300
         if distance > 100 then return false end
         if aqo.class.useCommonListProcessor then
-            aqo.common.processList(base.petBuffs, true)
+            common.processList(base.petBuffs, true)
             return
         end
         for _,buff in ipairs(base.petBuffs) do
@@ -237,11 +249,11 @@ local reportBuffsTimer = timer:new(60000)
 local reportSickTimer = timer:new(5000)
 function buff.broadcast()
     if reportBuffsTimer:timerExpired() then
-        aqo.buff.reportBuffs()
+        buff.reportBuffs()
         reportBuffsTimer:reset()
     end
     if reportSickTimer:timerExpired() then
-        aqo.buff.reportSick()
+        buff.reportSick()
         reportSickTimer:reset()
     end
 end
@@ -249,8 +261,8 @@ end
 local checkClickiesLoadedTimer = timer:new(300000)
 local function checkClickiesLoaded(base)
     if checkClickiesLoadedTimer:timerExpired() then
-        for clickyName,clickyType in pairs(base.clickies) do
-            local t = base.getTableForClicky(clickyType)
+        for clickyName,clicky in pairs(base.clickies) do
+            local t = base.getTableForClicky(clicky.clickyType)
             if t then
                 local found = false
                 for _,clicky in ipairs(t) do
@@ -260,7 +272,7 @@ local function checkClickiesLoaded(base)
                     end
                 end
                 if not found then
-                    base.addClicky({name=clickyName, clickyType=clickyType})
+                    base.addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt})
                 end
             end
         end
@@ -270,6 +282,7 @@ end
 
 local buffOOCTimer = timer:new(3000)
 function buff.buff(base)
+    if not state.justZonedTimer:timerExpired() then return false end
     checkClickiesLoaded(base)
     if buffCombat(base) then return true end
 

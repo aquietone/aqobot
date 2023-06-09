@@ -1,11 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
+local config = require('interface.configuration')
 local camp = require('routines.camp')
-local movement = require('routines.movement')
+local helpers = require('utils.helpers')
 local logger = require('utils.logger')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
-local common = require('common')
-local config = require('configuration')
+local mode = require('mode')
 local state = require('state')
 
 local tank = {}
@@ -21,9 +22,14 @@ local campBuffer = 20
 ---Iterate through mobs in the common.TARGETS table and find a mob in camp to begin tanking.
 ---Sets common.tankMobID to the ID of the mob to tank.
 function tank.findMobToTank()
-    if state.mobCount == 0 then return end
+    if state.mobCount == 0 then
+        -- No mobs present to tank
+        return false
+    end
     if state.tankMobID > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tankMobID == mq.TLO.Target.ID() then
-        return
+        -- Already actively tanking a mob
+        tank.stickToMob()
+        return false
     else
         state.tankMobID = 0
     end
@@ -41,13 +47,13 @@ function tank.findMobToTank()
             if mob.Named() then
                 logger.debug(logger.flags.routines.tank, 'Selecting Named mob to tank next (%s)', mob.ID())
                 state.tankMobID = mob.ID()
-                return
+                return true
             else--if not mob.Mezzed() then -- TODO: mez check requires targeting
-                if mob.Level() > highestlvl then
+                if (mob.Level() or 0) > highestlvl then
                     highestlvlid = id
                     highestlvl = mob.Level()
                 end
-                if mob.PctHPs() < lowesthp then
+                if (mob.PctHPs() or 100) < lowesthp then
                     lowesthpid = id
                     lowesthp = mob.PctHPs()
                 end
@@ -57,18 +63,19 @@ function tank.findMobToTank()
     if lowesthpid ~= 0 and lowesthp < 100 then
         logger.debug(logger.flags.routines.tank, 'Selecting lowest HP mob to tank next (%s)', lowesthpid)
         state.tankMobID = lowesthpid
-        return
+        return true
     elseif highestlvlid ~= 0 then
         logger.debug(logger.flags.routines.tank, 'Selecting highest level mob to tank next (%s)', highestlvlid)
         state.tankMobID = highestlvlid
-        return
+        return true
     end
     -- no named or unmezzed mobs, break a mez
     if firstid ~= 0 then
         logger.debug(logger.flags.routines.tank, 'Selecting first available mob to tank next (%s)', firstid)
         state.tankMobID = firstid
-        return
+        return true
     end
+    return false
 end
 
 ---Determine whether the target to be tanked is within the camp radius.
@@ -78,9 +85,9 @@ local function tankMobInRange(tank_spawn)
     local mob_y = tank_spawn.Y()
     if not mob_x or not mob_y then return false end
     local camp_radius = config.get('CAMPRADIUS')
-    if config.get('MODE'):isReturnToCampMode() and camp.Active then
-        local dist = common.checkDistance(camp.X, camp.Y, mob_x, mob_y)
-        if dist < camp_radius then
+    if mode.currentMode:isReturnToCampMode() and camp.Active then
+        local dist = helpers.checkDistance(camp.X, camp.Y, mob_x, mob_y)
+        if dist < camp_radius^2 then
             return true
         else
             local targethp = tank_spawn.PctHPs()
@@ -90,7 +97,7 @@ local function tankMobInRange(tank_spawn)
             return false
         end
     else
-        if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < camp_radius^2 then
+        if helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < camp_radius^2 then
             return true
         else
             return false
@@ -98,10 +105,37 @@ local function tankMobInRange(tank_spawn)
     end
 end
 
+function tank.approachMob()
+    if state.tankMobID == 0 then return false end
+    local tank_spawn = mq.TLO.Spawn(state.tankMobID)
+    if not tank_spawn() or tank_spawn.Type() == 'Corpse' then
+        state.tankMobID = 0
+        return false
+    end
+    if not tankMobInRange(tank_spawn) then
+        state.tankMobID = 0
+        return false
+    end
+    if not tank_spawn.LineOfSight() then
+        movement.navToTarget(nil, 2000)
+        return true
+    end
+    return true
+end
+
+function tank.acquireTarget()
+    if state.tankMobID == 0 then return false end
+    local tank_spawn = mq.TLO.Spawn(state.tankMobID)
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= tank_spawn.ID() then
+        tank_spawn.DoTarget()
+    end
+    return true
+end
+
 local stickTimer = timer:new(3000)
 ---Tank the mob whose ID is stored in common.tankMobID.
 function tank.tankMob()
-    if state.tankMobID == 0 then return end
+    --[[if state.tankMobID == 0 then return end
     local tank_spawn = mq.TLO.Spawn(state.tankMobID)
     if not tank_spawn() or tank_spawn.Type() == 'Corpse' then
         state.tankMobID = 0
@@ -117,10 +151,10 @@ function tank.tankMob()
     end
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= tank_spawn.ID() then
         tank_spawn.DoTarget()
-    end
+    end]]
     if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then
         state.tankMobID = 0
-        return
+        return false
     end
     --movement.stop()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
@@ -135,7 +169,15 @@ function tank.tankMob()
     elseif state.dontAttack and state.enrageTimer:timerExpired() then
         state.dontAttack = false
     end
-    if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and config.get('MODE'):getName() ~= 'manual' then
+    return true
+    --[[if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and mode.currentMode:getName() ~= 'manual' then
+        mq.cmd('/squelch /stick front loose moveback 10')
+        stickTimer:reset()
+    end]]
+end
+
+function tank.stickToMob()
+    if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and mode.currentMode:getName() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')
         stickTimer:reset()
     end

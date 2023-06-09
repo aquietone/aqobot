@@ -19,7 +19,7 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions()
-    class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox')
+    class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox', nil, 'UseFade', 'bool')
 end
 
 function class.initDPSAbilities(_aqo)

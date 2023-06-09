@@ -2,7 +2,8 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local common = require('common')
-local config = require('configuration')
+local config = require('interface.configuration')
+local mode = require('mode')
 local state = require('state')
 
 function class.init(_aqo)
@@ -23,15 +24,15 @@ function class.init(_aqo)
 end
 
 function class.initClassOptions(_aqo)
-    class.addOption('USEBATTLELEAP', 'Use Battle Leap', true, nil, 'Keep the Battle Leap AA Buff up', 'checkbox')
-    class.addOption('USEFORTITUDE', 'Use Fortitude', false, nil, 'Use Fortitude Discipline on burn', 'checkbox')
-    class.addOption('USEGRAPPLE', 'Use Grapple', true, nil, 'Use Grappling Strike AA', 'checkbox')
-    class.addOption('USEGRASP', 'Use Grasp', true, nil, 'Use Warlord\'s Grasp AA', 'checkbox')
-    class.addOption('USEPHANTOM', 'Use Phantom', false, nil, 'Use Phantom Aggressor pet discipline', 'checkbox')
-    class.addOption('USEPROJECTION', 'Use Projection', true, nil, 'Use Projection of Fury pet AA', 'checkbox')
-    class.addOption('USEEXPANSE', 'Use Expanse', false, nil, 'Use Concordant Expanse for AE aggro', 'checkbox', 'USEPRECISION')
-    class.addOption('USEPRECISION', 'Use Precision', false, nil, 'Use Concordant Precision for single target aggro', 'checkbox', 'USEEXPANSE')
-    class.addOption('USESNARE', 'Use Snare', false, nil, 'Use Call of Challenge AA, which includes a snare', 'checkbox')
+    class.addOption('USEBATTLELEAP', 'Use Battle Leap', true, nil, 'Keep the Battle Leap AA Buff up', 'checkbox', nil, 'UseBattleLeap', 'bool')
+    class.addOption('USEFORTITUDE', 'Use Fortitude', false, nil, 'Use Fortitude Discipline on burn', 'checkbox', nil, 'UseFortitude', 'bool')
+    class.addOption('USEGRAPPLE', 'Use Grapple', true, nil, 'Use Grappling Strike AA', 'checkbox', nil, 'UseGrapple', 'bool')
+    class.addOption('USEGRASP', 'Use Grasp', true, nil, 'Use Warlord\'s Grasp AA', 'checkbox', nil, 'UseGrasp', 'bool')
+    class.addOption('USEPHANTOM', 'Use Phantom', false, nil, 'Use Phantom Aggressor pet discipline', 'checkbox', nil, 'UsePhantom', 'bool')
+    class.addOption('USEPROJECTION', 'Use Projection', true, nil, 'Use Projection of Fury pet AA', 'checkbox', nil, 'UseProjection', 'bool')
+    class.addOption('USEEXPANSE', 'Use Expanse', false, nil, 'Use Concordant Expanse for AE aggro', 'checkbox', 'USEPRECISION', 'UseExpanse', 'bool')
+    class.addOption('USEPRECISION', 'Use Precision', false, nil, 'Use Concordant Precision for single target aggro', 'checkbox', 'USEEXPANSE', 'UsePrecision', 'bool')
+    class.addOption('USESNARE', 'Use Snare', false, nil, 'Use Call of Challenge AA, which includes a snare', 'checkbox', nil, 'UseSnare', 'bool')
 end
 
 -- bazu bellow 69
@@ -139,7 +140,7 @@ end
 function class.ohShitClass()
     if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if class.resurgence then class.resurgence:use() end
-        if config.get('MODE'):isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
             if class.flash and mq.TLO.Me.CombatAbilityReady(class.flash.Name)() then
                 class.flash:use()
             elseif class.fortitude and class.isEnabled(class.fortitude.opt) then

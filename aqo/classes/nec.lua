@@ -4,9 +4,11 @@ local class = require('classes.classbase')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local common = require('common')
-local config = require('configuration')
+local config = require('interface.configuration')
+local abilities = require('ability')
+local mode = require('mode')
 local state = require('state')
-local ui = require('ui')
+local ui = require('interface.ui')
 
 function class.init(_aqo)
     class.classOrder = {'assist', 'aggro', 'mash', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
@@ -35,26 +37,26 @@ function class.init(_aqo)
 
     class.convergence = common.getAA('Convergence')
     class.rezAbility = class.convergence
-
+    class.summonCompanion = common.getAA('Summon Companion')
     class.neccount = 1
 end
 
 function class.initClassOptions()
-    class.addOption('STOPPCT', 'DoT Stop Pct', 0, nil, 'Percent HP to stop refreshing DoTs on mobs', 'inputint')
-    class.addOption('USEDEBUFF', 'Debuff', true, nil, 'Debuff targets with scent', 'checkbox')
-    class.addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox')
-    class.addOption('USEMANATAP', 'Mana Drain', false, nil, 'Use group mana drain dot. Replaces Ignite DoT.', 'checkbox')
-    class.addOption('USEREZ', 'Use Rez', true, nil, 'Use Convergence AA to rez group members', 'checkbox')
-    class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox')
-    class.addOption('USEINSPIRE', 'Inspire Ally', true, nil, 'Use Inspire Ally pet buff', 'checkbox')
-    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox')
-    class.addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbox')
-    class.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox')
-    class.addOption('MULTICOUNT', 'Multi DoT #', 3, nil, 'Number of mobs to rotate through when multi-dot is enabled', 'inputint')
-    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox')
-    class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs, in case mobs are just dying too fast', 'checkbox')
-    class.addOption('USELICH', 'Use Lich', true, nil, 'Toggle use of lich, incase you\'re just farming and don\'t really need it', 'checkbox')
-    class.addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox')
+    class.addOption('STOPPCT', 'DoT Stop Pct', 0, nil, 'Percent HP to stop refreshing DoTs on mobs', 'inputint', nil, 'StopPct', 'int')
+    class.addOption('USEDEBUFF', 'Debuff', true, nil, 'Debuff targets with scent', 'checkbox', nil, 'UseDebuff', 'bool')
+    class.addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox', nil, 'UseBuffShield', 'bool')
+    class.addOption('USEMANATAP', 'Mana Drain', false, nil, 'Use group mana drain dot. Replaces Ignite DoT.', 'checkbox', nil, 'UseManaTap', 'bool')
+    class.addOption('USEREZ', 'Use Rez', true, nil, 'Use Convergence AA to rez group members', 'checkbox', nil, 'UseRez', 'bool')
+    class.addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox', nil, 'UseFD', 'bool')
+    class.addOption('USEINSPIRE', 'Inspire Ally', true, nil, 'Use Inspire Ally pet buff', 'checkbox', nil, 'UseInspire', 'bool')
+    class.addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
+    class.addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbox', nil, 'UseWounds', 'bool')
+    class.addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox', nil, 'MultiDoT', 'bool')
+    class.addOption('MULTICOUNT', 'Multi DoT #', 3, nil, 'Number of mobs to rotate through when multi-dot is enabled', 'inputint', nil, 'MultiCount', 'int')
+    class.addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
+    class.addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs, in case mobs are just dying too fast', 'checkbox', nil, 'UseDoTs', 'bool')
+    class.addOption('USELICH', 'Use Lich', true, nil, 'Toggle use of lich, incase you\'re just farming and don\'t really need it', 'checkbox', nil, 'UseLich', 'bool')
+    class.addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox', nil, 'BurnProc', 'bool')
 end
 
 function class.initSpellLines()
@@ -192,8 +194,7 @@ function class.initBurns()
     table.insert(class.pre_burn_items, common.getItem(mq.TLO.InvSlot('Chest').Item.Name())) -- buff, Consuming Magic
 
     -- entries in the AAs table are pairs of {aa name, aa id}
-    table.insert(class.burnAbilities, common.getAA('Silent Casting')) -- song, 12 minute CD
-    table.insert(class.burnAbilities, common.getAA('Focus of Arcanum')) -- buff, 10 minute CD
+    table.insert(class.burnAbilities, class.silent) -- song, 12 minute CD
     table.insert(class.burnAbilities, common.getAA('Mercurial Torment')) -- buff, 24 minute CD
     table.insert(class.burnAbilities, common.getAA('Heretic\'s Twincast')) -- buff, 15 minute CD
     if not state.emu then
@@ -217,7 +218,6 @@ function class.initBurns()
     class.funeralpyre = common.getAA('Funeral Pyre') -- song, 20 minute CD
 
     class.pre_burn_AAs = {}
-    table.insert(class.pre_burn_AAs, common.getAA('Focus of Arcanum')) -- buff
     table.insert(class.pre_burn_AAs, common.getAA('Mercurial Torment')) -- buff
     table.insert(class.pre_burn_AAs, common.getAA('Heretic\'s Twincast')) -- buff
     if not state.emu then
@@ -237,20 +237,14 @@ function class.initBuffs()
         table.insert(class.selfBuffs, common.getAA('Gift of the Grave', {RemoveBuff='Gift of the Grave Effect'}))
         table.insert(class.singleBuffs, class.spells.defensiveproc)
         table.insert(class.combatBuffs, common.getAA('Reluctant Benevolence'))
-
-        local arcanum1 = common.getAA('Focus of Arcanum')
-        local arcanum2 = common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'})
-        local arcanum3 = common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'})
-        local arcanum4 = common.getAA('Empowered Focus of Arcanum')
-        table.insert(class.combatBuffs, arcanum2)
-        table.insert(class.combatBuffs, arcanum3)
     else
         table.insert(class.selfBuffs, class.unity)
     end
     table.insert(class.selfBuffs, class.spells.shield)
     table.insert(class.petBuffs, class.spells.inspire)
     table.insert(class.petBuffs, class.spells.pethaste)
-
+    table.insert(class.petBuffs, common.getAA('Fortify Companion'))
+    
     class.addRequestAlias(class.spells.defensiveproc, 'defensiveproc')
 end
 
@@ -312,30 +306,30 @@ function class.swapSpells()
     if mq.TLO.Me.Gem(woundsName)() then
         if not class.isEnabled('USEWOUNDS') or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
-                common.swapSpell(class.spells.pyrelong, class.swap_gem or 10)
+                abilities.swapSpell(class.spells.pyrelong, class.swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                common.swapSpell(class.spells.fireshadow, class.swap_gem or 10)
+                abilities.swapSpell(class.spells.fireshadow, class.swap_gem or 10)
             end
         end
     elseif mq.TLO.Me.Gem(pyrelongName)() then
         if pyrelongDuration and pyrelongDuration > 20000 then
             if class.isEnabled('USEWOUNDS') and (not woundsDuration or woundsDuration < 20000) then
-                common.swapSpell(class.spells.wounds, class.swap_gem or 10)
+                abilities.swapSpell(class.spells.wounds, class.swap_gem or 10)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                common.swapSpell(class.spells.fireshadow, class.swap_gem or 10)
+                abilities.swapSpell(class.spells.fireshadow, class.swap_gem or 10)
             end
         end
     elseif mq.TLO.Me.Gem(fireshadowName)() then
         if fireshadowDuration and fireshadowDuration > 20000 then
             if class.isEnabled('USEWOUNDS') and (not woundsDuration or woundsDuration < 20000) then
-                common.swapSpell(class.spells.wounds, class.swap_gem or 10)
+                abilities.swapSpell(class.spells.wounds, class.swap_gem or 10)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
-                common.swapSpell(class.spells.pyrelong, class.swap_gem or 10)
+                abilities.swapSpell(class.spells.pyrelong, class.swap_gem or 10)
             end
         end
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize wounds again
-        common.swapSpell(class.spells.wounds, class.swap_gem or 10)
+        abilities.swapSpell(class.spells.wounds, class.swap_gem or 10)
     end
 end
 
@@ -472,7 +466,7 @@ end
 local checkAggroTimer = timer:new(10000)
 function class.aggroOld()
     if state.emu then return end
-    if config.get('MODE'):isManualMode() then return end
+    if mode.currentMode:isManualMode() then return end
     if class.isEnabled('USEFD') and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
         if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or checkAggroTimer:timerExpired() then
             if class.deathseffigy and mq.TLO.Me.PctAggro() >= 90 then
@@ -510,28 +504,28 @@ function class.checkSpellSet()
     local spellSet = class.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            common.swapSpell(class.spells.composite, 1, composite_names)
-            common.swapSpell(class.spells.pyreshort, 2)
-            common.swapSpell(class.spells.venom, 3)
-            common.swapSpell(class.spells.magic, 4)
-            common.swapSpell(class.spells.haze, 5)
-            common.swapSpell(class.spells.grasp, 6)
-            common.swapSpell(class.spells.leech, 7)
-            --common.swapSpell(class.spells.decay, 11)
-            common.swapSpell(class.spells.combodisease, 11)
-            common.swapSpell(class.spells.synergy, 13)
+            abilities.swapSpell(class.spells.composite, 1, composite_names)
+            abilities.swapSpell(class.spells.pyreshort, 2)
+            abilities.swapSpell(class.spells.venom, 3)
+            abilities.swapSpell(class.spells.magic, 4)
+            abilities.swapSpell(class.spells.haze, 5)
+            abilities.swapSpell(class.spells.grasp, 6)
+            abilities.swapSpell(class.spells.leech, 7)
+            --abilities.swapSpell(class.spells.decay, 11)
+            abilities.swapSpell(class.spells.combodisease, 11)
+            abilities.swapSpell(class.spells.synergy, 13)
             state.spellSetLoaded = spellSet
         elseif spellSet == 'short' then
-            common.swapSpell(class.spells.composite, 1, composite_names)
-            common.swapSpell(class.spells.pyreshort, 2)
-            common.swapSpell(class.spells.venom, 3)
-            common.swapSpell(class.spells.magic, 4)
-            common.swapSpell(class.spells.haze, 5)
-            common.swapSpell(class.spells.grasp, 6)
-            common.swapSpell(class.spells.leech, 7)
-            --common.swapSpell(class.spells.decay, 11)
-            common.swapSpell(class.spells.combodisease, 11)
-            common.swapSpell(class.spells.synergy, 13)
+            abilities.swapSpell(class.spells.composite, 1, composite_names)
+            abilities.swapSpell(class.spells.pyreshort, 2)
+            abilities.swapSpell(class.spells.venom, 3)
+            abilities.swapSpell(class.spells.magic, 4)
+            abilities.swapSpell(class.spells.haze, 5)
+            abilities.swapSpell(class.spells.grasp, 6)
+            abilities.swapSpell(class.spells.leech, 7)
+            --abilities.swapSpell(class.spells.decay, 11)
+            abilities.swapSpell(class.spells.combodisease, 11)
+            abilities.swapSpell(class.spells.synergy, 13)
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
@@ -539,65 +533,65 @@ function class.checkSpellSet()
     end
     if spellSet == 'standard' then
         if class.isEnabled('USEMANATAP') then
-            common.swapSpell(class.spells.manatap, 8)
+            abilities.swapSpell(class.spells.manatap, 8)
         else
-            common.swapSpell(class.spells.ignite, 8)
+            abilities.swapSpell(class.spells.ignite, 8)
         end
         if class.isEnabled('USEALLIANCE') then
-            common.swapSpell(class.spells.alliance, 9)
+            abilities.swapSpell(class.spells.alliance, 9)
         else
             if class.isEnabled('USEMANATAP') then
-                common.swapSpell(class.spells.ignite, 9)
+                abilities.swapSpell(class.spells.ignite, 9)
             else
-                common.swapSpell(class.spells.scourge, 9)
+                abilities.swapSpell(class.spells.scourge, 9)
             end
         end
         if class.isEnabled('USEBUFFSHIELD') then
-            common.swapSpell(class.spells.shield, 12)
+            abilities.swapSpell(class.spells.shield, 12)
         else
             if class.isEnabled('USEMANATAP') and class.isEnabled('USEALLIANCE') then
-                common.swapSpell(class.spells.ignite, 12)
+                abilities.swapSpell(class.spells.ignite, 12)
             elseif class.isEnabled('USEMANATAP') or class.isEnabled('USEALLIANCE') then
-                common.swapSpell(class.spells.scourge, 12)
+                abilities.swapSpell(class.spells.scourge, 12)
             else
-                common.swapSpell(class.spells.corruption, 12)
+                abilities.swapSpell(class.spells.corruption, 12)
             end
         end
         if not class.isEnabled('USEWOUNDS') then
-            common.swapSpell(class.spells.pyrelong, 10)
+            abilities.swapSpell(class.spells.pyrelong, 10)
         else
-            common.swapSpell(class.spells.wounds, 10)
+            abilities.swapSpell(class.spells.wounds, 10)
         end
     elseif spellSet == 'short' then
         if class.isEnabled('USEMANATAP') then
-            common.swapSpell(class.spells.manatap, 8)
+            abilities.swapSpell(class.spells.manatap, 8)
         else
-            common.swapSpell(class.spells.ignite, 8)
+            abilities.swapSpell(class.spells.ignite, 8)
         end
         if class.isEnabled('USEALLIANCE') then
-            common.swapSpell(class.spells.alliance, 9)
+            abilities.swapSpell(class.spells.alliance, 9)
         else
             if class.isEnabled('USEMANATAP') then
-                common.swapSpell(class.spells.ignite, 9)
+                abilities.swapSpell(class.spells.ignite, 9)
             else
-                common.swapSpell(class.spells.scourge, 9)
+                abilities.swapSpell(class.spells.scourge, 9)
             end
         end
         if class.isEnabled('USEINSPIRE') then
-            common.swapSpell(class.spells.inspire, 12)
+            abilities.swapSpell(class.spells.inspire, 12)
         else
             if class.isEnabled('USEMANATAP') and class.isEnabled('USEALLIANCE') then
-                common.swapSpell(class.spells.ignite, 12)
+                abilities.swapSpell(class.spells.ignite, 12)
             elseif class.isEnabled('USEMANATAP') or class.isEnabled('USEALLIANCE') then
-                common.swapSpell(class.spells.scourge, 12)
+                abilities.swapSpell(class.spells.scourge, 12)
             else
-                common.swapSpell(class.spells.venin, 12)
+                abilities.swapSpell(class.spells.venin, 12)
             end
         end
         if not class.isEnabled('USEWOUNDS') then
-            common.swapSpell(class.spells.pyrelong, 10)
+            abilities.swapSpell(class.spells.pyrelong, 10)
         else
-            common.swapSpell(class.spells.swarm, 10)
+            abilities.swapSpell(class.spells.swarm, 10)
         end
     end
 end

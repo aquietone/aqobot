@@ -1,5 +1,3 @@
-local logger = require('utils.logger')
-
 local mode = {
     modes={},
     mode_names={}
@@ -58,6 +56,14 @@ function mode.fromString(a_mode)
     end
 end
 
+function mode.nameFromString(a_mode)
+    if tonumber(a_mode) then
+        return mode.modes[tonumber(a_mode)+1] and mode.modes[tonumber(a_mode)+1].name
+    else
+        return mode.modes[a_mode] and mode.modes[a_mode].name
+    end
+end
+
 mode:new('manual',false,false,false,false,false)
 mode:new('assist',true,true,false,false,true)
 mode:new('chase',false,true,false,false,false)
@@ -67,8 +73,6 @@ mode:new('pullertank',true,false,true,true,true)
 mode:new('puller',true,true,false,true,true)
 mode:new('huntertank',true,false,true,true,false)
 
---for i,mode in ipairs(mode.modes) do
---    print(logger.logLine('modes[%s]: name=%s', i, mode.name))
---end
+mode.currentMode = mode.modes.manual
 
 return mode

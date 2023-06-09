@@ -4,6 +4,9 @@ local logger = require('utils.logger')
 local timer = require('utils.timer')
 
 local state = {
+    class = string.lower(mq.TLO.Me.Class.ShortName() or ''),
+    -- (ROF == 19, EMU stops at ROF)
+    emu = not mq.TLO.Me.HaveExpansion(20)() and true or false,
     debug = false,
     paused = true,
     burnNow = false,
@@ -27,10 +30,43 @@ local state = {
     medding = false,
     buffs = {},
     sick = {},
+    justZonedTimer = timer:new(2000)
 }
+
+state.fsm = {
+    IDLE='IDLE',
+    -- tank states
+    TANK_SCAN='TANK_SCAN',
+    TANK_ENGAGE='TANK_ENGAGE',
+    -- pull states
+    PULL_SCAN='PULL_SCAN',
+    PULL_APPROACH='PULL_APPROACH',
+    PULL_ENGAGE='PULL_ENGAGE',
+    PULL_RETURN='PULL_RETURN',
+    PULL_WAIT='PULL_WAIT',
+    -- assist states
+    ASSIST_SCAN='ASSIST_SCAN',
+    ASSIST_ENGAGE='ASSIST_ENGAGE',
+    -- heal states
+    HEAL_SCAN='HEAL_SCAN',
+    HEAL_CAST='HEAL_CAST',
+    -- buff states
+    BUFF_SCAN='BUFF_SCAN',
+    BUFF_CAST='BUFF_CAST',
+    -- spell states
+    CASTING='CASTING',
+    -- loot states
+    LOOT_SCAN='LOOT_SCAN',
+    LOOT_APPROACH='LOOT_APPROACH',
+    LOOT_MOB='LOOT_MOB',
+    LOOT_ITEM='LOOT_ITEM',
+    -- mez, rest, rez, fade, pet, chasing, return to camp
+}
+state.currentState = state.fsm.IDLE
 
 function state.resetCombatState(debug, caller)
     logger.debug(debug, 'Resetting combatState. pullState before=%s. caller=%s', state.pullState, caller)
+    print('reset state')
     state.burnActive = false
     state.burnActiveTimer:reset(0)
     state.assistMobID = 0

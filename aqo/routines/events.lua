@@ -1,7 +1,13 @@
 --- @type Mq
 local mq = require('mq')
+local config = require('interface.configuration')
+local debuff = require('routines.debuff')
+local mez = require('routines.mez')
+local camp = require('routines.camp')
+local logger = require('utils.logger')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
-local config = require('configuration')
+local mode = require('mode')
 local state = require('state')
 
 local aqo
@@ -28,9 +34,9 @@ end
 
 function events.initClassBasedEvents()
     -- setup events based on whether certain options are defined, not whether they are enabled.
-    aqo.debuff.setupEvents()
+    debuff.setupEvents()
     if aqo.class.OPTS.MEZST or aqo.class.OPTS.MEZAE then
-        aqo.mez.setupEvents()
+        mez.setupEvents()
     end
     if mq.TLO.Me.AltAbility('Tranquil Blessings')() then
         mq.event('eventTranquil', '#*# tells #*#,#*#\'tranquil\'', events.eventTranquil)
@@ -40,27 +46,31 @@ function events.initClassBasedEvents()
     else
         mq.event('eventGearrequest', '#1# tells #*#,#*#\'gear #2#\'', events.eventGear)
     end
+    mq.event('eventepic', '#*# tells #*#,#*#\'epicburn\'', events.epicburn)
 end
 
 function events.zoned()
-    aqo.state.resetCombatState()
-    if aqo.state.currentZone == mq.TLO.Zone.ID() then
+    state.resetCombatState()
+    if state.currentZone == mq.TLO.Zone.ID() then
         -- evac'd
-        aqo.camp.setCamp()
-        aqo.movement.stop()
+        camp.setCamp()
+        movement.stop()
     end
-    aqo.state.currentZone = mq.TLO.Zone.ID()
+    state.currentZone = mq.TLO.Zone.ID()
     mq.cmd('/pet ghold on')
-    if not aqo.state.paused and config.get('MODE'):isPullMode() then
-        config.MODE.value = aqo.mode.fromString('manual')
-        aqo.camp.setCamp()
-        aqo.movement.stop()
+    if not state.paused and mode.currentMode:isPullMode() then
+        config.MODE.value = 'manual'
+        mode.currentMode = mode.fromString('manual')
+        camp.setCamp()
+        movement.stop()
     end
+    state.justZonedTimer:reset()
+    mq.cmd('/stopcast')
 end
 
 function events.movecloser()
-    if config.get('MODE'):isAssistMode() and not aqo.state.paused then
-        aqo.movement.navToTarget(nil, 1000)
+    if mode.currentMode:isAssistMode() and not state.paused then
+        movement.navToTarget(nil, 1000)
     end
 end
 
@@ -68,15 +78,18 @@ end
 ---@param line any
 ---@param spell_name any
 function events.eventResist(line, spell_name)
-    aqo.state.resists[spell_name] = (aqo.state.resists[spell_name] or 0) + 1
-    print(aqo.logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', mq.TLO.Target.CleanName(), spell_name, aqo.state.resists[spell_name]))
+    local target = mq.TLO.Target.CleanName()
+    if target then
+        state.resists[spell_name] = (state.resists[spell_name] or 0) + 1
+        print(logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', target, spell_name, state.resists[spell_name]))
+    end
 end
 
 ---Reset combat state in the event of death.
 function events.eventDead()
-    print(aqo.logger.logLine('HP hit 0. what do!'))
-    aqo.state.resetCombatState()
-    aqo.movement.stop()
+    print(logger.logLine('HP hit 0. what do!'))
+    state.resetCombatState()
+    movement.stop()
 end
 
 function events.eventGear(line, requester, requested)
@@ -186,7 +199,7 @@ function events.eventOMMMask()
 end
 
 function events.cannotRez()
-    aqo.state.cannotRez = true
+    state.cannotRez = true
 end
 
 function events.fizzled()
@@ -195,6 +208,10 @@ end
 
 function events.interrupted()
     state.interrupted = true
+end
+
+function events.epicburn()
+    aqo.class.useEpic()
 end
 
 return events

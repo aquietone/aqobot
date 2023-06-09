@@ -1,10 +1,12 @@
 --- @type Mq
 local mq = require 'mq'
-local movement = require('routines.movement')
+local config = require('interface.configuration')
+local helpers = require('utils.helpers')
 local logger = require('utils.logger')
+local movement = require('utils.movement')
 local timer = require('utils.timer')
 local common = require('common')
-local config = require('configuration')
+local mode = require('mode')
 local state = require('state')
 
 local camp = {
@@ -18,18 +20,12 @@ local camp = {
     PullArcRight=0,
 }
 
-function camp.init(aqo)
-
-end
-
-local function distance(x1, x2, y1, y2, z1, z2)
-    return math.sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
-end
+function camp.init(aqo) end
 
 function camp.mobRadarB()
     local distanceFromCamp = false
     local x, y, z
-    if camp.Active or config.get('MODE'):getName() ~= 'huntertank' then
+    if camp.Active or mode.currentMode:getName() ~= 'huntertank' then
         distanceFromCamp = true
         x, y, z = camp.X, camp.Y, camp.Z
     end
@@ -43,8 +39,8 @@ function camp.mobRadarB()
     local function campPredicate(spawn)
         if spawn.Type() ~= 'NPC' then return false end
         if distanceFromCamp then
-            local d = distance(x, spawn.X(), y, spawn.Y(), z, spawn.Z())
-            if d > config.get('CAMPRADIUS') then return false end
+            local d = helpers.checkDistance(x, spawn.X(), y, spawn.Y())
+            if d > config.get('CAMPRADIUS')^2 then return false end
         else
             if spawn.Distance3D() > config.get('CAMPRADIUS') then return false end
         end
@@ -65,7 +61,7 @@ local xtar_nopet_count = 'xtarhater radius %d zradius 50 nopet loc %d %d %d'
 ---Adds the mob ID of each mob found to the common.TARGETS table.
 function camp.mobRadar()
     local x, y, z
-    if not camp.Active or config.get('MODE'):getName() == 'huntertank' then
+    if not camp.Active or mode.currentMode:getName() == 'huntertank' then
         x, y, z = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     else
         x, y, z = camp.X, camp.Y, camp.Z
@@ -104,7 +100,7 @@ end
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 local checkCampTimer = timer:new(2000)
 function camp.checkCamp()
-    if not config.get('MODE'):isReturnToCampMode() or not camp.Active then return end
+    if not mode.currentMode:isReturnToCampMode() or not camp.Active then return end
     if not checkCampTimer:timerExpired() then return end
     checkCampTimer:reset()
     if (state.class ~= 'brd' and mq.TLO.Me.Casting()) or not common.clearToBuff() then return end
@@ -113,7 +109,7 @@ function camp.checkCamp()
         camp.Active = false
         return
     end
-    if common.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
+    if helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
         movement.navToLoc(camp.X, camp.Y, camp.Z)
     end
 end
@@ -129,13 +125,13 @@ local function drawMapLoc(camp_x, camp_y, camp_z, heading, color)
     elseif heading > 360 then
         heading = heading - 360
     end
-    local x_move = math.cos(math.rad(common.convertHeading(heading)))
+    local x_move = math.cos(math.rad(helpers.convertHeading(heading)))
     if x_move > 0 and heading > 0 and heading < 180 then
         x_move = x_move * -1
     elseif x_move < 0 and heading >= 180 then
         x_move = math.abs(x_move)
     end
-    local y_move = math.sin(math.rad(common.convertHeading(heading)))
+    local y_move = math.sin(math.rad(helpers.convertHeading(heading)))
     if y_move > 0 and heading > 90 and heading < 270 then
         y_move = y_move * -1
     elseif y_move < 0 and (heading <= 90 or heading >= 270) then
@@ -167,10 +163,7 @@ end
 ---Set, update or clear the CAMP values depending on whether currently in a camp mode or not.
 ---@param reset boolean|nil @If true, then reset the camp to pickup the latest options.
 function camp.setCamp(reset)
-    local mode = config.get('MODE')
-    if not mode then
-        printf('MODE is nil somehow??? %s %s', mode, config.MODE.value)
-    end
+    local mode = mode.currentMode
     if mode:isCampMode() then
         mq.cmd('/squelch /maploc remove')
         if not camp.Active or reset then
