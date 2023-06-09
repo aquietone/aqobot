@@ -265,17 +265,19 @@ local function doRezFor(rezAbility)
         waitForZoning = false
     end
     local corpseName = corpse.Name()
-    -- no corpse to rez
     if not corpseName then return false end
-    if not newCorpses[corpseName] and waitForZoning then
-        -- don't try to rez a freshly seen corpse immediately, because zone times
-        newCorpses[corpseName] = timer:new(3000)
-        return false
-    end
-    -- if corpse has been seen before but too fresh, don't rez yet
-    if newCorpses[corpseName] and not newCorpses[corpseName]:timerExpired() then return false end
     corpseName = corpseName:gsub('\'s corpse.*', '')
     if (config.get('REZGROUP') and mq.TLO.Group.Member(corpseName)()) or (config.get('REZRAID') and mq.TLO.Raid.Member(corpseName)()) then
+        -- no corpse to rez
+        if mq.TLO.Zone.ShortName() ~= 'poknowledge' then
+            if not newCorpses[corpseName] and waitForZoning then
+                -- don't try to rez a freshly seen corpse immediately, because zone times
+                newCorpses[corpseName] = timer:new(3000)
+                return false
+            end
+            -- if corpse has been seen before but too fresh, don't rez yet
+            if newCorpses[corpseName] and not newCorpses[corpseName]:timerExpired() then return false end
+        end
         corpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/keypress CONSIDER')
@@ -295,12 +297,14 @@ local function doRezFor(rezAbility)
                 return true
             end
         end
+    else
+        mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
     end
 end
 
-local rezCheckTimer = timer:new(10000)
+local rezCheckTimer = timer:new(5000)
 function healing.rez(rezAbility)
-    if not rezCheckTimer:timerExpired() or not rezAbility then return end
+    if (mq.TLO.Zone.ShortName() ~= 'poknowledge' and not rezCheckTimer:timerExpired()) or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.CastName)() then

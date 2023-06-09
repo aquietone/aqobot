@@ -298,8 +298,8 @@ function base.assist()
     if common.amIDead() then return end
     if constants.DMZ[mq.TLO.Zone.ID()] or mq.TLO.Navigation.Active() then return end
     if mode.currentMode:isAssistMode() then
-        assist.fsm(state.resetCombatTimers)
-        --assist.doAssist(base.resetClassTimers)
+        assist.doAssist(base.resetClassTimers)
+        --[[assist.fsm(state.resetCombatTimers)
         logger.debug(logger.flags.class.assist, "after check target "..tostring(state.assistMobID))
         -- Get assist target still even if medding, incase we need to do debuffs or anything more important
         if not state.medding or not config.get('MEDCOMBAT') then
@@ -312,7 +312,7 @@ function base.assist()
                 assist.checkLOS()
             end
         end
-        assist.sendPet()
+        assist.sendPet()]]
     end
 end
 

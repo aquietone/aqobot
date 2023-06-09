@@ -475,7 +475,7 @@ end
 
 function class.assist()
     if mq.TLO.Navigation.Active() then return end
-    if mode.currentMode:isAssistMode() then
+    --[[if mode.currentMode:isAssistMode() then
         assist.fsm(class.resetClassTimers)
         useOpener()
         -- if we should be assisting but aren't in los, try to be?
@@ -486,8 +486,8 @@ function class.assist()
             end
         end
         assist.sendPet()
-    end
-    --[[if mode.currentMode:isAssistMode() then
+    end]]
+    if mode.currentMode:isAssistMode() then
         assist.doAssist(class.resetClassTimers, true)
         useOpener()
         -- if we should be assisting but aren't in los, try to be?
@@ -495,14 +495,13 @@ function class.assist()
         if state.loop.PctHPs > 40 then
             if not class.isEnabled('USERANGE') or not attackRanged() then
                 if class.isEnabled('USEMELEE') then
-                    --assist.attack()
                     assist.getCombatPosition()
                     assist.engage()
                 end
             end
         end
         assist.sendPet()
-    end]]
+    end
 end
 
 return class

@@ -94,7 +94,9 @@ function class.initBuffs(_aqo)
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
     table.insert(class.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
     --table.insert(class.selfBuffs, class.spells.manaregen)
-    table.insert(class.selfBuffs, class.spells.shield)
+    if state.emu and not mq.TLO.FindItem('Glyphwielder\'s Sleeves of the Summoner')() then
+        table.insert(class.selfBuffs, class.spells.shield)
+    end
     table.insert(class.selfBuffs, class.spells.acregen)
     table.insert(class.selfBuffs, class.spells.orb)
     table.insert(class.selfBuffs, class.spells.ds)

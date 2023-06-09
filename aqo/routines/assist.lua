@@ -204,14 +204,18 @@ function assist.targetAssistSpawn(assistMobID)
     if state.assistMobID == assistMobID and assistSpawn.Type() ~= 'Corpse' then
         -- MAs target didn't change but we aren't currently fighting it for some reason, so reacquire target
         mq.cmdf('/mqt id %s', assistMobID)
+        mq.delay(100, function() return mq.TLO.Target.ID() == assistMobID end)
     elseif assist.shouldAssist(assistSpawn) then
         -- this is a brand new assist target
         if mq.TLO.Target.ID() ~= assistMobID then
             assistSpawn.DoTarget()
+            mq.delay(100, function() return mq.TLO.Target.ID() == assistMobID end)
             return true
         end
+        return state.assistMobID ~= assistMobID
+    else
+        return false
     end
-    return state.assistMobID ~= assistMobID
 end
 
 ---@param assistMobID number @The Spawn ID of the target to assist on
@@ -232,15 +236,23 @@ end
 
 ---Navigate to the current target if the target is within the camp radius.
 function assist.getCombatPosition()
+    if mode.currentMode:getName() == 'manual' then return end
+    if state.assistMobID == 0 or mq.TLO.Target.ID() ~= state.assistMobID or not assist.shouldAssist() then
+        if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
+        return false
+    end
+    if mq.TLO.Target.LineOfSight() or mq.TLO.Navigation.Active() then return false end
+    --
     local target_id = mq.TLO.Target.ID()
     local target_distance = mq.TLO.Target.Distance3D()
     local max_range_to = mq.TLO.Target.MaxRangeTo() or 0
     if not target_id or target_id == 0 or (target_distance and target_distance > config.get('CAMPRADIUS')) or state.paused then
-        return
+        return false
     end
     movement.navToTarget('dist='..max_range_to*.6)
     state.positioning = true
     state.positioningTimer:reset()
+    return true
 end
 
 ---Navigate to the current target if if isn't in LOS and should be.
@@ -256,33 +268,12 @@ function assist.checkLOS()
     end
 end
 
-function assist.six(skip_no_los)
-    if mode.currentMode:getName() == 'manual' then return end
-    if state.assistMobID == 0 or mq.TLO.Target.ID() ~= state.assistMobID or not assist.shouldAssist() then
-        if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
-        return false
-    end
-    if not mq.TLO.Target.LineOfSight() then
-        if not mq.TLO.Navigation.Active() then
-            -- incase this is called during bard song, to avoid mq.delay inside mq.delay
-            if skip_no_los then return end
-            assist.getCombatPosition()
-        else
-            return false
-        end
-    end
-    return true
-end
-
 function assist.engage()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
         mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
-        --mq.cmd('/stick snaproll uw')
-        --mq.delay(200, function() return mq.TLO.Stick.Behind() and mq.TLO.Stick.Stopped() end)
         local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
-        --mq.cmdf('/squelch /stick hold moveback behind %s uw', math.min(maxRangeTo*.75, 25))
         if config.get('ASSIST') == 'manual' then
             mq.cmdf('/squelch /stick snaproll moveback behind %s uw', math.min(maxRangeTo*.75, 25))
         else
@@ -295,6 +286,31 @@ function assist.engage()
     elseif state.dontAttack and state.enrageTimer:timerExpired() then
         state.dontAttack = false
     end
+end
+
+function assist.doAssist(reset_timers, returnAfterAnnounce)
+    local assistMobID = assist.getAssistSpawnIncludeManual()
+    if assistMobID == 0 then return false end
+    if assist.checkMATargetSwitch(assistMobID) then
+        if assist.targetAssistSpawn(assistMobID) then
+            assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
+            if returnAfterAnnounce then return true end
+        end
+    end
+    if state.assistMobID == 0 then return false end
+    if not state.medding or not config.get('MEDCOMBAT') then
+        if aqo.class.isAbilityEnabled('USEMELEE') then
+            assist.getCombatPosition()
+            if state.assistMobID and state.assistMobID > 0 and not mq.TLO.Me.Combat() and aqo.class.beforeEngage then
+                aqo.class.beforeEngage()
+            end
+            assist.engage()
+        else
+            assist.checkLOS()
+        end
+    end
+    assist.sendPet()
+    return true
 end
 
 function assist.fsm(reset_timers)--, skip_no_los)

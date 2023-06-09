@@ -399,10 +399,10 @@ function class.burnClass()
         end
     end
 
-    if class.lifeburn and class.dyinggrasp and state.loop.PctHPs > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
+    if class.lifeburn and state.loop.PctHPs > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and (state.emu or (class.dyinggrasp and mq.TLO.Me.AltAbilityReady('Dying Grasp')())) then
         class.lifeburn:use()
         mq.delay(5)
-        class.dyinggrasp:use()
+        if class.dyinggrasp then class.dyinggrasp:use() end
     end
 end
 
