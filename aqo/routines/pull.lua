@@ -256,7 +256,7 @@ local function pullNavToMob(pull_spawn, announce_pull)
     if announce_pull then
         print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
     end
-    if helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 100 then
+    if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 100 then
         logger.debug(logger.flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pullMobID)
         movement.navToSpawn('id '..state.pullMobID, 'dist=15')
     end
@@ -375,7 +375,7 @@ local pullReturnTimer = timer:new(120000)
 local function pullReturn(noMobs)
     --print(logger.logLine('Bringing pull target back to camp (%s)', common.pullMobID))
     if noMobs and not pullReturnTimer:timerExpired() then return end
-    if helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 225 then return end
+    if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 225 then return end
     movement.navToLoc(camp.X, camp.Y, camp.Z)
     if noMobs then pullReturnTimer:reset() end
 end
@@ -486,7 +486,7 @@ function pull.pullMob()
             end
         end
     elseif pull_state == constants.pullStates.RETURNING then
-        if helpers.checkDistance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.get('CAMPRADIUS')^2 then
+        if helpers.distance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.get('CAMPRADIUS')^2 then
             clearPullVars('pullMob-reachedCamp')
         else
             pullReturn(false)

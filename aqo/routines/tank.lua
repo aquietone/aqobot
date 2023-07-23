@@ -86,7 +86,7 @@ local function tankMobInRange(tank_spawn)
     if not mob_x or not mob_y then return false end
     local camp_radius = config.get('CAMPRADIUS')
     if mode.currentMode:isReturnToCampMode() and camp.Active then
-        local dist = helpers.checkDistance(camp.X, camp.Y, mob_x, mob_y)
+        local dist = helpers.distance(camp.X, camp.Y, mob_x, mob_y)
         if dist < camp_radius^2 then
             return true
         else
@@ -97,7 +97,7 @@ local function tankMobInRange(tank_spawn)
             return false
         end
     else
-        if helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < camp_radius^2 then
+        if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) < camp_radius^2 then
             return true
         else
             return false

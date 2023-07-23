@@ -22,7 +22,8 @@ function TLO.init(_aqo)
 
     for k,v in pairs(config) do
         if type(v) == 'table' and v.tlo and v.tlotype then
-            if v.emu == nil or (v.emu and state.emu) or (v.emu == false and not state.emu) then
+            --if v.emu == nil or (v.emu and state.emu) or (v.emu == false and not state.emu) then
+            if v.emu == nil or v.emu == state.emu then
                 tlomembers[v.tlo] = function() return v.tlotype, config.get(k) end
             end
         end

@@ -323,25 +323,25 @@ local function drawDebugTab()
     ImGui.SameLine()
     ImGui.SetCursorPosX(150)
     if camp.Active then
-        ImGui.TextColored(YELLOW, string.format('X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z))
+        ImGui.TextColored(YELLOW, 'X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z)
         ImGui.TextColored(YELLOW, 'Radius:')
         ImGui.SameLine()
-        ImGui.SetCursorPosX(150)    
-        ImGui.TextColored(YELLOW, string.format('%d', config.CAMPRADIUS.value))
+        ImGui.SetCursorPosX(150)  
+        ImGui.TextColored(YELLOW, '%d', config.CAMPRADIUS.value)
         ImGui.TextColored(YELLOW, 'Distance from camp:')
         ImGui.SameLine()
         ImGui.SetCursorPosX(150)
-        ImGui.TextColored(YELLOW, string.format('%d', math.sqrt(helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y))))
+        ImGui.TextColored(YELLOW, '%d', math.sqrt(helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y)))
     else
         ImGui.TextColored(RED, '--')
     end
 
     for k,v in pairs(state) do
         if type(v) ~= 'table' and type(v) ~= 'function' then
-            ImGui.TextColored(YELLOW, ('%s:'):format(k))
+            ImGui.TextColored(YELLOW, '%s:', k)
             ImGui.SameLine()
             ImGui.SetCursorPosX(150)
-            ImGui.TextColored(RED, ('%s'):format(v))
+            ImGui.TextColored(RED, '%s', v)
         end
     end
 end
@@ -569,7 +569,7 @@ local function drawHelpWindow()
                     for _,key in ipairs(categoryConfigs) do
                         local cfg = config[key]
                         if type(cfg) == 'table' then
-                            ImGui.TextColored(YELLOW, '/aqo ' .. key .. ' <' .. type(cfg.value) .. '>')
+                            ImGui.TextColored(YELLOW, '/aqo %s <%s>', key, type(cfg.value))
                             ImGui.SameLine()
                             ImGui.Text(cfg.tip)
                         end
@@ -581,7 +581,7 @@ local function drawHelpWindow()
                 for key,value in pairs(aqo.class.OPTS) do
                     local valueType = type(value.value)
                     if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
-                        ImGui.TextColored(YELLOW, '/aqo ' .. key .. ' <' .. valueType .. '>')
+                        ImGui.TextColored(YELLOW, '/aqo %s <%s>', key, valueType)
                         ImGui.SameLine()
                         ImGui.Text('%s', value.tip)
                     end

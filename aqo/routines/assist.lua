@@ -123,9 +123,9 @@ function assist.shouldAssist(assist_target)
     local mob_y = assist_target.Y()
     if not id or id == 0 or not hp or not mob_x or not mob_y then return false end
     if mob_type == 'NPC' and hp < config.get('AUTOASSISTAT') then
-        if camp.Active and helpers.checkDistance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
+        if camp.Active and helpers.distance(camp.X, camp.Y, mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
             return true
-        elseif not camp.Active and helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
+        elseif not camp.Active and helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) <= config.get('CAMPRADIUS')^2 then
             return true
         else
             return false
@@ -373,7 +373,7 @@ function assist.sendPet()
     if sendPetTimer:timerExpired() and targethp and targethp <= config.get('AUTOASSISTAT') then
         if assist.isFighting() then
             if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and not state.petDontAttack then
-                if aqo.class.summonCompanion and helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Pet.X(), mq.TLO.Pet.Y()) > 625 then
+                if aqo.class.summonCompanion and helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Pet.X(), mq.TLO.Pet.Y()) > 625 then
                     aqo.class.summonCompanion:use()
                 end
                 mq.cmd('/multiline ; /pet attack ; /pet swarm')

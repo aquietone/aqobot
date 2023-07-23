@@ -210,7 +210,7 @@ function common.checkChase()
         logger.debug(logger.flags.common.chase, 'Not chasing due to invalid chase spawn X=%s,Y=%s', chase_x, chase_y)
         return
     end
-    if helpers.checkDistance(me_x, me_y, chase_x, chase_y) > (config.get('CHASEDISTANCE')^2) then
+    if helpers.distance(me_x, me_y, chase_x, chase_y) > (config.get('CHASEDISTANCE')^2) then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
         if not movement.navToSpawn('pc ='..config.get('CHASETARGET'), 'dist=20') then
             local chaseSpawn = mq.TLO.Spawn('pc '..config.get('CHASETARGET'))

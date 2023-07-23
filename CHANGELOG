@@ -1,3 +1,5 @@
+# 2023/07/23
+- Rename checkDistance and cleanup some ImGui.Text formatting
 # 2023/05/20
 - Add code for TLOs/datatype
 - Refactor some spell code out of common into ability

@@ -39,7 +39,7 @@ function camp.mobRadarB()
     local function campPredicate(spawn)
         if spawn.Type() ~= 'NPC' then return false end
         if distanceFromCamp then
-            local d = helpers.checkDistance(x, spawn.X(), y, spawn.Y())
+            local d = helpers.distance(x, spawn.X(), y, spawn.Y())
             if d > config.get('CAMPRADIUS')^2 then return false end
         else
             if spawn.Distance3D() > config.get('CAMPRADIUS') then return false end
@@ -109,7 +109,7 @@ function camp.checkCamp()
         camp.Active = false
         return
     end
-    if helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
+    if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
         movement.navToLoc(camp.X, camp.Y, camp.Z)
     end
 end

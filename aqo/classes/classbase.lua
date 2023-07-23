@@ -318,7 +318,7 @@ end
 
 function base.tank()
     if constants.DMZ[mq.TLO.Zone.ID()] then return end
-    if mode.currentMode:getName() == 'pullertank' and helpers.checkDistance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')-5)^2 then
+    if mode.currentMode:getName() == 'pullertank' and helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')-5)^2 then
         state.pullStatus = constants.pullStates.RETURNING
         state.actionTaken = true
     else

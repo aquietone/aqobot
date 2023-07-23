@@ -29,7 +29,7 @@ end
 ---@param x2 number @The X value of the second coordinate.
 ---@param y2 number @The Y value of the second coordinate.
 ---@return number @Returns the distance between the two points.
-function helpers.checkDistance(x1, y1, x2, y2)
+function helpers.distance(x1, y1, x2, y2)
     return (x2 - x1) ^ 2 + (y2 - y1) ^ 2
 end
 
