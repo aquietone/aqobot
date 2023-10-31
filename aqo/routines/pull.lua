@@ -254,7 +254,7 @@ local function pullNavToMob(pull_spawn, announce_pull)
         return false
     end
     if announce_pull then
-        print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
+        logger.print(logger.logLine('Pulling \at%s\ax (\at%s\ax)', pull_spawn.CleanName(), pull_spawn.ID()))
     end
     if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 100 then
         logger.debug(logger.flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pullMobID)
@@ -281,7 +281,7 @@ local function pullEngage(pull_spawn)
     local pullMobID = state.pullMobID
     local dist3d = pull_spawn.Distance3D()
     if not dist3d then
-        print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pullMobID))
+        logger.print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pullMobID))
         clearPullVars('pullEngage-distanceCheck')
         return false
     end
@@ -293,7 +293,7 @@ local function pullEngage(pull_spawn)
     pull_spawn.DoTarget()
     mq.delay(100)
     if not mq.TLO.Target() then
-        print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pullMobID))
+        logger.print(logger.logLine('\arPull target no longer valid \ax(\at%s\ax)', pullMobID))
         clearPullVars('pullEngage-targetCheck')
         return false
     end
@@ -302,7 +302,7 @@ local function pullEngage(pull_spawn)
     --if (tot_id > 0 and tot_id ~= state.loop.ID) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
     if tot_id > 0 and tot_id ~= mq.TLO.Me.ID() and tot_id ~= mq.TLO.Pet.ID() then
         if targethp and targethp < 99 then
-            print(logger.logLine('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pullMobID, tot_id, state.loop.ID, targethp))
+            logger.print(logger.logLine('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pullMobID, tot_id, state.loop.ID, targethp))
             -- TODO: clear skip targets
             PULL_TARGET_SKIP[pullMobID] = 1
             clearPullVars('pullEngage-hpCheck')
@@ -373,7 +373,7 @@ end
 local pullReturnTimer = timer:new(120000)
 ---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
 local function pullReturn(noMobs)
-    --print(logger.logLine('Bringing pull target back to camp (%s)', common.pullMobID))
+    --logger.print(logger.logLine('Bringing pull target back to camp (%s)', common.pullMobID))
     if noMobs and not pullReturnTimer:timerExpired() then return end
     if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 225 then return end
     movement.navToLoc(camp.X, camp.Y, camp.Z)

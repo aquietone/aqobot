@@ -81,13 +81,13 @@ function events.eventResist(line, spell_name)
     local target = mq.TLO.Target.CleanName()
     if target then
         state.resists[spell_name] = (state.resists[spell_name] or 0) + 1
-        print(logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', target, spell_name, state.resists[spell_name]))
+        logger.print(logger.logLine('\at%s\ax resisted spell \ag%s\ax, resist count = \ay%s\ax', target, spell_name, state.resists[spell_name]))
     end
 end
 
 ---Reset combat state in the event of death.
 function events.eventDead()
-    print(logger.logLine('HP hit 0. what do!'))
+    logger.print(logger.logLine('HP hit 0. what do!'))
     state.resetCombatState()
     movement.stop()
 end

@@ -50,7 +50,7 @@ end
 
 function class.initSpellLines(_aqo)
     class.addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
-    class.addSpell('groupheal', {'Word of Restoration', 'Moonshadow'}, {group=true})
+    class.addSpell('groupheal', {'Word of Reconstitution', 'Word of Restoration', 'Moonshadow'}, {group=true})
     class.addSpell('firenuke', {'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
     class.addSpell('coldnuke', {'Ancient: Glacier Frost'}, {opt='USENUKES'})
     class.addSpell('twincast', {'Sunburst Blessing'}, {opt='USENUKES'})

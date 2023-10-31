@@ -36,10 +36,14 @@ function class.initBurns(_aqo)
     local speedFocus = common.getBestDisc({'Speed Focus Discipline'})
     local crystalPalm = common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'})
     local heel = common.getBestDisc({'Heel of Kai', 'Heel of Kanji'})
-    crystalPalm.condition = function() return not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end
-    heel.condition = function() return not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end
-    table.insert(class.burnAbilities, speedFocus)
-    table.insert(class.burnAbilities, crystalPalm)
+    if crystalPalm then
+        crystalPalm.condition = function() return not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end
+        table.insert(class.burnAbilities, speedFocus)
+    end
+    if heel then
+        heel.condition = function() return not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end
+        table.insert(class.burnAbilities, crystalPalm)
+    end
     table.insert(class.burnAbilities, heel)
     table.insert(class.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE'}))
 end

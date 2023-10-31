@@ -100,7 +100,7 @@ local function buffSelf(base)
                                 else
                                     mq.delay(100, function() return mq.TLO.Me.Buff(buff.RemoveBuff)() end)
                                     if mq.TLO.Me.Buff(buff.RemoveBuff)() then
-                                        print(logger.logLine('Removing buff \ag%s\ax', buff.RemoveBuff))
+                                        logger.print(logger.logLine('Removing buff \ag%s\ax', buff.RemoveBuff))
                                         mq.cmdf('/removebuff "%s"', buff.RemoveBuff)
                                     end
                                 end
@@ -113,7 +113,7 @@ local function buffSelf(base)
                                     return state.queuedAction
                                 else
                                     if mq.TLO.Pet.ID() > 0 and (mq.TLO.Pet.Level() == 1 or mq.TLO.Pet.CleanName():find('familiar')) then
-                                        print(logger.logLine('Removing familiar'))
+                                        logger.print(logger.logLine('Removing familiar'))
                                         mq.cmdf('/squelch /pet get lost')
                                     end
                                 end

@@ -7,15 +7,20 @@ local commands = require('interface.commands')
 local config = require('interface.configuration')
 local ui = require('interface.ui')
 --local tlo = require('interface.tlo')
+
 local logger = require('utils.logger')
 local loot = require('utils.lootutils')
 local movement = require('utils.movement')
 local timer = require('utils.timer')
+
 local ability = require('ability')
 local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
+
+---@type ConsoleWidget
+CONSOLE = nil
 
 local aqo = {}
 
@@ -26,6 +31,9 @@ for _,routine in ipairs(routines) do
 end
 
 local function init()
+    if CONSOLE == nil then
+        CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
+    end
     -- Initialize class specific functions
     aqo.class = require('classes.'..state.class)
     aqo.class.init(aqo)
@@ -66,7 +74,7 @@ end
 ---Otherwise, update state for the current loop so we don't have to go to the TLOs every time.
 local function updateLoopState()
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
-        print(logger.logLine('Not in game, stopping aqo.'))
+        logger.print(logger.logLine('Not in game, stopping aqo.'))
         mq.exit()
     end
     state.actionTaken = false

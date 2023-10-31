@@ -476,7 +476,7 @@ end
 function config.getOrSetOption(name, current_value, new_value, key)
     if config[key] == nil then return end
     if new_value then
-        if config[key].options and not config[key].options[new_value] then print(logger.logLine('\arInvalid option for \ay%s\ax: \ay%s\ax', key, new_value)) return end
+        if config[key].options and not config[key].options[new_value] then logger.print(logger.logLine('\arInvalid option for \ay%s\ax: \ay%s\ax', key, new_value)) return end
         if type(current_value) == 'number' then
             config[key].value = tonumber(new_value) or current_value
         elseif type(current_value) == 'boolean' then
@@ -485,9 +485,9 @@ function config.getOrSetOption(name, current_value, new_value, key)
         else
             config[key].value = new_value
         end
-        print(logger.logLine('Setting %s to: %s', key, config[key].value))
+        logger.print(logger.logLine('Setting %s to: %s', key, config[key].value))
     else
-        print(logger.logLine('%s: %s', name, current_value))
+        logger.print(logger.logLine('%s: %s', name, current_value))
     end
 end
 
@@ -538,22 +538,22 @@ end
 
 function config.addIgnore(zone_short_name, mob_name)
     if ignores[zone_short_name:lower()] and ignores[zone_short_name:lower()][mob_name] then
-        print(logger.logLine('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
+        logger.print(logger.logLine('\at%s\ax already in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     if not ignores[zone_short_name:lower()] then ignores[zone_short_name:lower()] = {} end
     ignores[zone_short_name:lower()][mob_name] = true
-    print(logger.logLine('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
+    logger.print(logger.logLine('Added pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
     config.saveIgnores()
 end
 
 function config.removeIgnore(zone_short_name, mob_name)
     if not ignores[zone_short_name:lower()] or not ignores[zone_short_name:lower()][mob_name] then
-        print(logger.logLine('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
+        logger.print(logger.logLine('\at%s\ax not found in ignore list for zone \ay%s\az, skipping', mob_name, zone_short_name))
         return
     end
     ignores[zone_short_name:lower()][mob_name] = nil
-    print(logger.logLine('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
+    logger.print(logger.logLine('Removed pull ignore \at%s\ax for zone \ay%s\ax', mob_name, zone_short_name))
     config.saveIgnores()
 end
 

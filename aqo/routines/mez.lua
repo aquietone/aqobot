@@ -34,7 +34,7 @@ end
 function mez.doAE(mez_spell, ae_count)
     if state.mobCount >= ae_count and mez_spell then
         if mq.TLO.Me.Gem(mez_spell.CastName)() and mq.TLO.Me.GemTimer(mez_spell.CastName)() == 0 then
-            print(logger.logLine('AE Mezzing (mobCount=%d)', state.mobCount))
+            logger.print(logger.logLine('AE Mezzing (mobCount=%d)', state.mobCount))
             abilities.use(mez_spell)
             mez.initMezTimers()
             return true
@@ -68,7 +68,7 @@ function mez.doSingle(mez_spell)
                         if assist_spawn == -1 or assist_spawn.ID() ~= id then
                             state.mezTargetName = mob.CleanName()
                             state.mezTargetID = id
-                            print(logger.logLine('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID()))
+                            logger.print(logger.logLine('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID()))
                             if mez_spell.precast then mez_spell.precast() end
                             abilities.use(mez_spell)
                             logger.debug(logger.flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
@@ -89,13 +89,13 @@ function mez.doSingle(mez_spell)
 end
 
 function mez.eventMezBreak(line, mob, breaker)
-    print(logger.logLine('\at%s\ax mez broken by \at%s\ax', mob, breaker))
+    logger.print(logger.logLine('\at%s\ax mez broken by \at%s\ax', mob, breaker))
 end
 
 function mez.eventMezImmune(line)
     local mezTargetName = state.mezTargetName
     if mezTargetName then
-        print(logger.logLine('Added to MEZ_IMMUNE: \at%s', mezTargetName))
+        logger.print(logger.logLine('Added to MEZ_IMMUNE: \at%s', mezTargetName))
         state.mezImmunes[mezTargetName] = 1
     end
 end
@@ -103,7 +103,7 @@ end
 function mez.eventMezResist(line, mob)
     local mezTargetName = state.mezTargetName
     if mezTargetName and mob == mezTargetName then
-        print(logger.logLine('MEZ RESIST >>> \at%s\ax <<<', mezTargetName))
+        logger.print(logger.logLine('MEZ RESIST >>> \at%s\ax <<<', mezTargetName))
         state.targets[state.mezTargetID].meztimer:reset(0)
     end
 end

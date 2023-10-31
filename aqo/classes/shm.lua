@@ -40,7 +40,7 @@ end
 
 function class.initSpellLines(_aqo)
     class.addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
-    class.addSpell('groupheal', {'Word of Restoration'}, {group=true})
+    class.addSpell('groupheal', {'Word of Reconstitution', 'Word of Restoration'}, {group=true})
     class.addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
     class.addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
     class.addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'}, {opt='USESLOW'})

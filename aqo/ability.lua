@@ -238,7 +238,7 @@ function Spell:execute()
     logger.debug(logger.flags.ability.spell, 'ENTER Spell:execute \ag%s\ax', self.Name)
     if state.class == 'brd' then mq.cmd('/stopsong') mq.delay(1) end
     local requiresTarget = self.TargetType == 'Single'
-    if logger.flags.announce.spell then print(logger.logLine('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    if logger.flags.announce.spell then logger.print(logger.logLine('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/cast "%s"', self.Name)
     state.setCastingState(self)
     return true
@@ -251,7 +251,7 @@ function Spell:use()
     local result, requiresTarget =  Ability.shouldUseSpell(spell)
     if not result then return false end
     if state.class == 'brd' then mq.cmd('/stopsong') mq.delay(1) end
-    if logger.flags.announce.spell then print(logger.logLine('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    if logger.flags.announce.spell then logger.print(logger.logLine('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/cast "%s"', self.Name)
     state.resetCastingState()
     state.casting = self
@@ -296,7 +296,7 @@ function Disc:execute()
     logger.debug(logger.flags.ability.disc, 'ENTER disc:execute \ag%s\ax', self.Name)
     if self.overwrite and mq.TLO.Me.ActiveDisc() == self.overwrite then mq.cmd('/stopdisc') end
     if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
-        if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+        if logger.flags.announce.skill then logger.print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         if self.Name:find('Composite') then
             mq.cmdf('/disc %s', self.ID)
         else
@@ -314,7 +314,7 @@ function Disc:use(overwrite)
     local spell = mq.TLO.Spell(self.Name)
     if (state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady() then return end
     if not self:isActive() or not mq.TLO.Me.ActiveDisc.ID() then
-        if logger.flags.announce.skill then print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+        if logger.flags.announce.skill then logger.print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         if self.Name:find('Composite') then
             mq.cmdf('/disc %s', self.ID)
         else
@@ -329,7 +329,7 @@ function Disc:use(overwrite)
     elseif overwrite == mq.TLO.Me.ActiveDisc.Name() then
         mq.cmd('/stopdisc')
         mq.delay(50)
-        if logger.flags.announce.disc then print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+        if logger.flags.announce.disc then logger.print(logger.logLine('Use Disc: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/disc %s', self.Name)
         state.resetCastingState()
         state.casting = self
@@ -369,7 +369,7 @@ end
 function AA:execute()
     logger.debug(logger.flags.ability.aa, 'ENTER AA:execute \ag%s\ax', self.Name)
     if logger.flags.announce.aa then
-        print(logger.logLine('Use AA: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or ''))
+        logger.print(logger.logLine('Use AA: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or ''))
     end
     mq.cmdf('/alt activate %d', self.ID)
     state.setCastingState(self)
@@ -381,7 +381,7 @@ end
 function AA:use()
     logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.Name)
     if (state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady() then return false end
-    if logger.flags.announce.aa then print(logger.logLine('Use AA: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    if logger.flags.announce.aa then logger.print(logger.logLine('Use AA: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/alt activate %d', self.ID)
     if mq.TLO.AltAbility(self.Name).Spell.CastTime() > 0 then
         state.resetCastingState()
@@ -422,7 +422,7 @@ end
 function Item:execute()
     logger.debug(logger.flags.ability.item, 'ENTER item:execute \ag%s\ax', self.Name)
     if state.class == 'brd' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
-    if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    if logger.flags.announce.item then logger.print(logger.logLine('Use Item: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/useitem "%s"', self.Name)
     state.setCastingState(self)
     return true
@@ -435,7 +435,7 @@ function Item:use()
     local theItem = mq.TLO.FindItem(self.ID)
     if (state[self.Name] and not state[self.Name]:timerExpired()) or not self:isReady(theItem) then return false end
     if state.class == 'brd' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
-    if logger.flags.announce.item then print(logger.logLine('Use Item: \ag%s\ax%s', theItem, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    if logger.flags.announce.item then logger.print(logger.logLine('Use Item: \ag%s\ax%s', theItem, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/useitem "%s"', theItem)
     if self.MyCastTime > 0 then
         state.resetCastingState()
@@ -466,7 +466,7 @@ end
 
 function Skill:execute()
     logger.debug(logger.flags.ability.skill, 'ENTER skill:execute \ag%s\ax', self.Name)
-    if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.Name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+    if logger.flags.announce.skill then logger.print(logger.logLine('Use skill: \ag%s\ax%s', self.Name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
     mq.cmdf('/doability "%s"', self.Name)
     state.setCastingState(self)
     return true
@@ -476,7 +476,7 @@ end
 function Skill:use()
     logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.Name)
     if self:isReady() then
-        if logger.flags.announce.skill then print(logger.logLine('Use skill: \ag%s\ax%s', self.Name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
+        if logger.flags.announce.skill then logger.print(logger.logLine('Use skill: \ag%s\ax%s', self.Name, mq.TLO.Target() and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '')) end
         mq.cmdf('/doability "%s"', self.Name)
         state[self.Name] = timer:new(2000)
         return true

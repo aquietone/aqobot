@@ -105,7 +105,7 @@ function camp.checkCamp()
     checkCampTimer:reset()
     if (state.class ~= 'brd' and mq.TLO.Me.Casting()) or not common.clearToBuff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
-        print(logger.logLine('Clearing camp due to zoning.'))
+        logger.print(logger.logLine('Clearing camp due to zoning.'))
         camp.Active = false
         return
     end
@@ -189,7 +189,7 @@ function camp.setCamp(reset)
             camp.PullArcLeft = 0
             camp.PullArcRight = 0
         end
-        print(logger.logLine('Camp set to \ayX: %.02f Y: %.02f Z: %.02f R: %s H: %.02f\ax', camp.X, camp.Y, camp.Z, config.get('CAMPRADIUS'), camp.Heading))
+        logger.print(logger.logLine('Camp set to \ayX: %.02f Y: %.02f Z: %.02f R: %s H: %.02f\ax', camp.X, camp.Y, camp.Z, config.get('CAMPRADIUS'), camp.Heading))
         mq.cmdf('/squelch /maploc size 10 width 1 color 255 0 0 radius %s rcolor 255 0 0 %s %s %s', config.get('CAMPRADIUS'), camp.Y+1, camp.X+1, camp.Z)
     elseif camp.Active then
         camp.Active = false

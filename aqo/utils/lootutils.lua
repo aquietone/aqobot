@@ -206,7 +206,7 @@ local function checkCursor()
         -- can't do anything if there's nowhere to put the item, either due to no free inventory space
         -- or no slot of appropriate size
         if mq.TLO.Me.FreeInventory() == 0 or mq.TLO.Cursor() == currentItem then
-            if loot.SpamLootInfo then print(logger.logLine('Inventory full, item stuck on cursor')) end
+            if loot.SpamLootInfo then logger.print(logger.logLine('Inventory full, item stuck on cursor')) end
             mq.cmd('/autoinv')
             return
         end
@@ -275,7 +275,7 @@ local function commandHandler(...)
             doSell = true
         elseif args[1] == 'reload' then
             lootData = {}
-            print(logger.logLine("Reloaded Loot File"))
+            logger.print(logger.logLine("Reloaded Loot File"))
         elseif args[1] == 'bank' then
             loot.bankStuff()
         elseif args[1] == 'tsbank' then
@@ -284,12 +284,12 @@ local function commandHandler(...)
     elseif #args == 2 then
         if validActions[args[1]] and args[2] ~= 'NULL' then
             addRule(args[2], args[2]:sub(1,1), validActions[args[1]])
-            print(logger.logLine("Setting \ay%s\ax to \ay%s\ax", args[2], validActions[args[1]]))
+            logger.print(logger.logLine("Setting \ay%s\ax to \ay%s\ax", args[2], validActions[args[1]]))
         end
     elseif #args == 3 then
         if args[1] == 'quest' and args[2] ~= 'NULL' then
             addRule(args[2], args[2]:sub(1,1), 'Quest|'..args[3])
-            print(logger.logLine("Setting \ay%s\ax to \ayQuest|%s\ax", args[2], args[3]))
+            logger.print(logger.logLine("Setting \ay%s\ax to \ayQuest|%s\ax", args[2], args[3]))
         end
     end
 end
@@ -359,7 +359,7 @@ local function lootCorpse(corpseID)
     mq.doevents('CantLoot')
     mq.delay(3000, function() return cantLootID > 0 or mq.TLO.Window('LootWnd').Open() end)
     if not mq.TLO.Window('LootWnd').Open() then
-        print(logger.logLine('Can\'t loot %s right now', mq.TLO.Target.CleanName()))
+        logger.print(logger.logLine('Can\'t loot %s right now', mq.TLO.Target.CleanName()))
         cantLootList[corpseID] = os.time()
         return
     end
@@ -613,12 +613,12 @@ end
 
 local function goToVendor()
     if not mq.TLO.Target() then
-        print(logger.logLine('Please target a vendor'))
+        logger.print(logger.logLine('Please target a vendor'))
         return false
     end
     local vendorName = mq.TLO.Target.CleanName()
 
-    print(logger.logLine('Doing business with '..vendorName))
+    logger.print(logger.logLine('Doing business with '..vendorName))
     if mq.TLO.Target.Distance() > 15 then
         movement.navToID(mq.TLO.Target.ID(), 'dist=10', 5000)
     end
@@ -640,7 +640,7 @@ local function sellToVendor(itemToSell)
     if NEVER_SELL[itemToSell] then return end
     while mq.TLO.FindItemCount('='..itemToSell)() > 0 do
         if mq.TLO.Window('MerchantWnd').Open() then
-            print(logger.logLine('Selling '..itemToSell))
+            logger.print(logger.logLine('Selling '..itemToSell))
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', itemToSell)
             mq.delay(1000, function() return mq.TLO.Window('MerchantWnd/MW_SelectedItemLabel').Text() == itemToSell end)
             mq.cmd('/nomodkey /shiftkey /notify merchantwnd MW_Sell_Button leftmouseup')
@@ -686,7 +686,7 @@ function loot.sellStuff()
                     if sellRule == 'Sell' then
                         local sellPrice = bagSlot.Item(j).Value() and bagSlot.Item(j).Value()/1000 or 0
                         if sellPrice == 0 then
-                            print(logger.logLine('Item \ay%s\ax is set to Sell but has no sell value!', itemToSell))
+                            logger.print(logger.logLine('Item \ay%s\ax is set to Sell but has no sell value!', itemToSell))
                         else
                             sellToVendor(itemToSell)
                         end
@@ -698,7 +698,7 @@ function loot.sellStuff()
     mq.flushevents('Sell')
     if mq.TLO.Window('MerchantWnd').Open() then mq.cmd('/nomodkey /notify MerchantWnd MW_Done_Button leftmouseup') end
     local newTotalPlat = mq.TLO.Me.Platinum() - totalPlat
-    print(logger.logLine('Total plat value sold: \ag%s\ax', newTotalPlat))
+    logger.print(logger.logLine('Total plat value sold: \ag%s\ax', newTotalPlat))
 end
 
 -- BANKING
@@ -740,7 +740,7 @@ end
 
 function loot.bankStuff()
     if not mq.TLO.Window('BigBankWnd').Open() then
-        print(logger.logLine('Bank window must be open!'))
+        logger.print(logger.logLine('Bank window must be open!'))
         return
     end
     for i=1,10 do
@@ -786,17 +786,17 @@ function eventForage()
         -- >= because .. does finditemcount not count the item on the cursor?
         if not shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount >= ruleAmount) then
             if mq.TLO.Cursor.Name() == foragedItem then
-                if loot.LootForageSpam then print(logger.logLine('Destroying foraged item '..foragedItem)) end
+                if loot.LootForageSpam then logger.print(logger.logLine('Destroying foraged item '..foragedItem)) end
                 mq.cmd('/destroy')
                 mq.delay(500)
             end
         -- will a lore item we already have even show up on cursor?
         -- free inventory check won't cover an item too big for any container so may need some extra check related to that?
         elseif (shouldLootActions[ruleAction] or currentItemAmount < ruleAmount) and (not cursorItem.Lore() or currentItemAmount == 0) and (mq.TLO.Me.FreeInventory() or (cursorItem.Stackable() and cursorItem.FreeStack())) then
-            if loot.LootForageSpam then print(logger.logLine('Keeping foraged item '..foragedItem)) end
+            if loot.LootForageSpam then logger.print(logger.logLine('Keeping foraged item '..foragedItem)) end
             mq.cmd('/autoinv')
         else
-            if loot.LootForageSpam then print(logger.logLine('Unable to process item '..foragedItem)) end
+            if loot.LootForageSpam then logger.print(logger.logLine('Unable to process item '..foragedItem)) end
             break
         end
         mq.delay(50)

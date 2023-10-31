@@ -12,6 +12,14 @@ local logger = {
 
 local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax \aw'
 
+function logger.print(text)
+    if CONSOLE then
+        CONSOLE:AppendText(text)
+    else
+        print(text)
+    end
+end
+
 function logger.logLine(...)
     local timestampPrefix = logger.timestamps and '\a-w['..os.date('%X')..']\ax' or ''
     return string.format(timestampPrefix..log_prefix..string.format(...)..'\ax')
@@ -31,7 +39,7 @@ end
 ---The formatted string and zero or more replacement variables for the formatted string.
 ---@vararg string
 function logger.debug(debug_flag, ...)
-    if debug_flag then print(logger.logLine(...)) end
+    if debug_flag then logger.print(logger.logLine(...)) end
 end
 
 --[[

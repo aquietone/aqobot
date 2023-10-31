@@ -92,7 +92,7 @@ function class.initSpellLines(_aqo)
     -- haste song doesn't stack with enc haste?
     class.addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
     class.addSpell('bardhaste', {'Verse of Veeshan', 'Psalm of Veeshan', 'Composition of Ervaj'})
-    class.addSpell('emuhaste', {'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo'})
+    class.addSpell('emuhaste', {'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'})
     class.addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
     class.addSpell('debuff', {'Harmony of Sound'})
 
@@ -101,7 +101,7 @@ function class.initSpellLines(_aqo)
         if class.spells.chantfrost then class.spells.chantfrost.CheckFor = 'Chant of Frost' end
         if class.spells.chantdisease then class.spells.chantdisease.CheckFor = 'Chant of Plague' end
         if class.spells.chantpoison then class.spells.chantpoison.CheckFor = 'Chant of Venom' end
-        class.addSpell('selos', {'Selo\'s Accelerating Chorus'})
+        class.addSpell('selos', {'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed'})
     end
 end
 

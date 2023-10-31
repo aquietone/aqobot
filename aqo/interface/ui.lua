@@ -361,8 +361,17 @@ local function drawHUD()
     ImGui.TextColored(RED, '%s', state.pullMobID)]]
 end
 
+local function drawConsole()
+    -- Reduce spacing so everything fits snugly together
+    ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(0, 0))
+    local contentSizeX, contentSizeY = ImGui.GetContentRegionAvail()
+    CONSOLE:Render(ImVec2(contentSizeX, contentSizeY))
+    ImGui.PopStyleVar()
+end
+
 local uiTabs = {
     --{label='HUD', draw=drawHUD},
+    {label='Console', draw=drawConsole},
     {label='General', draw=drawAssistTab},
     {label='Skills', draw=drawSkillsTab},
     {label=constants.icons.FA_HEART..' Heal', draw=drawHealTab, color=LIGHT_BLUE},

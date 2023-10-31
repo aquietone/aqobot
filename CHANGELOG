@@ -1,5 +1,11 @@
+# 2023/10/31
+- Add console tab
+- Add some lower level cleric spells
+- Fix checks around having some abilities on monk
+
 # 2023/07/23
 - Rename checkDistance and cleanup some ImGui.Text formatting
+
 # 2023/05/20
 - Add code for TLOs/datatype
 - Refactor some spell code out of common into ability

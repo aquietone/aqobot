@@ -160,7 +160,7 @@ function tank.tankMob()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() and not state.dontAttack then
-        print(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID))
+        logger.print(logger.logLine('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID))
         -- /stick snaproll front moveback
         -- /stick mod -2
         state.resists = {}

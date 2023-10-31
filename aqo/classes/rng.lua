@@ -56,13 +56,13 @@ function class.initSpellLines(_aqo)
     class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
     class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
     class.addSpell('opener', {'Stealthy Shot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    class.addSpell('firenuke1', {'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind'}) -- fire + ice nuke, Summer's Sleet
+    class.addSpell('firenuke1', {'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}) -- fire + ice nuke, Summer's Sleet
     class.addSpell('firenuke2', {'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
     class.addSpell('coldnuke1', {'Lunarflare boon', 'Ancient: North Wind'}) -- 
     class.addSpell('coldnuke2', {'Frost Wind'}) -- 
     class.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
     class.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
-    class.addSpell('dot', {'Bloodbeetle Swarm', 'Locust Swarm', 'Flame Lick'}, {opt='USEDOTS'}) -- main DoT
+    class.addSpell('dot', {'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'}, {opt='USEDOTS'}) -- main DoT
     class.addSpell('dotds', {'Swarm of Bloodflies'}, {opt='USEDOTS'}) -- DoT + reverse DS, Swarm of Hyperboreads
     class.addSpell('dmgbuff', {'Arbor Stalker\'s Enrichment'}) -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     class.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
@@ -233,7 +233,7 @@ local function getRangedCombatPosition(radius)
                     local xtars = mq.TLO.SpawnCount(string.format('npc xtarhater loc %d %d %d radius 75', y_off, x_off, z_off))()
                     local allmobs = mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 75', y_off, x_off, z_off))()
                     if allmobs - xtars == 0 then
-                        print(logger.logLine('Found a valid location at %d %d %d', y_off, x_off, z_off))
+                        logger.print(logger.logLine('Found a valid location at %d %d %d', y_off, x_off, z_off))
                         movement.navToLoc(x_off, y_off, z_off, nil, 5000)
                         return true
                     end
@@ -347,7 +347,7 @@ local snared_id = 0
 function class.cast()
     if not state.loop.Invis and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.isFighting() then
-            if mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value then
+            if class.spells.snare and mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and class.OPTS.USESNARE.value then
                 class.spells.snare:use()
                 snared_id = mq.TLO.Target.ID()
                 return true

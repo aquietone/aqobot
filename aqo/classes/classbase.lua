@@ -192,9 +192,9 @@ function base.addSpell(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options)
     base.spells[spellGroup] = foundSpell
     if foundSpell then
-        print(logger.logLine('[%s] Found spell: %s (%s)', spellGroup, foundSpell.Name, foundSpell.ID))
+        logger.print(logger.logLine('[%s] Found spell: %s (%s)', spellGroup, foundSpell.Name, foundSpell.ID))
     else
-        print(logger.logLine('[%s] Could not find spell!', spellGroup))
+        logger.print(logger.logLine('[%s] Could not find spell!', spellGroup))
     end
 end
 
@@ -219,7 +219,7 @@ function base.getTableForClicky(clickyType)
     elseif clickyType == 'pull' then
         return base.pullClickies
     else
-        print(logger.logLine('Unknown clicky type: %s', clickyType))
+        logger.print(logger.logLine('Unknown clicky type: %s', clickyType))
         return nil
     end
 end
@@ -232,7 +232,7 @@ function base.addClicky(clicky)
         if t then
             table.insert(t, common.getItem(clicky.name, {summonMinimum=clicky.summonMinimum, opt=clicky.opt}))
         end
-        print(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
+        logger.print(logger.logLine('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name))
     end
 end
 
@@ -251,7 +251,7 @@ function base.removeClicky(itemName)
         if entry.CastName == itemName then
             table.remove(t, i)
             base.clickies[itemName] = nil
-            print(logger.logLine('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName))
+            logger.print(logger.logLine('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName))
             return
         end
     end
@@ -270,7 +270,7 @@ function base.loadSettings()
     if not settings or not settings[base.class] then return end
     for setting,value in pairs(settings[base.class]) do
         if base.OPTS[setting] == nil then
-            print(logger.logLine('Unrecognized setting: %s=%s', setting, value))
+            logger.print(logger.logLine('Unrecognized setting: %s=%s', setting, value))
         else
             base.OPTS[setting].value = value
         end
@@ -709,7 +709,7 @@ local function handleRequests()
     if #base.requests > 0 then
         local request = base.requests[1]
         if request.expiration:timerExpired() then
-            print(logger.logLine('Request timer expired for \ag%s\ax from \at%s\at', request.requested.Name, request.requester))
+            logger.print(logger.logLine('Request timer expired for \ag%s\ax from \at%s\at', request.requested.Name, request.requester))
             table.remove(base.requests, 1)
         else
             local requesterSpawn = '='..request.requester
@@ -769,7 +769,7 @@ local function lifesupport()
             local item = mq.TLO.FindItem(healclicky)
             local spell = item.Clicky.Spell
             if item() and mq.TLO.Me.ItemReady(healclicky)() and (spell.Duration.TotalSeconds() == 0 or (not mq.TLO.Me.Song(spell.Name())()) and mq.TLO.Spell(spell.Name()).Stacks()) then
-                print(logger.logLine('Use Item: \ag%s\ax', healclicky))
+                logger.print(logger.logLine('Use Item: \ag%s\ax', healclicky))
                 local castTime = item.CastTime()
                 mq.cmdf('/useitem "%s"', healclicky)
                 mq.delay(250+(castTime or 0), function() return not mq.TLO.Me.ItemReady(healclicky)() end)

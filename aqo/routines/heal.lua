@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require('mq')
 local config = require('interface.configuration')
+local logger = require('utils.logger')
 local timer = require('utils.timer')
 local abilities = require('ability')
 local state = require('state')
@@ -67,6 +68,7 @@ local function getHurt(opts)
         mostHurtPct = myHP
         mostHurtClass = mq.TLO.Me.Class.ShortName()
         mostHurtDistance = 0
+        logger.debug(logger.flags.routines.heal, 'i need healing')
         if myHP < config.get('HEALPCT') then numHurt = numHurt + 1 end
     end
     local tank = mq.TLO.Group.MainTank
@@ -195,7 +197,8 @@ end
 function healing.heal(healAbilities, opts)
     local whoToHeal, typeOfHeal = getHurt(opts)
     local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal, opts)
-    if healToUse then
+    logger.debug(logger.flags.routines.heal, string.format('heal %s %s %s', whoToHeal, typeOfHeal, healToUse and healToUse.name or ''))
+    if healToUse and (healToUse.CastType ~= AbilityTypes.Spell or not mq.TLO.Me.SpellInCooldown()) then
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             mq.cmdf('/mqt id %s', whoToHeal)
         end
