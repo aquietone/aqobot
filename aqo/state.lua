@@ -66,7 +66,6 @@ state.currentState = state.fsm.IDLE
 
 function state.resetCombatState(debug, caller)
     logger.debug(debug, 'Resetting combatState. pullState before=%s. caller=%s', state.pullState, caller)
-    print('reset state')
     state.burnActive = false
     state.burnActiveTimer:reset(0)
     state.assistMobID = 0
@@ -159,7 +158,7 @@ state.restoreGem = nil
 function state.handleMemSpell()
     if state.memSpell then
         if mq.TLO.Me.SpellReady(state.memSpell.Name)() then
-            printf(logger.logLine('Memorized spell is ready: %s', state.memSpell.Name))
+            logger.info('Memorized spell is ready: %s', state.memSpell.Name)
             state.resetMemSpellState()
             return true
         elseif state.memSpellTimer:timerExpired() then
@@ -190,11 +189,11 @@ function state.handleCastingState()
         mq.doevents()
         if not mq.TLO.Me.Casting() then
             if state.fizzled then
-                printf(logger.logLine('Fizzled casting %s', state.casting.Name))
+                logger.info('Fizzled casting %s', state.casting.Name)
             elseif state.interrupted then
-                printf(logger.logLine('Interrupted casting %s', state.casting.Name))
+                logger.info('Interrupted casting %s', state.casting.Name)
             --else
-            --    printf(logger.logLine('Finished casting %s', state.casting.Name))
+            --    logger.info('Finished casting %s', state.casting.Name)
             end
             state.resetCastingState()
             return true

@@ -340,7 +340,7 @@ end
 
 local function isNecBurnConditionMet()
     if class.isEnabled('BURNPROC') and targetHasProliferation() then
-        logger.print(logger.logLine('\arActivating Burns (proliferation proc)\ax'))
+        logger.info('\arActivating Burns (proliferation proc)\ax')
         state.burnActiveTimer:reset()
         state.burnActive = true
         return true
@@ -407,7 +407,7 @@ function class.burnClass()
 end
 
 function class.preburn()
-    logger.print(logger.logLine('Pre-burn'))
+    logger.info('Pre-burn')
 
     for _,item in ipairs(class.pre_burn_items) do
         item:use()
@@ -426,7 +426,7 @@ end
 
 function class.recover()
     if class.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(class.spells.lich.Name)() then
-        logger.print(logger.logLine('Removing lich to avoid dying!'))
+        logger.info('Removing lich to avoid dying!')
         mq.cmdf('/removebuff %s', class.spells.lich.Name)
     end
     -- modrods

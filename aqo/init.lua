@@ -74,7 +74,7 @@ end
 ---Otherwise, update state for the current loop so we don't have to go to the TLOs every time.
 local function updateLoopState()
     if mq.TLO.MacroQuest.GameState() ~= 'INGAME' then
-        logger.print(logger.logLine('Not in game, stopping aqo.'))
+        logger.info('Not in game, stopping aqo.')
         mq.exit()
     end
     state.actionTaken = false

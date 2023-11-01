@@ -226,7 +226,7 @@ function assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
     state.resists = {}
     resetCombatTimers()
     if reset_timers then reset_timers() end
-    printf(logger.logLine('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName()))
+    logger.info('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
 end
 
 ---Acquire the correct target when running in an assist mode. Clears target if the main assist targets themself.

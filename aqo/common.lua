@@ -84,7 +84,7 @@ function common.getBestDisc(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
-            logger.print(logger.logLine('Found Disc: %s (%s)', bestDisc.Name, bestDisc.ID))
+            logger.info('Found Disc: %s (%s)', bestDisc.Name, bestDisc.ID)
             if not options then options = {} end
             for key,value in pairs(options) do
                 bestDisc[key] = value
@@ -92,7 +92,7 @@ function common.getBestDisc(discs, options)
             return abilities.Disc:new(bestDisc)
         end
     end
-    logger.print(logger.logLine('[%s] Could not find disc!', discs[1]))
+    logger.info('[%s] Could not find disc!', discs[1])
     return nil
 end
 
@@ -285,19 +285,19 @@ function common.isBurnConditionMet(alwaysCondition)
             state.burn_type = nil
             return true
         elseif config.get('BURNALLNAMED') and named[zone_sn] and named[zone_sn][mq.TLO.Target.CleanName()] then
-            logger.print(logger.logLine('\arActivating Burns (named)\ax'))
+            logger.info('\arActivating Burns (named)\ax')
             state.burnActiveTimer:reset()
             state.burnActive = true
             state.burn_type = nil
             return true
         elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() >= config.get('BURNCOUNT') then
-            logger.print(logger.logLine('\arActivating Burns (mob count > %d)\ax', config.get('BURNCOUNT')))
+            logger.info('\arActivating Burns (mob count > %d)\ax', config.get('BURNCOUNT'))
             state.burnActiveTimer:reset()
             state.burnActive = true
             state.burn_type = nil
             return true
         elseif config.get('BURNPCT') ~= 0 and mq.TLO.Target.PctHPs() < config.get('BURNPCT') then
-            logger.print(logger.logLine('\arActivating Burns (percent HP)\ax'))
+            logger.info('\arActivating Burns (percent HP)\ax')
             state.burnActiveTimer:reset()
             state.burnActive = true
             state.burn_type = nil
@@ -417,10 +417,10 @@ local autoInventoryTimer = timer:new(15000)
 function common.checkCursor()
     if mq.TLO.Cursor() then
         if common.amIDead() and constants.deleteWhenDead[mq.TLO.Cursor.Name()] then
-            logger.print(logger.logLine('Deleting %s from cursor because im dead and have no bags!', mq.TLO.Cursor.Name()))
+            logger.info('Deleting %s from cursor because im dead and have no bags!', mq.TLO.Cursor.Name())
         elseif autoInventoryTimer.start_time == 0 then
             autoInventoryTimer:reset()
-            logger.print(logger.logLine('Dropping cursor item into inventory in 15 seconds'))
+            logger.info('Dropping cursor item into inventory in 15 seconds')
         elseif autoInventoryTimer:timerExpired() then
             mq.cmd('/autoinventory')
             autoInventoryTimer:reset(0)

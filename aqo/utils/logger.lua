@@ -12,7 +12,8 @@ local logger = {
 
 local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax \aw'
 
-function logger.print(text)
+function logger.info(...)
+    local text = logger.logLine(...)
     if CONSOLE then
         CONSOLE:AppendText(text)
     else
@@ -39,7 +40,7 @@ end
 ---The formatted string and zero or more replacement variables for the formatted string.
 ---@vararg string
 function logger.debug(debug_flag, ...)
-    if debug_flag then logger.print(logger.logLine(...)) end
+    if debug_flag then logger.info(...) end
 end
 
 --[[

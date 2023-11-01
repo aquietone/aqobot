@@ -58,7 +58,7 @@ local function showHelp()
     end
     output = (output .. '\ax'):gsub('cls', state.class)
     -- output is too long for the boring old chat window
-    if not mq.TLO.Plugin.IsLoaded('MQ2ChatWnd')() then print(output) end
+    if not mq.TLO.Plugin.IsLoaded('MQ2ChatWnd')() then logger.info(output) end
 end
 
 ---Process binding commands.
@@ -86,7 +86,7 @@ function commands.commandHandler(...)
     elseif opt == 'SELL' and not new_value then
         loot.sellStuff()
     elseif opt == 'BURNNOW' then
-        logger.print(logger.logLine('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or ''))
+        logger.info('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
         state.burnNow = true
         if new_value == 'quick' or new_value == 'long' then
             state.burn_type = new_value
@@ -173,7 +173,7 @@ function commands.commandHandler(...)
             aqo.class.addClicky(clicky)
             aqo.class.saveSettings()
         else
-            logger.print(logger.logLine('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class))
+            logger.info('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class)
         end
     elseif opt == 'REMOVECLICKY' then
         local itemName = mq.TLO.Cursor()
@@ -181,14 +181,14 @@ function commands.commandHandler(...)
             aqo.class.removeClicky(itemName)
             aqo.class.saveSettings()
         else
-            logger.print(logger.logLine('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class))
+            logger.info('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
         end
     elseif opt == 'LISTCLICKIES' then
         local clickies = ''
         for clickyName,clicky in pairs(aqo.class.clickies) do
             clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clicky.clickyType .. ')'
         end
-        logger.print(logger.logLine('Clickies: %s', clickies))
+        logger.info('Clickies: %s', clickies)
     elseif opt == 'INVIS' then
         if aqo.class.invis then
             aqo.class.invis()
@@ -235,7 +235,7 @@ function commands.commandHandler(...)
         if mode.currentMode:getName() == 'huntertank' then
             movement.stop()
             state.holdForBuffs = timer:new(15000)
-            logger.print(logger.logLine('Holding pulls for 15 seconds for buffing'))
+            logger.info('Holding pulls for 15 seconds for buffing')
         end
     elseif opt == 'RESUMEFORBUFFS' then
         if mode.currentMode:getName() == 'huntertank' then
@@ -252,41 +252,41 @@ function commands.classSettingsHandler(opt, new_value)
     if new_value then
         if opt == 'SPELLSET' and aqo.class.OPTS.SPELLSET ~= nil then
             if aqo.class.spellRotations[new_value] then
-                logger.print(logger.logLine('Setting %s to: %s', opt, new_value))
+                logger.info('Setting %s to: %s', opt, new_value)
                 aqo.class.OPTS.SPELLSET.value = new_value
             end
         elseif opt == 'USEEPIC' and aqo.class.OPTS.USEEPIC ~= nil then
             if aqo.class.EPIC_OPTS[new_value] then
-                logger.print(logger.logLine('Setting %s to: %s', opt, new_value))
+                logger.info('Setting %s to: %s', opt, new_value)
                 aqo.class.OPTS.USEEPIC.value = new_value
             end
         elseif opt == 'AURA1' and aqo.class.OPTS.AURA1 ~= nil then
             if aqo.class.AURAS[new_value] then
-                logger.print(logger.logLine('Setting %s to: %s', opt, new_value))
+                logger.info('Setting %s to: %s', opt, new_value)
                 aqo.class.OPTS.AURA1.value = new_value
             end
         elseif opt == 'AURA2' and aqo.class.OPTS.AURA2 ~= nil then
             if aqo.class.AURAS[new_value] then
-                logger.print(logger.logLine('Setting %s to: %s', opt, new_value))
+                logger.info('Setting %s to: %s', opt, new_value)
                 aqo.class.OPTS.AURA2.value = new_value
             end
         elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'boolean' then
             if constants.booleans[new_value] == nil then return end
             aqo.class.OPTS[opt].value = constants.booleans[new_value]
-            logger.print(logger.logLine('Setting %s to: %s', opt, constants.booleans[new_value]))
+            logger.info('Setting %s to: %s', opt, constants.booleans[new_value])
         elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'number' then
             if tonumber(new_value) then
-                logger.print(logger.logLine('Setting %s to: %s', opt, tonumber(new_value)))
+                logger.info('Setting %s to: %s', opt, tonumber(new_value))
                 if aqo.class.OPTS[opt].value ~= nil then aqo.class.OPTS[opt].value = tonumber(new_value) end
             end
         else
-            logger.print(logger.logLine('Unsupported command line option: %s %s', opt, new_value))
+            logger.info('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if aqo.class.OPTS[opt] ~= nil then
-            logger.print(logger.logLine('%s: %s', opt:lower(), aqo.class.OPTS[opt].value))
+            logger.info('%s: %s', opt:lower(), aqo.class.OPTS[opt].value)
         else
-            logger.print(logger.logLine('Unrecognized option: %s', opt))
+            logger.info('Unrecognized option: %s', opt)
         end
     end
 end

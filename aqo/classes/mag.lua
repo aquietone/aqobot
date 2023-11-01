@@ -2,6 +2,7 @@
 local mq = require('mq')
 local class = require('classes.classbase')
 local helpers = require('utils.helpers')
+local logger = require('utils.logger')
 local movement = require('utils.movement')
 local timer = require('utils.timer')
 local abilities = require('ability')
@@ -246,11 +247,11 @@ end
 function class.armPets()
     if mq.TLO.Cursor() then class.clearCursor() end
     if mq.TLO.Cursor() then
-        print('Unable to clear cursor, not summoning pet toys.')
+        logger.info('Unable to clear cursor, not summoning pet toys.')
         return
     end
     if not class.petWeapons then return end
-    print('Begin arming pets')
+    logger.info('Begin arming pets')
     state.paused = true
     local restoreGem1 = {Name=mq.TLO.Me.Gem(12)()}
     local restoreGem2 = {Name=mq.TLO.Me.Gem(11)()}
@@ -322,15 +323,15 @@ function class.armPetRequest(requester)
 end
 
 function class.armPet(petID, weapons, owner)
-    printf('Attempting to arm pet %s for %s', mq.TLO.Spawn('id '..petID).CleanName(), owner)
+    logger.info('Attempting to arm pet %s for %s', mq.TLO.Spawn('id '..petID).CleanName(), owner)
 
     local myX, myY, myZ = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     if not class.giveWeapons(petID, weapons or 'water|fire') then
         movement.navToLoc(myX, myY, myZ, nil, 2000)
         if state.isExternalRequest then
-            printf('tell %s There was an error arming your pet', state.requester)
+            logger.info('tell %s There was an error arming your pet', state.requester)
         else
-            printf('there was an issue with arming a pet')
+            logger.info('there was an issue with arming a pet')
         end
         return
     end
@@ -344,7 +345,7 @@ function class.armPet(petID, weapons, owner)
         if not class.giveOther(petID, class.spells.jewelry) then return end
     end
     if mq.TLO.FindItemCount('=Gold')() >= 1 then
-        print('have gold to give!')
+        logger.info('have gold to give!')
         mq.cmdf('/mqt id %s', petID)
         class.pickupWeapon('Gold')
         mq.delay(100)
@@ -357,7 +358,7 @@ function class.armPet(petID, weapons, owner)
 
     local petSpawn = mq.TLO.Spawn('id '..petID)
     if petSpawn() then
-        printf('finished arming %s', petSpawn.CleanName())
+        logger.info('finished arming %s', petSpawn.CleanName())
     end
 
     movement.navToLoc(myX, myY, myZ, nil, 2000)
@@ -375,7 +376,7 @@ function class.giveWeapons(petID, weaponString)
     mq.cmdf('/mqt id %s', petID)
     mq.delay(100)
     if mq.TLO.Target.ID() == petID then
-        printf('Give primary weapon %s to pet %s', primary, petID)
+        logger.info('Give primary weapon %s to pet %s', primary, petID)
         class.pickupWeapon(primary)
         if mq.TLO.Cursor() == primary then
             class.giveCursorItemToTarget()
@@ -385,7 +386,7 @@ function class.giveWeapons(petID, weaponString)
         if not class.checkForWeapons(primary, secondary) then
             return false
         end
-        printf('Give secondary weapon %s to pet %s', secondary, petID)
+        logger.info('Give secondary weapon %s to pet %s', secondary, petID)
         class.pickupWeapon(secondary)
         mq.cmdf('/mqt id %s', petID)
         mq.delay(100)
@@ -406,7 +407,7 @@ end
 function class.checkForWeapons(primary, secondary)
     local foundPrimary = mq.TLO.FindItem('='..primary)
     local foundSecondary = mq.TLO.FindItem('='..secondary)
-    printf('Check inventory for weapons %s %s', primary, secondary)
+    logger.info('Check inventory for weapons %s %s', primary, secondary)
     if not foundPrimary() or not foundSecondary() then
         local foundWeaponBag = mq.TLO.FindItem('='..weaponBag)
         if foundWeaponBag() then
@@ -416,22 +417,22 @@ function class.checkForWeapons(primary, secondary)
             if mq.TLO.Cursor.ID() == foundWeaponBag.ID() then
                 mq.cmd('/destroy')
             else
-                printf('Unexpected item on cursor when trying to destroy %s', weaponBag)
+                logger.info('Unexpected item on cursor when trying to destroy %s', weaponBag)
                 return false
             end
         else
             if not class.checkInventory() then
                 if state.isExternalRequest then
-                    printf('tell %s i was unable to free up inventory space', state.requester)
+                    logger.info('tell %s i was unable to free up inventory space', state.requester)
                 else
-                    printf('Unable to free up inventory space')
+                    logger.info('Unable to free up inventory space')
                 end
                 return false
             end
         end
         local summonResult = class.summonItem(class.spells.weapons, mq.TLO.Me.ID(), true, true)
         if not summonResult then
-            print('Error occurred summoning items')
+            logger.info('Error occurred summoning items')
             return false
         end
     end
@@ -454,7 +455,7 @@ function class.giveOther(petID, spell)
         mq.cmdf('/mqt id %s', petID)
         local summonResult = class.summonItem(spell, petID, false, false)
         if not summonResult then
-            print('Error occurred summoning items')
+            logger.info('Error occurred summoning items')
             return false
         end
     --else
@@ -468,19 +469,19 @@ function class.giveOther(petID, spell)
 end
 
 function class.summonItem(spell, targetID, summonsItem, inventoryItem)
-    printf('going to summon item %s', spell.Name)
+    logger.info('going to summon item %s', spell.Name)
     --mq.cmd('/mqt 0')
     if not mq.TLO.Me.Gem(spell.Name)() then
         abilities.swapSpell(spell, 12)
     end
     mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
-    if not spell:isReady() then printf('Spell %s was not ready', spell.Name) return false end
+    if not spell:isReady() then logger.info('Spell %s was not ready', spell.Name) return false end
     castUtils.cast(spell, targetID)
 
     mq.delay(300)
     if summonsItem then
         if not mq.TLO.Cursor.ID() then
-            printf('Cursor was empty after casting %s', spell.Name)
+            logger.info('Cursor was empty after casting %s', spell.Name)
             return false
         end
 
@@ -526,7 +527,7 @@ function class.safeToDestroy(bag)
     for i = 1, bag.Container() do
         local bagSlot = bag.Item(i)
         if bagSlot() and not bagSlot.NoRent() then
-            printf('DO NOT DESTROY: Found non-NoRent item: %s in summoned bag', bagSlot.Name())
+            logger.info('DO NOT DESTROY: Found non-NoRent item: %s in summoned bag', bagSlot.Name())
             return false
         end
     end
@@ -538,7 +539,7 @@ function class.checkInventory()
     local bag = mq.TLO.FindItem('='..pouch)
     local pouchID = bag.ID()
     local summonedItemCount = mq.TLO.FindItemCount('='..pouch)()
-    print('cleanup Pouch of Quellious')
+    logger.info('cleanup Pouch of Quellious')
     for i=1,summonedItemCount do
         if not class.safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', pouch)
@@ -549,7 +550,7 @@ function class.checkInventory()
         mq.cmd('/destroy')
     end
 
-    print('cleanup Disenchanted Bags')
+    logger.info('cleanup Disenchanted Bags')
     bag = mq.TLO.FindItem('='..disenchantedBag)
     local bagID = bag.ID()
     summonedItemCount = mq.TLO.FindItemCount('='..disenchantedBag)()
@@ -568,7 +569,7 @@ function class.checkInventory()
     local hasOpenInventorySlot = false
 
     -- if the first inventory slot is empty or an empty bag, this fails because it never sets containerWithOpenSpace
-    print('find bag slot')
+    logger.info('find bag slot')
     for i=1,10 do
         local currentSlot = i
         local containerSlots = mq.TLO.Me.Inventory('pack'..i).Container() or 0
@@ -576,7 +577,7 @@ function class.checkInventory()
 
         -- slots empty
         if not containerSlots then
-            printf('empty slot! %s', currentSlot)
+            logger.info('empty slot! %s', currentSlot)
             slotToMoveFrom = -1
             hasOpenInventorySlot = true
             break
@@ -584,19 +585,19 @@ function class.checkInventory()
 
         -- empty bag
         if containerItemCount == 0 then
-            printf('found empty bag %s', currentSlot)
+            logger.info('found empty bag %s', currentSlot)
             slotToMoveFrom = i
             break
         end
 
         if containerSlots - containerItemCount > 0 then
-            print('found bag with room')
+            logger.info('found bag with room')
             containerWithOpenSpace = i
         end
 
         -- its not a container or its empty, may move it
         if containerSlots == 0 or (containerSlots > 0 and containerItemCount == 0) then
-            print('found a item or empty bag we can move')
+            logger.info('found a item or empty bag we can move')
             slotToMoveFrom = currentSlot
         end
     end
@@ -624,7 +625,7 @@ function class.checkInventory()
         for i=1,slots do
             local item = invslot.Item(i)
             if not item() then
-                printf('/nomodkey /itemnotify in pack%s %s leftmouseup', containerWithOpenSpace, i)
+                logger.info('/nomodkey /itemnotify in pack%s %s leftmouseup', containerWithOpenSpace, i)
                 mq.cmdf('/nomodkey /itemnotify in pack%s %s leftmouseup', containerWithOpenSpace, i)
                 mq.delay(1000, function() return not mq.TLO.Cursor() end)
                 mq.delay(1)

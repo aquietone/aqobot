@@ -233,7 +233,7 @@ local function getRangedCombatPosition(radius)
                     local xtars = mq.TLO.SpawnCount(string.format('npc xtarhater loc %d %d %d radius 75', y_off, x_off, z_off))()
                     local allmobs = mq.TLO.SpawnCount(string.format('npc loc %d %d %d radius 75', y_off, x_off, z_off))()
                     if allmobs - xtars == 0 then
-                        logger.print(logger.logLine('Found a valid location at %d %d %d', y_off, x_off, z_off))
+                        logger.info('Found a valid location at %d %d %d', y_off, x_off, z_off)
                         movement.navToLoc(x_off, y_off, z_off, nil, 5000)
                         return true
                     end

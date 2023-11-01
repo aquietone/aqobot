@@ -44,7 +44,7 @@ function casting.cast(spell, targetID, interruptCheck)
 
     if not targetID or targetID == 0 then
         if not (spell.TargetType == 'Self' or spell.TargetType == 'Group v1' or spell.TargetType == 'Group v2' or spell.TargetType == 'PB AE') then
-            printf('Invalid target for casting. %s', targetID)
+            logger.info('Invalid target for casting. %s', targetID)
             state.actionTaken = true
             return casting.CastReturn.CAST_NOTARGET
         end
@@ -63,30 +63,30 @@ function casting.cast(spell, targetID, interruptCheck)
             local requiredCount = spell.ReagentCount or 1
             if itemCount < requiredCount then
                 spell.ReagentOutOfStock = true
-                printf('Spell reagent out of stock %s %s', spell.SpellName, spell.ReagentID)
+                logger.info('Spell reagent out of stock %s %s', spell.SpellName, spell.ReagentID)
                 return casting.CastReturn.CAST_REAGENT
             end
         end
 
         if state.currentZone ~= mq.TLO.Zone.ID() then
-            print('skip cast because zoning')
+            logger.info('skip cast because zoning')
             return casting.CastReturn.CAST_ZONING
         end
 
         if mq.TLO.Me.Feigning() then
-            print('skipping cast because feigned')
+            logger.info('skipping cast because feigned')
             return casting.CastReturn.CAST_FEIGN
         end
 
         if mq.TLO.Window('SpellBookWnd').Open() then
             state.actionTaken = true
-            print('skip cast because spell book open')
+            logger.info('skip cast because spell book open')
             return casting.CastReturn.CAST_SPELLBOOKOPEN
         end
 
         if mq.TLO.Corpse.Open() then
             state.actionTaken = true
-            print('skip cast because corpse open')
+            logger.info('skip cast because corpse open')
             return casting.CastReturn.CAST_CORPSEOPEN
         end
 
@@ -94,7 +94,7 @@ function casting.cast(spell, targetID, interruptCheck)
             if not (spell.CastType == abilities.Types.Disc and spell.TargetType == 'Self') then
                 if not (spell.TargetType == 'PB AE' or spell.TargetType == 'Self') then
                     if not mq.TLO.Spawn('id '..targetID).LineOfSight() then
-                        printf('SkipCast-LOS %s %s', spell.SpellName, targetName)
+                        logger.info('SkipCast-LOS %s %s', spell.SpellName, targetName)
                         return casting.CastReturn.CAST_CANNOTSEE
                     end
                 end
@@ -166,7 +166,7 @@ function casting.cast(spell, targetID, interruptCheck)
                             mq.delay(700)
                         end
                     else
-                        printf('casting item %s', spell.CastName)
+                        logger.info('casting item %s', spell.CastName)
                         mq.cmdf('/useitem "%s"', spell.CastName)
                         if spell.MyCastTime > 500 then
                             mq.delay(1000)
@@ -231,7 +231,7 @@ function casting.cast(spell, targetID, interruptCheck)
         end
 
         mq.doevents()
-        printf('done casting %s', spell.CastName)
+        logger.info('done casting %s', spell.CastName)
         if spell.RemoveBuff then
             mq.cmdf('/removebuff "%s"', spell.RemoveBuff)
         end
@@ -397,12 +397,12 @@ function casting.checkReady(spell)
         end
 
         if mq.TLO.Me.SpellReady(spell.SpellName)() then
-            printf('checkReady success %s', spell.SpellName)
+            logger.info('checkReady success %s', spell.SpellName)
             return true
         end
 
         if casting.inGlobalCooldown() then
-            print('spells in cooldown')
+            logger.info('spells in cooldown')
             return false
         end
     elseif spell.CastType == abilities.Types.Item then
