@@ -23,8 +23,7 @@ local helpGUIOpen = false
 local shouldDrawHelpGUI = false
 
 -- UI constants
-local MINIMUM_WIDTH = 372
-local HALF_BUTTON_WIDTH = 173
+local MINIMUM_WIDTH = 430
 local BUTTON_HEIGHT = 22
 local mid_x = 140
 local item_width = 115
@@ -64,11 +63,33 @@ function ui.drawComboBox(label, resultvar, options, bykey, helpText, xOffset, yO
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
+    if ImGui.BeginCombo(label, resultvar) then
+        for i,j in pairs(options) do
+            if bykey then
+                if ImGui.Selectable(i, i == resultvar) then
+                    resultvar = i
+                end
+            else
+                if ImGui.Selectable(j, j == resultvar) then
+                    resultvar = j
+                end
+            end
+        end
+        ImGui.EndCombo()
+    end
+    helpMarker(helpText)
+    return resultvar
+end
+
+function ui.drawComboBoxLeftText(label, resultvar, options, bykey, helpText, xOffset, yOffset, maxLabelWidth)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
     ImGui.Text(label)
     ImGui.SameLine()
     helpMarker(helpText)
     ImGui.SameLine()
-    ImGui.SetCursorPosX(mid_x + xOffset)
+    ImGui.SetCursorPosX((maxLabelWidth or mid_x) + xOffset)
     local _,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
     if ImGui.BeginCombo('##'..label, resultvar) then
@@ -85,25 +106,21 @@ function ui.drawComboBox(label, resultvar, options, bykey, helpText, xOffset, yO
         end
         ImGui.EndCombo()
     end
-    --[[if ImGui.BeginCombo(label, resultvar) then
-        for i,j in pairs(options) do
-            if bykey then
-                if ImGui.Selectable(i, i == resultvar) then
-                    resultvar = i
-                end
-            else
-                if ImGui.Selectable(j, j == resultvar) then
-                    resultvar = j
-                end
-            end
-        end
-        ImGui.EndCombo()
-    end
-    helpMarker(helpText)]]
     return resultvar
 end
 
-function ui.drawCheckBox(labelText, idText, resultVar, helpText, xOffset, yOffset)
+function ui.drawCheckBox(labelText, resultVar, helpText, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
+    if resultVar then ImGui.PushStyleColor(ImGuiCol.Text, GREEN) else ImGui.PushStyleColor(ImGuiCol.Text, RED) end
+    resultVar,_ = ImGui.Checkbox(labelText, resultVar)
+    ImGui.PopStyleColor(1)
+    helpMarker(helpText)
+    return resultVar
+end
+
+function ui.drawCheckBoxLeftLabel(labelText, idText, resultVar, helpText, xOffset, yOffset, maxLabelWidth)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -117,16 +134,21 @@ function ui.drawCheckBox(labelText, idText, resultVar, helpText, xOffset, yOffse
     ImGui.SameLine()
     local x,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
-    ImGui.SetCursorPosX(mid_x + xOffset)
+    ImGui.SetCursorPosX((maxLabelWidth or mid_x) + xOffset + 5)
     resultVar,_ = ImGui.Checkbox(idText, resultVar)
-    --[[if resultVar then ImGui.PushStyleColor(ImGuiCol.Text, GREEN) else ImGui.PushStyleColor(ImGuiCol.Text, RED) end
-    resultVar,_ = ImGui.Checkbox(labelText, resultVar)
-    ImGui.PopStyleColor(1)
-    helpMarker(helpText)]]
     return resultVar
 end
 
-function ui.drawInputInt(labelText, idText, resultVar, helpText, xOffset, yOffset)
+function ui.drawInputInt(labelText, resultVar, helpText, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
+    resultVar = ImGui.InputInt(labelText, resultVar)
+    helpMarker(helpText)
+    return resultVar
+end
+
+function ui.drawInputIntLeftLabel(labelText, idText, resultVar, helpText, xOffset, yOffset, maxLabelWidth)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -136,14 +158,21 @@ function ui.drawInputInt(labelText, idText, resultVar, helpText, xOffset, yOffse
     ImGui.SameLine()
     local _,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
-    ImGui.SetCursorPosX(mid_x + xOffset)
+    ImGui.SetCursorPosX((maxLabelWidth or mid_x) + xOffset + 5)
     resultVar = ImGui.InputInt(idText, resultVar)
-    --[[resultVar = ImGui.InputInt(labelText, resultVar)
-    helpMarker(helpText)]]
     return resultVar
 end
 
-function ui.drawInputText(labelText, idText, resultVar, helpText, xOffset, yOffset)
+function ui.drawInputText(labelText, resultVar, helpText, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
+    resultVar = ImGui.InputText(labelText, resultVar)
+    helpMarker(helpText)
+    return resultVar
+end
+
+function ui.drawInputTextLeftLabel(labelText, idText, resultVar, helpText, xOffset, yOffset, maxLabelWidth)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
     ImGui.SetCursorPosY(yOffset+5)
@@ -153,18 +182,16 @@ function ui.drawInputText(labelText, idText, resultVar, helpText, xOffset, yOffs
     ImGui.SameLine()
     local _,y = ImGui.GetCursorPos()
     ImGui.SetCursorPosY(y-3)
-    ImGui.SetCursorPosX(mid_x + xOffset)
+    ImGui.SetCursorPosX((maxLabelWidth or mid_x) + xOffset + 5)
     resultVar = ImGui.InputText(idText, resultVar)
-    --[[resultVar = ImGui.InputText(labelText, resultVar)
-    helpMarker(helpText)]]
     return resultVar
 end
 
-function ui.getNextXY(startY, yAvail, xOffset, yOffset, maxY)
+function ui.getNextXY(startY, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
     yOffset = yOffset + Y_COLUMN_OFFSET
     if yOffset > maxY then maxY = yOffset end
-    if yAvail - yOffset + startY < 25 then
-        xOffset = xOffset + X_COLUMN_OFFSET
+    if yAvail - yOffset + startY < 27 then
+        xOffset = xOffset + maxLabelWidth + item_width
         yOffset = startY
     end
     return xOffset, yOffset, maxY
@@ -177,20 +204,35 @@ local function drawConfigurationForCategory(configs)
     local maxY = yOffset
     local _, yAvail = ImGui.GetContentRegionAvail()
 
+    local maxLabelWidth = 0
+    for _,cfgKey in ipairs(configs) do
+        local labelSize = ImGui.CalcTextSize(config[cfgKey].label)
+        if labelSize > maxLabelWidth then maxLabelWidth = labelSize end
+    end
+    for _,cfgKey in ipairs(configs) do
+        local cfg = config[cfgKey]
+        if (cfg.emu == nil or (cfg.emu and state.emu) or (cfg.emu == false and not state.emu)) and
+                (cfg.classes == nil or cfg.classes[state.class]) then
+            if cfg.type == 'combobox' then
+                config.set(cfgKey, ui.drawComboBox(cfg.label, cfg.value, cfg.options, true, cfg.tip, xOffset, yOffset))
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
+            elseif cfg.type == 'inputtext' then
+                config.set(cfgKey, ui.drawInputText(cfg.label, cfg.value, cfg.tip, xOffset, yOffset))
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
+            elseif cfg.type == 'inputint' then
+                config.set(cfgKey, ui.drawInputInt(cfg.label, cfg.value, cfg.tip, xOffset, yOffset))
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
+            end
+        end
+    end
     for _,cfgKey in ipairs(configs) do
         local cfg = config[cfgKey]
         if (cfg.emu == nil or (cfg.emu and state.emu) or (cfg.emu == false and not state.emu)) and
                 (cfg.classes == nil or cfg.classes[state.class]) then
             if cfg.type == 'checkbox' then
-                config.set(cfgKey, ui.drawCheckBox(cfg.label, '##'..cfgKey, cfg.value, cfg.tip, xOffset, yOffset))
-            elseif cfg.type == 'combobox' then
-                config.set(cfgKey, ui.drawComboBox(cfg.label, cfg.value, cfg.options, true, cfg.tip, xOffset, yOffset))
-            elseif cfg.type == 'inputint' then
-                config.set(cfgKey, ui.drawInputInt(cfg.label, '##'..cfgKey, cfg.value, cfg.tip, xOffset, yOffset))
-            elseif cfg.type == 'inputtext' then
-                config.set(cfgKey, ui.drawInputText(cfg.label, '##'..cfgKey, cfg.value, cfg.tip, xOffset, yOffset))
+                config.set(cfgKey, ui.drawCheckBox(cfg.label, cfg.value, cfg.tip, xOffset, yOffset))
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
-            xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
         end
     end
 end
@@ -223,18 +265,31 @@ local function drawSkillsTab()
     local yOffset = y
     local maxY = yOffset
     local _, yAvail = ImGui.GetContentRegionAvail()
+    local maxLabelWidth = 0
+    for _,key in ipairs(aqo.class.OPTS) do
+        local labelSize = ImGui.CalcTextSize(aqo.class.OPTS[key].label)
+        if labelSize > maxLabelWidth then maxLabelWidth = labelSize end
+    end
+    for _,key in ipairs(aqo.class.OPTS) do
+        if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
+            local option = aqo.class.OPTS[key]
+            if option.type == 'combobox' then
+                option.value = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
+            elseif option.type == 'inputint' then
+                option.value = ui.drawInputInt(option.label, option.value, option.tip, xOffset, yOffset)
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
+            end
+        end
+    end
     for _,key in ipairs(aqo.class.OPTS) do
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
             local option = aqo.class.OPTS[key]
             if option.type == 'checkbox' then
-                option.value = ui.drawCheckBox(option.label, '##'..key, option.value, option.tip, xOffset, yOffset)
+                option.value = ui.drawCheckBox(option.label, option.value, option.tip, xOffset, yOffset)
                 if option.value and option.exclusive then aqo.class.OPTS[option.exclusive].value = false end
-            elseif option.type == 'combobox' then
-                option.value = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
-            elseif option.type == 'inputint' then
-                option.value = ui.drawInputInt(option.label, '##'..key, option.value, option.tip, xOffset, yOffset)
+                xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
-            xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY)
         end
     end
     local xAvail = ImGui.GetContentRegionAvail()
@@ -248,15 +303,17 @@ local function drawHealTab()
 end
 
 local function drawBurnTab()
-    if ImGui.Button('Burn Now', 112, BUTTON_HEIGHT) then
+    local x,_ = ImGui.GetContentRegionAvail()
+    local buttonWidth = (x / 3) - 6
+    if ImGui.Button('Burn Now', buttonWidth, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Quick Burn', 112, BUTTON_HEIGHT) then
+    if ImGui.Button('Quick Burn', buttonWidth, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow quick', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Long Burn', 112, BUTTON_HEIGHT) then
+    if ImGui.Button('Long Burn', buttonWidth, BUTTON_HEIGHT) then
         mq.cmdf('/%s burnnow long', state.class)
     end
     drawConfigurationForCategory(config.getByCategory('Burn'))
@@ -264,11 +321,13 @@ local function drawBurnTab()
 end
 
 local function drawPullTab()
-    if ImGui.Button('Add Ignore', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
+    local x,_ = ImGui.GetContentRegionAvail()
+    local buttonWidth = (x / 2) - 4
+    if ImGui.Button('Add Ignore', buttonWidth, BUTTON_HEIGHT) then
         mq.cmdf('/%s ignore', state.class)
     end
     ImGui.SameLine()
-    if ImGui.Button('Remove Ignore', HALF_BUTTON_WIDTH, BUTTON_HEIGHT) then
+    if ImGui.Button('Remove Ignore', buttonWidth, BUTTON_HEIGHT) then
         mq.cmdf('/%s unignore', state.class)
     end
     local current_radius = config.PULLRADIUS.value
@@ -300,7 +359,7 @@ end
 
 local function drawDebugTab()
     local x,_ = ImGui.GetContentRegionAvail()
-    local buttonWidth = (x / 2)
+    local buttonWidth = (x / 2) - 4
     if ImGui.Button('Restart AQO', buttonWidth, BUTTON_HEIGHT) then
         mq.cmd('/multiline ; /lua stop aqo ; /timed 10 /lua run aqo')
     end
@@ -311,7 +370,7 @@ local function drawDebugTab()
     if ImGui.Button('View Ability Lists', x, BUTTON_HEIGHT) then
         abilityGUIOpen = true
     end
-    config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', '##timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages')
+    config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages')
     logger.timestamps = config.TIMESTAMPS.value
     drawDebugComboBox()
     ImGui.TextColored(YELLOW, 'Mode:')
@@ -346,21 +405,6 @@ local function drawDebugTab()
     end
 end
 
-local function drawHUD()
-    --[[ImGui.TextColored(YELLOW, 'Assist Mob ID:')
-    ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
-    ImGui.TextColored(RED, '%s', state.assistMobID)
-    ImGui.TextColored(YELLOW, 'Tank Mob ID:')
-    ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
-    ImGui.TextColored(RED, '%s', state.tankMobID)
-    ImGui.TextColored(YELLOW, 'Pull Mob ID:')
-    ImGui.SameLine()
-    ImGui.SetCursorPosX(150)
-    ImGui.TextColored(RED, '%s', state.pullMobID)]]
-end
-
 local function drawConsole()
     -- Reduce spacing so everything fits snugly together
     ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(0, 0))
@@ -370,7 +414,6 @@ local function drawConsole()
 end
 
 local uiTabs = {
-    --{label='HUD', draw=drawHUD},
     {label='Console', draw=drawConsole},
     {label='General', draw=drawAssistTab},
     {label='Skills', draw=drawSkillsTab},
@@ -438,7 +481,7 @@ local function drawHeader()
     local current_mode = config.get('MODE')
     ImGui.PushItemWidth(item_width)
     mid_x = buttonWidth+8
-    config.MODE.value = ui.drawComboBox('Mode', config.get('MODE'), mode.mode_names, false, config.MODE.tip)
+    config.MODE.value = ui.drawComboBoxLeftText('Mode', config.get('MODE'), mode.mode_names, false, config.MODE.tip)
     mode.currentMode = mode.fromString(config.get('MODE'))
     mid_x = 140
     ImGui.PopItemWidth()
@@ -626,6 +669,8 @@ function ui.main()
     if shouldDrawGUI then
         drawHeader()
         drawBody()
+        local x, y = ImGui.GetWindowSize()
+        if x < MINIMUM_WIDTH then ImGui.SetWindowSize(MINIMUM_WIDTH, y) end
     end
     ImGui.End()
     drawAbilityInspector()

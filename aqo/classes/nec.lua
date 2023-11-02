@@ -604,7 +604,7 @@ local necCountTimer = timer:new(60000)
 -- end
 
 function class.drawBurnTab()
-    class.OPTS.BURNPROC.value = ui.drawCheckBox('Burn On Proc', '##burnproc', class.OPTS.BURNPROC.value, 'Burn when proliferation procs')
+    class.OPTS.BURNPROC.value = ui.drawCheckBox('Burn On Proc', class.OPTS.BURNPROC.value, 'Burn when proliferation procs')
 end
 
 return class
