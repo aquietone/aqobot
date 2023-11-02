@@ -71,76 +71,78 @@ function class.initSpellLines(_aqo)
     class.addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
     class.addSpell('alliance', {'Chromatic Coalition', 'Chromatic Covenant'})
 
-    class.addSpell('mezst', {'Addle', 'Euphoria'}) -- 9 ticks
-    class.addSpell('mezst2', {'Addling Flash'}) -- 6 ticks
-    class.addSpell('mezae', {'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}) -- targeted AE mez
-    class.addSpell('mezaehate', {'Confounding Glance'}) -- targeted AE mez + 100% hate reduction
-    class.addSpell('mezpbae', {'Bewilderment'})
-    class.addSpell('mezpbae2', {'Perilous Bewilderment'}) -- lvl 120
-    class.addSpell('meznoblur', {'Chaotic Puzzlement', 'Chaotic Deception'})
-    class.addSpell('mezaeprocblur', {'Mesmeric Stare'}) -- targeted AE mez
-    class.addSpell('mezshield', {'Ward of the Beguiler', 'Ward of the Deviser'}) -- mez proc on being hit
+    class.addSpell('mezst', {'Flummox', 'Addle', 'Euphoria'}) -- 9 ticks
+    class.addSpell('mezst2', {'Flummoxing Flash', 'Addling Flash'}) -- 6 ticks
+    class.addSpell('mezae', {'Stupefying Wave', 'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}) -- targeted AE mez
+    class.addSpell('mezaehate', {'Vexing Glance', 'Confounding Glance'}) -- targeted AE mez + 100% hate reduction
+    class.addSpell('mezpbae', {'Wonderment', 'Bewilderment'})
+    class.addSpell('mezpbae2', {'Perilous Confounding', 'Perilous Bewilderment'}) -- lvl 120
+    class.addSpell('meznoblur', {'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception'})
+    class.addSpell('mezaeprocblur', {'Entrancing Stare', 'Mesmeric Stare'}) -- targeted AE mez
+    class.addSpell('mezshield', {'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}) -- mez proc on being hit
 
-    class.addSpell('rune', {'Marvel\'s Rune'}) -- 160k rune, self
-    class.addSpell('rune2', {'Rune of Tearc'}) -- 90k rune, single target
-    class.addSpell('dotrune', {'Aegis of Xetheg'}) -- absorb DoT dmg
-    class.addSpell('guard', {'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}) -- spell + melee guard
+    class.addSpell('rune', {'Disquieting Rune', 'Marvel\'s Rune'}) -- 160k rune, self
+    class.addSpell('rune2', {'Rune of Zoraxmen', 'Rune of Tearc'}) -- 90k rune, single target
+    class.addSpell('dotrune', {'Aegis of Dhakka', 'Aegis of Xetheg'}) -- absorb DoT dmg
+    class.addSpell('guard', {'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}) -- spell + melee guard
     class.addSpell('dotmiti', {'Deviser\'s Auspice', 'Transfixer\'s Auspice'}) -- DoT guard
-    class.addSpell('meleemiti', {'Eclipsed Auspice'}) -- melee guard
-    class.addSpell('spellmiti', {'Aegis of Sefra'}) -- 20% spell mitigation
-    class.addSpell('absorbbuff', {'Brimstone Endurance'}) -- increase absorb dmg
+    class.addSpell('spellmiti', {'Aegis of Elmara', 'Aegis of Sefra'}) -- 20% spell mitigation
 
-    class.addSpell('aggrorune', {'Ghastly Rune'}) -- single target rune + hate increase
+    class.addSpell('meleemiti', {'Gloaming Auspice', 'Eclipsed Auspice'}) -- melee guard, + hate
+    class.addSpell('absorbbuff', {'Brimstone Stability', 'Brimstone Endurance'}) -- increase absorb dmg, + hate
+    class.addSpell('aggrorune', {'Esoteric Rune', 'Ghastly Rune'}) -- single target rune + hate increase
+    -- Polyradiant Rune -- hate mod rune, stun proc on fade
 
-    class.addSpell('groupdotrune', {'Legion of Xetheg', 'Legion of Cekenar'})
-    class.addSpell('groupspellrune', {'Legion of Liako', 'Legion of Kildrukaun'})
-    class.addSpell('groupaggrorune', {'Eclipsed Rune'}) -- group rune + aggro reduction proc
+    class.addSpell('groupdotrune', {'Legion of Dhakka', 'Legion of Xetheg', 'Legion of Cekenar'})
+    class.addSpell('groupspellrune', {'Legion of Ogna', 'Legion of Liako', 'Legion of Kildrukaun'})
+    class.addSpell('groupaggrorune', {'Gloaming Rune', 'Eclipsed Rune'}) -- group rune + aggro reduction proc
 
-    class.addSpell('dot', {'Mind Vortex', 'Mind Coil', 'Mind Shatter'}, {opt='USEDOT'}) -- big dot
-    class.addSpell('dot2', {'Throttling Grip', 'Pulmonary Grip', 'Arcane Noose'}, {opt='USEDOT'}) -- decent dot
-    class.addSpell('debuffdot', {'Perplexing Constriction'}) -- debuff + nuke + dot
-    class.addSpell('manadot', {'Tears of Xenacious'}) -- hp + mana DoT
-    class.addSpell('nukerune', {'Chromatic Flare'}) -- 15k nuke + self rune
-    class.addSpell('nuke', {'Psychological Appropriation'}) -- 20k
-    class.addSpell('nuke2', {'Chromashear'}) -- 23k
-    class.addSpell('nuke3', {'Polyluminous Assault'}) -- 27k nuke
+    class.addSpell('dot', {'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Shatter'}, {opt='USEDOT'}) -- big dot
+    class.addSpell('dot2', {'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Arcane Noose'}, {opt='USEDOT'}) -- decent dot
+    class.addSpell('debuffdot', {'Dismaying Constriction', 'Perplexing Constriction'}) -- debuff + nuke + dot
+    class.addSpell('manadot', {'Tears of Kasha', 'Tears of Xenacious'}) -- hp + mana DoT
+    class.addSpell('nukerune', {'Chromatic Spike', 'Chromatic Flare'}) -- 15k nuke + self rune
+    class.addSpell('nuke', {'Cognitive Appropriation', 'Psychological Appropriation'}) -- 20k
+    class.addSpell('nuke2', {'Chromaclap', 'Chromashear'}) -- 23k
+    class.addSpell('nuke3', {'Polyradiant Assault', 'Polyluminous Assault'}) -- 27k nuke
     class.addSpell('nuke4', {'Obscuring Eclipse'}) -- 27k nuke
     class.addSpell('aenuke', {'Gravity Roil'}) -- 23k targeted ae nuke
 
     class.addSpell('calm', {'Still Mind'})
-    class.addSpell('tash', {'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani', 'Echo of Tashan'}, {opt='USEDEBUFF'})
-    class.addSpell('stunst', {'Dizzying Vortex'}) -- single target stun
-    class.addSpell('stunae', {'Remote Color Conflagration'})
-    class.addSpell('stunpbae', {'Color Conflagration'})
+    class.addSpell('tash', {'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani', 'Echo of Tashan'}, {opt='USEDEBUFF'})
+    class.addSpell('stunst', {'Dizzying Spindle', 'Dizzying Vortex'}) -- single target stun
+    class.addSpell('stunae', {'Remote Color Calibration', 'Remote Color Conflagration'})
+    class.addSpell('stunpbae', {'Color Calibration', 'Color Conflagration'})
     class.addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}) -- self rune, proc ae stun on fade
 
-    class.addSpell('pet', {'Constance\'s Animation', 'Aeidorb\'s Animation'})
+    class.addSpell('pet', {'Flariton\'s Animation', 'Constance\'s Animation', 'Aeidorb\'s Animation'})
     class.addSpell('pethaste', {'Invigorated Minion'})
-    class.addSpell('charm', {'Marvel\'s Command'})
+    class.addSpell('charm', {'Esoteric Command', 'Marvel\'s Command'})
     -- buffs
-    class.addSpell('unity', {'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
-    class.addSpell('procbuff', {'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}) -- single target dmg proc buff
-    class.addSpell('kei', {'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
-    class.addSpell('keigroup', {'Voice of Perception', 'Voice of Sagacity'})
-    class.addSpell('haste', {'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
-    class.addSpell('grouphaste', {'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
+    class.addSpell('unity', {'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
+    class.addSpell('procbuff', {'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}) -- single target dmg proc buff
+    class.addSpell('kei', {'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
+    class.addSpell('keigroup', {'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity'})
+    class.addSpell('haste', {'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
+    class.addSpell('grouphaste', {'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
     class.addSpell('nightsterror', {'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}) -- melee attack proc
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
     class.addSpell('twincast', {'Twincast Aura'})
-    class.addSpell('regen', {'Marvel\'s Aura', 'Deviser\'s Aura'}) -- mana + end regen aura
-    class.addSpell('spellfocus', {'Enhancing Aura', 'Fortifying Aura'}) -- increase dmg of DDs
-    class.addSpell('combatinnate', {'Mana Radix Aura', 'Mana Replication Aura'}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
+    class.addSpell('regen', {'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}) -- mana + end regen aura
+    class.addSpell('spellfocus', {'Intensifying Aura', 'Enhancing Aura', 'Fortifying Aura'}) -- increase dmg of DDs
+    class.addSpell('combatinnate', {'Mana Ripple Aura', 'Mana Radix Aura', 'Mana Replication Aura'}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
     class.addSpell('disempower', {'Arcane Disjunction Aura'})
+    -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
-    class.addSpell('shield', {'Shield of Shadow', 'Shield of Restless Ice'})
+    class.addSpell('shield', {'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'})
     class.addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
 
-    class.addSpell('synergy', {'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
+    class.addSpell('synergy', {'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
     if class.spells.synergy then
-        if class.spells.synergy.Name:find('reap') then
+        if class.spells.synergy.Name:find('rend') then
+            class.addSpell('nuke5', {'Mindreap', 'Mindrift', 'Mindslash'})
+        elseif class.spells.synergy.Name:find('reap') then
             class.addSpell('nuke5', {'Mindrift', 'Mindslash'})
-        elseif class.spells.synergy.Name:find('rift') then
-            class.addSpell('nuke5', {'Mindslash'})
         end
     end
     if state.emu then

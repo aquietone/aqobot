@@ -65,42 +65,42 @@ function class.initSpellLines(_aqo)
     class.addSpell('composite', {'Composite Fang'}) -- big lifetap
     class.addSpell('alliance', {'Bloodletting Coalition'}) -- alliance
     -- Aggro
-    class.addSpell('challenge', {'Parlay for Power', 'Terror of Thule', 'Aura of Hate'}) -- main hate spell
-    class.addSpell('terror', {'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}) -- ST increase hate by 1
-    class.addSpell('aeterror', {'Antipathy', 'Dread Gaze'}, {threshold=2}) -- ST increase hate by 1
-    --['']={'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
+    class.addSpell('challenge', {'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate'}) -- main hate spell
+    class.addSpell('terror', {'Terror of Tarantis', 'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}) -- ST increase hate by 1
+    class.addSpell('aeterror', {'Animus', 'Antipathy', 'Dread Gaze'}, {threshold=2}) -- ST increase hate by 1
+    --['']={'Oppressor\'s Audacity', 'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
     -- Lifetaps
-    class.addSpell('largetap', {'Dire Censure'}) -- large lifetap
-    class.addSpell('tap1', {'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
-    class.addSpell('tap2', {'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'}) -- lifetap + temp hp buff Gift of Namdrows
-    class.addSpell('dottap', {'Bond of Bynn', 'Bond of Inruku'}) -- lifetap dot
-    class.addSpell('bitetap', {'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'}) -- lifetap with hp/mana recourse
+    class.addSpell('largetap', {'Dire Rebuke', 'Dire Censure'}) -- large lifetap
+    class.addSpell('tap1', {'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
+    class.addSpell('tap2', {'Touch of Mortimus', 'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'}) -- lifetap + temp hp buff Gift of Namdrows
+    class.addSpell('dottap', {'Bond of Tatalros', 'Bond of Bynn', 'Bond of Inruku'}) -- lifetap dot
+    class.addSpell('bitetap', {'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'}) -- lifetap with hp/mana recourse
     -- AE lifetap + aggro
-    class.addSpell('aetap', {'Insidious Renunciation'}) -- large hate + lifetap
+    class.addSpell('aetap', {'Insidious Repudiation', 'Insidious Renunciation'}) -- large hate + lifetap
     -- DPS
-    class.addSpell('spear', {'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
-    class.addSpell('poison', {'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'}) -- poison dot
-    class.addSpell('disease', {'Plague of Fleshrot'}) -- disease dot
-    class.addSpell('corruption', {'Unscrupulous Blight'}) -- corruption dot
-    class.addSpell('acdis', {'Dire Seizure'}) -- disease + ac dot
-    class.addSpell('acdebuff', {'Torrent of Melancholy', 'Theft of Agony'}) -- ac debuff
-    --['']={'Despicable Bargain'}), -- nuke, does this get used?
+    class.addSpell('spear', {'Spear of Lazam', 'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
+    class.addSpell('poison', {'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'}) -- poison dot
+    class.addSpell('disease', {'Plague of the Fleawalker', 'Plague of Fleshrot'}) -- disease dot
+    class.addSpell('corruption', {'Vitriolic Blight', 'Unscrupulous Blight'}) -- corruption dot
+    class.addSpell('acdis', {'Dire Squelch', 'Dire Seizure'}) -- disease + ac dot
+    class.addSpell('acdebuff', {'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony'}) -- ac debuff
+    --['']={'Odious Bargain', 'Despicable Bargain'}), -- ae hate nuke, does this get used?
     -- Short Term Buffs
-    class.addSpell('stance', {'Adamant Stance', 'Vampiric Embrace'}) -- temp HP buff, 2.5min
-    class.addSpell('skin', {'Xenacious\' Skin', 'Decrepit Skin'}) -- Xenacious' Skin proc, 5min buff
+    class.addSpell('stance', {'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'}) -- temp HP buff, 2.5min
+    class.addSpell('skin', {'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'}) -- Xenacious' Skin proc, 5min buff
     class.addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    class.addSpell('pet', {'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
-    class.addSpell('pethaste', {'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}) -- pet haste
+    class.addSpell('pet', {'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
+    class.addSpell('pethaste', {'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}) -- pet haste
     -- Unity Buffs
-    class.addSpell('shroud', {'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, {swap=false}) -- Shroud of Zelinstein Strike proc
-    class.addSpell('bezaproc', {'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
-    class.addSpell('aziaproc', {'Brightfield\'s Horror'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
-    class.addSpell('ds', {'Tekuel Skin'}) -- large damage shield self buff
-    class.addSpell('lich', {'Aten Ha Ra\'s Covenant'}) -- lich mana regen
-    class.addSpell('drape', {'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}) -- self buff hp, ac, ds
-    class.addSpell('atkbuff', {'Penumbral Call'}) -- atk buff, hp drain on self
+    class.addSpell('shroud', {'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, {swap=false}) -- Shroud of Zelinstein Strike proc
+    class.addSpell('bezaproc', {'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
+    class.addSpell('aziaproc', {'Mortimus\' Horror', 'Brightfield\'s Horror'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
+    class.addSpell('ds', {'Goblin Skin', 'Tekuel Skin'}) -- large damage shield self buff
+    class.addSpell('lich', {'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}) -- lich mana regen
+    class.addSpell('drape', {'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}) -- self buff hp, ac, ds
+    class.addSpell('atkbuff', {'Call of Blight', 'Penumbral Call'}) -- atk buff, hp drain on self
     --['']=common.get_best_spell({'Remorseless Demeanor'})
 end
 
@@ -161,9 +161,10 @@ end
 function class.initTankAbilities(_aqo)
     -- TANK
     -- defensives
+    -- common.getBestDisc({'Gird'}) -- absorb melee/spell dmg, short cd mash ability
     class.flash = common.getAA('Shield Flash') -- 4min CD, short deflection
-    class.mantle = common.getBestDisc({'Fyrthek Mantle'}) -- 15min CD, 35% melee dmg mitigation, heal on fade
-    class.carapace = common.getBestDisc({'Xetheg\'s Carapace'}) -- 7m30s CD, ac buff, 20% dmg mitigation, lifetap proc
+    class.mantle = common.getBestDisc({'Geomimus Mantle', 'Fyrthek Mantle'}) -- 15min CD, 35% melee dmg mitigation, heal on fade
+    class.carapace = common.getBestDisc({'Kanghammer\'s Carapace', 'Xetheg\'s Carapace'}) -- 7m30s CD, ac buff, 20% dmg mitigation, lifetap proc
     class.guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
     class.deflection = common.getBestDisc({'Deflection Discipline'}, {opt='USEDEFLECTION'})
 
@@ -181,7 +182,7 @@ function class.initTankAbilities(_aqo)
     table.insert(class.AETankAbilities, common.getAA('Explosion of Hatred', {threshold=4})) -- 45sec CD
     --table.insert(mashAEAggroAAs4, common.getAA('Stream of Hatred')) -- large frontal cone ae aggro
 
-    table.insert(class.tankBurnAbilities, common.getBestDisc({'Unrelenting Acrimony'})) -- instant aggro
+    table.insert(class.tankBurnAbilities, common.getBestDisc({'Unconditional Acrimony', 'Unrelenting Acrimony'})) -- instant aggro
     table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity')) -- big taunt
     table.insert(class.tankBurnAbilities, common.getAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
     table.insert(class.tankBurnAbilities, common.getAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
@@ -196,8 +197,8 @@ function class.initDPSAbilities(_aqo)
 end
 
 function class.initBurns(_aqo)
-    table.insert(class.burnAbilities, common.getBestDisc({'Grisly Blade'})) -- 2hs attack
-    table.insert(class.burnAbilities, common.getBestDisc({'Sanguine Blade'})) -- 3 strikes
+    table.insert(class.burnAbilities, common.getBestDisc({'Incapacitating Blade', 'Grisly Blade'})) -- 2hs attack
+    table.insert(class.burnAbilities, common.getBestDisc({'ncarnadine Blade', 'Sanguine Blade'})) -- 3 strikes
     table.insert(class.burnAbilities, common.getAA('Gift of the Quick Spear')) -- 10min CD, twincast
     table.insert(class.burnAbilities, common.getAA('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
     --table.insert(class.burnAbilities, common.getAA('Harm Touch')) -- 20min CD, giant nuke + dot

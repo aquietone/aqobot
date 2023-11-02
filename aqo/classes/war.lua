@@ -45,13 +45,13 @@ end
 function class.initTankAbilities(_aqo)
     table.insert(class.tankAbilities, common.getSkill('Taunt', {aggro=true, condition=_aqo.conditions.aggroBelow}))
 
-    class.mash_defensive = common.getBestDisc({'Primal Defense'})
+    class.mash_defensive = common.getBestDisc({'Vigorous Defense', 'Primal Defense'})
     table.insert(class.tankAbilities, class.mash_defensive)
-    table.insert(class.tankAbilities, common.getBestDisc({'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq', 'Bellow'}, {condition=_aqo.conditions.withinMeleeDistance}))
-    table.insert(class.tankAbilities, common.getBestDisc({'Bristle', 'Mock', 'Incite'}, {condition=_aqo.conditions.withinMeleeDistance}))
-    table.insert(class.tankAbilities, common.getBestDisc({'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'}, {condition=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.tankAbilities, common.getBestDisc({'Mortimus\' Roar', 'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq', 'Bellow'}, {condition=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.tankAbilities, common.getBestDisc({'Infuriate', 'Bristle', 'Mock', 'Incite'}, {condition=_aqo.conditions.withinMeleeDistance}))
+    table.insert(class.tankAbilities, common.getBestDisc({'Distressing Shout', 'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'}, {condition=_aqo.conditions.withinMeleeDistance}))
     table.insert(class.tankAbilities, common.getBestDisc({'Composite Shield'}))
-    table.insert(class.tankAbilities, common.getBestDisc({'Finish the Fight'}))
+    table.insert(class.tankAbilities, common.getBestDisc({'End of the Line', 'Finish the Fight'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Phantom Aggressor'}, {opt='USEPHANTOM'}))
     table.insert(class.tankAbilities, common.getBestDisc({'Confluent Precision'}, {opt='USEPRECISION'}))
 
@@ -67,10 +67,11 @@ function class.initTankAbilities(_aqo)
     table.insert(class.AETankAbilities, common.getBestDisc({'Wade into Battle'}, {threshold=4, condition=_aqo.conditions.aboveMobThreshold}))
     local aeTauntOpts = {threshold=3, condition=_aqo.conditions.aboveMobThreshold}
     table.insert(class.AETankAbilities, common.getAA('Extended Area Taunt', aeTauntOpts) or common.getAA('Area Taunt', aeTauntOpts))
+    -- 'Razor Tongue Discipline' -- proc on taunt
 
-    table.insert(class.tankBurnAbilities, common.getBestDisc({'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'}, {condition=_aqo.conditions.withinMeleeDistance}))
-    --table.insert(class.tankBurnAbilities, common.getBestDisc({'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.Name or nil}))
-    table.insert(class.tankBurnAbilities, common.getBestDisc({'Armor of Akhevan Runes'}, {overwritedisc=class.mash_defensive and class.mash_defensive.Name or nil}))
+    table.insert(class.tankBurnAbilities, common.getBestDisc({'Unconditional Attention', 'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'}, {condition=_aqo.conditions.withinMeleeDistance}))
+    --table.insert(class.tankBurnAbilities, common.getBestDisc({'Climactic Stand', 'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.Name or nil}))
+    table.insert(class.tankBurnAbilities, common.getBestDisc({'Armor of Rallosian Runes', 'Armor of Akhevan Runes'}, {overwritedisc=class.mash_defensive and class.mash_defensive.Name or nil}))
     table.insert(class.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=class.mash_defensive and class.mash_defensive.Name or nil}))
     table.insert(class.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=_aqo.conditions.aggroBelow})) -- big taunt
     table.insert(class.tankBurnAbilities, common.getAA('Projection of Fury', {opt='USEPROJECTION'}))
@@ -84,7 +85,7 @@ function class.initTankAbilities(_aqo)
     else
         -- live mashed these two together in ae, not just burns..
         table.insert(class.tankBurnAbilities, common.getAA('Spire of the Warlord'))
-        table.insert(class.tankBurnAbilities, common.getBestDisc({'Warrior\'s Aegis'}))
+        table.insert(class.tankBurnAbilities, common.getBestDisc({'Warrior\'s Resolve', 'Warrior\'s Aegis'}))
     end
 
     -- what to do with this one..
@@ -96,7 +97,7 @@ function class.initTankAbilities(_aqo)
 end
 
 function class.initDPSAbilities(_aqo)
-    table.insert(class.AEDPSAbilities, common.getBestDisc({'Vortex Blade', 'Cyclone Blade'}, {threshold=3, condition=_aqo.conditions.aboveMobThreshold}))
+    table.insert(class.AEDPSAbilities, common.getBestDisc({'Spiraling Blades', 'Vortex Blade', 'Cyclone Blade'}, {threshold=3, condition=_aqo.conditions.aboveMobThreshold}))
     table.insert(class.AEDPSAbilities, common.getAA('Rampage', {threshold=5, condition=_aqo.conditions.aboveMobThreshold}))
     table.insert(class.DPSAbilities, common.getSkill('Kick', {condition=_aqo.conditions.withinMeleeDistance}))
 
@@ -106,7 +107,7 @@ function class.initDPSAbilities(_aqo)
 
     table.insert(class.DPSAbilities, common.getAA('Gut Punch', {condition=_aqo.conditions.withinMeleeDistance}))
     table.insert(class.DPSAbilities, common.getAA('Knee Strike', {condition=_aqo.conditions.withinMeleeDistance}))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Exploitive Strike'}, {usebelowpct=20, condition=function(ability) return _aqo.conditions.targetHPBelow(ability) and _aqo.conditions.withinMeleeDistance(ability) end})) -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
+    table.insert(class.DPSAbilities, common.getBestDisc({'Decisive Strike', 'Exploitive Strike'}, {usebelowpct=20, condition=function(ability) return _aqo.conditions.targetHPBelow(ability) and _aqo.conditions.withinMeleeDistance(ability) end})) -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
 
     --table.insert(class.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
     table.insert(class.burnAbilities, common.getBestDisc({'Offensive Discipline'})) -- 4min cd, timer 2, increased offensive capabilities
@@ -126,7 +127,7 @@ function class.initBuffs(_aqo)
     end
     class.leap = common.getAA('Battle Leap', {opt='USEBATTLELEAP', maxdistance=30, delay=500, combat=false, condition=leapCondition})
     table.insert(class.auras, common.getBestDisc({'Champion\'s Aura', 'Myrmidon\'s Aura'}))
-    table.insert(class.combatBuffs, common.getBestDisc({'Full Moon\'s Champion', 'Field Armorer'}, {condition=_aqo.conditions.missingBuff}))
+    table.insert(class.combatBuffs, common.getBestDisc({'Field Bulwark', 'Full Moon\'s Champion', 'Field Armorer'}, {condition=_aqo.conditions.missingBuff}))
     table.insert(class.combatBuffs, common.getAA('Imperator\'s Command'))
 
     table.insert(class.selfBuffs, common.getAA('Infused by Rage'))

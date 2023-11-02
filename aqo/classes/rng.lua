@@ -51,40 +51,46 @@ function class.initClassOptions()
 end
 
 function class.initSpellLines(_aqo)
-    class.addSpell('shots', {'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    class.addSpell('focused', {'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+    class.addSpell('shots', {'Inevitable Shots', 'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    class.addSpell('focused', {'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
     class.addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
-    class.addSpell('heart', {'Heartruin', 'Heartslit', 'Heartshot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    class.addSpell('heart', {'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
     class.addSpell('opener', {'Stealthy Shot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
-    class.addSpell('firenuke1', {'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}) -- fire + ice nuke, Summer's Sleet
-    class.addSpell('firenuke2', {'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
-    class.addSpell('coldnuke1', {'Lunarflare boon', 'Ancient: North Wind'}) -- 
-    class.addSpell('coldnuke2', {'Frost Wind'}) -- 
-    class.addSpell('healtot', {'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
-    class.addSpell('healtot2', {'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
-    class.addSpell('dot', {'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'}, {opt='USEDOTS'}) -- main DoT
-    class.addSpell('dotds', {'Swarm of Bloodflies'}, {opt='USEDOTS'}) -- DoT + reverse DS, Swarm of Hyperboreads
+    -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
+    class.addSpell('firenuke1', {'Summer\'s Deluge', 'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}) -- fire + ice nuke, Summer's Sleet
+    class.addSpell('firenuke2', {'Laurion Ash', 'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
+    class.addSpell('coldnuke1', {'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'}) -- 'Fernflash Boon', 
+    class.addSpell('coldnuke2', {'Gelid Wind', 'Frost Wind'}) -- 
+    class.addSpell('healtot', {'Desperate Quenching', 'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
+    class.addSpell('healtot2', {'Elizerain Spring', 'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
+    class.addSpell('dot', {'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'}, {opt='USEDOTS'}) -- main DoT
+    class.addSpell('dotds', {'Swarm of Fernflies', 'Swarm of Bloodflies'}, {opt='USEDOTS'}) -- DoT + reverse DS, Swarm of Hyperboreads
     class.addSpell('dmgbuff', {'Arbor Stalker\'s Enrichment'}) -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     class.addSpell('alliance', {'Arbor Stalker\'s Coalition'})
-    class.addSpell('buffs', {'Shout of the Dusksage Stalker'}) -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
+    class.addSpell('buffs', {'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}) -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    class.addSpell('cloak', {'Cloak of Bloodbarbs'}) -- Cloak of Rimespurs
-    class.addSpell('predator', {'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}) -- Frostroar of the Predator
-    class.addSpell('strength', {'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
+    class.addSpell('cloak', {'Cloak of Needlespikes', 'Cloak of Bloodbarbs'}) -- Cloak of Rimespurs
+    class.addSpell('predator', {'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}) -- Frostroar of the Predator
+    class.addSpell('strength', {'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    class.addSpell('protection', {'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}) -- Protection of the Wakening Land
-    class.addSpell('eyes', {'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}) -- Eyes of the Visionary
-    class.addSpell('hunt', {'Steeled by the Hunt'}) -- Provoked by the Hunt
-    class.addSpell('coat', {'Moonthorn Coat'}) -- Rimespur Coat
+    class.addSpell('protection', {'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}) -- Protection of the Wakening Land
+    class.addSpell('eyes', {'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}) -- Eyes of the Visionary
+    class.addSpell('hunt', {'Engulfed by the Hunt', 'Steeled by the Hunt'}) -- Provoked by the Hunt
+    class.addSpell('coat', {'Needlespike Coat', 'Moonthorn Coat'}) -- Rimespur Coat
     -- Unity Azia only
     class.addSpell('barrage', {'Devastating Barrage'}) -- Devastating Velium
     -- Unity Beza only
-    class.addSpell('blades', {'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}) -- Howling Blades
-    class.addSpell('ds', {'Shield of Shadethorns'}) -- DS
-    class.addSpell('rune', {'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
+    class.addSpell('blades', {'Arcing Blades', 'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}) -- Howling Blades
+    class.addSpell('ds', {'Shield of Needlespikes', 'Shield of Shadethorns'}) -- DS
+    class.addSpell('rune', {'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
     class.addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
     class.addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
     class.addSpell('dispel', {'Nature\'s Balance'}, {opt='USEDISPEL'})
+    -- Maelstrom of Blades, 4x 1h slash
+    -- Jolting Emberquartz, add proc decrease hate
+    -- Cloud of Guardian Fernflies, big ds
+    -- Therapeutic Balm, cure/heal
+    -- Devastating Spate, dd proc?
 end
 
 function class.initSpellRotations(_aqo)
@@ -117,7 +123,8 @@ function class.initDPSAbilities(_aqo)
     table.insert(class.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
     table.insert(class.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
     -- table.insert(mashDiscs, common.getAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
-    table.insert(class.DPSAbilities, common.getBestDisc({'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+    -- Enraging Drop Kicks, increase hate?
+    table.insert(class.DPSAbilities, common.getBestDisc({'Jolting Drop Kicks', 'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
 
     table.insert(class.DPSAbilities, common.getSkill('Kick'))
 end
@@ -142,7 +149,7 @@ function class.initBurns(_aqo)
     --table.insert(class.burnAbilities, common.getBestDisc({'Warder\'s Wrath'}))
     table.insert(class.burnAbilities, common.getAA('Poison Arrows', {nodmz=true}))--{opt='USEPOISONARROW', nodmz=true}))
     class.meleeBurnDiscs = {}
-    table.insert(class.meleeBurnDiscs, common.getBestDisc({'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
+    table.insert(class.meleeBurnDiscs, common.getBestDisc({'Fernstalker\'s Discipline', 'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
     class.rangedBurnDiscs = {}
     table.insert(class.rangedBurnDiscs, common.getBestDisc({'Pureshot Discipline'})) -- bow dmg buff, 1hr7min CD, timer 2
 end
