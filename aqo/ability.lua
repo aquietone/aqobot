@@ -630,6 +630,13 @@ function Ability:setCommonSpellData(spellRef)
         end
     elseif spellRef.HasSPA(470)() then
         self.CheckFor = spellRef.Trigger(1)()
+    elseif spellRef.HasSPA(340)() then
+        for i=1,5 do
+            if spellRef.Attrib(i)() == 340 then
+                self.CheckFor = spellRef.Trigger(i).Name()
+                self.Duration = spellRef.Trigger(i).Duration()
+            end
+        end
     else
         self.CheckFor = spellRef()
     end

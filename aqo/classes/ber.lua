@@ -24,6 +24,7 @@ function class.initClassOptions()
     end
 end
 
+-- http://forums.eqfreelance.net/index.php?topic=10213.0
 function class.initDPSAbilities(_aq0)
     table.insert(class.DPSAbilities, common.getItem('Raging Taelosian Alloy Axe'))
     --table.insert(class.DPSAbilities, common.getBestDisc({'Overpowering Frenzy'}))

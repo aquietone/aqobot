@@ -86,7 +86,7 @@ function class.initSpellLines(_aqo)
     class.addSpell('chantdisease', {'Goremand\'s Chant of Disease', 'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDISEASEDOTS'})
     class.addSpell('chantpoison', {'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEPOISONDOTS'})
     class.addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
-    class.addSpell('mezst', {'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel'})
+    class.addSpell('mezst', {'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Lullaby of Morell'})
     class.addSpell('mezae', {'Wave of Stupor', 'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
     -- resonating barrier, new defensive stun proc?
     -- Fatesong of Zoraxmen, increase cold nuke dmg

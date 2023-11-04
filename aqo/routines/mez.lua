@@ -3,6 +3,7 @@ local mq = require 'mq'
 local assist = require('routines.assist')
 local camp = require('routines.camp')
 local logger = require('utils.logger')
+local timer = require('utils.timer')
 local abilities = require('ability')
 local state = require('state')
 
@@ -47,9 +48,7 @@ end
 function mez.doSingle(mez_spell)
     if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.CastName)() then return end
     for id,mobdata in pairs(state.targets) do
-        if state.debug then
-            logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, mq.gettime(), mobdata['meztimer']:timerExpired())
-        end
+        logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, mq.gettime(), mobdata['meztimer']:timerExpired())
         if id ~= state.assistMobID and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timerExpired()) then
             local mob = mq.TLO.Spawn('id '..id)
             if mob() and not state.mezImmunes[mob.CleanName()] then
@@ -71,8 +70,10 @@ function mez.doSingle(mez_spell)
                             logger.info('Mezzing >>> %s (%d) <<<', mob.Name(), mob.ID())
                             if mez_spell.precast then mez_spell.precast() end
                             abilities.use(mez_spell)
+                            mq.delay(100)
+                            mq.delay(3500, function() return not mq.TLO.Me.Casting() == mez_spell.CastName end)
                             logger.debug(logger.flags.routines.mez, 'STMEZ setting meztimer mob_id %d', id)
-                            state.targets[id].meztimer:reset()
+                            mobdata.meztimer = timer:new(mez_spell.DurationTotalSeconds*1000)
                             mq.doevents('eventMezImmune')
                             mq.doevents('eventMezResist')
                             state.mezTargetID = 0
