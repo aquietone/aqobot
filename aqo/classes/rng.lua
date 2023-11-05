@@ -206,7 +206,7 @@ end
 function class.initDefensiveAbilities(_aqo)
     local postCT = function()
         mq.delay(1000)
-        mq.cmdf('/multiline ; /makemevis')
+        mq.cmd('/makemevis')
     end
     table.insert(class.fadeAbilities, common.getAA('Cover Tracks', {opt='USEFADE', postcast=postCT}))
     table.insert(class.defensiveAbilities, common.getAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb

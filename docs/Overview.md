@@ -2,20 +2,19 @@
 
 ## File Structure
 
-- *aqo.lua*: launch script, handles the outermost run loop and bindings.
+- *aqo/init.lua*: launch script, handles the outermost run loop and bindings.
 - *aqo/common.lua*: helper functions reused by all class implementations.
-- *aqo/configuration.lua*: maintains configuration settings common to all classes.
 - *aqo/mode.lua*: defines the available modes which classes can run in.
 - *aqo/state.lua*: maintains internal state such as camp location.
-- *aqo/ui.lua*: implements the UI window and helper functions for class specific UI pieces.
 - *aqo/classes/{class_short_name}.lua*: class specific implementations.
 - *aqo/routines/assist.lua*: implements functionality related to engaging mobs in assist modes.
 - *aqo/routines/camp.lua*: implements functionality related to setting camp details and staying within the camp.
 - *aqo/routines/mez.lua*: implements functionality related to mezzing mobs in camp.
 - *aqo/routines/pull.lua*: implements functionality related to pulling mobs in pull modes.
 - *aqo/routines/tank.lua*: implements functionality related to tanking mobs in tank modes.
+- *aqo/interface/configuration.lua*: maintains configuration settings common to all classes.
+- *aqo/interface/ui.lua*: implements the UI window and helper functions for class specific UI pieces.
 - *aqo/utils/logger.lua*: provides logging functions like printf and debug.
-- *aqo/utils/persistence.lua*: provides lua table persistence to a file.
 - *aqo/utils/timer.lua*: provides a timer class.
 
 ## Modes

@@ -261,7 +261,8 @@ function class.initDefensiveAbilities()
     -- Aggro
     local postFD = function()
         mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
+        mq.cmd('/stand')
+        mq.cmd('/makemevis')
     end
     table.insert(class.fadeAbilities, common.getAA('Death\'s Effigy', {opt='USEFD', postcast=postFD}))
     table.insert(class.aggroReducers, common.getAA('Death Peace', {opt='USEFD', postcast=postFD}))

@@ -673,7 +673,7 @@ function base.managepet()
     if base.spells.pet.Mana > mq.TLO.Me.CurrentMana() then return end
     if base.spells.pet.ReagentID and mq.TLO.FindItemCount(base.spells.pet.ReagentID)() < base.spells.pet.ReagentCount then return end
     abilities.swapAndCast(base.spells.pet, state.swapGem)
-    state.queuedAction = function() mq.cmd('/multiline ; /pet ghold on') end
+    state.queuedAction = function() mq.cmd('/pet ghold on') end
 end
 
 function base.hold()

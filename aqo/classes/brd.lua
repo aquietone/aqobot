@@ -224,7 +224,8 @@ function class.initDefensiveAbilities(_aqo)
     local preFade = function() mq.cmd('/attack off') end
     local postFade = function()
         mq.delay(1000)
-        mq.cmd('/multiline ; /makemevis ; /attack on')
+        mq.cmd('/makemevis')
+        mq.cmd('/attack on')
     end
     table.insert(class.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
 end

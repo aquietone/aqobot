@@ -140,7 +140,8 @@ end
 
 function class.pullCustom()
     movement.stop()
-    mq.cmd('/multiline ; /pet attack ; /pet swarm')
+    mq.cmd('/pet attack')
+    mq.cmd('/pet swarm')
     mq.delay(1000)
 end
 

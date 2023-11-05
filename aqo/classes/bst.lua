@@ -151,7 +151,8 @@ end
 function class.initDefensiveAbilities(_aqo)
     local postFD = function()
         mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
+        mq.cmd('/stand')
+        mq.cmd('/makemevis')
     end
     table.insert(class.fadeAbilities, common.getAA('Playing Possum', {opt='USEFD', postcast=postFD}))
 end

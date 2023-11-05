@@ -57,7 +57,7 @@ local function init()
     else
         mq.cmd('/hidecorpse alwaysnpc')
     end
-    mq.cmd('/multiline ; /pet ghold on')
+    mq.cmd('/pet ghold on')
     mq.cmd('/squelch /stick set verbflags 0')
     mq.cmd('/squelch /plugin melee unload noauto')
     mq.cmd('/squelch /rez accept on')

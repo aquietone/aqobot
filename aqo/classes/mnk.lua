@@ -59,7 +59,8 @@ end
 function class.initDefensiveAbilities(_aqo)
     local postFD = function()
         mq.delay(1000)
-        mq.cmdf('/multiline ; /stand ; /makemevis')
+        mq.cmd('/stand')
+        mq.cmd('/makemevis')
     end
     table.insert(class.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
     table.insert(class.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
