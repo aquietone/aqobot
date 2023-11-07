@@ -6,7 +6,7 @@ require 'ImGui'
 local commands = require('interface.commands')
 local config = require('interface.configuration')
 local ui = require('interface.ui')
---local tlo = require('interface.tlo')
+local tlo = require('interface.tlo')
 
 local logger = require('utils.logger')
 local loot = require('utils.lootutils')
@@ -67,7 +67,7 @@ local function init()
     mq.cmd('/squelch /autodrink 5000')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
 
-    --tlo.init(aqo)
+    tlo.init(aqo)
 end
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
