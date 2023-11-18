@@ -15,6 +15,9 @@ local state = require('state')
 
 local Ranger = class:new()
 
+--[[
+    https://forums.eqfreelance.net/index.php?topic=16647.0
+]]
 function Ranger:init()
     self.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
     self.spellRotations = {standard={}}

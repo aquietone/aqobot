@@ -7,6 +7,8 @@ local config = require('interface.configuration')
 
 local Shaman = class:new()
 --[[
+    http://forums.eqfreelance.net/index.php?topic=9389.0
+    
     -- Self buffs
     self:addSpell('selfprocheal', {'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}) -- self buff, proc heal when hit
     table.insert(self.selfBuffs, common.getAA('Pact of the Wolf'))

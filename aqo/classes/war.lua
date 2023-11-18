@@ -9,6 +9,11 @@ local state = require('state')
 
 local Warrior = class:new()
 
+--[[
+    https://forums.eqfreelance.net/index.php?topic=2973.0
+
+    
+]]
 function Warrior:init()
     self.classOrder = {'assist', 'mash', 'ae', 'burn', 'ohshit', 'recover', 'buff', 'rest'}
     self:initBase('war')

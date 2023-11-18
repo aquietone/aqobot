@@ -10,6 +10,8 @@ local state = require('state')
 local ShadowKnight = class:new()
 
 --[[
+    https://forums.eqfreelance.net/index.php?topic=16303.0
+    
     touch of the devourer
     theft of agony
     terror of discord

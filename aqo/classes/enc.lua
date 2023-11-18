@@ -10,6 +10,9 @@ local state = require('state')
 
 local Enchanter = class:new()
 
+--[[
+    https://forums.eqfreelance.net/index.php?topic=16075.0
+]]
 function Enchanter:init()
     self.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     self.spellRotations = {standard={}}

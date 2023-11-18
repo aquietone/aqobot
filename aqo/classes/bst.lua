@@ -10,7 +10,10 @@ local state = require('state')
 local BeastLord = class:new()
 
 --[[
-
+    https://forums.daybreakgames.com/eq/index.php?threads/dear-beastlord-mains.281024/
+    https://forums.daybreakgames.com/eq/index.php?threads/beastlord-raiding-guide.246364/
+    http://forums.eqfreelance.net/index.php?topic=9390.0
+    
     Fade - 
     Falsified Death (aa)
 

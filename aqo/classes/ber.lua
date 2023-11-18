@@ -6,6 +6,9 @@ local state = require('state')
 
 local Berserker = class:new()
 
+--[[
+    http://forums.eqfreelance.net/index.php?topic=10213.0
+]]
 function Berserker:init()
     self.classOrder = {'assist', 'ae', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     self:initBase('ber')
@@ -26,7 +29,6 @@ function Berserker:initClassOptions()
     end
 end
 
--- http://forums.eqfreelance.net/index.php?topic=10213.0
 function Berserker:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getBestDisc({'Heightened Frenzy', 'Buttressed Frenzy', 'Magnified Frenzy', 'Bolstered Frenzy', 'Amplified Frenzy'})) -- Decrease Frenzy Timer by 3s, Add Skill Proc: Amplified Frenzy Strike II (4.6k)
     table.insert(self.DPSAbilities, common.getBestDisc({'Shriveling Strikes', 'Sapping Strikes'})) -- Add Melee Proc: Sapping Strike II (4 Procs), Decrease Current HP by 9027, Returns 40% of Damage as Endurance, Max Per Hit: 4333
