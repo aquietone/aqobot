@@ -35,6 +35,8 @@ function TLO.init(_class)
         end
     end
 
+    tlomembers.Actors = function(i) return 'table', state.actors[i] end
+
     AQOType = mq.DataType.new('AQOType', {
         Members = tlomembers
     })

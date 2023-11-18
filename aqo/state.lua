@@ -7,6 +7,7 @@ local state = {
     class = string.lower(mq.TLO.Me.Class.ShortName() or ''),
     -- (ROF == 19, EMU stops at ROF)
     emu = not mq.TLO.Me.HaveExpansion(20)() and true or false,
+    actors = {},
     debug = false,
     paused = true,
     burnNow = false,

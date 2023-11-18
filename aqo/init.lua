@@ -18,6 +18,7 @@ local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
+local actor = require('interface.actor')
 local class = require('classes.'..mq.TLO.Me.Class.ShortName():lower())
 
 ---@type ConsoleWidget
@@ -260,6 +261,7 @@ local function main()
         end
         -- broadcast some buff and poison/disease/curse state around netbots style
         aqo.buff.broadcast()
+        actor.sendStatus()
     end
 end
 
