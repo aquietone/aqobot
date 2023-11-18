@@ -44,6 +44,94 @@ return {
         ['Martar IceBear'] = true,
     },
 
+    --[[ Laurion's Song ]]--
+
+    ['ankexfen'] = {
+        [''] = true,
+    },
+    ['herosforge'] = {
+        [''] = true,
+    },
+    ['laurioninn'] = {
+        [''] = true,
+    },
+    ['moorsofnokk'] = {
+        [''] = true,
+    },
+    ['pallomen'] = {
+        [''] = true,
+    },
+    ['timorousfalls'] = {
+        [''] = true,
+    },
+    ['unkemptwoods'] = {
+        [''] = true,
+    },
+
+    --[[ Night of Shadows ]]--
+
+    ['firefallpass'] = {
+        ['Bedrock Burrower'] = true,
+        ['Diabo Xi Vesta'] = true,
+        ['Firefallizard'] = true,
+        ['Fowl Matriarch'] = true,
+        ['Igneous Insect'] = true,
+        ['Rock Lobber'] = true,
+    },
+    ['shadeweavertwo'] = {
+        ['Commander Esline'] = true,
+        ['Molten Wildfire'] = true,
+        ['Scorched Cackling Bones'] = true,
+        ['Shak Dathor Overlord'] = true,
+        ['Sharp Claw'] = true,
+        ['Stoneclaw Broodmother'] = true,
+        ['Thorn Petal'] = true,
+    },
+    ['sharvahltwo'] = {
+        ['Crimsonclaw'] = true,
+        ['Geerot Stabgut'] = true,
+        ['Gheg Gorespit'] = true,
+        ['Kurati the Feral'] = true,
+        ['Tailfang'] = true,
+        ['Toraji, Korath\'s Warder'] = true,
+        ['Wiggle'] = true,
+    },
+    ['paludaltwo'] = {
+        ['Arly Golyeck'] = true,
+        ['Herachuel'] = true,
+        ['Maricella Slithra'] = true,
+        ['Merrimore Ychansk'] = true,
+        ['Toxiplax'] = true,
+        ['Vahlkamph'] = true,
+    },
+    ['shadowhaventwo'] = {
+        ['Brute'] = true,
+        ['Flail'] = true,
+        ['Mace'] = true,
+        ['Overgrowth'] = true,
+        ['Skitter'] = true,
+        ['Stone Chitin'] = true,
+        ['Velutipes'] = true,
+    },
+    ['deepshade'] = {
+        ['Agaricusus'] = true,
+        ['Ayoaenae'] = true,
+        ['Bavanjam'] = true,
+        ['Drinil'] = true,
+        ['Faceted Windra'] = true,
+        ['Psylopsybyl'] = true,
+        ['Sehtab Mahlinee'] = true,
+    },
+    ['darklightcaverns'] = {
+        ['Chromatic Widow Queen'] = true,
+        ['Eelworm'] = true,
+        ['Geoxyle'] = true,
+        ['Kezhda the Frenzied'] = true,
+        ['Mycorrhizal Mutation'] = true,
+        ['Rabid Rhizanthella'] = true,
+        ['Variegated Monstera'] = true,
+    },
+
     --[[ Terror of Luclin ]]--
 
     ['vexthaltwo'] = { -- Vex Thal Two

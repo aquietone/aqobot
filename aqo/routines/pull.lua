@@ -12,11 +12,11 @@ local common = require('common')
 local mode = require('mode')
 local state = require('state')
 
-local aqo
+local class
 local pull = {}
 
-function pull.init(_aqo)
-    aqo = _aqo
+function pull.init(_class)
+    class = _class
 end
 
 -- Pull Functions
@@ -325,7 +325,7 @@ local function pullEngage(pull_spawn)
         local pullWith = config.get('PULLWITH')
         if pullWith == 'item' then
             local pull_item = nil
-            for _,clicky in ipairs(aqo.class.pullClickies) do
+            for _,clicky in ipairs(class.pullClickies) do
                 if mq.TLO.Me.ItemReady(clicky.CastName)() then
                     pull_item = clicky
                     break
@@ -350,14 +350,14 @@ local function pullEngage(pull_spawn)
                 mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
             end
         elseif pullWith == 'spell' then
-            if mq.TLO.Me.SpellReady(aqo.class.pullSpell.CastName)() then
+            if mq.TLO.Me.SpellReady(class.pullSpell.CastName)() then
                 movement.stop()
                 mq.delay(50)
-                abilities.use(aqo.class.pullSpell)
+                abilities.use(class.pullSpell)
                 mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
             end
-        elseif pullWith == 'custom' and aqo.class.pullCustom then
-            aqo.class.pullCustom()
+        elseif pullWith == 'custom' and class.pullCustom then
+            class:pullCustom()
         elseif config.get('PULLWITH') == 'melee' then
             state.pullStatus = constants.pullStates.APPROACHING
             pullNavToMob(pull_spawn, false)

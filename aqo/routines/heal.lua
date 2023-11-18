@@ -8,9 +8,7 @@ local state = require('state')
 
 local healing = {}
 
-function healing.init(aqo)
-
-end
+function healing.init() end
 
 local HEAL_TYPES = {
     GROUP='group',
@@ -198,7 +196,7 @@ function healing.heal(healAbilities, opts)
     local whoToHeal, typeOfHeal = getHurt(opts)
     local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal, opts)
     logger.debug(logger.flags.routines.heal, string.format('heal %s %s %s', whoToHeal, typeOfHeal, healToUse and healToUse.name or ''))
-    if healToUse and (healToUse.CastType ~= AbilityTypes.Spell or not mq.TLO.Me.SpellInCooldown()) then
+    if healToUse and (healToUse.CastType ~= abilities.Types.Spell or not mq.TLO.Me.SpellInCooldown()) then
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             mq.cmdf('/mqt id %s', whoToHeal)
         end

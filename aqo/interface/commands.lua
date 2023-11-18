@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require('mq')
+local lists = require('data.lists')
 local config = require('interface.configuration')
 local ui = require('interface.ui')
 local assist = require('routines.assist')
@@ -13,11 +14,11 @@ local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
 
-local aqo
+local class
 local commands = {}
 
-function commands.init(_aqo)
-    aqo = _aqo
+function commands.init(_class)
+    class = _class
 
     mq.bind('/aqo', commands.commandHandler)
     mq.bind(('/%s'):format(state.class), commands.commandHandler)
@@ -44,7 +45,7 @@ local function showHelp()
         end
     end
     output = output .. '\n\ayClass Configuration\aw'
-    for key,value in pairs(aqo.class.OPTS) do
+    for key,value in pairs(class.OPTS) do
         local valueType = type(value.value)
         if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
             output = output .. prefix .. key .. ' <' .. valueType .. '>'
@@ -53,12 +54,12 @@ local function showHelp()
     end
     output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: ' .. constants.slotList
     output = output .. '\n\ayBuff Begging:\aw /tell <name> <alias> -- Aliases: '
-    for alias,_ in pairs(aqo.class.requestAliases) do
+    for alias,_ in pairs(class.requestAliases) do
         output = output .. alias .. ', '
     end
     output = (output .. '\ax'):gsub('cls', state.class)
     -- output is too long for the boring old chat window
-    if not mq.TLO.Plugin.IsLoaded('MQ2ChatWnd')() then logger.info(output) end
+    if not mq.TLO.Plugin('MQ2ChatWnd').IsLoaded() then logger.info(output) end
 end
 
 ---Process binding commands.
@@ -88,11 +89,11 @@ function commands.commandHandler(...)
     elseif opt == 'BURNNOW' then
         logger.info('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
         state.burnNow = true
-        if new_value == 'quick' or new_value == 'long' then
+        if lists.burns[new_value] then
             state.burn_type = new_value
         end
     elseif opt == 'PREBURN' then
-        if aqo.class.preburn then aqo.class.preburn() end
+        if class.preburn then class:preburn() end
     elseif opt == 'PAUSE' then
         if not new_value then
             state.paused = not state.paused
@@ -170,28 +171,28 @@ function commands.commandHandler(...)
         end
         if itemName then
             local clicky = {name=itemName, clickyType=clickyType, summonMinimum=summonMinimum, opt=useif}
-            aqo.class.addClicky(clicky)
-            aqo.class.saveSettings()
+            class:addClicky(clicky)
+            class:saveSettings()
         else
             logger.info('addclicky Usage:\n\tPlace clicky item on cursor\n\t/%s addclicky category\n\tCategories: burn, mash, heal, buff', state.class)
         end
     elseif opt == 'REMOVECLICKY' then
         local itemName = mq.TLO.Cursor()
         if itemName then
-            aqo.class.removeClicky(itemName)
-            aqo.class.saveSettings()
+            class:removeClicky(itemName)
+            class:saveSettings()
         else
             logger.info('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
         end
     elseif opt == 'LISTCLICKIES' then
         local clickies = ''
-        for clickyName,clicky in pairs(aqo.class.clickies) do
+        for clickyName,clicky in pairs(class.clickies) do
             clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clicky.clickyType .. ')'
         end
         logger.info('Clickies: %s', clickies)
     elseif opt == 'INVIS' then
-        if aqo.class.invis then
-            aqo.class.invis()
+        if class.invis then
+            class:invis()
         end
     elseif opt == 'TRIBUTE' then
         mq.cmd('/keypress TOGGLE_TRIBUTEBENEFITWIN')
@@ -242,7 +243,7 @@ function commands.commandHandler(...)
             state.holdForBuffs = nil
         end
     elseif opt == 'ARMPETS' then
-        aqo.class.armPets()
+        class:armPets()
     else
         commands.classSettingsHandler(opt, new_value)
     end
@@ -250,41 +251,41 @@ end
 
 function commands.classSettingsHandler(opt, new_value)
     if new_value then
-        if opt == 'SPELLSET' and aqo.class.OPTS.SPELLSET ~= nil then
-            if aqo.class.spellRotations[new_value] then
+        if opt == 'SPELLSET' and class.OPTS.SPELLSET ~= nil then
+            if class.spellRotations[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                aqo.class.OPTS.SPELLSET.value = new_value
+                class.OPTS.SPELLSET.value = new_value
             end
-        elseif opt == 'USEEPIC' and aqo.class.OPTS.USEEPIC ~= nil then
-            if aqo.class.EPIC_OPTS[new_value] then
+        elseif opt == 'USEEPIC' and class.OPTS.USEEPIC ~= nil then
+            if class.EPIC_OPTS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                aqo.class.OPTS.USEEPIC.value = new_value
+                class.OPTS.USEEPIC.value = new_value
             end
-        elseif opt == 'AURA1' and aqo.class.OPTS.AURA1 ~= nil then
-            if aqo.class.AURAS[new_value] then
+        elseif opt == 'AURA1' and class.OPTS.AURA1 ~= nil then
+            if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                aqo.class.OPTS.AURA1.value = new_value
+                class.OPTS.AURA1.value = new_value
             end
-        elseif opt == 'AURA2' and aqo.class.OPTS.AURA2 ~= nil then
-            if aqo.class.AURAS[new_value] then
+        elseif opt == 'AURA2' and class.OPTS.AURA2 ~= nil then
+            if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                aqo.class.OPTS.AURA2.value = new_value
+                class.OPTS.AURA2.value = new_value
             end
-        elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'boolean' then
+        elseif class.OPTS[opt] and type(class.OPTS[opt].value) == 'boolean' then
             if constants.booleans[new_value] == nil then return end
-            aqo.class.OPTS[opt].value = constants.booleans[new_value]
+            class.OPTS[opt].value = constants.booleans[new_value]
             logger.info('Setting %s to: %s', opt, constants.booleans[new_value])
-        elseif aqo.class.OPTS[opt] and type(aqo.class.OPTS[opt].value) == 'number' then
+        elseif class.OPTS[opt] and type(class.OPTS[opt].value) == 'number' then
             if tonumber(new_value) then
                 logger.info('Setting %s to: %s', opt, tonumber(new_value))
-                if aqo.class.OPTS[opt].value ~= nil then aqo.class.OPTS[opt].value = tonumber(new_value) end
+                if class.OPTS[opt].value ~= nil then class.OPTS[opt].value = tonumber(new_value) end
             end
         else
             logger.info('Unsupported command line option: %s %s', opt, new_value)
         end
     else
-        if aqo.class.OPTS[opt] ~= nil then
-            logger.info('%s: %s', opt:lower(), aqo.class.OPTS[opt].value)
+        if class.OPTS[opt] ~= nil then
+            logger.info('%s: %s', opt:lower(), class.OPTS[opt].value)
         else
             logger.info('Unrecognized option: %s', opt)
         end
@@ -292,7 +293,7 @@ function commands.classSettingsHandler(opt, new_value)
 end
 
 function commands.nowcastHandler(...)
-    aqo.class.nowCast({...})
+    class:nowCast({...})
 end
 
 return commands

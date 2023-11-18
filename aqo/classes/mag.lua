@@ -10,121 +10,202 @@ local castUtils = require('cast')
 local common = require('common')
 local state = require('state')
 
-function class.init(_aqo)
-    class.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
-    class.spellRotations = {standard={}}
-    class.initBase(_aqo, 'mag')
+local Magician = class:new()
 
-    class.initClassOptions()
-    class.loadSettings()
-    class.initSpellLines(_aqo)
-    class.initSpellRotations(_aqo)
-    class.initHeals(_aqo)
-    class.initBuffs(_aqo)
-    class.initBurns(_aqo)
-    class.initDPSAbilities(_aqo)
-    class.initDebuffs(_aqo)
-    class.initDefensiveAbilities(_aqo)
+--[[
+    https://docs.google.com/document/d/1NHtWfaS6WJFurbzzWbzBOZdJ3cKn3F34m1TL5ZO3Vg0/edit#heading=h.5l4x9nc7jc3n
+    http://forums.eqfreelance.net/index.php?topic=16654.0
+
+    Sustained:
+    1. self:addSpell('servant', {'Ravening Servant', 'Roiling Servant', 'Riotous Servant', 'Reckless Servant', 'Remorseless Servant'})
+    2. self:addSpell('many', {'Fusillade of Many', 'Barrage of Many', 'Shockwave of Many', 'Volley of Many', 'Storm of Many'})
+    3. self:addSpell('chaotic', {'Chaotic Magma', 'Chaotic Calamity', 'Chaotic Pyroclasm', 'Chaotic Inferno', 'Chaotic Fire'})
+    4. self:addSpell('spear', {'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone'})
+
+    Imp Twincast Burn:
+    1. Riotous Servant
+    2. Shockwave of Many
+    3. Spear of Molten Komatiite
+    4. Spear of Molten Arcronite
+    (5. Chaotic Pyroclasm)
+
+    Spell Twincast:
+    1. Chaotic Pyroclasm
+    2. Riotous Servant
+    3. Shockwave of Many
+    4. Spear of Molten Komatiite
+
+    Sustained additional
+    table.insert(self.DPSAbilities, common.getAA('Force of Elements'))
+    table.insert(self.DPSAbilities, common.getItem('Molten Komatiite Orb'))
+    self:addSpell('twincast', {'Twincast'})
+    self:addSpell('alliance', {'Firebound Conjunction', 'Firebound Coalition', 'Firebound Covenant', 'Firebound Alliance'})
+    self:addSpell('composite', {'Ecliptic Companion', 'Composite Companion', 'Dichotomic Companion'})
+
+    self:addSpell('malo', {'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'})
+
+    Burns
+    table.insert(self.burnAbilities, common.getAA('Heart of Skyfire')) --Glyph of Destruction
+    table.insert(self.burnAbilities, common.getAA('Focus of Arcanum'))
+    
+    table.insert(self.burnAbilities, common.getAA('Host of the Elements'))
+    table.insert(self.burnAbilities, common.getAA('Servant of Ro'))
+
+    Host of the Elements, Servant of Ro -- cast after RS
+    Imperative Minion, Imperative Servant -- clicky pets
+    self:addSpell('servantclicky', {'Summon Valorous Servant', 'Summon Forbearing Servant', 'Summon Imperative Servant', 'Summon Insurgent Servant', 'Summon Mutinous Servant'})
+
+    table.insert(self.burnAbilities, common.getAA('Spire of the Elements')) -- if no crit buff
+    Thaumaturge\'s Focus -- if casting any magic spells'
+
+    Burn AE
+    Silent casting
+
+    Firebound Coalition or Chaotic Pyroclasm -> RS -> Host of Elements -> Twincast -> Of Many
+    Imp Twincast after spell Twincast
+    Forceful Rejuv during ITC
+
+    Pet
+    table.insert(self.burnAbilities, common.getAA('Frenzied Burnout'))
+    Zeal of the Elements
+    Thaumaturgist\'s Infusion after burnout fades
+
+    Buffs
+    Elemental Form
+    Burnout, Iceflame Rampart, Thaumaturge\'s Unity
+
+    ModRods
+    Radiant Modulation Shard, Wand of Freezing Modulation, Elemental Conversion
+    Monster Summoning + Reclaim Energy
+
+    Survival
+    Shield of Destiny, Shield of Elements, Shared Health, Heart of Frostone
+
+    Fade
+    Drape of Shadows, Arcane Whisper
+
+    Pets
+    'air', {'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air'}
+    'earth', {'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth'}
+    'fire', {'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire'}
+    'water', {'Recruitment of Water', 'Conscription of Water', 'Manifestation of Water', 'Embodiment of Water', 'Convocation of Water'}
+    'monster', {'Monster Summoning XV', 'Monster Summoning XIV', 'Monster Summoning XIII', 'Monster Summoning XII', 'Monster Summoning XI'}
+]]
+function Magician:init()
+    self.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
+    self.spellRotations = {standard={}}
+    self:initBase('mag')
+
+    self:initClassOptions()
+    self:loadSettings()
+    self:initSpellLines()
+    self:initSpellRotations()
+    self:initHeals()
+    self:initBuffs()
+    self:initBurns()
+    self:initDPSAbilities()
+    self:initDebuffs()
+    self:initDefensiveAbilities()
 end
 
-function class.initClassOptions()
-    class.addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM', 'EarthForm', 'bool')
-    class.addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM', 'FireForm', 'bool')
-    class.addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox', nil, 'UseFireNukes', 'bool')
-    class.addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox', nil, 'UseMagicNukes', 'bool')
-    class.addOption('USEDEBUFF', 'Use Malo', false, nil, 'Toggle use of Malo', 'checkbox', nil, 'UseDebuff', 'bool')
-    class.addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'SummonModRod', 'bool')
-    class.addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox', nil, 'UseDS', 'bool')
-    class.addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox', nil, 'UseTempDS', 'bool')
+function Magician:initClassOptions()
+    self:addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM', 'EarthForm', 'bool')
+    self:addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM', 'FireForm', 'bool')
+    self:addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox', nil, 'UseFireNukes', 'bool')
+    self:addOption('USEMAGICNUKES', 'Use Magic Nukes', false, nil, 'Toggle use of magic nuke line', 'checkbox', nil, 'UseMagicNukes', 'bool')
+    self:addOption('USEDEBUFF', 'Use Malo', false, nil, 'Toggle use of Malo', 'checkbox', nil, 'UseDebuff', 'bool')
+    self:addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'SummonModRod', 'bool')
+    self:addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox', nil, 'UseDS', 'bool')
+    self:addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox', nil, 'UseTempDS', 'bool')
 end
 
-function class.initSpellLines(_aqo)
-    class.addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
-    class.addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
-    class.addSpell('fastfire', {'Burning Earth'}, {opt='USEFIRENUKES'})
-    class.addSpell('magicnuke', {'Rock of Taelosia'}, {opt='USEMAGICNUKES'})
-    class.addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
+function Magician:initSpellLines()
+    self:addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
+    self:addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
+    self:addSpell('fastfire', {'Burning Earth'}, {opt='USEFIRENUKES'})
+    self:addSpell('magicnuke', {'Rock of Taelosia'}, {opt='USEMAGICNUKES'})
+    self:addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
                         'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                         'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
-    class.addSpell('petbuff', {'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
-    class.addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
-    class.addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summonMinimum=1, nodmz=true, pause=true})
-    class.addSpell('petds', {'Iceflame Guard'})
-    class.addSpell('servant', {'Raging Servant', 'Rampaging Servant'})
-    class.addSpell('ds', {'Circle of Fireskin'}, {opt='USEDS'})
-    class.addSpell('bigds', {'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, {opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}})
-    class.addSpell('shield', {'Elemental Aura'})
+    self:addSpell('petbuff', {'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
+    self:addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
+    self:addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summonMinimum=1, nodmz=true, pause=true})
+    self:addSpell('petds', {'Iceflame Guard'})
+    self:addSpell('servant', {'Raging Servant', 'Rampaging Servant'})
+    self:addSpell('ds', {'Circle of Fireskin'}, {opt='USEDS'})
+    self:addSpell('bigds', {'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, {opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}})
+    self:addSpell('shield', {'Elemental Aura'})
 
-    --class.addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
-    class.addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
-    class.addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
+    --self:addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
+    self:addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
+    self:addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
 
-    class.addSpell('armor', {'Grant Spectral Plate'}) -- targeted, Summon Folded Pack of Spectral Plate
-    class.addSpell('weapons', {'Grant Spectral Armaments'}) -- targeted, Summons Folded Pack of Spectral Armaments
-    class.addSpell('jewelry', {'Grant Enibik\'s Heirlooms'}) -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
-    class.addSpell('belt', {'Summon Crystal Belt'}) -- Summoned: Crystal Belt
+    self:addSpell('armor', {'Grant Spectral Plate'}) -- targeted, Summon Folded Pack of Spectral Plate
+    self:addSpell('weapons', {'Grant Spectral Armaments'}) -- targeted, Summons Folded Pack of Spectral Armaments
+    self:addSpell('jewelry', {'Grant Enibik\'s Heirlooms'}) -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
+    self:addSpell('belt', {'Summon Crystal Belt'}) -- Summoned: Crystal Belt
 end
 
-function class.initSpellRotations(_aqo)
-    table.insert(class.spellRotations.standard, class.spells.servant)
-    --table.insert(class.spellRotations.standard, class.spells.prenuke)
-    table.insert(class.spellRotations.standard, class.spells.fastfire)
-    table.insert(class.spellRotations.standard, class.spells.firenuke)
-    table.insert(class.spellRotations.standard, class.spells.magicnuke)
+function Magician:initSpellRotations()
+    table.insert(self.spellRotations.standard, self.spells.servant)
+    --table.insert(self.spellRotations.standard, self.spells.prenuke)
+    table.insert(self.spellRotations.standard, self.spells.fastfire)
+    table.insert(self.spellRotations.standard, self.spells.firenuke)
+    table.insert(self.spellRotations.standard, self.spells.magicnuke)
 end
 
-function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getAA('Force of Elements'))
+function Magician:initDPSAbilities()
+    table.insert(self.DPSAbilities, common.getAA('Force of Elements'))
 
-    class.summonCompanion = common.getAA('Summon Companion')
+    self.summonCompanion = common.getAA('Summon Companion')
 end
 
-function class.initBurns(_aqo)
-    table.insert(class.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
-    table.insert(class.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
-    table.insert(class.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
-    table.insert(class.burnAbilities, common.getAA('Frenzied Burnout'))
-    table.insert(class.burnAbilities, common.getAA('Improved Twincast'))
+function Magician:initBurns()
+    table.insert(self.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
+    table.insert(self.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
+    table.insert(self.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
+    table.insert(self.burnAbilities, common.getAA('Frenzied Burnout'))
+    table.insert(self.burnAbilities, common.getAA('Improved Twincast'))
 end
 
-function class.initHeals(_aqo)
-    table.insert(class.healAbilities, class.spells.petheal)
+function Magician:initHeals()
+    table.insert(self.healAbilities, self.spells.petheal)
 end
 
-function class.initBuffs(_aqo)
-    table.insert(class.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
-    table.insert(class.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
-    --table.insert(class.selfBuffs, class.spells.manaregen)
+function Magician:initBuffs()
+    table.insert(self.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
+    table.insert(self.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
+    --table.insert(self.selfBuffs, self.spells.manaregen)
     if state.emu and not mq.TLO.FindItem('Glyphwielder\'s Sleeves of the Summoner')() then
-        table.insert(class.selfBuffs, class.spells.shield)
+        table.insert(self.selfBuffs, self.spells.shield)
     end
-    table.insert(class.selfBuffs, class.spells.acregen)
-    table.insert(class.selfBuffs, class.spells.orb)
-    table.insert(class.selfBuffs, class.spells.ds)
-    table.insert(class.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true}))
-    table.insert(class.combatBuffs, common.getAA('Fire Core'))
-    table.insert(class.singleBuffs, class.spells.bigds)
+    table.insert(self.selfBuffs, self.spells.acregen)
+    table.insert(self.selfBuffs, self.spells.orb)
+    table.insert(self.selfBuffs, self.spells.ds)
+    table.insert(self.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true}))
+    table.insert(self.combatBuffs, common.getAA('Fire Core'))
+    table.insert(self.singleBuffs, self.spells.bigds)
 
-    table.insert(class.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction'}))
-    table.insert(class.petBuffs, class.spells.petbuff)
-    table.insert(class.petBuffs, class.spells.petstrbuff)
-    table.insert(class.petBuffs, class.spells.petds)
-    table.insert(class.petBuffs, common.getAA('Aegis of Kildrukaun'))
-    table.insert(class.petBuffs, common.getAA('Fortify Companion'))
+    table.insert(self.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction'}))
+    table.insert(self.petBuffs, self.spells.petbuff)
+    table.insert(self.petBuffs, self.spells.petstrbuff)
+    table.insert(self.petBuffs, self.spells.petds)
+    table.insert(self.petBuffs, common.getAA('Aegis of Kildrukaun'))
+    table.insert(self.petBuffs, common.getAA('Fortify Companion'))
 
-    class.addRequestAlias(class.spells.orb, 'orb')
-    class.addRequestAlias(class.spells.ds, 'ds')
-    class.addRequestAlias(class.spells.weapons, 'arm')
-    class.addRequestAlias(class.spells.jewelry, 'jewelry')
-    class.addRequestAlias(class.spells.armor, 'armor')
+    self:addRequestAlias(self.spells.orb, 'orb')
+    self:addRequestAlias(self.spells.ds, 'ds')
+    self:addRequestAlias(self.spells.weapons, 'arm')
+    self:addRequestAlias(self.spells.jewelry, 'jewelry')
+    self:addRequestAlias(self.spells.armor, 'armor')
 end
 
-function class.initDebuffs(_aqo)
-    table.insert(class.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
+function Magician:initDebuffs()
+    table.insert(self.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
 end
 
-function class.initDefensiveAbilities(_aqo)
-    table.insert(class.fadeAbilities, common.getAA('Companion of Necessity'))
+function Magician:initDefensiveAbilities()
+    table.insert(self.fadeAbilities, common.getAA('Companion of Necessity'))
 end
 
 --[[
@@ -138,7 +219,7 @@ end
     "Snare", "Summoned: Tendon Carver",
 ]]
 
-function class.pullCustom()
+function Magician:pullCustom()
     movement.stop()
     mq.cmd('/pet attack')
     mq.cmd('/pet swarm')
@@ -168,16 +249,16 @@ local EnchanterPetPrimaryWeaponId = 10702
 
 -- Checks pets for items and re-equips if necessary.
 local armPetTimer = timer:new(60000)
-function class.autoArmPets()
+function Magician:autoArmPets()
     if common.hostileXTargets() then return end
-    if not class.isEnabled('ARMPETS') or not class.spells.weapons then return end
+    if not self:isEnabled('ARMPETS') or not self.spells.weapons then return end
     if not armPetTimer:timerExpired() then return end
     armPetTimer:reset()
 
-    class.armPets()
+    self:armPets()
 end
 
-function class.clearCursor()
+function Magician:clearCursor()
     while mq.TLO.Cursor() do
         mq.cmd('/autoinv')
         mq.delay(100)
@@ -192,7 +273,7 @@ local armPetStates = {
     CASTJEWELRY='CASTJEWELRY',UNFOLDJEWELRY='UNFOLDJEWELRY',TRADEJEWELRY='TRADEJEWELRY',
     MOVEBACK='MOVEBACK',
 }
-function class.armPetsStateMachine()
+function Magician:armPetsStateMachine()
     if state.armPetState == armPetStates.MOVETO then
         -- while not at pet return
         -- at pet, set state to makeroom
@@ -245,13 +326,13 @@ end
     trade jewelry
     move back
 ]]
-function class.armPets()
-    if mq.TLO.Cursor() then class.clearCursor() end
+function Magician:armPets()
+    if mq.TLO.Cursor() then self:clearCursor() end
     if mq.TLO.Cursor() then
         logger.info('Unable to clear cursor, not summoning pet toys.')
         return
     end
-    if not class.petWeapons then return end
+    if not self.petWeapons then return end
     logger.info('Begin arming pets')
     state.paused = true
     local restoreGem1 = {Name=mq.TLO.Me.Gem(12)()}
@@ -264,13 +345,13 @@ function class.armPets()
     if petID > 0 and petPrimary == 0 then
         state.armPet = petID
         state.armPetOwner = mq.TLO.Me.CleanName()
-        local weapons = class.petWeapons.Self
+        local weapons = self.petWeapons.Self
         if weapons then
-            class.armPet(petID, weapons, 'Me')
+            self.armPet(petID, weapons, 'Me')
         end
     end
 
-    for owner,weapons in pairs(class.petWeapons) do
+    for owner,weapons in pairs(self.petWeapons) do
         if owner ~= mq.TLO.Me.CleanName() then
             local ownerSpawn = mq.TLO.Spawn('pc ='..owner)
             if ownerSpawn() then
@@ -281,8 +362,8 @@ function class.armPets()
                 if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and (ownerPetPrimary == 0 or ownerPetPrimary == EnchanterPetPrimaryWeaponId) then
                     state.armPet = ownerPetID
                     state.armPetOwner = owner
-                    mq.delay(2000, function() return class.spells.weapons:isReady() end)
-                    class.armPet(ownerPetID, weapons, owner)
+                    mq.delay(2000, function() return self.spells.weapons:isReady() end)
+                    self.armPet(ownerPetID, weapons, owner)
                 end
             end
         end
@@ -294,9 +375,9 @@ function class.armPets()
     state.paused = false
 end
 
-function class.armPetRequest(requester)
-    if not class.petWeapons then return end
-    local weapons = class.petWeapons[requester]
+function Magician:armPetRequest(requester)
+    if not self.petWeapons then return end
+    local weapons = self.petWeapons[requester]
     if not weapons then return end
     local ownerSpawn = mq.TLO.Spawn('pc ='..requester)
     if ownerSpawn() then
@@ -312,8 +393,8 @@ function class.armPetRequest(requester)
             local restoreGem4 = {Name=mq.TLO.Me.Gem(9)()}
             state.armPet = ownerPetID
             state.armPetOwner = requester
-            mq.delay(2000, function() return class.spells.weapons:isReady() end)
-            class.armPet(ownerPetID, weapons, requester)
+            mq.delay(2000, function() return self.spells.weapons:isReady() end)
+            self.armPet(ownerPetID, weapons, requester)
             if mq.TLO.Me.Gem(12)() ~= restoreGem1.Name then abilities.swapSpell(restoreGem1, 12) end
             if mq.TLO.Me.Gem(11)() ~= restoreGem2.Name then abilities.swapSpell(restoreGem2, 12) end
             if mq.TLO.Me.Gem(10)() ~= restoreGem3.Name then abilities.swapSpell(restoreGem3, 12) end
@@ -323,11 +404,11 @@ function class.armPetRequest(requester)
     end
 end
 
-function class.armPet(petID, weapons, owner)
+function Magician:armPet(petID, weapons, owner)
     logger.info('Attempting to arm pet %s for %s', mq.TLO.Spawn('id '..petID).CleanName(), owner)
 
     local myX, myY, myZ = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
-    if not class.giveWeapons(petID, weapons or 'water|fire') then
+    if not self.giveWeapons(petID, weapons or 'water|fire') then
         movement.navToLoc(myX, myY, myZ, nil, 2000)
         if state.isExternalRequest then
             logger.info('tell %s There was an error arming your pet', state.requester)
@@ -337,23 +418,23 @@ function class.armPet(petID, weapons, owner)
         return
     end
 
-    if class.spells.armor then
-        mq.delay(3000, function() return class.spells.armor:isReady() end)
-        if not class.giveOther(petID, class.spells.armor) then return end
+    if self.spells.armor then
+        mq.delay(3000, function() return self.spells.armor:isReady() end)
+        if not self.giveOther(petID, self.spells.armor) then return end
     end
-    if class.spells.jewelry then
-        mq.delay(3000, function() return class.spells.jewelry:isReady() end)
-        if not class.giveOther(petID, class.spells.jewelry) then return end
+    if self.spells.jewelry then
+        mq.delay(3000, function() return self.spells.jewelry:isReady() end)
+        if not self.giveOther(petID, self.spells.jewelry) then return end
     end
     if mq.TLO.FindItemCount('=Gold')() >= 1 then
         logger.info('have gold to give!')
         mq.cmdf('/mqt id %s', petID)
-        class.pickupWeapon('Gold')
+        self.pickupWeapon('Gold')
         mq.delay(100)
         if mq.TLO.Cursor() == 'Gold' then
-            class.giveCursorItemToTarget()
+            self:giveCursorItemToTarget()
         else
-            class.clearCursor()
+            self:clearCursor()
         end
     end
 
@@ -365,12 +446,12 @@ function class.armPet(petID, weapons, owner)
     movement.navToLoc(myX, myY, myZ, nil, 2000)
 end
 
-function class.giveWeapons(petID, weaponString)
+function Magician:giveWeapons(petID, weaponString)
     local weapons = helpers.split(weaponString, '|')
     local primary = weaponMap[weapons[1]]
     local secondary = weaponMap[weapons[2]]
 
-    if not class.checkForWeapons(primary, secondary) then
+    if not self.checkForWeapons(primary, secondary) then
         return false
     end
 
@@ -378,25 +459,25 @@ function class.giveWeapons(petID, weaponString)
     mq.delay(100)
     if mq.TLO.Target.ID() == petID then
         logger.info('Give primary weapon %s to pet %s', primary, petID)
-        class.pickupWeapon(primary)
+        self.pickupWeapon(primary)
         if mq.TLO.Cursor() == primary then
-            class.giveCursorItemToTarget()
+            self:giveCursorItemToTarget()
         else
-            class.clearCursor()
+            self:clearCursor()
         end
-        if not class.checkForWeapons(primary, secondary) then
+        if not self.checkForWeapons(primary, secondary) then
             return false
         end
         logger.info('Give secondary weapon %s to pet %s', secondary, petID)
-        class.pickupWeapon(secondary)
+        self.pickupWeapon(secondary)
         mq.cmdf('/mqt id %s', petID)
         mq.delay(100)
         if mq.TLO.Cursor() == secondary then
-            class.giveCursorItemToTarget()
+            self:giveCursorItemToTarget()
         else
-            class.clearCursor()
+            self:clearCursor()
         end
-        class.giveCursorItemToTarget()
+        self:giveCursorItemToTarget()
     else
         return false
     end
@@ -405,14 +486,14 @@ end
 
 -- If specifying 2 different weapons where only 1 of each is in the bag, this
 -- will end up summoning two bags
-function class.checkForWeapons(primary, secondary)
+function Magician:checkForWeapons(primary, secondary)
     local foundPrimary = mq.TLO.FindItem('='..primary)
     local foundSecondary = mq.TLO.FindItem('='..secondary)
     logger.info('Check inventory for weapons %s %s', primary, secondary)
     if not foundPrimary() or not foundSecondary() then
         local foundWeaponBag = mq.TLO.FindItem('='..weaponBag)
         if foundWeaponBag() then
-            if not class.safeToDestroy(foundWeaponBag) then return false end
+            if not self.safeToDestroy(foundWeaponBag) then return false end
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', weaponBag)
             mq.delay(1000, function() return mq.TLO.Cursor() end)
             if mq.TLO.Cursor.ID() == foundWeaponBag.ID() then
@@ -422,7 +503,7 @@ function class.checkForWeapons(primary, secondary)
                 return false
             end
         else
-            if not class.checkInventory() then
+            if not self:checkInventory() then
                 if state.isExternalRequest then
                     logger.info('tell %s i was unable to free up inventory space', state.requester)
                 else
@@ -431,7 +512,7 @@ function class.checkForWeapons(primary, secondary)
                 return false
             end
         end
-        local summonResult = class.summonItem(class.spells.weapons, mq.TLO.Me.ID(), true, true)
+        local summonResult = self.summonItem(self.spells.weapons, mq.TLO.Me.ID(), true, true)
         if not summonResult then
             logger.info('Error occurred summoning items')
             return false
@@ -440,7 +521,7 @@ function class.checkForWeapons(primary, secondary)
     return true
 end
 
-function class.pickupWeapon(weaponName)
+function Magician:pickupWeapon(weaponName)
     local item = mq.TLO.FindItem('='..weaponName)
     local itemSlot = item.ItemSlot()
     local itemSlot2 = item.ItemSlot2()
@@ -449,12 +530,12 @@ function class.pickupWeapon(weaponName)
     mq.cmdf('/nomodkey /ctrlkey /itemnotify in pack%s %s leftmouseup', packSlot, inPackSlot)
 end
 
-function class.giveOther(petID, spell)
+function Magician:giveOther(petID, spell)
     local itemName = summonedItemMap[spell.Name]
     local item = mq.TLO.FindItem('='..itemName)
     --if not item() then
         mq.cmdf('/mqt id %s', petID)
-        local summonResult = class.summonItem(spell, petID, false, false)
+        local summonResult = self.summonItem(spell, petID, false, false)
         if not summonResult then
             logger.info('Error occurred summoning items')
             return false
@@ -465,11 +546,11 @@ function class.giveOther(petID, spell)
     --end
 
     --mq.cmdf('/mqt id %s', petID)
-    --class.giveCursorItemToTarget()
+    --self.giveCursorItemToTarget()
     return true
 end
 
-function class.summonItem(spell, targetID, summonsItem, inventoryItem)
+function Magician:summonItem(spell, targetID, summonsItem, inventoryItem)
     logger.info('going to summon item %s', spell.Name)
     --mq.cmd('/mqt 0')
     if not mq.TLO.Me.Gem(spell.Name)() then
@@ -486,17 +567,17 @@ function class.summonItem(spell, targetID, summonsItem, inventoryItem)
             return false
         end
 
-        class.clearCursor()
+        self:clearCursor()
         local summonedItem = summonedItemMap[spell.Name]
         mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonedItem)
         mq.delay(3000, function() return mq.TLO.Cursor() end)
         mq.delay(1)
-        if inventoryItem then class.clearCursor() end
+        if inventoryItem then self:clearCursor() end
     end
     return true
 end
 
-function class.giveCursorItemToTarget(moveback, clearTarget)
+function Magician:giveCursorItemToTarget(moveback, clearTarget)
     local meX, meY, meZ = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
     movement.navToTarget('dist=10', 2000)
     mq.cmd('/click left target')
@@ -524,7 +605,7 @@ function class.giveCursorItemToTarget(moveback, clearTarget)
     end
 end
 
-function class.safeToDestroy(bag)
+function Magician:safeToDestroy(bag)
     for i = 1, bag.Container() do
         local bagSlot = bag.Item(i)
         if bagSlot() and not bagSlot.NoRent() then
@@ -535,14 +616,14 @@ function class.safeToDestroy(bag)
     return true
 end
 
-function class.checkInventory()
+function Magician:checkInventory()
     local pouch = 'Pouch of Quellious'
     local bag = mq.TLO.FindItem('='..pouch)
     local pouchID = bag.ID()
     local summonedItemCount = mq.TLO.FindItemCount('='..pouch)()
     logger.info('cleanup Pouch of Quellious')
     for i=1,summonedItemCount do
-        if not class.safeToDestroy(bag) then return false end
+        if not self.safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', pouch)
         mq.delay(1000, function() return mq.TLO.Cursor.ID() == pouchID end)
         if mq.TLO.Cursor.ID() ~= pouchID then
@@ -556,7 +637,7 @@ function class.checkInventory()
     local bagID = bag.ID()
     summonedItemCount = mq.TLO.FindItemCount('='..disenchantedBag)()
     for i=1,summonedItemCount do
-        if not class.safeToDestroy(bag) then return false end
+        if not self.safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', disenchantedBag)
         mq.delay(1000, function() return mq.TLO.Cursor.ID() == bagID end)
         if mq.TLO.Cursor.ID() ~= bagID then
@@ -635,9 +716,9 @@ function class.checkInventory()
             end
         end
 
-        if mq.TLO.Cursor() then class.clearCursor() end
+        if mq.TLO.Cursor() then self:clearCursor() end
     end
     return hasOpenInventorySlot
 end
 
-return class
+return Magician

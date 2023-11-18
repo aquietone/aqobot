@@ -8,11 +8,11 @@ local common = require('common')
 local constants = require('constants')
 local state = require('state')
 
-local aqo
+local class
 local buff = {}
 
-function buff.init(_aqo)
-    aqo = _aqo
+function buff.init(_class)
+    class = _class
 end
 
 function buff.needsBuff(spell, buffTarget)
@@ -47,7 +47,7 @@ local function buffCombat(base)
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
     if mq.TLO.Me.CombatState() == 'COMBAT' then
         for _,buff in ipairs(base.combatBuffs) do
-            if base.isAbilityEnabled(buff.opt) then
+            if base:isAbilityEnabled(buff.opt) then
                 if buff.SummonID then
                     summonItem(buff)
                 else
@@ -85,7 +85,7 @@ local function buffSelf(base)
             local buffName = buff.Name -- TODO: buff name may not match AA or item name
             if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
             if buff.SummonID then
-                if base.isAbilityEnabled(buff.opt) and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
+                if base:isAbilityEnabled(buff.opt) and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
                     return summonItem(buff)
                 end
             else
@@ -197,10 +197,10 @@ local function buffOOC(base)
 end
 
 local function buffPet(base)
-    if base.isEnabled('BUFFPET') and mq.TLO.Pet.ID() > 0 then
+    if base:isEnabled('BUFFPET') and mq.TLO.Pet.ID() > 0 then
         local distance = mq.TLO.Pet.Distance3D() or 300
         if distance > 100 then return false end
-        if aqo.class.useCommonListProcessor then
+        if class.useCommonListProcessor then
             common.processList(base.petBuffs, true)
             return
         end
@@ -262,7 +262,7 @@ local checkClickiesLoadedTimer = timer:new(300000)
 local function checkClickiesLoaded(base)
     if checkClickiesLoadedTimer:timerExpired() then
         for clickyName,clicky in pairs(base.clickies) do
-            local t = base.getTableForClicky(clicky.clickyType)
+            local t = base:getTableForClicky(clicky.clickyType)
             if t then
                 local found = false
                 for _,clicky in ipairs(t) do
@@ -272,7 +272,7 @@ local function checkClickiesLoaded(base)
                     end
                 end
                 if not found then
-                    base.addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt})
+                    base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt})
                 end
             end
         end

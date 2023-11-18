@@ -37,11 +37,11 @@ local RED = ImVec4(1, 0, 0, 1)
 local LIGHT_BLUE = ImVec4(.6, .8, 1, 1)
 local ORANGE = ImVec4(1, .65, 0, 1)
 
-local aqo
+local class
 local ui = {}
 
-function ui.init(_aqo)
-    aqo = _aqo
+function ui.init(_class)
+    class = _class
     mq.imgui.init('AQO Bot 1.0', ui.main)
 end
 
@@ -266,13 +266,13 @@ local function drawSkillsTab()
     local maxY = yOffset
     local _, yAvail = ImGui.GetContentRegionAvail()
     local maxLabelWidth = 0
-    for _,key in ipairs(aqo.class.OPTS) do
-        local labelSize = ImGui.CalcTextSize(aqo.class.OPTS[key].label)
+    for _,key in ipairs(class.OPTS) do
+        local labelSize = ImGui.CalcTextSize(class.OPTS[key].label)
         if labelSize > maxLabelWidth then maxLabelWidth = labelSize end
     end
-    for _,key in ipairs(aqo.class.OPTS) do
+    for _,key in ipairs(class.OPTS) do
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
-            local option = aqo.class.OPTS[key]
+            local option = class.OPTS[key]
             if option.type == 'combobox' then
                 option.value = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
@@ -282,12 +282,12 @@ local function drawSkillsTab()
             end
         end
     end
-    for _,key in ipairs(aqo.class.OPTS) do
+    for _,key in ipairs(class.OPTS) do
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
-            local option = aqo.class.OPTS[key]
+            local option = class.OPTS[key]
             if option.type == 'checkbox' then
                 option.value = ui.drawCheckBox(option.label, option.value, option.tip, xOffset, yOffset)
-                if option.value and option.exclusive then aqo.class.OPTS[option.exclusive].value = false end
+                if option.value and option.exclusive then class.OPTS[option.exclusive].value = false end
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
         end
@@ -317,7 +317,7 @@ local function drawBurnTab()
         mq.cmdf('/%s burnnow long', state.class)
     end
     drawConfigurationForCategory(config.getByCategory('Burn'))
-    if aqo.class.drawBurnTab then aqo.class.drawBurnTab() end
+    if class.drawBurnTab then class:drawBurnTab() end
 end
 
 local function drawPullTab()
@@ -462,7 +462,7 @@ local function drawHeader()
     helpMarker('Pause/Resume')
     ImGui.SameLine()
     if ImGui.Button(constants.icons.FA_SAVE, buttonWidth, BUTTON_HEIGHT) then
-        aqo.class.saveSettings()
+        class:saveSettings()
     end
     helpMarker('Save Settings')
     ImGui.SameLine()
@@ -525,14 +525,14 @@ local function drawAbilityInspector()
         abilityGUIOpen, shouldDrawAbilityGUI = ImGui.Begin(('Ability Inspector##AQOBOTUI%s'):format(state.class), abilityGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
         if shouldDrawAbilityGUI then
             if ImGui.TreeNode('Class Order') then
-                for _,routine in ipairs(aqo.class.classOrder) do
+                for _,routine in ipairs(class.classOrder) do
                     ImGui.Text(routine)
                 end
                 ImGui.TreePop()
             end
             if mq.TLO.Me.Class.CanCast() then
                 if ImGui.TreeNode('Spells') then
-                    for alias,spell in pairs(aqo.class.spells) do
+                    for alias,spell in pairs(class.spells) do
                         if ImGui.TreeNode(alias..'##spellalias') then
                             ImGui.Text('Name: %s', spell.Name)
                             for opt,value in pairs(spell) do
@@ -546,7 +546,7 @@ local function drawAbilityInspector()
                     ImGui.TreePop()
                 end
                 if ImGui.TreeNode('Spell Sets') then
-                    for spellSetName,spellSet in pairs(aqo.class.spellRotations) do
+                    for spellSetName,spellSet in pairs(class.spellRotations) do
                         if ImGui.TreeNode(spellSetName..'##spellset') then
                             for _,spell in ipairs(spellSet) do
                                 ImGui.Text(spell.Name)
@@ -559,14 +559,14 @@ local function drawAbilityInspector()
             end
             if ImGui.TreeNode('Lists') then
                 for i, list in ipairs(constants.classLists) do
-                    if #aqo.class[list] > 0 then
+                    if #class[list] > 0 then
                         if ImGui.TreeNode(list..'##lists'..i) then
-                            for j,ability in ipairs(aqo.class[list]) do
+                            for j,ability in ipairs(class[list]) do
                                 if ImGui.TreeNode(ability.Name..'##list'..list..i..j) then
                                     for opt,value in pairs(ability) do
                                         if opt ~= 'Name' and (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then
                                             local color = WHITE
-                                            if opt == 'opt' then if aqo.class.isEnabled(value) then color = GREEN else color = RED end end
+                                            if opt == 'opt' then if class:isEnabled(value) then color = GREEN else color = RED end end
                                             ImGui.TextColored(color, '%s: %s', opt, value)
                                         end
                                     end
@@ -577,19 +577,19 @@ local function drawAbilityInspector()
                         end
                     elseif list == 'clickies' then
                         if ImGui.TreeNode(list..'##lists'..i) then
-                            for clickyName,clicky in pairs(aqo.class.clickies) do
+                            for clickyName,clicky in pairs(class.clickies) do
                                 ImGui.Text('%s (%s)', clickyName, clicky.clickyType)
                             end
                             ImGui.TreePop()
                         end
                     end
                 end
-                if aqo.class.rezAbility then
+                if class.rezAbility then
                     if ImGui.TreeNode('rezAbility') then
-                        for opt,value in pairs(aqo.class.rezAbility) do
+                        for opt,value in pairs(class.rezAbility) do
                             if (type(value) == 'number' or type(value) == 'string' or type(value) == 'boolean') then  -- opt ~= 'Name' and 
                                 local color = WHITE
-                                if opt == 'opt' then if aqo.class.isEnabled(value) then color = GREEN else color = RED end end
+                                if opt == 'opt' then if class:isEnabled(value) then color = GREEN else color = RED end end
                                 ImGui.TextColored(color, '%s: %s', opt, value)
                             end
                         end
@@ -630,7 +630,7 @@ local function drawHelpWindow()
                 end
             end
             if ImGui.TreeNode('Class Configuration') then
-                for key,value in pairs(aqo.class.OPTS) do
+                for key,value in pairs(class.OPTS) do
                     local valueType = type(value.value)
                     if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
                         ImGui.TextColored(YELLOW, '/aqo %s <%s>', key, valueType)
@@ -650,7 +650,7 @@ local function drawHelpWindow()
             if ImGui.TreeNode('Buff Begging  (WARNING*: Characters accounce requests to group or raid chat!') then
                 ImGui.TextColored(YELLOW, '/tell <name> <alias>')
                 ImGui.TextColored(YELLOW, 'Aliases:')
-                for alias,_ in pairs(aqo.class.requestAliases) do
+                for alias,_ in pairs(class.requestAliases) do
                     ImGui.Text(alias)
                 end
                 ImGui.TreePop()

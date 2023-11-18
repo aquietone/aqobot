@@ -33,6 +33,8 @@ lists.tankClasses = {pal=true,shd=true,war=true}
 lists.meleeClasses = {ber=true,brd=true,bst=true,mnk=true,rng=true,rog=true}
 lists.fdClasses = {mnk=true,nec=true,shd=true,bst=true}
 
+lists.burns = {first=1,second=1,third=1,quick=1,long=1}
+
 lists.DMZ = {
     [344] = 1,
     [345] = 1,

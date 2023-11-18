@@ -10,10 +10,10 @@ local mode = require('mode')
 local state = require('state')
 
 local assist = {}
-local aqo
+local class
 
-function assist.init(_aqo)
-    aqo = _aqo
+function assist.init(_class)
+    class = _class
 end
 
 state.enrageTimer = timer:new(10000)
@@ -299,10 +299,10 @@ function assist.doAssist(reset_timers, returnAfterAnnounce)
     end
     if state.assistMobID == 0 then return false end
     if not state.medding or not config.get('MEDCOMBAT') then
-        if aqo.class.isAbilityEnabled('USEMELEE') then
+        if class:isAbilityEnabled('USEMELEE') then
             assist.getCombatPosition()
-            if state.assistMobID and state.assistMobID > 0 and not mq.TLO.Me.Combat() and aqo.class.beforeEngage then
-                aqo.class.beforeEngage()
+            if state.assistMobID and state.assistMobID > 0 and not mq.TLO.Me.Combat() and class.beforeEngage then
+                class:beforeEngage()
             end
             assist.engage()
         else
@@ -364,7 +364,8 @@ end
 
 function assist.isFighting()
     local cur_mode = mode.currentMode
-    return (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.CombatState() == 'COMBAT')
+    local targetName = mq.TLO.Target.CleanName()
+    return (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isManualMode() and mq.TLO.Me.Combat() and targetName:find('Combat Dummy'))
 end
 
 ---Send pet and swarm pets against the assist target if assist conditions are met.
@@ -373,8 +374,8 @@ function assist.sendPet()
     if sendPetTimer:timerExpired() and targethp and targethp <= config.get('AUTOASSISTAT') then
         if assist.isFighting() then
             if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and not state.petDontAttack then
-                if aqo.class.summonCompanion and helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Pet.X(), mq.TLO.Pet.Y()) > 625 then
-                    aqo.class.summonCompanion:use()
+                if class.summonCompanion and helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Pet.X(), mq.TLO.Pet.Y()) > 625 then
+                    class.summonCompanion:use()
                 end
                 mq.cmd('/multiline ; /pet attack ; /pet swarm')
             else

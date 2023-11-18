@@ -3,7 +3,7 @@ local config = require('interface.configuration')
 local mode = require('mode')
 local state = require('state')
 
-local aqo
+local class
 local AQOType
 local TLO = {}
 
@@ -17,8 +17,8 @@ local function AQOTLO(index)
     return AQOType, {}
 end
 
-function TLO.init(_aqo)
-    aqo = _aqo
+function TLO.init(_class)
+    class = _class
 
     for k,v in pairs(config) do
         if type(v) == 'table' and v.tlo and v.tlotype then
@@ -29,7 +29,7 @@ function TLO.init(_aqo)
         end
     end
 
-    for k,v in pairs(aqo.class.OPTS) do
+    for k,v in pairs(class.OPTS) do
         if v.tlo and v.tlotype then
             tlomembers[v.tlo] = function() return v.tlotype, v.value end
         end

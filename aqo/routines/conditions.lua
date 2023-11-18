@@ -4,15 +4,15 @@ local config = require('interface.configuration')
 local constants = require('constants')
 local state = require('state')
 
-local aqo
+local class
 local conditions = {}
 
-function conditions.init(_aqo)
-    aqo = _aqo
+function conditions.init(_class)
+    class = _class
 end
 
 function conditions.isEnabled(ability)
-    return not ability.opt or aqo.class.isEnabled(ability.opt)
+    return not ability.opt or class:isEnabled(ability.opt)
 end
 
 -- Heal Ability conditions

@@ -11,9 +11,7 @@ local state = require('state')
 
 local tank = {}
 
-function tank.init(aqo)
-
-end
+function tank.init() end
 
 local campBuffer = 20
 

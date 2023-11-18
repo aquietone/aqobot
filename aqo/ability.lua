@@ -65,9 +65,9 @@ local Ability = {
     CastType = AbilityTypes.Spell,
 }
 
-local aqo
-function Ability.init(_aqo)
-    aqo = _aqo
+local class
+function Ability.init(_class)
+    class = _class
 end
 
     ---Initialize a new ability istance.
@@ -201,7 +201,7 @@ function Ability.use(theAbility, doSwap)
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
     if not theAbility.timer:timerExpired() then return result end
     if mq.TLO.Me.Casting() and (state.class ~= 'BRD' or theAbility.MyCastTime >= 500) then return result end
-    if (theAbility:isReady() or (theAbility.CastType == AbilityTypes.Spell and doSwap)) and (not theAbility.condition or theAbility.condition(theAbility)) and aqo.class.isAbilityEnabled(theAbility.opt) then
+    if (theAbility:isReady() or (theAbility.CastType == AbilityTypes.Spell and doSwap)) and (not theAbility.condition or theAbility.condition(theAbility)) and class:isAbilityEnabled(theAbility.opt) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap then
             result = Ability.swapAndCast(theAbility, state.swapGem)
         else

@@ -9,9 +9,7 @@ local state = require('state')
 
 local mez = {}
 
-function mez.init(aqo)
-
-end
+function mez.init() end
 
 ---Scan mobs in camp and reset mez timers to current time
 function mez.initMezTimers(mez_spell)

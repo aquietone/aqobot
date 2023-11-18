@@ -1,17 +1,59 @@
 local class = require('classes.classbase')
 local common = require('common')
 
-function class.init(_aqo)
-    class.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
-    class.spellRotations = {standard={}}
-    class.initBase(_aqo, 'pal')
+local Paladin = class:new()
 
-    class.loadSettings()
-    class.initDPSAbilities(_aqo)
+--[[
+    https://forums.daybreakgames.com/eq/index.php?threads/paladin-pro-tips.239287/ worst guide ever
+    Burst
+    Grief
+    Burst
+    Splash
+    BV
+    -adjustable / undead nuke-
+    Valiant deflection
+    Crush
+    -adjustable / heal proc-
+    -adjustable / harmonious-
+    Preservation
+    Staunch
+
+    -- Defensives
+    Skalber Mantle
+    Armor of Ardency
+    Holy Guardian Discipline
+
+    -- Aggro Spam
+    Crush of the Darkened Sea
+    Crush of Povar
+    Valiant Defense
+    Ardent Force
+    Force of Disruption
+
+    Radiant Cure
+    Splash of Purification
+
+    Dicho - debatable usefulness?
+    Aurora
+    Wave
+
+    Brilliant Vindication
+
+    Stance
+]]
+function Paladin:init()
+    self.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
+    self.spellRotations = {standard={}}
+    self:initBase('pal')
+
+    self:loadSettings()
+    self:initDPSAbilities()
+
+    self.rezStick = common.getItem('Staff of Forbidden Rites')
 end
 
-function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getSkill('Kick'))
+function Paladin:initDPSAbilities()
+    table.insert(self.DPSAbilities, common.getSkill('Kick'))
 end
 
-return class
+return Paladin

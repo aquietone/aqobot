@@ -18,6 +18,7 @@ local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
+local class = require('classes.'..mq.TLO.Me.Class.ShortName():lower())
 
 ---@type ConsoleWidget
 CONSOLE = nil
@@ -27,7 +28,7 @@ local aqo = {}
 local routines = {'assist','buff','camp','conditions','cure','debuff','events','heal','mez','pull','tank'}
 for _,routine in ipairs(routines) do
     aqo[routine] = require('routines.'..routine)
-    aqo[routine].init(aqo)
+    aqo[routine].init(class)
 end
 
 local function init()
@@ -35,17 +36,18 @@ local function init()
         CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
     end
     -- Initialize class specific functions
-    aqo.class = require('classes.'..state.class)
-    aqo.class.init(aqo)
+    --aqo.class = require('classes.'..state.class)
+    --aqo.class:init()
+    class:init()
     aqo.events.initClassBasedEvents()
-    ability.init(aqo)
+    ability.init(class)
 
     -- Initialize binds
     mq.cmd('/squelch /djoin aqo')
-    commands.init(aqo)
+    commands.init(class)
 
     -- Initialize UI
-    ui.init(aqo)
+    ui.init(class)
 
     state.currentZone = mq.TLO.Zone.ID()
     state.subscription = mq.TLO.Me.Subscription()
@@ -67,7 +69,7 @@ local function init()
     mq.cmd('/squelch /autodrink 5000')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
 
-    tlo.init(aqo)
+    tlo.init(class)
 end
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
@@ -132,8 +134,8 @@ end
 ---Remove harmful buffs such as lich if HP is getting low, regardless of paused state
 local torporLandedInCombat = false
 local function buffSafetyCheck()
-    if state.class == 'nec' and state.loop.PctHPs < 40 and aqo.class.spells.lich then
-        mq.cmdf('/removebuff %s', aqo.class.spells.lich.Name)
+    if state.class == 'nec' and state.loop.PctHPs < 40 and class.spells.lich then
+        mq.cmdf('/removebuff %s', class.spells.lich.Name)
     end
     if not torporLandedInCombat and mq.TLO.Me.Song('Transcendent Torpor')() and mq.TLO.Me.CombatState() == 'COMBAT' then
         torporLandedInCombat = true
@@ -230,7 +232,7 @@ local function main()
                         doLooting()
                     end
                     if not state.actionTaken then
-                        aqo.class.mainLoop()
+                        class:mainLoop()
                     end
                     mq.delay(50)
                 else

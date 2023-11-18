@@ -10,12 +10,12 @@ local timer = require('utils.timer')
 local mode = require('mode')
 local state = require('state')
 
-local aqo
+local class
 local events = {}
 
 ---Initialize common event handlers.
-function events.init(_aqo)
-    aqo = _aqo
+function events.init(_class)
+    class = _class
 
     mq.event('zoned', 'You have entered #*#', events.zoned)
     mq.event('cannotSee', '#*#cannot see your target#*#', events.movecloser)
@@ -35,13 +35,13 @@ end
 function events.initClassBasedEvents()
     -- setup events based on whether certain options are defined, not whether they are enabled.
     debuff.setupEvents()
-    if aqo.class.OPTS.MEZST or aqo.class.OPTS.MEZAE then
+    if class.OPTS.MEZST or class.OPTS.MEZAE then
         mez.setupEvents()
     end
     if mq.TLO.Me.AltAbility('Tranquil Blessings')() then
         mq.event('eventTranquil', '#*# tells #*#,#*#\'tranquil\'', events.eventTranquil)
     end
-    if aqo.class.OPTS.SERVEBUFFREQUESTS then
+    if class.OPTS.SERVEBUFFREQUESTS then
         mq.event('eventRequests', '#1# tells #*#,#*#\'#2#\'', events.eventRequest)
     else
         mq.event('eventGearrequest', '#1# tells #*#,#*#\'gear #2#\'', events.eventGear)
@@ -125,7 +125,7 @@ function events.eventRequest(line, requester, requested)
     if requested:find('^gear .+') then
         return events.eventGear(line, requester, requested)
     end
-    if aqo.class.isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
+    if class:isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
         local tranquil = false
         local mgb = false
         if requested:find('^tranquil') then
@@ -146,20 +146,20 @@ function events.eventRequest(line, requester, requested)
         end
         if requested == 'list buffs' then
             local buffList = ''
-            for alias,ability in pairs(aqo.class.requestAliases) do
+            for alias,ability in pairs(class.requestAliases) do
                 buffList = ('%s | %s : %s'):format(buffList, alias, ability.Name)
             end
             mq.cmdf('/t %s %s', requester, buffList)
             return
         end
         if requested == 'armpet' and state.class == 'mag' then
-            table.insert(aqo.class.requests, {requester=requester, requested='armpet', expiration=timer:new(15000)})
+            table.insert(class.requests, {requester=requester, requested='armpet', expiration=timer:new(15000)})
             return
         end
-        local requestedAbility = aqo.class.getAbilityForAlias(requested)
+        local requestedAbility = class:getAbilityForAlias(requested)
         if requestedAbility then
             local expiration = timer:new(15000)
-            table.insert(aqo.class.requests, {requester=requester, requested=requestedAbility, expiration=expiration, tranquil=tranquil, mgb=mgb})
+            table.insert(class.requests, {requester=requester, requested=requestedAbility, expiration=expiration, tranquil=tranquil, mgb=mgb})
         end
     end
 end
@@ -167,7 +167,7 @@ end
 function events.eventTranquil()
     if mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Raid.Members() > 0 then
         mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
-        if aqo.class.tranquil:use() then mq.cmd('/rs Tranquil Blessings used') end
+        if class.tranquil:use() then mq.cmd('/rs Tranquil Blessings used') end
     end
 end
 
@@ -211,7 +211,7 @@ function events.interrupted()
 end
 
 function events.epicburn()
-    aqo.class.useEpic()
+    class:useEpic()
 end
 
 return events

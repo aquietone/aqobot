@@ -3,14 +3,14 @@ local mq = require('mq')
 local abilities = require('ability')
 local constants = require('constants')
 
-local aqo
+local class
 local debuff = {}
 
 debuff.SLOW_IMMUNES = {}
 debuff.SNARE_IMMUNES = {}
 
-function debuff.init(_aqo)
-    aqo = _aqo
+function debuff.init(_class)
+    class = _class
 end
 
 function debuff.shouldUseDebuff(ability)
@@ -27,7 +27,7 @@ function debuff.shouldUseDebuff(ability)
 end
 
 function debuff.findNextDebuff(opt)
-    for _,ability in ipairs(aqo.class.debuffs) do
+    for _,ability in ipairs(class.debuffs) do
         if ability.opt == opt and debuff.shouldUseDebuff(ability) then
             if abilities.use(ability) then return true end
         end
@@ -36,28 +36,28 @@ end
 
 function debuff.castDebuffs()
     if mq.TLO.Target.Type() ~= 'NPC' or not mq.TLO.Target.Aggressive() then return end
-    if aqo.class.isEnabled('USEDISPEL') then
+    if class:isEnabled('USEDISPEL') then
         if debuff.findNextDebuff('USEDISPEL') then return true end
     end
-    if aqo.class.isEnabled('USEDEBUFFAOE') then
+    if class:isEnabled('USEDEBUFFAOE') then
         if debuff.findNextDebuff('USEDEBUFFAOE') then return true end
     end
-    if aqo.class.isEnabled('USEDEBUFF') then
+    if class:isEnabled('USEDEBUFF') then
         if debuff.findNextDebuff('USEDEBUFF') then return true end
     end
-    if aqo.class.isEnabled('USESLOWAOE') then
+    if class:isEnabled('USESLOWAOE') then
         if debuff.findNextDebuff('USESLOWAOE') then
             mq.doevents('event_debuffSlowImmune')
             return true
         end
     end
-    if aqo.class.isEnabled('USESLOW') then
+    if class:isEnabled('USESLOW') then
         if debuff.findNextDebuff('USESLOW') then
             mq.doevents('event_debuffSlowImmune')
             return true
         end
     end
-    if aqo.class.isEnabled('USESNARE') then
+    if class:isEnabled('USESNARE') then
         if debuff.findNextDebuff('USESNARE') then
             mq.doevents('event_debuffSnareImmune')
             return true
@@ -82,10 +82,10 @@ function debuff.eventSnareImmune()
 end
 
 function debuff.setupEvents()
-    if aqo.class.OPTS.USESLOW or aqo.class.OPTS.USESLOWAOE then
+    if class.OPTS.USESLOW or class.OPTS.USESLOWAOE then
         mq.event('event_debuffSlowImmune', 'Your target is immune to changes in its attack speed#*#', debuff.eventSlowImmune)
     end
-    if aqo.class.OPTS.USESNARE then
+    if class.OPTS.USESNARE then
         mq.event('event_debuffRunspeedImmune', 'Your target is immune to changes in its run speed#*#', debuff.eventSnareImmune)
         mq.event('event_debuffSnareImmune', 'Your target is immune to snare spells#*#', debuff.eventSnareImmune)
     end

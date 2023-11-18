@@ -20,7 +20,7 @@ local camp = {
     PullArcRight=0,
 }
 
-function camp.init(aqo) end
+function camp.init() end
 
 function camp.mobRadarB()
     local distanceFromCamp = false

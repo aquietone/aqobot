@@ -3,9 +3,7 @@ local mq = require('mq')
 
 local cure = {}
 
-function cure.init(aqo)
-
-end
+function cure.init() end
 
 -- SPA 35 - disease
 -- SPA 36 - poison

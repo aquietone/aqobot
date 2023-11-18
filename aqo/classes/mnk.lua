@@ -1,73 +1,135 @@
 --- @type Mq
 local mq = require('mq')
 local class = require('classes.classbase')
+local conditions = require('routines.conditions')
 local common = require('common')
 
-function class.init(_aqo)
-    class.classOrder = {'assist', 'aggro', 'heal', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
-    class.initBase(_aqo, 'mnk')
+local Monk = class:new()
 
-    class.initClassOptions()
-    class.loadSettings()
-    class.initDPSAbilities(_aqo)
-    class.initBurns(_aqo)
-    class.initBuffs(_aqo)
-    class.initDefensiveAbilities(_aqo)
-    class.initHeals(_aqo)
+--[[
+    http://forums.eqfreelance.net/index.php?topic=17466.0
 
-    class.useCommonListProcessor = true
+    -- Kick abilities
+    table.insert(self.combatBuffs, common.getAA('Zan Fi\'s Whistle')) -- always up combat buff
+    table.insert(self.DPSAbilities, common.getBestDisc({'Fatewalker\'s Synergy', 'Bloodwalker\'s Synergy', 'Icewalker\'s Synergy', 'Firewalker\'s Synergy', 'Doomwalker\'s Synergy'})) -- strong kick + inc kick dmg
+    table.insert(self.DPSAbilities, common.getBestDisc({'Flurry of Fists', 'Buffeting of Fists', 'Barrage of Fists', 'Firestorm of Fists', 'Torrent of Fists'})) -- 3x tiger claw + monk synergy proc
+    table.insert(self.DPSAbilities, common.getBestDisc({'Curse of Sixteen Shadows', 'Curse of Fifteen Strikes', 'Curse of Fourteen Fists', 'Curse of the Thirteen Fingers'})) -- inc dmg from DS
+    table.insert(self.DPSAbilities, common.getBestDisc({'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang'})) -- a nuke?
+    table.insert(self.DPSAbilities, common.getAA('Stunning Kick')) -- free flying kick + a stun
+    table.insert(self.DPSAbilities, common.getSkill('Flying Kick'))
+    table.insert(self.DPSAbilities, common.getSkill('Tiger Claw'))
+    table.insert(self.DPSAbilities, common.getBestDisc({'Bloodwalker\'s Precision Strike', 'Icewalker\'s Precision Strike', 'Firewalker\'s Precision Strike', 'Doomwalker\'s Precision Strike'})) -- shuriken attack + buffs shuriken dmg
+    
+    table.insert(self.DPSAbilities, common.getBestDisc({'Bloodwalker\'s Conjunction', 'Icewalker\'s Coalition', 'Firewalker\'s Covenant', 'Doomwalker\'s Alliance'}))
+    --common.getAA('Five Point Palm') -- has +500 hate, fd after using
+
+    table.insert(self.fadeAbilities, common.getAA('Imitate Death'))
+
+    common.getBestDisc({'Convalesce', 'Night\'s Calming', 'Relax', 'Hiatus', 'Breather'})
+
+    table.insert(self.auras, common.getBestDisc({'Master\'s Aura'}))
+
+    -- Burns
+    -- Instant activations for start of burn
+    -- bp click -- add dmg to next x kicks
+    table.insert(self.burnAbilities, common.getAA('Two-Finger Wasp Touch', {first=true})) -- double dmg taken from special punches, doesn't stack across monks
+    --Zan Fi's Whistle -- big melee dmg bonus, combat buff
+    table.insert(self.burnAbilities, common.getBestDisc({'Disciplined Reflexes', 'Decisive Reflexes', 'Rapid Reflexes', 'Nimble Reflexes'}, {first=true})) -- defensive
+    table.insert(self.burnAbilities, common.getBestDisc({'Ironfist'}, {first=true})) -- inc melee dmg
+    table.insert(self.burnAbilities, common.getAA('Spire of the Sensei', {first=true}))  -- inc chance for wep procs
+    table.insert(self.burnAbilities, common.getBestDisc({'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'}, {first=true})) -- adds extra attacks
+    table.insert(self.burnAbilities, common.getBestDisc({'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'}, {first=true})) -- large bonus dmg
+    table.insert(self.burnAbilities, common.getAA('Infusion of Thunder', {first=true})) -- chance to inc melee dmg + nuke
+
+    -- Burn spam
+    table.insert(self.burnAbilities, common.getBestDisc({'Crane Stance'}, {first=true})) -- 2 big kicks
+    table.insert(self.burnAbilities, common.getAA('Five Point Palm', {first=true})) -- big dragon punch with nuke
+    -- click off ironfist?
+    -- click bp here?
+    table.insert(self.burnAbilities, common.getBestDisc({'Heel of Zagali'}, {first=true}))
+    -- spam kick abilities
+
+    -- 2nd Burn
+    table.insert(self.burnAbilities, common.getBestDisc({'Speed Focus'}, {second=true})) -- doubles attack speed
+    table.insert(self.burnAbilities, common.getAA('Focused Destructive Force', {second=true})) -- doubles number of primary hand attacks
+
+    -- 3rd Burn
+    table.insert(self.burnAbilities, common.getAA('Two-Finger Wasp Touch', {third=true})) -- if another monks has faded
+    table.insert(self.burnAbilities, common.getBestDisc({'Terrorpalm'}, {third=true})) -- inc dmg from melee, inc min dmg
+
+    -- 4th Burn
+    --table.insert(self.burnAbilities, common.getBestDisc({'Ironfist'})) -- if not used yet
+    table.insert(self.burnAbilities, common.getBestDisc({'Eye of the Storm'}, {third=true})) -- inc dmg, inc min dmg
+
+    -- 5th Burn
+    table.insert(self.burnAbilities, common.getBestDisc({'Earthforce'})) -- defensive, adds heroic str
+
+]]
+function Monk:init()
+    self.classOrder = {'assist', 'aggro', 'heal', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
+    self:initBase('mnk')
+
+    self:initClassOptions()
+    self:loadSettings()
+    self:initDPSAbilities()
+    self:initBurns()
+    self:initBuffs()
+    self:initDefensiveAbilities()
+    self:initHeals()
+
+    self.useCommonListProcessor = true
 end
 
-function class.initClassOptions()
-    class.addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox', nil, 'UseFade', 'bool')
+function Monk:initClassOptions()
+    self:addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox', nil, 'UseFade', 'bool')
 end
 
-function class.initDPSAbilities(_aqo)
-    table.insert(class.DPSAbilities, common.getSkill('Flying Kick', {condition=_aqo.conditions.withinMeleeDistance}))
-    table.insert(class.DPSAbilities, common.getSkill('Tiger Claw', {condition=_aqo.conditions.withinMeleeDistance}))
-    table.insert(class.DPSAbilities, common.getBestDisc({'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}, {condition=_aqo.conditions.withinMeleeDistance}))
-    table.insert(class.DPSAbilities, common.getAA('Five Point Palm', {condition=_aqo.conditions.withinMeleeDistance}))
-    --table.insert(class.DPSAbilities, common.getAA('Stunning Kick'))
-    table.insert(class.DPSAbilities, common.getAA('Eye Gouge', {condition=_aqo.conditions.withinMeleeDistance}))
+function Monk:initDPSAbilities()
+    table.insert(self.DPSAbilities, common.getSkill('Flying Kick', {condition=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, common.getSkill('Tiger Claw', {condition=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, common.getBestDisc({'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}, {condition=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, common.getAA('Five Point Palm', {condition=conditions.withinMeleeDistance}))
+    --table.insert(self.DPSAbilities, common.getAA('Stunning Kick'))
+    table.insert(self.DPSAbilities, common.getAA('Eye Gouge', {condition=conditions.withinMeleeDistance}))
 end
 
-function class.initBurns(_aqo)
-    table.insert(class.burnAbilities, common.getAA('Fundament: Second Spire of the Sensei'))
+function Monk:initBurns()
+    table.insert(self.burnAbilities, common.getAA('Fundament: Second Spire of the Sensei'))
     local speedFocus = common.getBestDisc({'Speed Focus Discipline'})
     local crystalPalm = common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'})
     local heel = common.getBestDisc({'Heel of Kai', 'Heel of Kanji'})
     if crystalPalm then
         crystalPalm.condition = function() return not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end
-        table.insert(class.burnAbilities, speedFocus)
+        table.insert(self.burnAbilities, speedFocus)
     end
     if heel then
         heel.condition = function() return not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end
-        table.insert(class.burnAbilities, crystalPalm)
+        table.insert(self.burnAbilities, crystalPalm)
     end
-    table.insert(class.burnAbilities, heel)
-    table.insert(class.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE'}))
+    table.insert(self.burnAbilities, heel)
+    table.insert(self.burnAbilities, common.getAA('Destructive Force', {opt='USEAOE'}))
 end
 
-function class.initBuffs(_aqo)
-    table.insert(class.auras, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {CheckFor='Disciples Aura'}))
-    table.insert(class.combatBuffs, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
-    table.insert(class.combatBuffs, common.getBestDisc({'Fists of Wu'}))
-    table.insert(class.combatBuffs, common.getAA('Zan Fi\'s Whistle'))
-    table.insert(class.combatBuffs, common.getAA('Infusion of Thunder'))
+function Monk:initBuffs()
+    table.insert(self.auras, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {CheckFor='Disciples Aura'}))
+    table.insert(self.combatBuffs, common.getItem('Fistwraps of Celestial Discipline', {delay=1000}))
+    table.insert(self.combatBuffs, common.getBestDisc({'Fists of Wu'}))
+    table.insert(self.combatBuffs, common.getAA('Zan Fi\'s Whistle'))
+    table.insert(self.combatBuffs, common.getAA('Infusion of Thunder'))
 end
 
-function class.initDefensiveAbilities(_aqo)
+function Monk:initDefensiveAbilities()
     local postFD = function()
         mq.delay(1000)
         mq.cmd('/stand')
         mq.cmd('/makemevis')
     end
-    table.insert(class.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
-    table.insert(class.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
+    table.insert(self.fadeAbilities, common.getAA('Imitate Death', {opt='USEFD', postcast=postFD}))
+    table.insert(self.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
 end
 
-function class.initHeals(_aqo)
-    table.insert(class.healAbilities, common.getSkill('Mend', {me=60, self=true}))
+function Monk:initHeals()
+    table.insert(self.healAbilities, common.getSkill('Mend', {me=60, self=true}))
 end
 
-return class
+return Monk
