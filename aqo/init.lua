@@ -2,13 +2,17 @@
 local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
+---@type ConsoleWidget
+local CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
+
+local logger = require('utils.logger')
+logger.setConsole(CONSOLE)
 
 local commands = require('interface.commands')
 local config = require('interface.configuration')
 local ui = require('interface.ui')
 local tlo = require('interface.tlo')
 
-local logger = require('utils.logger')
 local loot = require('utils.lootutils')
 local movement = require('utils.movement')
 local timer = require('utils.timer')
@@ -19,10 +23,10 @@ local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
 local actor = require('interface.actor')
-local class = require('classes.'..mq.TLO.Me.Class.ShortName():lower())
 
----@type ConsoleWidget
-CONSOLE = nil
+ui.setConsole(CONSOLE)
+
+local class = require('classes.'..mq.TLO.Me.Class.ShortName():lower())
 
 local aqo = {}
 
@@ -33,9 +37,7 @@ for _,routine in ipairs(routines) do
 end
 
 local function init()
-    if CONSOLE == nil then
-        CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
-    end
+
     -- Initialize class specific functions
     --aqo.class = require('classes.'..state.class)
     --aqo.class:init()

@@ -12,10 +12,15 @@ local logger = {
 
 local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax \aw'
 
+local console = nil
+function logger.setConsole(_console)
+    console = _console
+end
+
 function logger.info(...)
     local text = logger.logLine(...)
-    if CONSOLE then
-        CONSOLE:AppendText(text)
+    if console then
+        console:AppendText(text)
     else
         print(text)
     end

@@ -100,13 +100,13 @@ function Cleric:initSpellLines()
         self:addSpell('aestun', {'Silent Dictation'})
         self:addSpell('mark', {'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, {opt='USEDEBUFF'})
     else
-        self:addSpell('lightheal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'})
-        self:addSpell('remedy1', {'Avowed Remedy', 'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy', 'Pious Remedy', 'Supernal Remedy', 'Remedy'})
-        self:addSpell('remedy2', {'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy'})
-        self:addSpell('intervention1', {'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention'})
-        self:addSpell('intervention2', {'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention'})
+        self:addSpell('lightheal', {'Ancient: Hallowed Light', 'Sacred Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'}, {tank=true, panic=true, regular=true})
+        self:addSpell('remedy1', {'Avowed Remedy', 'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy', 'Sacred Remedy', 'Pious Remedy', 'Supernal Remedy', 'Remedy'}, {tank=true, panic=true, regular=true})
+        self:addSpell('remedy2', {'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy'}, {tank=true, panic=true, regular=true})
+        self:addSpell('intervention1', {'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention'}, {tank=true, panic=true, regular=true})
+        self:addSpell('intervention2', {'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention'}, {tank=true, panic=true, regular=true})
         -- Slot 5
-        self:addSpell('renewal', {'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'}) -- slower heal
+        self:addSpell('renewal', {'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'}, {tank=true, panic=true}) -- slower heal
         self:addSpell('remedy3', {'Merciful Remedy'}) -- faster heal
         -- Slot 6
         self:addSpell('issuance', {'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit'})
@@ -125,10 +125,10 @@ function Cleric:initSpellLines()
         self:addSpell('alliance', {'Sincere Coalition', 'Divine Alliance'})
         self:addSpell('shining', {'Shining Steel', 'Shining Fortitude', 'Shining Aegis', 'Shining Fortress', 'Shining Bulwark'})
 
-        self:addSpell('groupsymbol', {'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'})
-        self:addSpell('groupaego', {'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'})
+        self:addSpell('groupsymbol', {'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, {classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}})
+        self:addSpell('groupaego', {'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, {classes={WAR=true,SHD=true,PAL=true}})
         self:addSpell('armor', {'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'})
-        self:addSpell('spellhaste', {'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal'})
+        self:addSpell('spellhaste', {'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal'}, {classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}})
 
         self:addSpell('aura', {'Bastion of Divinity', 'Aura of Divinity'})
 

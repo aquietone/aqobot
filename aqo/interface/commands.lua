@@ -1,6 +1,5 @@
 --- @type Mq
 local mq = require('mq')
-local lists = require('data.lists')
 local config = require('interface.configuration')
 local ui = require('interface.ui')
 local assist = require('routines.assist')
@@ -89,7 +88,7 @@ function commands.commandHandler(...)
     elseif opt == 'BURNNOW' then
         logger.info('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
         state.burnNow = true
-        if lists.burns[new_value] then
+        if constants.burns[new_value] then
             state.burn_type = new_value
         end
     elseif opt == 'PREBURN' then
@@ -184,10 +183,26 @@ function commands.commandHandler(...)
         else
             logger.info('removeclicky Usage:\n\tPlace clicky item on cursor\n\t/%s removeclicky', state.class)
         end
+    elseif opt == 'ENABLECLICKY' then
+        local itemName = mq.TLO.Cursor()
+        if itemName then
+            class:enableClicky(itemName)
+            class:saveSettings()
+        else
+            logger.info('enableclickyUsage:\n\tPlace clicky item on cursor\n\t/%s enableclicky', state.class)
+        end
+    elseif opt == 'DISABLECLICKY' then
+        local itemName = mq.TLO.Cursor()
+        if itemName then
+            class:disableClicky(itemName)
+            class:saveSettings()
+        else
+            logger.info('disableclickyUsage:\n\tPlace clicky item on cursor\n\t/%s disableclicky', state.class)
+        end
     elseif opt == 'LISTCLICKIES' then
         local clickies = ''
         for clickyName,clicky in pairs(class.clickies) do
-            clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clicky.clickyType .. ')'
+            clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clicky.clickyType .. ') Enabled='..clicky.enabled
         end
         logger.info('Clickies: %s', clickies)
     elseif opt == 'INVIS' then

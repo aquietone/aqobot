@@ -5,6 +5,15 @@ local testmb = actors.register("testactor", function (message)
     -- receives nothing
 end)
 
+mq.bind('/testreply', function()
+    local header = {mailbox = 'testactor', script='aqo'}
+    local t = {
+        id = 'replytothismessage',
+    }
+
+    testmb:send(header, t, function(status, message) printf('%s -- %s', status, message) end)
+end)
+
 -- Test publishing a status message to aqo mailbox
 mq.bind('/testaqo', function() 
     local header = {mailbox = 'aqo', script='aqo'}
@@ -56,9 +65,9 @@ end
 
 while true do
     mq.delay(1000)
-    local aqoActorState = mq.TLO.AQO.Actors('toonname')()
-    if aqoActorState then
-        dumpTable(aqoActorState)
-        print('\n\n')
-    end
+    -- local aqoActorState = mq.TLO.AQO.Actors('Snarfs')()
+    -- if aqoActorState then
+    --     dumpTable(aqoActorState)
+    --     print('\n\n')
+    -- end
 end

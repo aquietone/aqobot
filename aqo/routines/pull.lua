@@ -81,7 +81,7 @@ end
 ---@return boolean @Returns true if the spawn meets all the criteria for pulling, otherwise false.
 local function validatePull(pull_spawn, path_len, zone_sn)
     local mob_id = pull_spawn.ID()
-    if not mob_id or mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' then
+    if not mob_id or mob_id == 0 or PULL_TARGET_SKIP[mob_id] or pull_spawn.Type() == 'Corpse' or pull_spawn.Surname() ~= '' then
         logger.debug(logger.flags.routines.pull, 'Invalid mob ID %s (type=%s, skip=%s)', mob_id, pull_spawn.Type(), PULL_TARGET_SKIP[mob_id])
         return false
     end
@@ -97,7 +97,7 @@ local healers = {CLR=true,DRU=true,SHM=true}
 local holdPullTimer = timer:new(5000)
 local holdPulls = false
 function pull.checkPullConditions()
-    if mq.TLO.Group.Members() then
+    if config.get('GROUPSTAYCLOSE') and mq.TLO.Group.Members() then
         for i=1,mq.TLO.Group.Members() do
             local member = mq.TLO.Group.Member(i)
             if member() then
@@ -125,7 +125,7 @@ function pull.checkPullConditions()
         for i=1,mq.TLO.Group.Members() do
             local member = mq.TLO.Group.Member(i)
             if member() then
-                if (member.Distance3D() or 300) > 150 then
+                if config.get('GROUPSTAYCLOSE') and (member.Distance3D() or 300) > 150 then
                     -- group member not nearby, hold pulls until they catch up
                     if not holdPulls then holdPullTimer:reset() holdPulls = true end
                     return false
@@ -177,10 +177,10 @@ function pull.pullRadarB()
 end
 
 --loc ${s_WorkSpawn.X} ${s_WorkSpawn.Y}
-local pull_count = 'npc nopet radius %d'-- zradius 50'
-local pull_spawn = '%d, npc nopet radius %d'-- zradius 50'
-local pull_count_camp = 'npc nopet loc %d %d radius %d'-- zradius 50'
-local pull_spawn_camp = '%d, npc nopet loc %d %d radius %d'-- zradius 50'
+local pull_count = 'npc targetable nopet radius %d'-- zradius 50'
+local pull_spawn = '%d, npc targetable nopet radius %d'-- zradius 50'
+local pull_count_camp = 'npc targetable nopet loc %d %d radius %d'-- zradius 50'
+local pull_spawn_camp = '%d, npc targetable nopet loc %d %d radius %d'-- zradius 50'
 local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.pullMobID to the mob ID of the first matching spawn.
@@ -326,7 +326,7 @@ local function pullEngage(pull_spawn)
         if pullWith == 'item' then
             local pull_item = nil
             for _,clicky in ipairs(class.pullClickies) do
-                if mq.TLO.Me.ItemReady(clicky.CastName)() then
+                if clicky.enabled and mq.TLO.Me.ItemReady(clicky.CastName)() then
                     pull_item = clicky
                     break
                 end
@@ -407,7 +407,7 @@ function pull.pullMob()
             return
         end
     end
-    if config.get('LOOTMOBS') and mq.TLO.SpawnCount('npccorpse radius '..config.get('CAMPRADIUS')..' zradius 10')() > 0 then
+    if state.emu and config.get('LOOTMOBS') and mq.TLO.SpawnCount('npccorpse radius '..config.get('CAMPRADIUS')..' zradius 10')() > 0 then
         logger.debug(logger.flags.routines.pull, 'Not pulling due to lootable corpses nearby')
         return
     end

@@ -14,10 +14,13 @@ local state = require('state')
 -- UI Control variables
 local openGUI = true
 local shouldDrawGUI = true
-local uiTheme = 'TEAL'
+local uiTheme = 'BLACK'--'TEAL'
 
 local abilityGUIOpen = false
 local shouldDrawAbilityGUI = false
+
+local clickyManagerOpen = false
+local shouldDrawClickyManager = false
 
 local helpGUIOpen = false
 local shouldDrawHelpGUI = false
@@ -36,6 +39,8 @@ local YELLOW = ImVec4(1, 1, 0, 1)
 local RED = ImVec4(1, 0, 0, 1)
 local LIGHT_BLUE = ImVec4(.6, .8, 1, 1)
 local ORANGE = ImVec4(1, .65, 0, 1)
+local GREY = ImVec4(.8, .8, .8, 1)
+local GOLD = ImVec4(.7, .5, 0, 1)
 
 local class
 local ui = {}
@@ -360,15 +365,18 @@ end
 local function drawDebugTab()
     local x,_ = ImGui.GetContentRegionAvail()
     local buttonWidth = (x / 2) - 4
-    if ImGui.Button('Restart AQO', buttonWidth, BUTTON_HEIGHT) then
+    if ImGui.Button(constants.icons.FA_REFRESH..' Restart AQO', buttonWidth, BUTTON_HEIGHT) then
         mq.cmd('/multiline ; /lua stop aqo ; /timed 10 /lua run aqo')
     end
     ImGui.SameLine()
-    if ImGui.Button('Update AQO', buttonWidth, BUTTON_HEIGHT) then
+    if ImGui.Button(constants.icons.FA_DOWNLOAD..' Update AQO', buttonWidth, BUTTON_HEIGHT) then
         os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     end
     if ImGui.Button('View Ability Lists', x, BUTTON_HEIGHT) then
         abilityGUIOpen = true
+    end
+    if ImGui.Button('Manage Clickies', x, BUTTON_HEIGHT) then
+        clickyManagerOpen = true
     end
     config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages')
     logger.timestamps = config.TIMESTAMPS.value
@@ -405,23 +413,29 @@ local function drawDebugTab()
     end
 end
 
+---@ConsoleWidget
+local console = nil
+function ui.setConsole(_console)
+    console = _console
+end
+
 local function drawConsole()
     -- Reduce spacing so everything fits snugly together
     ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(0, 0))
     local contentSizeX, contentSizeY = ImGui.GetContentRegionAvail()
-    CONSOLE:Render(ImVec2(contentSizeX, contentSizeY))
+    console:Render(ImVec2(contentSizeX, contentSizeY))
     ImGui.PopStyleVar()
 end
 
 local uiTabs = {
-    {label='Console', draw=drawConsole},
-    {label='General', draw=drawAssistTab},
-    {label='Skills', draw=drawSkillsTab},
+    {label=constants.icons.MD_CHAT..' Console', draw=drawConsole},
+    {label=constants.icons.MD_SETTINGS..' General', draw=drawAssistTab, color=GREY},
+    {label=constants.icons.FA_LIST_UL..' Skills', draw=drawSkillsTab, color=GOLD},
     {label=constants.icons.FA_HEART..' Heal', draw=drawHealTab, color=LIGHT_BLUE},
     {label=constants.icons.FA_FIRE..' Burn', draw=drawBurnTab, color=ORANGE},
-    {label='Pull', draw=drawPullTab},
-    {label='Rest', draw=drawRestTab},
-    {label='Debug', draw=drawDebugTab},
+    {label=constants.icons.FA_BICYCLE..' Pull', draw=drawPullTab, color=GREEN},
+    {label=constants.icons.FA_BATTERY_QUARTER..' Rest', draw=drawRestTab, color=RED},
+    {label=constants.icons.FA_CODE..' Debug', draw=drawDebugTab, color=YELLOW},
 }
 local function drawBody()
     if ImGui.BeginTabBar('##tabbar') then
@@ -603,6 +617,35 @@ local function drawAbilityInspector()
     end
 end
 
+local function drawClickyManager()
+    if clickyManagerOpen then
+        clickyManagerOpen, shouldDrawClickyManager = ImGui.Begin(('AQO Clickies##AQOBOTUI%s'):format(state.class), clickyManagerOpen)
+        if shouldDrawClickyManager then
+            if ImGui.BeginTable('clickies', 3) then
+                ImGui.TableSetupColumn('Enabled', ImGuiTableColumnFlags.None, 1)
+                ImGui.TableSetupColumn('Type', ImGuiTableColumnFlags.None, 1)
+                ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.None, 3)
+                ImGui.TableHeadersRow()
+                for clickyName, clicky in pairs(class.clickies) do
+                    ImGui.TableNextRow()
+                    ImGui.TableNextColumn()
+                    local tempEnabled = ImGui.Checkbox('##isEnabled'..clickyName, clicky.enabled)
+                    if tempEnabled ~= clicky.enabled then
+                        if not tempEnabled then class:disableClicky(clickyName)
+                        else class:enableClicky(clickyName) end
+                    end
+                    ImGui.TableNextColumn()
+                    ImGui.Text(clicky.clickyType)
+                    ImGui.TableNextColumn()
+                    ImGui.Text(clickyName)
+                end
+                ImGui.EndTable()
+            end
+        end
+        ImGui.End()
+    end
+end
+
 local function drawHelpWindow()
     if helpGUIOpen then
         helpGUIOpen, shouldDrawHelpGUI = ImGui.Begin(('AQO Help##AQOBOTUI%s'):format(state.class), helpGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
@@ -674,6 +717,7 @@ function ui.main()
     end
     ImGui.End()
     drawAbilityInspector()
+    drawClickyManager()
     drawHelpWindow()
     popStyles()
 end

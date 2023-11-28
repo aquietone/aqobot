@@ -194,11 +194,12 @@ function base:isAbilityEnabled(key)
 end
 
 function base:addSpell(spellGroup, spellList, options)
-    local foundSpell = common.getBestSpell(spellList, options)
+    local foundSpell = common.getBestSpell(spellList, options, spellGroup)
     self.spells[spellGroup] = foundSpell
-    if foundSpell then
+    --[[if foundSpell then
         logger.info('[%s] Found spell: %s (%s)', spellGroup, foundSpell.Name, foundSpell.ID)
-    else
+    else]]
+    if not foundSpell then
         logger.info('[%s] Could not find spell!', spellGroup)
     end
 end
@@ -230,12 +231,12 @@ function base:getTableForClicky(clickyType)
 end
 
 function base:addClicky(clicky)
-    self.clickies[clicky.name] = {clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt}
+    self.clickies[clicky.name] = {clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=true}
     local item = mq.TLO.FindItem('='..clicky.name)
     if item.Clicky() then
         local t = self:getTableForClicky(clicky.clickyType)
         if t then
-            table.insert(t, common.getItem(clicky.name, {summonMinimum=clicky.summonMinimum, opt=clicky.opt}))
+            table.insert(t, common.getItem(clicky.name, {summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=true}))
         end
         logger.info('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
     end
@@ -258,6 +259,38 @@ function base:removeClicky(itemName)
             self.clickies[itemName] = nil
             logger.info('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName)
             return
+        end
+    end
+end
+
+function base:enableClicky(itemName)
+    local clicky = self.clickies[itemName]
+    if not clicky then
+        return
+    end
+    local t = self:getTableForClicky(clicky.clickyType)
+    if not t then return end
+    for i,entry in ipairs(t) do
+        if entry.CastName == itemName then
+            entry.enabled = true
+            self.clickies[itemName].enabled = true
+            logger.info('\agENABLED\ax \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName)
+        end
+    end
+end
+
+function base:disableClicky(itemName)
+    local clicky = self.clickies[itemName]
+    if not clicky then
+        return
+    end
+    local t = self:getTableForClicky(clicky.clickyType)
+    if not t then return end
+    for i,entry in ipairs(t) do
+        if entry.CastName == itemName then
+            entry.enabled = false
+            self.clickies[itemName].enabled = false
+            logger.info('\arDISABLED\ax \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName)
         end
     end
 end
@@ -285,7 +318,7 @@ function base:loadSettings()
             if type(clicky) == 'string' then
                 clicky = {clickyType=clicky}
             end
-            base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt})
+            base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled})
         end
     end
     if settings.petWeapons then
@@ -327,7 +360,7 @@ function base:tank()
         state.pullStatus = constants.pullStates.RETURNING
         state.actionTaken = true
     else
-        if not tank.findMobToTank() then return end
+        if not tank.findMobToTank() then assist.sendPet() return end
         if not tank.approachMob() then return end
         if not tank.acquireTarget() then return end
         if not tank.tankMob() then return end
@@ -504,7 +537,7 @@ function base:cast()
     if assist.isFighting() then
         if self.nuketimer:timerExpired() then
             for _,clicky in ipairs(self.castClickies) do
-                if self:isAbilityEnabled(clicky.opt) and (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
+                if clicky.enabled and self:isAbilityEnabled(clicky.opt) and (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
                     if clicky:use() then return end
                 end
             end
@@ -735,7 +768,7 @@ function base:handleRequests()
                     mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.Name)() end)
                 end
                 if request.requested:isReady() then
-                    local tranquilUsed = '/g Casting'
+                    local tranquilUsed = '/dgt all Casting'
                     if request.tranquil then
                         if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then
                             return

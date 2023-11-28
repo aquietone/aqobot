@@ -11,6 +11,8 @@ constants.commandHelp = {
     {command='preburn', tip='Activate pre-burn abilities, like to use glyph in guild hall'},
     {command='addclicky <mash|burn|buff|heal>', tip='Adds the currently held item to the clicky group specified'},
     {command='removeclicky', tip='Removes the currently held item from clickies'},
+    {command='enableclicky', tip='Enables the currently held item'},
+    {command='disableclicky', tip='Disables the currently held item'},
     {command='listclickies', tip='Displays the list of added clickies'},
     {command='ignore', tip='Adds the targeted mob to the ignore list for the current zone'},
     {command='unignore', tip='Removes the targeted mob from the ignore list for the current zone'},
@@ -89,6 +91,8 @@ constants.ignoreBuff = {
     ['HC Defense of Calrena']=true,
 }
 
+constants.burns = {first=1,second=1,third=1,quick=1,long=1}
+
 constants.slotList = 'earrings, rings, leftear, rightear, leftfinger, rightfinger, face, head, neck, shoulder, chest, feet, arms, leftwrist, rightwrist, wrists, charm, powersource, mainhand, offhand, ranged, ammo, legs, waist, hands'
 
 constants.routines = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,ae=1,mez=1,aggro=1,ohshit=1,rez=1,recover=1,managepet=1}
@@ -100,6 +104,14 @@ constants.classLists = {
 }
 
 constants.uiThemes = {
+    BLACK = {
+        windowbg = ImVec4(.1, .1, .1, .9),
+        bg = ImVec4(0, 0, 0, 1),
+        hovered = ImVec4(.4, .4, .4, 1),
+        active = ImVec4(.3, .3, .3, 1),
+        button = ImVec4(.3, .3, .3, 1),
+        text = ImVec4(1, 1, 1, 1),
+    },
     TEAL = {
         windowbg = ImVec4(.2, .2, .2, .6),
         bg = ImVec4(0, .3, .3, 1),
@@ -140,6 +152,13 @@ constants.icons = {
     FA_BUS = '\xef\x88\x87',
     MD_EXPLORE = '\xee\xa1\xba',
     MD_HELP = '\xee\xa2\x87',
+    FA_BATTERY_QUARTER = '\xef\x89\x83',
+    FA_CODE = '\xef\x84\xa1',
+    FA_LIST_UL = '\xef\x83\x8a',
+    MD_CHAT = '\xee\x82\xb7',
+    MD_SETTINGS = '\xee\xa2\xb8',
+    FA_REFRESH = '\xef\x80\xa1',
+    FA_DOWNLOAD = '\xef\x80\x99',
 }
 
 return constants

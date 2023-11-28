@@ -272,7 +272,7 @@ local function checkClickiesLoaded(base)
                     end
                 end
                 if not found then
-                    base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt})
+                    base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled})
                 end
             end
         end

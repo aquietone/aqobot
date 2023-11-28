@@ -44,7 +44,7 @@ function export.sendStatus()
         local aBuff = mq.TLO.Me.Buff(i)
         if aBuff() then
             local buffData = {Name=aBuff.Name(),Duration=aBuff.Duration.TotalSeconds()}
-            if aBuff.CounterNumber() > 0 then
+            if aBuff.CounterNumber() and aBuff.CounterNumber() > 0 then
                 buffData.CounterNumber=aBuff.CounterNumber()
                 buffData.CounterType=aBuff.CounterType()
             end
@@ -56,7 +56,7 @@ function export.sendStatus()
         local aSong = mq.TLO.Me.Song(i)
         if aSong() then
             local songData = {Name=aSong.Name(),Duration=aSong.Duration.TotalSeconds()}
-            if aSong.CounterNumber() > 0 then
+            if aSong.CounterNumber() and aSong.CounterNumber() > 0 then
                 songData.CounterNumber=aSong.CounterNumber()
                 songData.CounterType=aSong.CounterType()
             end

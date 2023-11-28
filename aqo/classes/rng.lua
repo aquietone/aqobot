@@ -57,12 +57,12 @@ end
 
 function Ranger:initSpellLines()
     self:addSpell('shots', {'Inevitable Shots', 'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    self:addSpell('focused', {'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+    self:addSpell('focused', {'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
     self:addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
     self:addSpell('heart', {'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
     self:addSpell('opener', {'Stealthy Shot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
-    self:addSpell('firenuke1', {'Summer\'s Deluge', 'Summer\'s Torrent', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}) -- fire + ice nuke, Summer's Sleet
+    self:addSpell('firenuke1', {'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}) -- fire + ice nuke, Summer's Sleet
     self:addSpell('firenuke2', {'Laurion Ash', 'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
     self:addSpell('coldnuke1', {'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'}) -- 'Fernflash Boon', 
     self:addSpell('coldnuke2', {'Gelid Wind', 'Frost Wind'}) -- 
@@ -365,10 +365,12 @@ function Ranger:cast()
                 return true
             end
             for _,clicky in ipairs(self.castClickies) do
-                if (clicky.DurationTotalSeconds > 0 and mq.TLO.Target.Buff(clicky.CheckFor)()) or
-                        (clicky.MyCastTime >= 0 and mq.TLO.Me.Moving()) then
-                    movement.stop()
-                    if clicky:use() then return end
+                if clicky.enabled then
+                    if (clicky.DurationTotalSeconds > 0 and mq.TLO.Target.Buff(clicky.CheckFor)()) or
+                            (clicky.MyCastTime >= 0 and mq.TLO.Me.Moving()) then
+                        movement.stop()
+                        if clicky:use() then return end
+                    end
                 end
             end
             local spell = findNextSpell()

@@ -394,7 +394,7 @@ local function lootCorpse(corpseID)
             if not mq.TLO.Window('LootWnd').Open() then break end
         end
         if #noDropItems > 0 or #loreItems > 0 then
-            local skippedItems = '/gu Skipped loots (%s - %s) '
+            local skippedItems = '/dgt all Skipped loots (%s - %s) '
             for _,noDropItem in ipairs(noDropItems) do
                 skippedItems = skippedItems .. ' ' .. noDropItem .. ' (nodrop) '
             end

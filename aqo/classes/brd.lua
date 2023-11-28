@@ -34,6 +34,9 @@ function Bard:init()
     self:initDefensiveAbilities()
     self:initRecoverAbilities()
 
+    self.fierceeye = common.getAA('Fierce Eye')
+    self.epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')
+
     -- Bellow handled separately as we want it to run its course and not be refreshed early
     self.bellow = common.getAA('Boastful Bellow')
 
@@ -367,19 +370,21 @@ function Bard:cast()
                 if self:useEpic() then mq.delay(250) return true end
             end
             for _,clicky in ipairs(self.castClickies) do
-                if clicky.TargetType == 'Single' then
-                    -- if single target clicky then make sure in combat
-                    if (clicky.Duration == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) then
+                if clicky.enabled then
+                    if clicky.TargetType == 'Single' then
+                        -- if single target clicky then make sure in combat
+                        if (clicky.Duration == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) then
+                            if clicky:use() then
+                                mq.delay(250)
+                                return true
+                            end
+                        end
+                    elseif clicky.Duration == 0 or (not mq.TLO.Me.Buff(clicky.CheckFor)() and not mq.TLO.Me.Song(clicky.CheckFor)()) then
+                        -- otherwise just use the clicky if its instant or we don't already have the buff/song
                         if clicky:use() then
                             mq.delay(250)
                             return true
                         end
-                    end
-                elseif clicky.Duration == 0 or (not mq.TLO.Me.Buff(clicky.CheckFor)() and not mq.TLO.Me.Song(clicky.CheckFor)()) then
-                    -- otherwise just use the clicky if its instant or we don't already have the buff/song
-                    if clicky:use() then
-                        mq.delay(250)
-                        return true
                     end
                 end
             end
@@ -403,21 +408,19 @@ function Bard:cast()
     return false
 end
 
-local fierceeye = common.getAA('Fierce Eye')
-local epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')
 function Bard:useEpic()
-    if not fierceeye or not epic then
-        if fierceeye then return fierceeye:use() end
-        if epic then return epic:use() end
+    if not self.fierceeye or not self.epic then
+        if self.fierceeye then return self.fierceeye:use() end
+        if self.epic then return self.epic:use() end
         return
     end
-    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(fierceeye.Name)()
-    if epic:isReady() and fierceeye_rdy then
+    local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(self.fierceeye.Name)()
+    if self.epic:isReady() and fierceeye_rdy then
         mq.cmd('/stopsong')
         mq.delay(250)
-        fierceeye:use()
+        self.fierceeye:use()
         mq.delay(250)
-        epic:use()
+        self.epic:use()
         mq.delay(500)
         return true
     end

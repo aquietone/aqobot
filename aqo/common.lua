@@ -35,10 +35,10 @@ local function getSpell(spellName)
     local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
     if not mq.TLO.Me.Book(rankname)() then return nil end
-    return {ID=spell.ID(), Name=rankname}
+    return {ID=spell.ID(), Name=rankname, Ref=spell, Level=spell.Level()}
 end
 
-function common.getBestSpell(spells, options)
+function common.getBestSpell(spells, options, spellGroup)
     for i,spellName in ipairs(spells) do
         local bestSpell = getSpell(spellName)
         if bestSpell then
@@ -46,6 +46,7 @@ function common.getBestSpell(spells, options)
             for key,value in pairs(options) do
                 bestSpell[key] = value
             end
+            logger.info('[%s] Found Spell: %s - %s (%s)', spellGroup, bestSpell.Level, bestSpell.Ref.Link(), bestSpell.ID)
             return abilities.Spell:new(bestSpell)
         end
     end
@@ -64,6 +65,7 @@ function common.getAA(aaName, options)
         for key,value in pairs(options) do
             spellData[key] = value
         end
+        logger.info('Found AA: %s (%s)', spellData.Name, spellData.ID)
         return abilities.AA:new(spellData)
     end
     return nil
@@ -73,7 +75,7 @@ local function getDisc(discName)
     local disc = mq.TLO.Spell(discName)
     local rankName = disc.RankName()
     if not rankName or not mq.TLO.Me.CombatAbility(rankName)() then return nil end
-    return {ID=disc.ID(), Name=rankName}
+    return {ID=disc.ID(), Name=rankName, Ref=disc, Level=disc.Level()}
 end
 
 ---Lookup the ID for a given disc.
@@ -84,7 +86,7 @@ function common.getBestDisc(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
-            logger.info('Found Disc: %s (%s)', bestDisc.Name, bestDisc.ID)
+            logger.info('Found Disc: %s - %s (%s)', bestDisc.Level, bestDisc.Ref.Link(), bestDisc.ID)
             if not options then options = {} end
             for key,value in pairs(options) do
                 bestDisc[key] = value
@@ -102,6 +104,7 @@ function common.getItem(itemName, options)
     if itemRef() and itemRef.Clicky() then
         if not options then options = {} end
         local spellData = {ID=itemRef.ID(), Name=itemRef.Name()}
+        logger.info('Found Item: %s (%s)', itemRef.ItemLink('CLICKABLE'), spellData.ID)
         for key,value in pairs(options) do
             spellData[key] = value
         end
@@ -117,6 +120,7 @@ function common.getSkill(name, options)
     for key,value in pairs(options) do
         spellData[key] = value
     end
+    logger.info('Found Skill: %s', name)
     return abilities.Skill:new(spellData)
 end
 

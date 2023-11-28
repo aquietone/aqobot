@@ -292,6 +292,14 @@ local config = {
         tlo = 'GroupWatchWho',
         tlotype = 'string',
     },
+    GROUPSTAYCLOSE = {
+        value = false,
+        tip = 'Toggle whether puller should hold pulls if a group member is not with the group',
+        label = 'Group Stay Close',
+        type = 'checkbox',
+        tlo = 'GroupStayClose',
+        tlotype = 'bool',
+    },
 
     RECOVERPCT = {
         value = 70,
@@ -457,7 +465,7 @@ local configByCategory = {
     Assist={'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','RESISTSTOPCOUNT'},
     Camp={'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASEPAUSED'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY'},
-    Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','PULLWITH'},
+    Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','GROUPSTAYCLOSE','PULLWITH'},
     Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','XTARGETHEAL','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET'},
     Tank={'MAINTANK'},
     Rest={'MEDCOMBAT','RECOVERPCT','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','MANASTONESTART','MANASTONESTARTHP','MANASTONESTOPHP','MANASTONETIME'},
