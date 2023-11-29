@@ -241,12 +241,6 @@ function commands.commandHandler(...)
             mq.cmd('/useitem Manastone')
             if manastoneTimer:timerExpired() then break end
         end
-    elseif opt == 'BUFFLIST' then
-        local buffSet = helpers.splitSet(args[4])
-        state.buffs[new_value] = {class=args[3], buffs=buffSet}
-    elseif opt == 'SICKLIST' then
-        local sickList = helpers.split(args[3])
-        state.sick[new_value] = sickList
     elseif opt == 'PAUSEFORBUFFS' then
         if mode.currentMode:getName() == 'huntertank' then
             movement.stop()

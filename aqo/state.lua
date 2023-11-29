@@ -29,8 +29,6 @@ local state = {
     subscription = 'GOLD',
     resists = {},
     medding = false,
-    buffs = {},
-    sick = {},
     justZonedTimer = timer:new(2000)
 }
 

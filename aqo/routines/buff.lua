@@ -214,50 +214,6 @@ local function buffPet(base)
     end
 end
 
-function buff.reportBuffs()
-    local buffList = ''
-    for i=1,42 do
-        local buffID = mq.TLO.Me.Buff(i).Spell.ID()
-        if buffID then buffList = buffList .. buffID .. '|' end
-    end
-    for i=1,20 do
-        local songID = mq.TLO.Me.Song(i).Spell.ID()
-        if songID then buffList = buffList .. songID .. '|' end
-    end
-    if buffList ~= '' then
-        mq.cmdf('/squelch /dga aqo /squelch /docommand /$\\{Me.Class.ShortName} bufflist %s %s %s', mq.TLO.Me.CleanName(), mq.TLO.Me.Class.ShortName(), buffList)
-    end
-end
-
-function buff.reportSick()
-    local sickList = ''
-    if mq.TLO.Me.Poisoned() then
-        sickList = sickList .. 'P_' .. mq.TLO.Me.Poisoned() .. '_' .. mq.TLO.Me.CountersPoison() .. '|'
-    end
-    if mq.TLO.Me.Diseased() then
-        sickList = sickList .. 'D_' .. mq.TLO.Me.Diseased() .. '_' .. mq.TLO.Me.CountersDisease() .. '|'
-    end
-    if mq.TLO.Me.Cursed() then
-        sickList = sickList .. 'C_' .. mq.TLO.Me.Cursed() .. '_' .. mq.TLO.Me.CountersCurse() .. '|'
-    end
-    if sickList ~= '' then
-        mq.cmdf('/squelch /dga aqo /squelch /docommand /$\\{Me.Class.ShortName} sicklist %s %s', mq.TLO.Me.CleanName(), sickList)
-    end
-end
-
-local reportBuffsTimer = timer:new(60000)
-local reportSickTimer = timer:new(5000)
-function buff.broadcast()
-    if reportBuffsTimer:timerExpired() then
-        buff.reportBuffs()
-        reportBuffsTimer:reset()
-    end
-    if reportSickTimer:timerExpired() then
-        buff.reportSick()
-        reportSickTimer:reset()
-    end
-end
-
 local checkClickiesLoadedTimer = timer:new(300000)
 local function checkClickiesLoaded(base)
     if checkClickiesLoadedTimer:timerExpired() then

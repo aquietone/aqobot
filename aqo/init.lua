@@ -22,7 +22,7 @@ local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
-local status = require('status')
+--local status = require('status')
 
 ui.setConsole(CONSOLE)
 
@@ -260,9 +260,7 @@ local function main()
             end
             mq.delay(500)
         end
-        -- broadcast some buff and poison/disease/curse state around netbots style
-        aqo.buff.broadcast()
-        status.send()
+        --status.send()
     end
 end
 

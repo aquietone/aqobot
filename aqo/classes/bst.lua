@@ -297,7 +297,7 @@ function BeastLord:recoverClass()
             self.paragon:use()
         end
     end
-    local originalTargetID = 0
+    local originalTargetID = mq.TLO.Target.ID()
     if self:isEnabled('PARAGONOTHERS') and self.fParagon then
         local groupSize = mq.TLO.Group.GroupSize()
         if groupSize then
