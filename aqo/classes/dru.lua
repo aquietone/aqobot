@@ -46,6 +46,7 @@ function Druid:init()
     self:initDPSAbilities()
     self:initDefensiveAbilities()
     self:initDebuffs()
+    self:addCommonAbilities()
 
     -- Rezzing
     if state.emu then

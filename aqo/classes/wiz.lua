@@ -21,6 +21,7 @@ function Wizard:init()
     self:initDPSAbilities()
     self:initBurns()
     self:initBuffs()
+    self:addCommonAbilities()
     table.insert(self.recoverAbilities, common.getAA('Harvest of Druzzil'))
 end
 

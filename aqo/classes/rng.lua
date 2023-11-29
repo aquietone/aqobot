@@ -34,6 +34,7 @@ function Ranger:init()
     self:initBuffs()
     self:initDebuffs()
     self:initDefensiveAbilities()
+    self:addCommonAbilities()
 end
 
 function Ranger:initClassOptions()

@@ -41,6 +41,7 @@ function ShadowKnight:init()
     self:initDPSAbilities()
     self:initBurns()
     self:initBuffs()
+    self:addCommonAbilities()
 
     self.leechtouch = common.getAA('Leech Touch') -- 9min CD, giant lifetap
 

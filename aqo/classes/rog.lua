@@ -61,6 +61,7 @@ function Rogue:init()
     self:initDPSAbilities()
     self:initBurns()
     self:initBuffs()
+    self:addCommonAbilities()
 
     self.useCommonListProcessor = true
 end

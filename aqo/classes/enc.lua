@@ -27,6 +27,7 @@ function Enchanter:init()
     self:initBurns()
     self:initDebuffs()
     self:initDefensiveAbilities()
+    self:addCommonAbilities()
 
     self.mezbeam = common.getAA('Beam of Slumber')
     self.longmez = common.getAA('Noctambulate') -- 3min single target mez

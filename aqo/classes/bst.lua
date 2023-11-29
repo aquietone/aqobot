@@ -59,6 +59,7 @@ function BeastLord:init()
     self:initBuffs()
     self:initDefensiveAbilities()
     self:initRecoverAbilities()
+    self:addCommonAbilities()
 
     self.useCommonListProcessor = true
 end

@@ -19,6 +19,7 @@ function Berserker:init()
     self:initBurns()
     self:initBuffs()
     self:initDefensiveAbilities()
+    self:addCommonAbilities()
 
     self.epic = 'Raging Taelosian Alloy Axe'
 end

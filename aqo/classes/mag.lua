@@ -106,6 +106,7 @@ function Magician:init()
     self:initDPSAbilities()
     self:initDebuffs()
     self:initDefensiveAbilities()
+    self:addCommonAbilities()
 end
 
 function Magician:initClassOptions()

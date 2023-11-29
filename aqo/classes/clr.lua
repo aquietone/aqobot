@@ -64,6 +64,7 @@ function Cleric:init()
     self:initDPSAbilities()
     self:initDebuffs()
     self:initRecoverAbilities()
+    self:addCommonAbilities()
 
     self.rezAbility = common.getAA('Blessing of Resurrection')
 end

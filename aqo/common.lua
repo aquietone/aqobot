@@ -46,7 +46,7 @@ function common.getBestSpell(spells, options, spellGroup)
             for key,value in pairs(options) do
                 bestSpell[key] = value
             end
-            logger.info('[%s] Found Spell: %s - %s (%s)', spellGroup, bestSpell.Level, bestSpell.Ref.Link(), bestSpell.ID)
+            logger.info('[%s] Found Spell: %s (%s)', spellGroup, bestSpell.Ref.Link(), bestSpell.Level)
             return abilities.Spell:new(bestSpell)
         end
     end
@@ -65,7 +65,7 @@ function common.getAA(aaName, options)
         for key,value in pairs(options) do
             spellData[key] = value
         end
-        logger.info('Found AA: %s (%s)', spellData.Name, spellData.ID)
+        logger.info('Found AA: %s (%s)', spellData.Name, aaData.Spell.Link())
         return abilities.AA:new(spellData)
     end
     return nil
@@ -86,7 +86,7 @@ function common.getBestDisc(discs, options)
     for _,discName in ipairs(discs) do
         local bestDisc = getDisc(discName)
         if bestDisc then
-            logger.info('Found Disc: %s - %s (%s)', bestDisc.Level, bestDisc.Ref.Link(), bestDisc.ID)
+            logger.info('Found Disc: %s (%s)', bestDisc.Ref.Link(), bestDisc.Level)
             if not options then options = {} end
             for key,value in pairs(options) do
                 bestDisc[key] = value
@@ -94,7 +94,7 @@ function common.getBestDisc(discs, options)
             return abilities.Disc:new(bestDisc)
         end
     end
-    logger.info('[%s] Could not find disc!', discs[1])
+    logger.info('Could not find disc: \ag%s\ax', discs[1])
     return nil
 end
 
@@ -104,7 +104,7 @@ function common.getItem(itemName, options)
     if itemRef() and itemRef.Clicky() then
         if not options then options = {} end
         local spellData = {ID=itemRef.ID(), Name=itemRef.Name()}
-        logger.info('Found Item: %s (%s)', itemRef.ItemLink('CLICKABLE'), spellData.ID)
+        logger.info('Found Item: %s', itemRef.ItemLink('CLICKABLE'))
         for key,value in pairs(options) do
             spellData[key] = value
         end

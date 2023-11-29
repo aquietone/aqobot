@@ -48,6 +48,7 @@ function Paladin:init()
 
     self:loadSettings()
     self:initDPSAbilities()
+    self:addCommonAbilities()
 
     self.rezStick = common.getItem('Staff of Forbidden Rites')
 end

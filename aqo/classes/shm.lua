@@ -97,6 +97,7 @@ function Shaman:init()
     self:initDebuffs()
     self:initDefensiveAbilities()
     self:initRecoverAbilities()
+    self:addCommonAbilities()
 
     self.rezAbility = common.getAA('Call of the Wild')
     self.summonCompanion = common.getAA('Summon Companion')

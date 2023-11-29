@@ -27,6 +27,7 @@ function Warrior:init()
     self:initTankAbilities()
     self:initDPSAbilities()
     self:initBuffs()
+    self:addCommonAbilities()
 
     self.useCommonListProcessor = true
 end

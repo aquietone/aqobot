@@ -33,6 +33,7 @@ function Bard:init()
     self:initBuffs()
     self:initDefensiveAbilities()
     self:initRecoverAbilities()
+    self:addCommonAbilities()
 
     self.fierceeye = common.getAA('Fierce Eye')
     self.epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')

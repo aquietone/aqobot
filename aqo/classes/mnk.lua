@@ -76,6 +76,7 @@ function Monk:init()
     self:initBuffs()
     self:initDefensiveAbilities()
     self:initHeals()
+    self:addCommonAbilities()
 
     self.useCommonListProcessor = true
 end

@@ -22,7 +22,7 @@ local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
-local actor = require('interface.actor')
+local status = require('status')
 
 ui.setConsole(CONSOLE)
 
@@ -39,8 +39,6 @@ end
 local function init()
 
     -- Initialize class specific functions
-    --aqo.class = require('classes.'..state.class)
-    --aqo.class:init()
     class:init()
     aqo.events.initClassBasedEvents()
     ability.init(class)
@@ -73,6 +71,7 @@ local function init()
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
 
     tlo.init(class)
+    status.init()
 end
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
@@ -181,7 +180,7 @@ end
 
 local fsm = {}
 function fsm.IDLE()
-    
+
 end
 function fsm.TANK_SCAN()
     aqo.tank.findMobToTank()
@@ -263,7 +262,7 @@ local function main()
         end
         -- broadcast some buff and poison/disease/curse state around netbots style
         aqo.buff.broadcast()
-        actor.sendStatus()
+        status.send()
     end
 end
 

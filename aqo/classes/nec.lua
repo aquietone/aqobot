@@ -26,6 +26,7 @@ function Necromancer:init()
     self:initBuffs()
     self:initDebuffs()
     self:initDefensiveAbilities()
+    self:addCommonAbilities()
 
     self.tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
@@ -128,9 +129,11 @@ function Necromancer:initSpellConditions()
                     mq.TLO.Target.MyBuff(self.spells.venom and self.spells.venom.Name)() and
                     mq.TLO.Target.MyBuff(self.spells.magic and self.spells.magic.Name)() end
     end
-    self.spells.pyreshort.precast = function()
-        if self.tcclick and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
-            self.tcclick:use()
+    if self.spells.pyreshort and self.tcclick then
+        self.spells.pyreshort.precast = function()
+            if not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
+                self.tcclick:use()
+            end
         end
     end
     if self.spells.combodisease then

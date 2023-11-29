@@ -107,7 +107,6 @@ end
 function base:initBase(class)
     self.class = class
     self:addCommonOptions()
-    self:addCommonAbilities()
 end
 
 -- Options added by key/value as well as by index/key so that settings can be displayed
@@ -200,7 +199,7 @@ function base:addSpell(spellGroup, spellList, options)
         logger.info('[%s] Found spell: %s (%s)', spellGroup, foundSpell.Name, foundSpell.ID)
     else]]
     if not foundSpell then
-        logger.info('[%s] Could not find spell!', spellGroup)
+        logger.info('Could not find spell: \ag%s\ax', spellGroup)
     end
 end
 
