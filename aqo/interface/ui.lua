@@ -261,7 +261,6 @@ local function drawAssistTab()
     if current_camp_radius ~= config.get('CAMPRADIUS') then
         camp.setCamp()
     end
-    --uiTheme = ui.drawComboBox('Theme', uiTheme, constants.uiThemes, true, 'Pick a UI color scheme')
 end
 
 local function drawSkillsTab()
@@ -359,6 +358,7 @@ local function drawDebugComboBox()
         end
         ImGui.EndCombo()
     end
+    uiTheme = ui.drawComboBox('Theme', uiTheme, constants.uiThemes, true, 'Pick a UI color scheme')
     ImGui.PopItemWidth()
 end
 

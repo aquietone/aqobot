@@ -1,3 +1,8 @@
+# 2023/11/28
+- Update logging for finding abilities
+- Refactor actor experiment a bit
+- Add theme setting on debug tab for fun
+
 # 2023/11/27
 - add some stuff around clickies
 - added some usage of new actor features
