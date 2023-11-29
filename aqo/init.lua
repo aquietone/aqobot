@@ -71,7 +71,7 @@ local function init()
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
 
     tlo.init(class)
-    status.init()
+    --status.init()
 end
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
