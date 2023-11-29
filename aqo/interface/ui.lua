@@ -2,6 +2,7 @@
 local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
+local icons = require('mq.icons')
 
 local config = require('interface.configuration')
 local camp = require('routines.camp')
@@ -365,11 +366,11 @@ end
 local function drawDebugTab()
     local x,_ = ImGui.GetContentRegionAvail()
     local buttonWidth = (x / 2) - 4
-    if ImGui.Button(constants.icons.FA_REFRESH..' Restart AQO', buttonWidth, BUTTON_HEIGHT) then
+    if ImGui.Button(icons.FA_REFRESH..' Restart AQO', buttonWidth, BUTTON_HEIGHT) then
         mq.cmd('/multiline ; /lua stop aqo ; /timed 10 /lua run aqo')
     end
     ImGui.SameLine()
-    if ImGui.Button(constants.icons.FA_DOWNLOAD..' Update AQO', buttonWidth, BUTTON_HEIGHT) then
+    if ImGui.Button(icons.FA_DOWNLOAD..' Update AQO', buttonWidth, BUTTON_HEIGHT) then
         os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     end
     if ImGui.Button('View Ability Lists', x, BUTTON_HEIGHT) then
@@ -428,14 +429,14 @@ local function drawConsole()
 end
 
 local uiTabs = {
-    {label=constants.icons.MD_CHAT..' Console', draw=drawConsole},
-    {label=constants.icons.MD_SETTINGS..' General', draw=drawAssistTab, color=GREY},
-    {label=constants.icons.FA_LIST_UL..' Skills', draw=drawSkillsTab, color=GOLD},
-    {label=constants.icons.FA_HEART..' Heal', draw=drawHealTab, color=LIGHT_BLUE},
-    {label=constants.icons.FA_FIRE..' Burn', draw=drawBurnTab, color=ORANGE},
-    {label=constants.icons.FA_BICYCLE..' Pull', draw=drawPullTab, color=GREEN},
-    {label=constants.icons.FA_BATTERY_QUARTER..' Rest', draw=drawRestTab, color=RED},
-    {label=constants.icons.FA_CODE..' Debug', draw=drawDebugTab, color=YELLOW},
+    {label=icons.MD_CHAT..' Console', draw=drawConsole},
+    {label=icons.MD_SETTINGS..' General', draw=drawAssistTab, color=GREY},
+    {label=icons.FA_LIST_UL..' Skills', draw=drawSkillsTab, color=GOLD},
+    {label=icons.FA_HEART..' Heal', draw=drawHealTab, color=LIGHT_BLUE},
+    {label=icons.FA_FIRE..' Burn', draw=drawBurnTab, color=ORANGE},
+    {label=icons.FA_BICYCLE..' Pull', draw=drawPullTab, color=GREEN},
+    {label=icons.FA_BATTERY_QUARTER..' Rest', draw=drawRestTab, color=RED},
+    {label=icons.FA_CODE..' Debug', draw=drawDebugTab, color=YELLOW},
 }
 local function drawBody()
     if ImGui.BeginTabBar('##tabbar') then
@@ -462,12 +463,12 @@ local function drawHeader()
     local x, y = ImGui.GetContentRegionAvail()
     local buttonWidth = (x / 2) - 22
     if state.paused then
-        if ImGui.Button(constants.icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
+        if ImGui.Button(icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
             camp.setCamp()
             state.paused = false
         end
     else
-        if ImGui.Button(constants.icons.FA_PAUSE, buttonWidth, BUTTON_HEIGHT) then
+        if ImGui.Button(icons.FA_PAUSE, buttonWidth, BUTTON_HEIGHT) then
             state.paused = true
             state.resetCombatState()
             mq.cmd('/stopcast')
@@ -475,12 +476,12 @@ local function drawHeader()
     end
     helpMarker('Pause/Resume')
     ImGui.SameLine()
-    if ImGui.Button(constants.icons.FA_SAVE, buttonWidth, BUTTON_HEIGHT) then
+    if ImGui.Button(icons.MD_SAVE, buttonWidth, BUTTON_HEIGHT) then
         class:saveSettings()
     end
     helpMarker('Save Settings')
     ImGui.SameLine()
-    if ImGui.Button(constants.icons.MD_HELP, -1, BUTTON_HEIGHT) then
+    if ImGui.Button(icons.MD_HELP, -1, BUTTON_HEIGHT) then
         helpGUIOpen = true
     end
     helpMarker('Help')

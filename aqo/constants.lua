@@ -138,27 +138,4 @@ constants.uiThemes = {
     },
 }
 
-constants.icons = {
-    FA_PLAY = '\xef\x81\x8b',
-    FA_PAUSE = '\xef\x81\x8c',
-    FA_STOP = '\xef\x81\x8d',
-    FA_SAVE = '\xee\x85\xa1',
-    FA_HEART = '\xef\x80\x84',
-    FA_FIRE = '\xef\x81\xad',
-    FA_MEDKIT = '\xef\x83\xba',
-    FA_FIGHTER_JET = '\xef\x83\xbb',
-    MD_LOCAL_HOSPITAL = '\xee\x95\x88',
-    FA_BICYCLE = '\xef\x88\x86',
-    FA_BUS = '\xef\x88\x87',
-    MD_EXPLORE = '\xee\xa1\xba',
-    MD_HELP = '\xee\xa2\x87',
-    FA_BATTERY_QUARTER = '\xef\x89\x83',
-    FA_CODE = '\xef\x84\xa1',
-    FA_LIST_UL = '\xef\x83\x8a',
-    MD_CHAT = '\xee\x82\xb7',
-    MD_SETTINGS = '\xee\xa2\xb8',
-    FA_REFRESH = '\xef\x80\xa1',
-    FA_DOWNLOAD = '\xef\x80\x99',
-}
-
 return constants
