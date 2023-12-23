@@ -37,7 +37,7 @@ local statusTimer = Timer:new(1000)
 function status.send()
     if not statusTimer:timerExpired() then return end
     statusTimer:reset()
-    local header = {mailbox = 'aqo'}
+    local header = {script = 'aqo'}
     local buffs = {}
     for i=1,42 do
         local aBuff = mq.TLO.Me.Buff(i)

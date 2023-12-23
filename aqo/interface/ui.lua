@@ -439,7 +439,7 @@ local uiTabs = {
     {label=icons.FA_CODE..' Debug', draw=drawDebugTab, color=YELLOW},
 }
 local function drawBody()
-    if ImGui.BeginTabBar('##tabbar') then
+    if ImGui.BeginTabBar('##tabbar', ImGuiTabBarFlags.None) then
         for _,tab in ipairs(uiTabs) do
             if tab.color then ImGui.PushStyleColor(ImGuiCol.Text, tab.color) end
             if ImGui.BeginTabItem(tab.label) then

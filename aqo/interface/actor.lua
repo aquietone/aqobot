@@ -8,7 +8,7 @@ function export.register(name, callback)
     export.callbacks[name] = callback
 end
 
-export.actor = actors.register("aqo", function (message)
+export.actor = actors.register(function (message)
     if message.content and export.callbacks[message.content.id] then
         export.callbacks[message.content.id](message)
     end

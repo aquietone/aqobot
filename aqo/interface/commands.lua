@@ -154,18 +154,24 @@ function commands.commandHandler(...)
         local itemName = mq.TLO.Cursor()
         local summonMinimum = nil
         local useif = nil
-        if args[3] then
-            if tonumber(args[3]) then
-                summonMinimum = tonumber(args[3])
-            else
-                useif = args[3]
-            end
+        local nextIndex = 3
+        if not itemName then
+            itemName = args[3]
+            nextIndex = 4
         end
-        if args[4] then
-            if tonumber(args[4]) then
-                summonMinimum = tonumber(args[4])
+        if args[nextIndex] then
+            if tonumber(args[nextIndex]) then
+                summonMinimum = tonumber(args[nextIndex])
             else
-                useif = args[4]
+                useif = args[nextIndex]
+            end
+            nextIndex = nextIndex + 1
+        end
+        if args[nextIndex] then
+            if tonumber(args[nextIndex]) then
+                summonMinimum = tonumber(args[nextIndex])
+            else
+                useif = args[nextIndex]
             end
         end
         if itemName then
@@ -177,6 +183,9 @@ function commands.commandHandler(...)
         end
     elseif opt == 'REMOVECLICKY' then
         local itemName = mq.TLO.Cursor()
+        if not itemName then
+            itemName = args[2]
+        end
         if itemName then
             class:removeClicky(itemName)
             class:saveSettings()
@@ -185,6 +194,9 @@ function commands.commandHandler(...)
         end
     elseif opt == 'ENABLECLICKY' then
         local itemName = mq.TLO.Cursor()
+        if not itemName then
+            itemName = args[2]
+        end
         if itemName then
             class:enableClicky(itemName)
             class:saveSettings()
@@ -193,6 +205,9 @@ function commands.commandHandler(...)
         end
     elseif opt == 'DISABLECLICKY' then
         local itemName = mq.TLO.Cursor()
+        if not itemName then
+            itemName = args[2]
+        end
         if itemName then
             class:disableClicky(itemName)
             class:saveSettings()
@@ -202,7 +217,7 @@ function commands.commandHandler(...)
     elseif opt == 'LISTCLICKIES' then
         local clickies = ''
         for clickyName,clicky in pairs(class.clickies) do
-            clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clicky.clickyType .. ') Enabled='..clicky.enabled
+            clickies = clickies .. '\n- ' .. clickyName .. ' (' .. clicky.clickyType .. ') Enabled='..tostring(clicky.enabled)
         end
         logger.info('Clickies: %s', clickies)
     elseif opt == 'INVIS' then

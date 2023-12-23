@@ -442,7 +442,7 @@ function Item:use()
         state.casting = self
         state.actionTaken = true
     end
-    state[self.Name] = timer:new(2000)
+    state[self.Name] = timer:new(self.RecastTime*1000 or 2000)
     return true
 end
 
@@ -552,6 +552,9 @@ function Ability:setSpellData()
         self.MyCastTime = itemRef.CastTime()
         if itemRef.EffectType() == 'Click Worn' then
             self.MustEquip = true
+        end
+        if itemRef.Clicky.RecastType() then
+            self.RecastTime = itemRef.Clicky.TimerID()
         end
 
         self.SpellName = itemSpellRef.Name()

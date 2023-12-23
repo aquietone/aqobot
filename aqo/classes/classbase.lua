@@ -245,14 +245,27 @@ function base:removeClicky(itemName)
     local clicky = self.clickies[itemName]
     if not clicky then
         -- clicky not found
+        logger.info('Clicky \ag%s\ax not found, not removing.', itemName)
         return
     end
     if type(clicky) ~= 'table' then
         clicky = {clickyType=clicky}
     end
+    logger.info('Getting table for clickyType \ay%s\ax', clicky.clickyType)
     local t = self:getTableForClicky(clicky.clickyType)
     if not t then return end
+    logger.info('table size: %s', #t)
     for i,entry in ipairs(t) do
+        logger.info('%s, %s, %s', entry.Name, entry.SpellName, entry.CastName)
+        if entry.CastName == itemName then
+            table.remove(t, i)
+            self.clickies[itemName] = nil
+            logger.info('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName)
+            return
+        end
+    end
+    for i,entry in pairs(t) do
+        logger.info('%s %s, %s, %s, %s', i, entry, entry.Name, entry.SpellName, entry.CastName)
         if entry.CastName == itemName then
             table.remove(t, i)
             self.clickies[itemName] = nil
