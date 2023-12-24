@@ -1,3 +1,6 @@
+# 2023/12/23
+- Some consolidation of casting code
+
 # 2023/11/28
 - Update logging for finding abilities
 - Refactor actor experiment a bit

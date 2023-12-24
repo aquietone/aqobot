@@ -1,7 +1,7 @@
 --- @type Mq
 local mq = require('mq')
 --- @type ImGui
-local ImGui = require 'ImGui'
+require 'ImGui'
 ---@type ConsoleWidget
 local CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
 
@@ -22,7 +22,7 @@ local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
---local status = require('status')
+local status = require('status')
 
 ui.setConsole(CONSOLE)
 
@@ -71,7 +71,7 @@ local function init()
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
 
     tlo.init(class)
-    --status.init()
+    status.init()
 end
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
@@ -178,23 +178,23 @@ local function doLooting()
     end
 end
 
-local fsm = {}
-function fsm.IDLE()
+-- local fsm = {}
+-- function fsm.IDLE()
 
-end
-function fsm.TANK_SCAN()
-    aqo.tank.findMobToTank()
-end
-function fsm.TANK_ENGAGE() end
-function fsm.PULL_SCAN() end
-function fsm.PULL_APPROACH() end
-function fsm.PULL_ENGAGE() end
-function fsm.PULL_RETURN() end
-function fsm.PULL_WAIT() end
+-- end
+-- function fsm.TANK_SCAN()
+--     aqo.tank.findMobToTank()
+-- end
+-- function fsm.TANK_ENGAGE() end
+-- function fsm.PULL_SCAN() end
+-- function fsm.PULL_APPROACH() end
+-- function fsm.PULL_ENGAGE() end
+-- function fsm.PULL_RETURN() end
+-- function fsm.PULL_WAIT() end
 
-function fsm.processState()
-    return fsm[state.currentState]()
-end
+-- function fsm.processState()
+--     return fsm[state.currentState]()
+-- end
 
 local function handleStates()
     -- Async state handling
@@ -260,7 +260,7 @@ local function main()
             end
             mq.delay(500)
         end
-        --status.send()
+        status.send()
     end
 end
 

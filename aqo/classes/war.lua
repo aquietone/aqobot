@@ -100,7 +100,7 @@ function Warrior:initTankAbilities()
     -- what to do with this one..
     self.attraction = common.getBestDisc({'Forceful Attraction'})
 
-    self.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE'})
+    self.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE', overwritesdisc=self.mash_defensive and self.mash_defensive.name or nil})
     self.flash = common.getBestDisc({'Flash of Anger'})
     self.resurgence = common.getAA('Warlord\'s Resurgence') -- 10min cd, 60k heal
 end

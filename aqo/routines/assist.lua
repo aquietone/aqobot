@@ -313,15 +313,15 @@ function assist.doAssist(reset_timers, returnAfterAnnounce)
     return true
 end
 
-function assist.fsm(reset_timers)--, skip_no_los)
-    local assistMobID = assist.getAssistSpawnIncludeManual()
-    if assistMobID == 0 then return false end
-    if not assist.checkMATargetSwitch(assistMobID) then return false end
-    if not assist.targetAssistSpawn(assistMobID) then return false end
-    assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
-    --if not assist.six(skip_no_los) then return false end
-    --assist.seven()
-end
+-- function assist.fsm(reset_timers)--, skip_no_los)
+--     local assistMobID = assist.getAssistSpawnIncludeManual()
+--     if assistMobID == 0 then return false end
+--     if not assist.checkMATargetSwitch(assistMobID) then return false end
+--     if not assist.targetAssistSpawn(assistMobID) then return false end
+--     assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
+--     --if not assist.six(skip_no_los) then return false end
+--     --assist.seven()
+-- end
 
 ---Begin attacking the assist target if not already attacking.
 function assist.attack(skip_no_los)

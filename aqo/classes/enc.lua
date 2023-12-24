@@ -288,14 +288,14 @@ end
 -- nuke5
 -- dot2
 function Enchanter:findNextSpell()
-    if not mq.TLO.Target.Tashed() and self:isEnabled('USEDEBUFF') and common.isSpellReady(self.spells.tash) then return self.spells.tash end
-    if common.isSpellReady(self.spells.composite) then return self.spells.composite end
+    if self:isEnabled('USEDEBUFF') and self.spells.tash and not mq.TLO.Target.Tashed() and self.spells.tash:isReady() then return self.spells.tash end
+    if self.spells.composite and self.spells.composite:isReady() then return self.spells.composite end
     if castSynergy() then return nil end
-    --if state.emu and common.isSpellReady(self.spells.spasm) then return self.spells.spasm end
-    if common.isSpellReady(self.spells.nuke5) then return self.spells.nuke5 end
-    if common.isSpellReady(self.spells.dot) then return self.spells.dot end
-    if common.isSpellReady(self.spells.dot2) then return self.spells.dot2 end
-    if common.isSpellReady(self.spells.nuke4) then return self.spells.nuke4 end
+    --if state.emu and self.spells.spasm and self.spells.spasm:isReady() then return self.spells.spasm end
+    if self.spells.nuke5 and self.spells.nuke5:isReady() then return self.spells.nuke5 end
+    if self.spells.dot and self.spells.dot:isReady() then return self.spells.dot end
+    if self.spells.dot2 and self.spells.dot2:isReady() then return self.spells.dot2 end
+    if self.spells.nuke4 and self.spells.nuke4:isReady() then return self.spells.nuke4 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 

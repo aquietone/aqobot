@@ -32,36 +32,36 @@ local state = {
     justZonedTimer = timer:new(2000)
 }
 
-state.fsm = {
-    IDLE='IDLE',
-    -- tank states
-    TANK_SCAN='TANK_SCAN',
-    TANK_ENGAGE='TANK_ENGAGE',
-    -- pull states
-    PULL_SCAN='PULL_SCAN',
-    PULL_APPROACH='PULL_APPROACH',
-    PULL_ENGAGE='PULL_ENGAGE',
-    PULL_RETURN='PULL_RETURN',
-    PULL_WAIT='PULL_WAIT',
-    -- assist states
-    ASSIST_SCAN='ASSIST_SCAN',
-    ASSIST_ENGAGE='ASSIST_ENGAGE',
-    -- heal states
-    HEAL_SCAN='HEAL_SCAN',
-    HEAL_CAST='HEAL_CAST',
-    -- buff states
-    BUFF_SCAN='BUFF_SCAN',
-    BUFF_CAST='BUFF_CAST',
-    -- spell states
-    CASTING='CASTING',
-    -- loot states
-    LOOT_SCAN='LOOT_SCAN',
-    LOOT_APPROACH='LOOT_APPROACH',
-    LOOT_MOB='LOOT_MOB',
-    LOOT_ITEM='LOOT_ITEM',
-    -- mez, rest, rez, fade, pet, chasing, return to camp
-}
-state.currentState = state.fsm.IDLE
+-- state.fsm = {
+--     IDLE='IDLE',
+--     -- tank states
+--     TANK_SCAN='TANK_SCAN',
+--     TANK_ENGAGE='TANK_ENGAGE',
+--     -- pull states
+--     PULL_SCAN='PULL_SCAN',
+--     PULL_APPROACH='PULL_APPROACH',
+--     PULL_ENGAGE='PULL_ENGAGE',
+--     PULL_RETURN='PULL_RETURN',
+--     PULL_WAIT='PULL_WAIT',
+--     -- assist states
+--     ASSIST_SCAN='ASSIST_SCAN',
+--     ASSIST_ENGAGE='ASSIST_ENGAGE',
+--     -- heal states
+--     HEAL_SCAN='HEAL_SCAN',
+--     HEAL_CAST='HEAL_CAST',
+--     -- buff states
+--     BUFF_SCAN='BUFF_SCAN',
+--     BUFF_CAST='BUFF_CAST',
+--     -- spell states
+--     CASTING='CASTING',
+--     -- loot states
+--     LOOT_SCAN='LOOT_SCAN',
+--     LOOT_APPROACH='LOOT_APPROACH',
+--     LOOT_MOB='LOOT_MOB',
+--     LOOT_ITEM='LOOT_ITEM',
+--     -- mez, rest, rez, fade, pet, chasing, return to camp
+-- }
+-- state.currentState = state.fsm.IDLE
 
 function state.resetCombatState(debug, caller)
     logger.debug(debug, 'Resetting combatState. pullState before=%s. caller=%s', state.pullState, caller)

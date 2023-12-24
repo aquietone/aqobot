@@ -59,7 +59,7 @@ end
 ---@return table|nil @Returns a table containing the AA name, AA ID and the provided option name.
 function common.getAA(aaName, options)
     local aaData = mq.TLO.Me.AltAbility(aaName)
-    if aaData() then
+    if aaData() and aaData.Spell() then
         if not options then options = {} end
         local spellData = {ID=aaData.ID(), Name=aaData.Name()}
         for key,value in pairs(options) do
@@ -224,42 +224,6 @@ function common.checkChase()
                 mq.cmd('/keypress FORWARD')
             end
         end
-    end
-end
-
--- Casting Functions
-
-function common.isSpellReady(spell, skipCheckTarget)
-    if not spell then return false end
-
-    if not mq.TLO.Me.SpellReady(spell.Name)() then return false end
-    local spellData = mq.TLO.Spell(spell.Name)
-    if spellData.Mana() > mq.TLO.Me.CurrentMana() or (spellData.Mana() > 1000 and state.loop.PctMana < state.minMana) then
-        return false
-    end
-    if spellData.EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (spellData.EnduranceCost() > 1000 and state.loop.PctEndurance < state.minEndurance) then
-        return false
-    end
-    if not skipCheckTarget and spellData.TargetType() == 'Single' then
-        if not mq.TLO.Target() or mq.TLO.Target.Type() == 'Corpse' then return false end
-    end
-
-    if spellData.Duration.Ticks() > 0 then
-        local buff_duration = 0
-        local remaining_cast_time = 0
-        buff_duration = mq.TLO.Target.MyBuffDuration(spell.Name)()
-        if not common.isTargetDottedWith(spell.ID, spell.Name) then
-            -- target does not have the dot, we are ready
-            return true
-        else
-            if not buff_duration then
-                return true
-            end
-            remaining_cast_time = spellData.MyCastTime()
-            return buff_duration < remaining_cast_time + 3000
-        end
-    else
-        return true
     end
 end
 

@@ -245,27 +245,15 @@ function base:removeClicky(itemName)
     local clicky = self.clickies[itemName]
     if not clicky then
         -- clicky not found
-        logger.info('Clicky \ag%s\ax not found, not removing.', itemName)
+        logger.info('Clicky \ag%s\ax not found', itemName)
         return
     end
     if type(clicky) ~= 'table' then
         clicky = {clickyType=clicky}
     end
-    logger.info('Getting table for clickyType \ay%s\ax', clicky.clickyType)
     local t = self:getTableForClicky(clicky.clickyType)
     if not t then return end
-    logger.info('table size: %s', #t)
     for i,entry in ipairs(t) do
-        logger.info('%s, %s, %s', entry.Name, entry.SpellName, entry.CastName)
-        if entry.CastName == itemName then
-            table.remove(t, i)
-            self.clickies[itemName] = nil
-            logger.info('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName)
-            return
-        end
-    end
-    for i,entry in pairs(t) do
-        logger.info('%s %s, %s, %s, %s', i, entry, entry.Name, entry.SpellName, entry.CastName)
         if entry.CastName == itemName then
             table.remove(t, i)
             self.clickies[itemName] = nil
@@ -530,7 +518,7 @@ function base:findNextSpell()
     for _,spell in ipairs(self.spellRotations[self.OPTS.SPELLSET.value]) do
         local resistCount = state.resists[spell.Name] or 0
         local resistStopCount = config.get('RESISTSTOPCOUNT')
-        if common.isSpellReady(spell) and self:isAbilityEnabled(spell.opt)
+        if spell:isReady() and self:isAbilityEnabled(spell.opt)
                 and (resistStopCount == 0 or resistCount < resistStopCount)
                 and (not spell.condition or spell.condition()) then
             return spell
@@ -556,7 +544,7 @@ function base:cast()
             local spell = self:findNextSpell()
             if spell then -- if a dot was found
                 if spell.precast then spell.precast() end
-                if spell:use() then state.actionTaken = true end -- then cast the dot
+                if spell:use(true) then state.actionTaken = true end -- then cast the dot
                 self.nuketimer:reset()
                 mq.doevents()--'eventResist')
                 if spell.postcast then spell.postcast() end
@@ -576,7 +564,7 @@ function base:cast()
                         mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
                         local spell = self:findNextSpell() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
-                            spell:use()
+                            spell:use(true)
                             state.actionTaken = true
                             dotted_count = dotted_count + 1
                             if dotted_count >= self.OPTS.MULTICOUNT.value then break end
