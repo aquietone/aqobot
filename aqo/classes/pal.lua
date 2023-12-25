@@ -57,4 +57,9 @@ function Paladin:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getSkill('Kick'))
 end
 
+function Paladin:availableBuffs()
+    self.spells.BRELLS = self.spells.brells
+    return {BRELLS=self.spells.brells}
+end
+
 return Paladin

@@ -586,6 +586,25 @@ function base:buff()
     if buffing.buff(self) then state.actionTaken = true end
 end
 
+function base:wantBuffs()
+    local wanted = constants.buffs[mq.TLO.Me.Class.ShortName()]
+    local request = {}
+    for _,buff in ipairs(wanted) do
+        for name, charState in pairs(state.actors) do
+            local availableBuffs = charState.availableBuffs
+            if availableBuffs then
+                if availableBuffs[buff] then
+                    if (not mq.TLO.Me.Buff(availableBuffs[buff])() or mq.TLO.Me.Buff(availableBuffs[buff]).Duration() < 60000)
+                            and mq.TLO.Spell(availableBuffs[buff]).WillLand() then
+                        table.insert(request, buff)
+                    end
+                end
+            end
+        end
+    end
+    return request
+end
+
 function base:rest()
     common.rest()
 end

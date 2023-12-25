@@ -138,7 +138,27 @@ local function buffSingle(base)
                 member.DoTarget()
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                 if mq.TLO.Target.ID() == member.ID() and not mq.TLO.Target.Buff(buff.Name)() and mq.TLO.Spell(buff.Name).StacksTarget() then
-                    if abilities.use(buff) then return true end
+                    if abilities.use(buff, true) then return true end
+                end
+            end
+        end
+    end
+end
+
+local function buffActors(base)
+    local availableBuffs = base:availableBuffs()
+    for name, charState in pairs(state.actors) do
+        local wantBuffs = charState.wantBuffs
+        if wantBuffs then
+            for _,buff in ipairs(wantBuffs) do
+                if availableBuffs[buff] then
+                    --logger.info('Can cast buff %s for %s', availableBuffs[buff], name)
+                    local spawn = mq.TLO.Spawn('pc ='..name)
+                    spawn.DoTarget()
+                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
+                    if mq.TLO.Target.ID() == spawn.ID() and not mq.TLO.Target.Buff(availableBuffs[buff])() then
+                        if abilities.use(base.spells[buff], true) then return true end
+                    end
                 end
             end
         end
@@ -190,6 +210,7 @@ local function buffOOC(base)
     -- find an actual buff spell that takes time to cast
     if buffAuras(base) then return true end
     if buffSelf(base) then return true end
+    if buffActors(base) then return true end
     if buffSingle(base) then return true end
     --if buff_tank(base) then return true end
     --if buffGroup(base) then return true end
@@ -244,17 +265,9 @@ function buff.buff(base)
 
     if not common.clearToBuff() or not buffOOCTimer:timerExpired() or mq.TLO.Me.Moving() then return end
     buffOOCTimer:reset()
-    local originalTargetID = mq.TLO.Target.ID()
+    state.reacquireTargetID = mq.TLO.Target.ID()
 
-    if buffOOC(base) or buffPet(base) then
-        local action = state.queuedAction
-        state.queuedAction = function()
-            local targetID = mq.TLO.Target.ID()
-            if targetID ~= 0 and originalTargetID ~= targetID then mq.cmd('/squelch /mqt clear') else mq.cmdf('/squelch /mqt id %s', originalTargetID) end
-            return action
-        end
-        return true
-    end
+    if buffOOC(base) or buffPet(base) then return true end
 
     common.checkItemBuffs()
 end

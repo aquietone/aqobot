@@ -56,6 +56,12 @@ function Ranger:initClassOptions()
     self:addOption('USEFADE', 'Use Fade', true, nil, 'Use Cover Tracks AA to reduce aggro', 'checkbox', nil, 'UseFade', 'bool')
 end
 
+function Ranger:availableBuffs()
+    self.spells.SHOUT = self.spells.predator
+    self.spells.STR = self.spells.strength
+    return {SHOUT=self.spells.predator, STR=self.spells.strength}
+end
+
 function Ranger:initSpellLines()
     self:addSpell('shots', {'Inevitable Shots', 'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
     self:addSpell('focused', {'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows

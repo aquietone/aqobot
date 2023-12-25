@@ -113,6 +113,11 @@ function Shaman:initClassOptions()
     self:addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox', nil, 'UseEpic', 'bool')
 end
 
+function Shaman:availableBuffs()
+    self.spells.FOCUS = self.spells.focus
+    return {FOCUS=self.spells.focus}
+end
+
 function Shaman:initSpellLines()
     self:addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
     self:addSpell('groupheal', {'Word of Reconstitution', 'Word of Restoration'}, {group=true})

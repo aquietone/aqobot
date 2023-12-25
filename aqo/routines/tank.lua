@@ -131,6 +131,7 @@ function tank.acquireTarget()
 end
 
 local stickTimer = timer:new(3000)
+local tankAnnounced = nil
 ---Tank the mob whose ID is stored in common.tankMobID.
 function tank.tankMob()
     --[[if state.tankMobID == 0 then return end
@@ -158,7 +159,10 @@ function tank.tankMob()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     mq.cmd('/multiline ; /stand ; /squelch /face fast')
     if not mq.TLO.Me.Combat() and not state.dontAttack then
-        logger.info('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID)
+        if state.tankMobID ~= tankAnnounced then
+            logger.info('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID)
+            tankAnnounced = state.tankMobID
+        end
         -- /stick snaproll front moveback
         -- /stick mod -2
         state.resists = {}

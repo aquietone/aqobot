@@ -31,6 +31,49 @@ constants.commandHelp = {
     {command='baz', tip='Launches the Lazarus Bazaar in a browser window'},
 }
 
+constants.buffs = {
+    BER = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    BRD = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    BST = {'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    CLR = {'SE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
+    DRU = {'SE', 'SYMBOL', 'SPELLHASTE', 'KEI', 'BRELLS', 'FOCUS'},
+    ENC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS'},
+    MAG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
+    MNK = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    NEC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS'},
+    PAL = {'AEGO', 'HASTE', 'KEI', 'SHOUT', 'STR', 'FOCUS'},
+    RNG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'HASTE', 'FOCUS'},
+    ROG = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    SHD = {'AEGO', 'HASTE', 'KEI', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
+    SHM = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS'},
+    WAR = {'SYMBOL', 'SKIN', 'HASTE', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
+    WIZ = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
+
+    -- BST
+    SE = {'BST'}, -- all
+    SV = {'BST'}, -- melee dps prefer shout, tanks prefer brells, casters prefer brells
+    -- CLR
+    AEGO = {'CLR'}, -- knights
+    SYMBOL = {'CLR'}, -- all but knights
+    SPELLHASTE = {'CLR'},
+    -- DRU
+    SKIN = {'DRU'}, -- all
+    -- ENC
+    KEI = {'ENC'}, -- mana users
+    HASTE = {'ENC','SHM'}, -- all melee
+    -- MAG
+    DS = {'MAG','DRU','RNG'},
+    -- NEC
+    DMF = {'NEC'},
+    -- PAL
+    BRELLS = {'PAL'}, -- pure casters
+    -- RNG
+    SHOUT = {'RNG'}, -- all melee
+    STR = {'RNG'}, -- melee dps
+    -- SHM
+    FOCUS = {'SHM'}, -- all
+}
+
 constants.instantHealClickies = {
     'Orb of Shadows',
     'Distillate of Celestial Healing X',

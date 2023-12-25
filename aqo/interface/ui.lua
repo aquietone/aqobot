@@ -535,6 +535,19 @@ local function popStyles()
     ImGui.PopStyleVar(1)
 end
 
+local function drawTableTree(table)
+    for k, v in pairs(table) do
+        if type(v) == 'table' then
+            if ImGui.TreeNode(k) then
+                drawTableTree(v)
+                ImGui.TreePop()
+            end
+        else
+            ImGui.Text('%s: %s', k, v)
+        end
+    end
+end
+
 local function drawAbilityInspector()
     if abilityGUIOpen then
         abilityGUIOpen, shouldDrawAbilityGUI = ImGui.Begin(('Ability Inspector##AQOBOTUI%s'):format(state.class), abilityGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
@@ -611,6 +624,10 @@ local function drawAbilityInspector()
                         ImGui.TreePop()
                     end
                 end
+                ImGui.TreePop()
+            end
+            if ImGui.TreeNode('State') then
+                drawTableTree(state)
                 ImGui.TreePop()
             end
         end

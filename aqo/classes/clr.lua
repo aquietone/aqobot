@@ -1,5 +1,3 @@
---- @type Mq
-local mq = require 'mq'
 local class = require('classes.classbase')
 local common = require('common')
 local state = require('state')
@@ -44,14 +42,11 @@ local Cleric = class:new()
     table.insert(self.defensiveAbilities, common.getAA('Divine Aura'))
     table.insert(self.defensiveAbilities, common.getAA('Divine Retribution'))
 
-
-
 ]]
 function Cleric:init()
     self.spellRotations = {standard={}}
     self.classOrder = {'heal', 'rez', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest'}
     self:initBase('clr')
-
 
     self:initClassOptions()
     self:loadSettings()
@@ -210,6 +205,13 @@ function Cleric:initBuffs()
     self:addRequestAlias(self.cr, 'cr')
     self.focusedcr = common.getAA('Focused Celestial Regeneration')
     self:addRequestAlias(self.focusedcr, 'focusedcr')
+end
+
+function Cleric:availableBuffs()
+    self.spells.SYMBOL = self.spells.groupsymbol
+    self.spells.AEGO = self.spells.groupaego
+    self.spells.SPELLHASTE = self.spells.spellhaste
+    return {SYMBOL=self.spells.groupsymbol.Name, AEGO=self.spells.groupaego.Name, SPELLHASTE=self.spells.spellhaste.Name}
 end
 
 function Cleric:initBurns()

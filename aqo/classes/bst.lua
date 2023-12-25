@@ -256,6 +256,12 @@ function BeastLord:initBuffs()
     self:addRequestAlias(self.spells.groupregen, 'rejuv')
 end
 
+function BeastLord:availableBuffs()
+    self.spells.SV = self.spells.grouphp
+    self.spells.SE = self.spells.groupregen
+    return {SV=self.spells.grouphp.Name, SE=self.spells.groupregen.Name}
+end
+
 function BeastLord:initHeals()
     table.insert(self.healAbilities, self.spells.heal)
     table.insert(self.healAbilities, self.spells.petheal)

@@ -31,17 +31,22 @@ function status.callback(message)
             end
         end
     end
+    if not message.content.buffs then state.actors[message.content.Name].buffs = nil end
+    if not message.content.songs then state.actors[message.content.Name].songs = nil end
+    if not message.content.wantBuffs then state.actors[message.content.Name].wantBuffs = nil end
+    if not message.content.gimme then state.actors[message.content.Name].gimme = nil end
 end
 
 local statusTimer = Timer:new(1000)
-function status.send()
+function status.send(class)
     if not statusTimer:timerExpired() then return end
     statusTimer:reset()
     local header = {script = 'aqo'}
+    -- Send info on any debuffs
     local buffs = {}
     for i=1,42 do
         local aBuff = mq.TLO.Me.Buff(i)
-        if aBuff() then
+        if aBuff() and not aBuff.Spell.Beneficial() then
             local buffData = {Name=aBuff.Name(),Duration=aBuff.Duration.TotalSeconds()}
             if aBuff.CounterNumber() and aBuff.CounterNumber() > 0 then
                 buffData.CounterNumber=aBuff.CounterNumber()
@@ -53,7 +58,7 @@ function status.send()
     local songs = {}
     for i=1,20 do
         local aSong = mq.TLO.Me.Song(i)
-        if aSong() then
+        if aSong() and not aSong.Spell.Beneficial() then
             local songData = {Name=aSong.Name(),Duration=aSong.Duration.TotalSeconds()}
             if aSong.CounterNumber() and aSong.CounterNumber() > 0 then
                 songData.CounterNumber=aSong.CounterNumber()
@@ -62,14 +67,21 @@ function status.send()
             table.insert(songs, songData)
         end
     end
+    -- Send info on any missing or fading buffs
+    local wantBuffs = class:wantBuffs()
+    local availableBuffs = class.availableBuffs and class:availableBuffs()
+    local gimme = {}
+    local availableSupplies = {}
     local status = {
         id = 'status',
         Name = mq.TLO.Me.CleanName(),
+        Class = mq.TLO.Me.Class.ShortName(),
         Buffs = buffs,
         Songs = songs,
-        General = {
-            PctHPs = mq.TLO.Me.PctHPs(),
-        },
+        wantBuffs = wantBuffs,
+        availableBuffs = availableBuffs,
+        gimme = gimme,
+        availableSupplies = availableSupplies,
         LastSent = mq.gettime(),
     }
     actor.actor:send(header, status)

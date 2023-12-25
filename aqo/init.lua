@@ -44,7 +44,6 @@ local function init()
     ability.init(class)
 
     -- Initialize binds
-    mq.cmd('/squelch /djoin aqo')
     commands.init(class)
 
     -- Initialize UI
@@ -212,6 +211,7 @@ local function main()
     init()
 
     local debugTimer = timer:new(3000)
+    local statusTimer = timer:new(1000)
     -- Main Loop
     while true do
         if state.debug and debugTimer:timerExpired() then
@@ -224,6 +224,7 @@ local function main()
         buffSafetyCheck()
         if not state.paused and common.inControl() then
             if not handleStates() then
+                if state.reacquireTargetID then mq.cmdf('/mqtar id %s', state.reacquireTargetID) state.reacquireTargetID = nil end
                 aqo.camp.cleanTargets()
                 checkTarget()
                 if not state.loop.Invis and not common.isBlockingWindowOpen() then
@@ -260,7 +261,10 @@ local function main()
             end
             mq.delay(500)
         end
-        status.send()
+        if statusTimer:timerExpired() then
+            status.send(class)
+            statusTimer:reset()
+        end
     end
 end
 

@@ -47,6 +47,12 @@ function Enchanter:init()
     end
 end
 
+function Enchanter:availableBuffs()
+    self.spells.KEI = self.spells.keigroup
+    self.spells.HASTE = self.spells.grouphaste
+    return {KEI=self.spells.keigroup, HASTE=self.spells.grouphaste}
+end
+
 function Enchanter:initClassOptions()
     self:addOption('AURA1', 'Aura 1', 'twincast', self.AURAS, 'The first aura to keep up', 'combobox', nil, 'Aura1', 'string')
     self:addOption('AURA2', 'Aura 2', 'combatinnate', self.AURAS, 'The second aura to keep up', 'combobox', nil, 'Aura2', 'string')

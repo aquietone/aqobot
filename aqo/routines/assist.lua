@@ -218,6 +218,7 @@ function assist.targetAssistSpawn(assistMobID)
     end
 end
 
+local assistAnnounced = nil
 ---@param assistMobID number @The Spawn ID of the target to assist on
 ---@param reset_timers function @An optional function to be called to reset combat timers specific to the class calling this function.
 function assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
@@ -226,7 +227,10 @@ function assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
     state.resists = {}
     resetCombatTimers()
     if reset_timers then reset_timers() end
-    logger.info('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
+    if state.assistMobID ~= assistAnnounced then
+        logger.info('Assisting on >>> \at%s\ax <<<', mq.TLO.Target.CleanName())
+        assistAnnounced = state.assistMobID
+    end
 end
 
 ---Acquire the correct target when running in an assist mode. Clears target if the main assist targets themself.

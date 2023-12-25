@@ -67,6 +67,11 @@ function Druid:initClassOptions()
     self:addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox', nil, 'UseDebuff', 'bool')
 end
 
+function Druid:availableBuffs()
+    self.spells.SKIN = self.spells.skin
+    return {SKIN=self.spells.skin}
+end
+
 function Druid:initSpellLines()
     if state.emu then
         self:addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
