@@ -259,7 +259,7 @@ end
 function BeastLord:availableBuffs()
     self.spells.SV = self.spells.grouphp
     self.spells.SE = self.spells.groupregen
-    return {SV=self.spells.grouphp.Name, SE=self.spells.groupregen.Name}
+    return {SV=self.spells.grouphp and self.spells.grouphp.Name or nil, SE=self.spells.groupregen and self.spells.groupregen.Name or nil}
 end
 
 function BeastLord:initHeals()
@@ -280,7 +280,6 @@ function BeastLord:initRecoverAbilities()
     if self.fParagon then
         self.fParagon.precast = function()
             mq.cmdf('/mqtar 0')
-            mq.delay(100, function() return mq.TLO.Target.ID() == mq.TLO.Me.ID() end)
         end
         self.fParagon.condition = function(ability)
             return mq.TLO.Me.PctMana() <= config.get('RECOVERPCT')

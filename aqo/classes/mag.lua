@@ -431,7 +431,6 @@ function Magician:armPet(petID, weapons, owner)
         logger.info('have gold to give!')
         mq.cmdf('/mqt id %s', petID)
         self.pickupWeapon('Gold')
-        mq.delay(100)
         if mq.TLO.Cursor() == 'Gold' then
             self:giveCursorItemToTarget()
         else
@@ -457,7 +456,6 @@ function Magician:giveWeapons(petID, weaponString)
     end
 
     mq.cmdf('/mqt id %s', petID)
-    mq.delay(100)
     if mq.TLO.Target.ID() == petID then
         logger.info('Give primary weapon %s to pet %s', primary, petID)
         self.pickupWeapon(primary)
@@ -472,7 +470,6 @@ function Magician:giveWeapons(petID, weaponString)
         logger.info('Give secondary weapon %s to pet %s', secondary, petID)
         self.pickupWeapon(secondary)
         mq.cmdf('/mqt id %s', petID)
-        mq.delay(100)
         if mq.TLO.Cursor() == secondary then
             self:giveCursorItemToTarget()
         else
@@ -529,6 +526,7 @@ function Magician:pickupWeapon(weaponName)
     local packSlot = itemSlot - 22
     local inPackSlot = itemSlot2 + 1
     mq.cmdf('/nomodkey /ctrlkey /itemnotify in pack%s %s leftmouseup', packSlot, inPackSlot)
+    mq.delay(100, function() return mq.TLO.Cursor.ID() == item.ID() end)
 end
 
 function Magician:giveOther(petID, spell)

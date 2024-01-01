@@ -4,6 +4,7 @@ local config = require('interface.configuration')
 local assist = require('routines.assist')
 local buffing = require('routines.buff')
 local camp = require('routines.camp')
+local curing = require('routines.cure')
 local debuff = require('routines.debuff')
 local healing = require('routines.heal')
 local mez = require('routines.mez')
@@ -386,13 +387,13 @@ function base:cure()
                 if cure.curse or cure.all and cure:isReady() then
                     if mq.TLO.Target.ID() ~= state.loop.ID then
                         mq.cmd('/squelch /mqtar')
-                        mq.delay(100, function() return mq.TLO.Target.ID() == state.loop.ID end)
                     end
                     cure:use()
                 end
             end
         end
     end
+    curing.doCures(self)
 end
 
 function base:doCombatLoop(list, burn_type)
@@ -561,6 +562,7 @@ function base:cast()
                     local xtar_spawn = mq.TLO.Spawn(xtar_id)
                     if xtar_id ~= original_target_id and assist.shouldAssist(xtar_spawn) then
                         xtar_spawn.DoTarget()
+                        -- TODO: multidotting needs rework for OnPulse style...
                         mq.delay(2000, function() return mq.TLO.Target.ID() == xtar_id and not mq.TLO.Me.SpellInCooldown() end)
                         local spell = self:findNextSpell() -- find the first available dot to cast that is missing from the target
                         if spell and not mq.TLO.Target.Mezzed() then -- if a dot was found
@@ -807,7 +809,6 @@ function base:handleRequests()
                     if request.requested.TargetType == 'Single' then
                         requesterSpawn.DoTarget()
                     end
-                    mq.delay(250)
                     mq.cmdf('%s %s for %s', tranquilUsed, request.requested.Name, request.requester)
                     request.requested:use()
                     table.remove(self.requests, 1)
@@ -851,7 +852,8 @@ function base:mainLoop()
         -- directly into another pull before trying to loot what we just killed.
         state.lootBeforePull = true
     end
-    if not state.pullStatus then
+    if not state.pullStatus or state.pullStatus == constants.pullStates.PULLED then
+        if state.pullStatus == constants.pullStates.PULLED then pull.clearPullVars('classloop') end
         lifesupport()
         self:handleRequests()
         -- get mobs in camp

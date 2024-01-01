@@ -1,5 +1,7 @@
 ---@type Mq
 local mq = require('mq')
+local logger = require('utils.logger')
+local state = require('state')
 
 local cure = {}
 
@@ -9,20 +11,6 @@ function cure.init() end
 -- SPA 36 - poison
 -- SPA 116 - curse
 -- SPA 369 - corruption
-
-local function cureCounters(toon, buff)
-    local diseaseCounters = 'Me.CountersDisease'
-    local poisonCounters = 'Me.PoisonDisease'
-    local curseCounters = 'Me.CurseDisease'
-    mq.cmdf('/dquery %s -q "%s"', toon, diseaseCounters)
-    mq.cmdf('/dquery %s -q "%s"', toon, poisonCounters)
-    mq.cmdf('/dquery %s -q "%s"', toon, curseCounters)
-    mq.delay(250, function() return mq.TLO.DanNet(toon).QReceived(diseaseCounters)() > 0 and mq.TLO.DanNet(toon).QReceived(poisonCounters)() > 0 and mq.TLO.DanNet(toon).QReceived(curseCounters)() > 0 end)
-    local diseased = mq.TLO.DanNet(toon).Q(diseaseCounters)()
-    local poisoned = mq.TLO.DanNet(toon).Q(poisonCounters)()
-    local cursed = mq.TLO.DanNet(toon).Q(curseCounters)()
-    return {diseaseCounters=diseased, poisonCounters=poisoned, curseCounters=cursed}
-end
 
 function cure.selfCure(spell)
     local shouldCast = false
@@ -64,6 +52,17 @@ function cure.groupCure(spell)
     end
     if anyoneNeedsCure then
         return spell:use()
+    end
+end
+
+function cure:doCures(base)
+    for name, charState in pairs(state.actors) do
+        local buffs = charState.buffs
+        if buffs then
+            for _,buff in ipairs(buffs) do
+                logger.info('%s needs cure for %s counterType=%s counterNumber=%s', name, buff.Name, buff.CounterType, buff.CounterNumber)
+            end
+        end
     end
 end
 

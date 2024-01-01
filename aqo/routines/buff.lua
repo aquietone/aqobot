@@ -3,7 +3,6 @@ local mq = require('mq')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local abilities = require('ability')
-local castUtil = require('cast')
 local common = require('common')
 local constants = require('constants')
 local state = require('state')
@@ -134,7 +133,7 @@ local function buffSingle(base)
         local memberClass = member.Class.ShortName()
         local memberDistance = member.Distance3D() or 300
         for _,buff in ipairs(base.singleBuffs) do
-            if buff.classes[memberClass] and mq.TLO.Me.SpellReady(buff.Name)() and not member.Buff(buff.Name)() and not member.Dead() and memberDistance < 100 then
+            if (not buff.classes or buff.classes[memberClass]) and mq.TLO.Me.SpellReady(buff.Name)() and not member.Buff(buff.Name)() and not member.Dead() and memberDistance < 100 then
                 member.DoTarget()
                 mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                 if mq.TLO.Target.ID() == member.ID() and not mq.TLO.Target.Buff(buff.Name)() and mq.TLO.Spell(buff.Name).StacksTarget() then
@@ -153,7 +152,7 @@ local function buffActors(base)
             for _,buff in ipairs(wantBuffs) do
                 if availableBuffs[buff] then
                     --logger.info('Can cast buff %s for %s', availableBuffs[buff], name)
-                    local spawn = mq.TLO.Spawn('pc ='..name)
+                    local spawn = mq.TLO.Spawn('pc ='..name..' radius 150')
                     spawn.DoTarget()
                     mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                     if mq.TLO.Target.ID() == spawn.ID() and not mq.TLO.Target.Buff(availableBuffs[buff])() then
@@ -265,9 +264,12 @@ function buff.buff(base)
 
     if not common.clearToBuff() or not buffOOCTimer:timerExpired() or mq.TLO.Me.Moving() then return end
     buffOOCTimer:reset()
-    state.reacquireTargetID = mq.TLO.Target.ID()
+    local originalTargetID = mq.TLO.Target.ID()
 
-    if buffOOC(base) or buffPet(base) then return true end
+    if buffOOC(base) or buffPet(base) then
+        state.reacquireTargetID = originalTargetID
+        return true
+    end
 
     common.checkItemBuffs()
 end

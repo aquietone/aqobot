@@ -56,7 +56,6 @@ function mez.doSingle(mez_spell)
                     mq.cmd('/attack off')
                     mq.delay(100, function() return not mq.TLO.Me.Combat() end)
                     mob.DoTarget()
-                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                     local pct_hp = mq.TLO.Target.PctHPs()
                     if mq.TLO.Target() and mq.TLO.Target.Type() == 'Corpse' then
                         state.targets[id] = nil

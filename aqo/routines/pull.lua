@@ -237,7 +237,7 @@ function pull.pullRadar()
 end
 
 ---Reset common mob ID variables to 0 to reset pull status.
-local function clearPullVars(caller)
+function pull.clearPullVars(caller)
     logger.debug(logger.flags.routines.pull, 'Resetting pull status. beforeState=%s, caller=%s', state.pullStatus, caller)
     state.pullMobID = 0
     state.pullStatus = nil
@@ -250,7 +250,7 @@ local function pullNavToMob(pull_spawn, announce_pull)
     local mob_x = pull_spawn.X()
     local mob_y = pull_spawn.Y()
     if not (mob_x and mob_y) then
-        clearPullVars('navToMob')
+        pull.clearPullVars('navToMob')
         return false
     end
     if announce_pull then
@@ -282,7 +282,7 @@ local function pullEngage(pull_spawn)
     local dist3d = pull_spawn.Distance3D()
     if not dist3d then
         logger.info('\arPull target no longer valid \ax(\at%s\ax)', pullMobID)
-        clearPullVars('pullEngage-distanceCheck')
+        pull.clearPullVars('pullEngage-distanceCheck')
         return false
     end
     if not pull_spawn.LineOfSight() or dist3d > 200 then
@@ -291,10 +291,9 @@ local function pullEngage(pull_spawn)
         return false
     end
     pull_spawn.DoTarget()
-    mq.delay(100)
     if not mq.TLO.Target() then
         logger.info('\arPull target no longer valid \ax(\at%s\ax)', pullMobID)
-        clearPullVars('pullEngage-targetCheck')
+        pull.clearPullVars('pullEngage-targetCheck')
         return false
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
@@ -305,7 +304,7 @@ local function pullEngage(pull_spawn)
             logger.info('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pullMobID, tot_id, state.loop.ID, targethp)
             -- TODO: clear skip targets
             PULL_TARGET_SKIP[pullMobID] = 1
-            clearPullVars('pullEngage-hpCheck')
+            pull.clearPullVars('pullEngage-hpCheck')
             return false
         end
     end
@@ -314,13 +313,12 @@ local function pullEngage(pull_spawn)
         if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
         mq.cmd('/squelch /face fast')
         mq.cmd('/squelch /stick front loose moveback 10')
-        -- /stick mod 0
         mq.cmd('/attack on')
-        mq.delay(5000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
+        state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
     else
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
-            mq.delay(100)
+            -- mq.delay(100)
         end
         local pullWith = config.get('PULLWITH')
         if pullWith == 'item' then
@@ -333,9 +331,9 @@ local function pullEngage(pull_spawn)
             end
             if pull_item then
                 movement.stop()
-                mq.delay(50)
+                -- mq.delay(50)
                 abilities.use(pull_item)
-                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
+                state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
             end
         elseif pullWith == 'ranged' then
             local ranged_item = mq.TLO.InvSlot('ranged').Item
@@ -343,18 +341,18 @@ local function pullEngage(pull_spawn)
             if ranged_item() and ranged_item.Damage() > 0 and ammo_item() and ammo_item.Damage() > 0 then
                 mq.cmd('/squelch /face fast')
                 mq.cmd('/autofire on')
-                mq.delay(1000)
+                -- mq.delay(1000)
                 if not mq.TLO.Me.AutoFire() then
                     mq.cmd('/autofire on')
                 end
-                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
+                state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
             end
         elseif pullWith == 'spell' then
             if mq.TLO.Me.SpellReady(class.pullSpell.CastName)() then
                 movement.stop()
-                mq.delay(50)
+                -- mq.delay(50)
                 abilities.use(class.pullSpell)
-                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target() end)
+                state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
             end
         elseif pullWith == 'custom' and class.pullCustom then
             class:pullCustom()
@@ -364,10 +362,7 @@ local function pullEngage(pull_spawn)
             return false
         end
     end
-    if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
-    if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
-    if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
-    return mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or common.hostileXTargets() or not mq.TLO.Target()
+    return true
 end
 
 local pullReturnTimer = timer:new(120000)
@@ -396,13 +391,14 @@ local function anyoneDead()
     return false
 end
 
+local pullEngageTimer = timer:new(3000)
 ---Attempt to pull the mob whose ID is stored in common.pullMobID.
 ---Sets common.tankMobID to the mob being pulled.
 function pull.pullMob()
     local pull_state = state.pullStatus
     if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
         if pull_state == constants.pullStates.APPROACHING or pull_state == constants.pullStates.ENGAGING then
-            clearPullVars('pullMob-deadOrInjured')
+            pull.clearPullVars('pullMob-deadOrInjured')
             movement.stop()
             return
         end
@@ -419,17 +415,16 @@ function pull.pullMob()
 
     -- account for any odd pull state discrepancies?
     if (pull_state and state.pullMobID == 0) or (state.pullMobID ~= 0 and not pull_state) then
-        clearPullVars('pullMob-consistencyCheck')
+        pull.clearPullVars('pullMob-consistencyCheck')
         pullReturn()
         return
     end
 
     -- try to break if something agro'd that isn't the pull mob? thought this was already happening somewhere...
     if pull_state and common.hostileXTargets() and not pullMobOnXTarget() then
-        clearPullVars('pullMob-onXTargetCheck')
+        pull.clearPullVars('pullMob-onXTargetCheck')
         return
     end
-
     if not pull_state then
         logger.debug(logger.flags.routines.pull, 'a pull search can start')
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
@@ -457,37 +452,48 @@ function pull.pullMob()
         local pull_spawn = mq.TLO.Spawn(pullMobID)
         if pull_spawn.ID() == 0 then
             -- didn't seem to find the mob returned by pullRadar
-            clearPullVars('pullMob-mobMissingCheck')
+            pull.clearPullVars('pullMob-mobMissingCheck')
             pullReturn(true)
             return
         end
-        if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
+        if pull_spawn.Type() ~= 'NPC' then pull.clearPullVars('pullMob-nonNPC') return end
         -- valid pull spawn acquired, begin approach
         state.pullStatus = constants.pullStates.APPROACHING
         pullNavToMob(pull_spawn, true)
     elseif pull_state == constants.pullStates.APPROACHING then
         local pull_spawn = mq.TLO.Spawn(state.pullMobID)
-        if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
+        if pull_spawn.Type() ~= 'NPC' then pull.clearPullVars('pullMob-nonNPC') return end
         if pullApproaching(pull_spawn) then
             -- movement stopped, either spawn became invalid, we're in range, or other stuff agro'd
             state.pullStatus = constants.pullStates.ENGAGING
         end
     elseif pull_state == constants.pullStates.ENGAGING then
         local pull_spawn = mq.TLO.Spawn(state.pullMobID)
-        if pull_spawn.Type() ~= 'NPC' then clearPullVars('pullMob-nonNPC') return end
-        if pullEngage(pull_spawn) then
+        if pull_spawn.Type() ~= 'NPC' then pull.clearPullVars('pullMob-nonNPC') return end
+        pullEngage(pull_spawn)
+        pullEngageTimer:reset()
+    elseif pull_state == constants.pullStates.WAIT_FOR_AGGRO then
+        if (mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID and common.hostileXTargets()) or not mq.TLO.Target() then
+            if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
+            if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
+            if mq.TLO.Stick.Active() then mq.cmd('/stick off') end
             -- successfully agro'd the mob, or something else agro'd in the process
+            pullEngageTimer:reset()
             if mode.currentMode:isReturnToCampMode() and camp.Active then
                 state.pullStatus = constants.pullStates.RETURNING
                 pullReturn(false)
             else
                 pullReturnTimer:reset()
-                clearPullVars('pullMob-engageNoReturn')
+                state.pullStatus = constants.pullStates.PULLED
             end
+        elseif pullEngageTimer:timerExpired() then
+            pullEngageTimer:reset()
+            pullReturnTimer:reset()
+            pull.clearPullVars('pullMob-aggroTimerExpired')
         end
     elseif pull_state == constants.pullStates.RETURNING then
         if helpers.distance(camp.X, camp.Y, mq.TLO.Me.X(), mq.TLO.Me.Y()) < config.get('CAMPRADIUS')^2 then
-            clearPullVars('pullMob-reachedCamp')
+            state.pullStatus = constants.pullStates.PULLED
         else
             pullReturn(false)
         end
