@@ -50,7 +50,10 @@ end
 function Enchanter:availableBuffs()
     self.spells.KEI = self.spells.keigroup
     self.spells.HASTE = self.spells.grouphaste
-    return {KEI=self.spells.keigroup, HASTE=self.spells.grouphaste}
+    return {
+        KEI = self.spells.KEI and self.spells.KEI.Name or nil,
+        HASTE = self.spells.HASTE and self.spells.HASTE.Name or nil
+    }
 end
 
 function Enchanter:initClassOptions()

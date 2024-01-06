@@ -1,10 +1,10 @@
 # Notes
 
-Call static Ability.Use to perform checks before casting (can use, should use, condition, option) and handle swapping, precast, postcast.
+Call static Ability.use to perform checks before casting (can use, should use, condition, option) and handle swapping, precast, postcast. (use when )
 
-Call Ability.Execute to cast with zero checks. (just used by static Ability.Use)
+Call instance ability:execute to cast with zero checks. (just used by static Ability.Use after checks are performed)
 
-Call instance ability:Use to cast with timer and readiness checks. (use when condition, option already checked)
+Call instance ability:use to cast with timer and readiness checks. (use when condition, option already checked prior such as findNextSpell loops)
 
 ## Ability
 

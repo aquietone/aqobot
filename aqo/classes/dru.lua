@@ -69,7 +69,9 @@ end
 
 function Druid:availableBuffs()
     self.spells.SKIN = self.spells.skin
-    return {SKIN=self.spells.skin}
+    return {
+        SKIN = self.spells.SKIN and self.spells.SKIN.Name or nil
+    }
 end
 
 function Druid:initSpellLines()

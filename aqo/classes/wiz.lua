@@ -7,8 +7,6 @@ local Wizard = class:new()
 
 --[[
     https://forums.eqfreelance.net/index.php?topic=16645.0
-
-    
 ]]
 function Wizard:init()
     self.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}

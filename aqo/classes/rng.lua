@@ -59,7 +59,10 @@ end
 function Ranger:availableBuffs()
     self.spells.SHOUT = self.spells.predator
     self.spells.STR = self.spells.strength
-    return {SHOUT=self.spells.predator, STR=self.spells.strength}
+    return {
+        SHOUT = self.spells.SHOUT and self.spells.SHOUT.Name or nil,
+        STR = self.spells.STR and self.spells.STR.Name or nil
+    }
 end
 
 function Ranger:initSpellLines()

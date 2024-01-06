@@ -362,6 +362,9 @@ function common.rest()
     if state.mobCount > 0 and (mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sitTimer:timerExpired() then
+        if state.loop.PctHPs < config.get('MEDHPSTART') then
+            state.medding = true
+        end
         if (mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.get('MEDMANASTART')) or state.loop.PctEndurance < config.get('MEDENDSTART') then
             state.medding = true
         end

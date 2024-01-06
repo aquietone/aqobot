@@ -145,6 +145,7 @@ local function buffSingle(base)
 end
 
 local function buffActors(base)
+    if not base.availableBuffs then return end
     local availableBuffs = base:availableBuffs()
     for name, charState in pairs(state.actors) do
         local wantBuffs = charState.wantBuffs
@@ -228,7 +229,7 @@ local function buffPet(base)
             local tempName = buff.Name
             if state.subscription ~= 'GOLD' then tempName = tempName:gsub(' Rk%..*', '') end
             if not mq.TLO.Pet.Buff(tempName)() and not mq.TLO.Pet.Buff(buff.CheckFor)() and mq.TLO.Spell(buff.CheckFor or buff.Name).StacksPet() and (not buff.skipifbuff or not mq.TLO.Pet.Buff(buff.skipifbuff)()) then
-                if abilities.use(buff) then return end
+                if abilities.use(buff, true) then return end
             end
         end
     end
@@ -267,7 +268,7 @@ function buff.buff(base)
     local originalTargetID = mq.TLO.Target.ID()
 
     if buffOOC(base) or buffPet(base) then
-        state.reacquireTargetID = originalTargetID
+        state.reacquireTargetID = originalTargetID > 0 and originalTargetID or nil
         return true
     end
 

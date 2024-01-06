@@ -59,7 +59,9 @@ end
 
 function Paladin:availableBuffs()
     self.spells.BRELLS = self.spells.brells
-    return {BRELLS=self.spells.brells}
+    return {
+        BRELLS = self.spells.BRELLS and self.spells.BRELLS.Name or nil
+    }
 end
 
 return Paladin

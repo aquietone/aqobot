@@ -211,7 +211,10 @@ function Cleric:availableBuffs()
     self.spells.SYMBOL = self.spells.groupsymbol
     self.spells.AEGO = self.spells.groupaego
     self.spells.SPELLHASTE = self.spells.spellhaste
-    return {SYMBOL=self.spells.groupsymbol.Name, AEGO=self.spells.groupaego.Name, SPELLHASTE=self.spells.spellhaste.Name}
+    return {
+        SYMBOL = self.spells.SYMBOL and self.spells.SYMBOL.Name or nil,
+        AEGO = self.spells.AEGO and self.spells.AEGO.Name or nil,
+        SPELLHASTE = self.spells.SPELLHASTE and self.spells.SPELLHASTE.Name or nil}
 end
 
 function Cleric:initBurns()

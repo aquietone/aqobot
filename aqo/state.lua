@@ -82,34 +82,6 @@ end
 
 state.actionTaken = false
 
-state.acquireTarget = false
-state.acquireTargetTimer = timer:new(1000)
-
-function state.handleTargetState()
-    if state.acquireTarget then
-        if state.acquireTarget == mq.TLO.Target.ID() then
-            if state.queuedAction then state.queuedAction() end
-            state.resetAcquireTargetState()
-            return true
-        elseif state.acquireTargetTimer:timerExpired() then
-            -- timer expired, target not acquired, reset state
-            state.resetAcquireTargetState()
-            return true
-        else
-            -- spin
-            return false
-        end
-    else
-        return true
-    end
-end
-
-function state.resetAcquireTargetState()
-    state.acquireTarget = false
-    state.actionTaken = false
-    state.queuedAction = nil
-end
-
 state.positioning = false
 state.positioningTimer = timer:new(5000)
 

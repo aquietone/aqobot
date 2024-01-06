@@ -3,6 +3,7 @@ local mq = require 'mq'
 local class = require('classes.classbase')
 local timer = require('utils.timer')
 local common = require('common')
+local state = require('state')
 local config = require('interface.configuration')
 
 local Shaman = class:new()
@@ -114,44 +115,80 @@ function Shaman:initClassOptions()
 end
 
 function Shaman:availableBuffs()
-    self.spells.FOCUS = self.spells.focus
-    return {FOCUS=self.spells.focus}
+    self.spells.FOCUS = self.spells.groupunity
+    return {
+        FOCUS = self.spells.FOCUS and self.spells.FOCUS.Name or nil
+    }
 end
 
 function Shaman:initSpellLines()
+    -- Lvl 100+ main heal
+    self:addSpell('reckless1', {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
+    self:addSpell('reckless2', {'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
+    self:addSpell('reckless3', {'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
+    -- Below lvl 100 main heal
     self:addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
+
+    -- Lvl 100+ group heals
+    self:addSpell('splash', {'Spiritual Shower', 'Spiritual Squall', 'Spiritual Swell'}, {group=true}) -- splash, easiest to cast on self, requires los
+    self:addSpell('recourse', {'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse'}, {group=true})
+    self:addSpell('intervention', {'Immortal Intervention', 'Antediluvian Intervention', 'Primordial Intervention', 'Prehistoric Intervention', 'Historian\'s Intervention'}, {group=true})
+    self:addSpell('composite', {'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Dichotomic Roar'}) -- stacks with HoT but overwrites regen, blocked by dots
+    self:addSpell('selfprocheal', {'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}) -- self buff, proc heal when hit
+    -- Below lvl 100 group heal
     self:addSpell('groupheal', {'Word of Reconstitution', 'Word of Restoration'}, {group=true})
-    self:addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
-    self:addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
-    self:addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'}, {opt='USESLOW'})
-    self:addSpell('proc', {'Spirit of the Leopard', 'Spirit of the Jaguar'}, {classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}})
-    self:addSpell('champion', {'Champion', 'Ferine Avatar'})
+
+    -- HoTs
+    self:addSpell('grouphot', {'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal'}, {opt='USEHOTGROUP', grouphot=true}) -- group HoT
+    self:addSpell('hottank', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTTANK', hot=true})
+    self:addSpell('hotdps', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTDPS', hot=true})
+    self:addSpell('torpor', {'Transcendent Torpor'})
+
+    -- Cures
     self:addSpell('cure', {'Blood of Nadox'})
+    self:addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
+
+    -- Debuffs
+    self:addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'}, {opt='USESLOW'})
+    self:addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=true}})
+    self:addSpell('idol', {'Idol of Malos'}, {opt='USEDEBUFF'})
+    self:addSpell('malo', {'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'}, {opt='USEDEBUFF'})
+    self:addSpell('dispel', {'Abashi\'s Disempowerment'}, {opt='USEDISPEL'})
+    self:addSpell('debuff', {'Crippling Spasm'}, {opt='USEDEBUFF'})
+
+    -- DPS
+    self:addSpell('tcnuke', {'Gelid Gift', 'Polar Gift', 'Wintry Gift', 'Frostbitten Gift', 'Glacial Gift', 'Frostfall Boon'}, {opt='USENUKES'}) -- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower
     self:addSpell('nuke', {'Yoppa\'s Spear of Venom', 'Spear of Torment'}, {opt='USENUKES'})
     self:addSpell('slownuke', {'Ice Age'}, {opt='USENUKES'})
     self:addSpell('dot1', {'Nectar of Pain'}, {opt='USEDOTS'})
     self:addSpell('dot2', {'Curse of Sisslak'}, {opt='USEDOTS'})
     self:addSpell('dot3', {'Blood of Yoppa'}, {opt='USEDOTS'})
     self:addSpell('dot4', {'Breath of Wunshi', {opt='USEDOTS'}})
-    self:addSpell('hottank', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTTANK', hot=true})
-    self:addSpell('hotdps', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTDPS', hot=true})
-    self:addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=true}})
+
+    -- Buffs
+    self:addSpell('proc', {'Spirit of the Leopard', 'Spirit of the Jaguar'}, {classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}})
+    self:addSpell('champion', {'Champion', 'Ferine Avatar'})
     self:addSpell('panther', {'Talisman of the Panther'})
-    self:addSpell('twincast', {'Frostfall Boon'}, {opt='USENUKES', regular=true, tank=true, tot=true})
-    self:addSpell('torpor', {'Transcendent Torpor'})
-    self:addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
-    self:addSpell('idol', {'Idol of Malos'}, {opt='USEDEBUFF'})
-    self:addSpell('talisman', {'Talisman of Unification'}, {group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('focus', {'Talisman of Wunshi'}, {classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('dispel', {'Abashi\'s Disempowerment'}, {opt='USEDISPEL'})
-    self:addSpell('debuff', {'Crippling Spasm'}, {opt='USEDEBUFF'})
+    -- self:addSpell('talisman', {'Talisman of Unification'}, {group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
+    -- self:addSpell('focus', {'Talisman of Wunshi'}, {classes={WAR=true,SHD=true,PAL=true}})
+    self:addSpell('evasion', {'Talisman of Unification'}, {self=true, classes={WAR=true,SHD=true,PAL=true}})
+    self:addSpell('singlefocus', {'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'})
+    self:addSpell('singleunity', {'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'})
+    self:addSpell('groupunity', {'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'})
+    self:addSpell('growth', {'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'})
+
+    -- Utility
+    self:addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
+    self:addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
+
+    self:addSpell('alliance', {'Ancient Coalition', 'Ancient Alliance'}) -- keep up on tank, proc ae heal from target
+    --Call of the Ancients -- 5 minute duration ward AE healing
 end
 
 function Shaman:initSpellConditions()
-    if self.spells.twincast then
-        self.spells.twincast.precast = function()
-            mq.cmdf('/mqtar pc =%s', mq.TLO.Group.MainTank() or config.get('CHASETARGET'))
-            mq.delay(1)
+    if self.spells.tcnuke then
+        self.spells.tcnuke.precast = function()
+            mq.cmdf('/mqtar id %s', mq.TLO.Group.MainTank.ID() or config.get('CHASETARGET'))
         end
     end
     if self.spells.idol then
@@ -162,7 +199,7 @@ function Shaman:initSpellConditions()
 end
 
 function Shaman:initSpellRotations()
-    table.insert(self.spellRotations.standard, self.spells.twincast)
+    table.insert(self.spellRotations.standard, self.spells.tcnuke)
     table.insert(self.spellRotations.standard, self.spells.slownuke)
     table.insert(self.spellRotations.standard, self.spells.dot1)
     table.insert(self.spellRotations.standard, self.spells.dot2)
@@ -182,14 +219,38 @@ function Shaman:initBurns()
     table.insert(self.burnAbilities, epic)
     table.insert(self.burnAbilities, common.getAA('Rabid Bear'))
     table.insert(self.burnAbilities, common.getAA('Fundament: First spire of Ancestors'))
+    -- table.insert(self.burnAbilities, common.getItem('Blessed Spiritstaff of the Heyokah'), {first=true}) -- 2.0 click
+    -- table.insert(self.burnAbilities, common.getAA('Spire of Ancestors'), {first=true}) -- inc total healing, dot crit
+    -- table.insert(self.burnAbilities, common.getAA('Apex of Ancestors'), {first=true}) -- inc proc mod, accuracy, min dmg
+    -- --table.insert(self.burnAbilities, common.getAA('Ancestral Aid'), {first=true}) -- large HoT, stacks, use with tranquil blessings
+    -- table.insert(self.burnAbilities, common.getAA('Union of Spirits'), {first=true}) -- instant cast, use on monks/rogues
+    -- table.insert(self.selfBuffs, common.getAA('Group Pact of the Wolf')) -- aura, cast before self wolf, they stack
 end
 
 function Shaman:initHeals()
-    --table.insert(self.healAbilities, self.spells.twincast)
-    table.insert(self.healAbilities, self.spells.heal)
-    table.insert(self.healAbilities, self.spells.hottank)
-    table.insert(self.healAbilities, self.spells.hotdps)
-    table.insert(self.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
+    if not state.emu then
+        -- Main healing: 2-4 Reckless spells
+        if self.spells.reckless1 then
+            table.insert(self.healAbilities, self.spells.reckless1) -- single target
+            table.insert(self.healAbilities, self.spells.reckless2) -- single target
+            table.insert(self.healAbilities, self.spells.reckless3) -- single target
+        else
+            table.insert(self.healAbilities, self.spells.heal)
+        end
+        -- table.insert(self.healAbilities, self.spells.tcnuke) -- cast on MT
+        -- Group Healing
+        table.insert(self.healAbilities, self.spells.splash) -- cast on self
+        table.insert(self.healAbilities, self.spells.recourse) -- group heal, several stages of healing
+        table.insert(self.healAbilities, self.spells.intervention) -- longer refresh quick group heal
+        table.insert(self.healAbilities, self.spells.grouphot)
+        table.insert(self.healAbilities, common.getAA('Soothsayer\'s Intervention')) -- AA instant version of intervention spell
+        table.insert(self.healAbilities, common.getAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
+    else
+        table.insert(self.healAbilities, self.spells.heal)
+        table.insert(self.healAbilities, self.spells.hottank)
+        table.insert(self.healAbilities, self.spells.hotdps)
+        table.insert(self.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
+    end
 end
 
 function Shaman:initCures()
@@ -199,6 +260,11 @@ function Shaman:initCures()
 end
 
 function Shaman:initBuffs()
+    -- Self buffs
+    table.insert(self.selfBuffs, common.getAA('Pact of the Wolf'))
+    table.insert(self.selfBuffs, self.spells.selfprocheal)
+    table.insert(self.selfBuffs, common.getAA('Preincarnation'))
+--
     table.insert(self.combatBuffs, self.spells.champion)
     table.insert(self.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
     table.insert(self.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
@@ -211,8 +277,8 @@ function Shaman:initBuffs()
     table.insert(self.selfBuffs, common.getAA('Pact of the Wolf', {RemoveBuff='Pact of the Wolf Effect'}))
     table.insert(self.selfBuffs, self.spells.champion)
     table.insert(self.selfBuffs, common.getAA('Languid Bite'))
-    table.insert(self.singleBuffs, self.spells.focus)
-    table.insert(self.singleBuffs, self.spells.talisman)
+    table.insert(self.singleBuffs, self.spells.groupunity)
+    -- table.insert(self.singleBuffs, self.spells.talisman)
     table.insert(self.singleBuffs, common.getAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}}))
     --table.insert(self.groupBuffs, common.getAA('Group Pact of the Wolf', {group=true, self=false}))
     --table.insert(self.groupBuffs, self.spells.talisman)

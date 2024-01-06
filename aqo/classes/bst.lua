@@ -14,35 +14,15 @@ local BeastLord = class:new()
     https://forums.daybreakgames.com/eq/index.php?threads/beastlord-raiding-guide.246364/
     http://forums.eqfreelance.net/index.php?topic=9390.0
     
-    Fade - 
-    Falsified Death (aa)
+    Fade - Falsified Death (aa)
 
     Pet Buffs
-    'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug's Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression'
-    'Cohort\'s Unity', 'Comrade\'s Unity', 'Ally's Unity', 'Companion\'s Unity'
     Spiritcaller Totem (epic)
     Hobble of Spirits (snare aa buff)
     Companion's Aegis (aa)
     Taste of Blood (aa)
     Companion's Intervening Divine Aura (aa)
     Sympathetic Warder
-
-    Buffs
-    'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'
-]]
---[[
-    spirit of rashara
-    ancient: savage ice
-    growl of the beast
-    muada's mending
-    chimera blood
-    ferocity of irionu
-    spiritual rejuvination
-    glacier spear
-    sha's legacy
-    reptilian venom
-    growl of the panther
-    spirit of oroshar
 ]]
 function BeastLord:init()
     self.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
@@ -61,6 +41,8 @@ function BeastLord:init()
     self:initRecoverAbilities()
     self:addCommonAbilities()
 
+    self.summonCompanion = common.getAA('Summon Companion')
+
     self.useCommonListProcessor = true
 end
 
@@ -72,102 +54,119 @@ function BeastLord:initClassOptions()
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox', nil, 'UseFD', 'bool')
     self:addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox', nil, 'UseSlow', 'bool')
+    -- swarm pet, sow, snare, roar of thunder, mending, haste, focus
 end
 
 function BeastLord:initSpellLines()
-    if state.emu then
-        self:addSpell('pet', {'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'}) -- pet
-        self:addSpell('pethaste',{'Growl of the Beast', 'Arag\'s Celerity'}, {swap=true}) -- pet haste
-        self:addSpell('petbuff', {'Spirit of Oroshar', 'Spirit of Rellic'}, {swap=true}) -- pet buff
-        self:addSpell('petheal', {'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- pet heal
-        self:addSpell('nuke', {'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'})
-        self:addSpell('nuke2', {'Glacier Spear'}, {opt='USENUKES'})
-        self:addSpell('heal', {'Trushar\'s Mending'}, {me=75, self=true}) -- heal
-        self:addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
-        self:addSpell('feralvigor', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- like shm avatar
-        self:addSpell('panther', {'Growl of the Panther'}, {skipifbuff='Wild Spirit Infusion'})
-        self:addSpell('groupregen', {'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Feral Vigor', 'Spiritual Vigor'}, {swap=true}) -- group buff
-        self:addSpell('grouphp', {'Spiritual Vitality'}, {swap=true})
-        self:addSpell('dot', {'Chimera Blood'}, {opt='USEDOTS'})
-        if self.spells.dot then self.spells.dot.condition = function() return state.burnActive end end
-        self:addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
-        self:addSpell('slow', {'Sha\'s Legacy'}, {opt='USESLOW'})
-    else
-        --Spells(Group)
-        self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit'})
-        self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom'}) -- (DD)
-        self:addSpell('nuke2', {'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}) -- (DD)
-        self:addSpell('nuke3', {'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}) -- (DD)
-        self:addSpell('nuke4', {'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD) / Restless Roar (AE DD)
-        self:addSpell('nuke5', {'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD)
-        self:addSpell('dddot1', {'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}) -- (DD DoT)
-        self:addSpell('dot1', {'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic'}) -- (DoT)
-        self:addSpell('dddot2', {'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}) -- (DD DoT)
-        self:addSpell('combatbuff', {'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard'}) -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
-        self:addSpell('composite', {'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}) --
-        self:addSpell('petrune', {'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity'}) -- (pet rune) / Sympathetic Warder (pet healproc)
-        self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith'}) -- (Pet heal)
-        self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
+    self:addSpell('alliance', {'Venomous Conjunction', 'Venomous Coalition', 'Venomous Covenant', 'Venomous Alliance'}) -- adds extra damage to bst dots + fulmination
+    self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', 'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'}) -- (DD)
+    self:addSpell('nuke2', {'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}, {opt='USENUKES'}) -- (DD)
+    self:addSpell('nuke3', {'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}, {opt='USENUKES'}) -- (DD)
+    self:addSpell('nuke4', {'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Glacier Spear'}, {opt='USENUKES'}) -- (DD) / Restless Roar (AE DD)
+    self:addSpell('nuke5', {'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}, {opt='USENUKES'}) -- (DD)
 
-        --Spells(Raid)
-        -- self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom'}) -- (DD)
-        -- self:addSpell('nuke2', {'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}) -- (DD)
-        -- self:addSpell('nuke3', {'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}) -- (DD)
-        -- self:addSpell('nuke4', {'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD) / Restless Roar (AE DD)
-        -- self:addSpell('nuke5', {'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD)
-        -- self:addSpell('dddot1', {'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}) -- (DD DoT)
-        -- self:addSpell('dot1', {'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic'}) -- (DoT)
-        -- self:addSpell('dddot2', {'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}) -- (DD DoT)
-        -- self:addSpell('combatbuff', {'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard'}) -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
-        -- self:addSpell('composite', {'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}) --
-        self:addSpell('alliance', {'Venpmous Conjunction', 'Venomous Coalition', 'Venomous Covenant', 'Venomous Alliance'}) --
-        -- self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith'}) -- (Pet heal)
-        -- self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
-    end
+    self:addSpell('dddot1', {'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}) -- (DD DoT)
+    self:addSpell('dot1', {'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', 'Chimera Blood'}, {opt='USEDOTS'}) -- (DoT)
+    if self.spells.dot1 then self.spells.dot1.condition = function() return state.burnActive end end
+    self:addSpell('dddot2', {'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}) -- (DD DoT)
+    self:addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
+
+    self:addSpell('slow', {'Sha\'s Legacy'}, {opt='USESLOW'})
+
+    self:addSpell('composite', {'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}) -- inc pet flurry, ds miti, self flurry, hp/mana/end regen, dec weapon delay
+
+    self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'})
+    self:addSpell('combatbuff', {'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard', 'Growl of the Panther'}, {skipifbuff='Wild Spirit Infusion'}) -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
+    self:addSpell('petrune', {'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity'}) -- (pet rune) / Sympathetic Warder (pet healproc)
+    self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- (Pet heal)
+    self:addSpell('pethaste',{'Unsurpassed Velocity', 'Growl of the Beast', 'Arag\'s Celerity'}, {swap=true}) -- pet haste
+    self:addSpell('petbuff', {'Spirit of Siver', 'Spirit of Oroshar', 'Spirit of Rellic'}, {swap=true}) -- pet buff
+    self:addSpell('petunity', {'Cohort\'s Unity', 'Comrade\'s Unity', 'Ally\'s Unity', 'Companion\'s Unity'}, {swap=true}) -- combined pet buffs, Unsurpassed Velocity, Spirit of Siver
+    self:addSpell('petaggression', {'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression'}, {swap=true})
+
+    self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Trushar\'s Mending'}, {me=75, self=true}) -- (Player heal) / Salve of Artikla (Pet heal)
+
+    -- below lvl 100
+    self:addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
+    -- lvl 100+
+    self:addSpell('groupfero', {'Shared Merciless Ferocity'}) -- group avatar
+    self:addSpell('regen', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- single regen
+    self:addSpell('groupregen', {'Spiritual Erudition', 'Spiritual Insight', 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'}, {swap=true}) -- group buff
+    self:addSpell('grouphp', {'Spiritual Vigor', 'Spiritual Vitality', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'}, {swap=true})
+    self:addSpell('groupunity', {'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'}, {swap=true})
+
+    --     --Spells(Group)
+    --     self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit'})
+    --     self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom'}) -- (DD)
+    --     self:addSpell('nuke2', {'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}) -- (DD)
+    --     self:addSpell('nuke3', {'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}) -- (DD)
+    --     self:addSpell('nuke4', {'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD) / Restless Roar (AE DD)
+    --     self:addSpell('nuke5', {'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD)
+    --     self:addSpell('dddot1', {'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}) -- (DD DoT)
+    --     self:addSpell('dot1', {'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic'}) -- (DoT)
+    --     self:addSpell('dddot2', {'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}) -- (DD DoT)
+    --     self:addSpell('combatbuff', {'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard'}) -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
+    --     self:addSpell('composite', {'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}) --
+    --     self:addSpell('petrune', {'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity'}) -- (pet rune) / Sympathetic Warder (pet healproc)
+    --     self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith'}) -- (Pet heal)
+    --     self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
+
+    --     --Spells(Raid)
+    --     self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom'}) -- (DD)
+    --     self:addSpell('nuke2', {'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}) -- (DD)
+    --     self:addSpell('nuke3', {'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}) -- (DD)
+    --     self:addSpell('nuke4', {'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD) / Restless Roar (AE DD)
+    --     self:addSpell('nuke5', {'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance'}) -- (DD)
+    --     self:addSpell('dddot1', {'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}) -- (DD DoT)
+    --     self:addSpell('dot1', {'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic'}) -- (DoT)
+    --     self:addSpell('dddot2', {'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}) -- (DD DoT)
+    --     self:addSpell('combatbuff', {'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard'}) -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
+    --     self:addSpell('composite', {'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}) --
+    --     self:addSpell('alliance', {'Venpmous Conjunction', 'Venomous Coalition', 'Venomous Covenant', 'Venomous Alliance'}) --
+    --     self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith'}) -- (Pet heal)
+    --     self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
 end
 
 function BeastLord:initSpellRotations()
+    -- composite, alliance
     if state.emu then
         table.insert(self.spellRotations.standard, self.spells.swarmpet)
-        table.insert(self.spellRotations.standard, self.spells.dot)
-        table.insert(self.spellRotations.standard, self.spells.nuke)
-        table.insert(self.spellRotations.standard, self.spells.nuke2)
-    else
-        --Spell Spam Lineup
-        table.insert(self.spellRotations.standard, self.spells.nuke1)
-        table.insert(self.spellRotations.standard, self.spells.nuke2)
-        table.insert(self.spellRotations.standard, self.spells.nuke3)
-        table.insert(self.spellRotations.standard, self.spells.nuke4)
-        table.insert(self.spellRotations.standard, self.spells.nuke5)
-        table.insert(self.spellRotations.standard, self.spells.dddot1) -- or dddot2
     end
+    table.insert(self.spellRotations.standard, self.spells.dot1)
+    table.insert(self.spellRotations.standard, self.spells.nuke1)
+    table.insert(self.spellRotations.standard, self.spells.nuke2)
+    table.insert(self.spellRotations.standard, self.spells.nuke3)
+    table.insert(self.spellRotations.standard, self.spells.nuke4)
+    table.insert(self.spellRotations.standard, self.spells.nuke5)
+    table.insert(self.spellRotations.standard, self.spells.dddot1)
+    table.insert(self.spellRotations.standard, self.spells.dddot2)
 end
 
 function BeastLord:initDPSAbilities()
     if state.emu then
-        table.insert(self.DPSAbilities, common.getSkill('Kick', {conditions=conditions.withinMeleeDistance}))
-        table.insert(self.DPSAbilities, common.getBestDisc({'Rake', {conditions=conditions.withinMeleeDistance}}))
+        -- Passive on live, activated on emu (at least on lazarus)
         table.insert(self.DPSAbilities, common.getAA('Feral Swipe', {conditions=conditions.withinMeleeDistance}))
-        table.insert(self.DPSAbilities, common.getAA('Chameleon Strike', {conditions=conditions.withinMeleeDistance}))
         table.insert(self.DPSAbilities, common.getAA('Bite of the Asp', {conditions=conditions.withinMeleeDistance}))
-        table.insert(self.DPSAbilities, common.getAA('Roar of Thunder', {conditions=conditions.withinMeleeDistance}))
         table.insert(self.DPSAbilities, common.getAA('Gorilla Smash', {conditions=conditions.withinMeleeDistance}))
         table.insert(self.DPSAbilities, common.getAA('Raven Claw', {conditions=conditions.withinMeleeDistance}))
-    else
-        --Melee Spam
-        table.insert(self.DPSAbilities, common.getAA('Chameleon Strike')) -- (aggro reducer)
-        table.insert(self.DPSAbilities, common.getBestDisc({'Focused Clamor of Claws'}))
-        table.insert(self.AEDPSAbilities, common.getBestDisc({'Maelstrom of Claws'})) -- (AE)
-        table.insert(self.DPSAbilities, common.getBestDisc({'Clobber', 'Batter'})) -- (synergy proc ability)
-        table.insert(self.combatBuffs, common.getBestDisc({'Bestial Savagery'})) -- (self buff)
-        table.insert(self.DPSAbilities, common.getSkill('Eagle\'s Strike')) -- (procs bite of the asp, /autoskill with round kick)
-        table.insert(self.DPSAbilities, common.getSkill('Round Kick'))
-
-        --Raid
-        --Swap Eagle's Strike for Dragon Punch - procs gorilla  smash
-        table.insert(self.DPSAbilities, common.getSkill('Dragon Punch'))
     end
-    self.summonCompanion = common.getAA('Summon Companion')
+    --Melee Spam
+    table.insert(self.DPSAbilities, common.getAA('Chameleon Strike', {conditions=conditions.withinMeleeDistance})) -- (aggro reducer)
+    table.insert(self.DPSAbilities, common.getBestDisc({'Focused Clamor of Claws'}, {conditions=conditions.withinMeleeDistance}))
+    table.insert(self.AEDPSAbilities, common.getBestDisc({'Maelstrom of Claws'}, {conditions=conditions.withinMeleeDistance})) -- (AE)
+    table.insert(self.DPSAbilities, common.getAA('Roar of Thunder', {opt='USENUKES', conditions=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, common.getBestDisc({'Clobber', 'Batter', 'Rake'}, {conditions=conditions.withinMeleeDistance})) -- (synergy proc ability)
+    table.insert(self.combatBuffs, common.getBestDisc({'Bestial Savagery'})) -- (self buff)
+    table.insert(self.DPSAbilities, common.getSkill('Eagle\'s Strike', {conditions=conditions.withinMeleeDistance})) -- (procs bite of the asp, /autoskill with round kick)
+    if mq.TLO.Me.Skill('Round Kick')() > 0 then
+        table.insert(self.DPSAbilities, common.getSkill('Round Kick', {conditions=conditions.withinMeleeDistance}))
+    elseif mq.TLO.Me.Skill('Kick')() > 0 then
+        table.insert(self.DPSAbilities, common.getSkill('Kick', {conditions=conditions.withinMeleeDistance}))
+    end
+
+    --Raid
+    --Swap Eagle's Strike for Dragon Punch - procs gorilla  smash
+    -- table.insert(self.DPSAbilities, common.getSkill('Dragon Punch', {conditions=conditions.withinMeleeDistance}))
 end
 
 function BeastLord:initBurns()
@@ -186,23 +185,23 @@ function BeastLord:initBurns()
         table.insert(self.burnAbilities, common.getAA('Bloodlust', {first=true})) -- (AA)
         table.insert(self.burnAbilities, common.getAA('Bestial Alignment', {first=true})) -- (AA)
         table.insert(self.burnAbilities, common.getAA('Frenzied Swipes', {first=true})) -- (AA)
-    
+
         -- Second Burn
         table.insert(self.burnAbilities, common.getBestDisc({'Savage Rancor'}, {second=true})) -- (disc)
         table.insert(self.burnAbilities, common.getAA('Spire of the Savage Lord', {second=true})) -- (AA)
         -- Fury of the Beast (chest click)
         table.insert(self.burnAbilities, common.getBestDisc({'Ruaabri\'s Fury'}, {second=true})) -- (disc)
-    
+
         -- Third Burn
         --Bestial Bloodrage (Companion's Fury)
         table.insert(self.burnAbilities, common.getAA('Ferociousness', {third=true})) -- (AA)
         table.insert(self.burnAbilities, common.getAA('Group Bestial Alignment', {third=true})) -- (AA)
-    
+
         -- Optional Burn
         --Dissident Fury
         --Forceful Rejuvination
         --Dissident Fury
-    
+
         -- Other
         --Attack of the Warders
         --table.insert(self.burnAbilities, common.getBestDisc({'Reflexive Riving'})) -- (disc)
@@ -215,34 +214,48 @@ function BeastLord:initBuffs()
     local buffCondition = function(ability)
         return conditions.checkMana(ability) and conditions.missingBuff(ability)
     end
-    if self.spells.groupregen then self.spells.groupregen.condition = buffCondition end
-    if self.spells.grouphp then self.spells.grouphp.condition = buffCondition end
-    --self.spells.fero.condition = buffCondition
-    if self.spells.panther then self.spells.panther.condition = buffCondition end
-    table.insert(self.selfBuffs, self.spells.groupregen)
-    table.insert(self.selfBuffs, self.spells.grouphp)
-    table.insert(self.selfBuffs, self.spells.fero)
-    table.insert(self.selfBuffs, self.spells.panther)
-    if state.emu then table.insert(self.selfBuffs, common.getAA('Gelid Rending')) end
-    table.insert(self.selfBuffs, common.getAA('Pact of the Wurine'))
-    table.insert(self.selfBuffs, common.getAA('Protection of the Warder'))
+    if self.spells.groupunity then
+        self.spells.groupunity.condition = function() return not (mq.TLO.Me.Buff(self.spells.groupregen.name)() and mq.TLO.Me.Buff(self.spells.grouphp.name)()) end
+        table.insert(self.selfBuffs, self.spells.groupunity)
+    else
+        if self.spells.groupregen then self.spells.groupregen.condition = buffCondition end
+        if self.spells.grouphp then self.spells.grouphp.condition = buffCondition end
+        table.insert(self.selfBuffs, self.spells.groupregen)
+        table.insert(self.selfBuffs, self.spells.grouphp)
+    end
 
-    if self.spells.fero then
+    if self.spells.combatbuff then self.spells.combatbuff.condition = buffCondition end
+    table.insert(self.selfBuffs, self.spells.combatbuff)
+
+    if self.spells.groupfero then
+        table.insert(self.selfBuffs, self.spells.groupfero)
+    elseif self.spells.fero then
+        self.spells.fero.condition = buffCondition
+        table.insert(self.selfBuffs, self.spells.fero)
         local singleBuffCondition = function(ability)
             return conditions.checkMana(ability)
         end
         self.spells.fero.condition = singleBuffCondition
+        table.insert(self.singleBuffs, self.spells.fero)
     end
-    table.insert(self.singleBuffs, self.spells.fero)
-    table.insert(self.singleBuffs, self.spells.feralvigor)
+
+    if state.emu then table.insert(self.selfBuffs, common.getAA('Gelid Rending')) end
+    table.insert(self.selfBuffs, common.getAA('Pact of the Wurine'))
+    table.insert(self.selfBuffs, common.getAA('Protection of the Warder'))
 
     local petBuffCondition = function(ability)
         return conditions.checkMana(ability) and conditions.stacksPet(ability) and conditions.missingPetBuff(ability)
     end
-    if self.spells.pethaste then self.spells.pethaste.condition = petBuffCondition end
-    if self.spells.petbuff then self.spells.petbuff.condition = petBuffCondition end
-    table.insert(self.petBuffs, self.spells.pethaste)
-    table.insert(self.petBuffs, self.spells.petbuff)
+    if self.spells.petunity then
+        self.spells.petunity.condition = function() return not (mq.TLO.Pet.Buff(self.spells.pethaste.CastName)() and mq.TLO.Pet.Buff(self.spells.petbuff.CastName)()) end
+        table.insert(self.petBuffs, self.spells.petunity)
+    else
+        if self.spells.pethaste then self.spells.pethaste.condition = petBuffCondition end
+        if self.spells.petbuff then self.spells.petbuff.condition = petBuffCondition end
+        table.insert(self.petBuffs, self.spells.pethaste)
+        table.insert(self.petBuffs, self.spells.petbuff)
+    end
+
     table.insert(self.petBuffs, common.getAA('Fortify Companion'))
     --local epicOpts = {CheckFor='Savage Wildcaller\'s Blessing', condition=conditions.missingPetCheckFor}
     local epicOpts = {CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor}
@@ -253,13 +266,17 @@ function BeastLord:initBuffs()
     self.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
     self:addRequestAlias(self.fParagon, 'fparagon')
     self:addRequestAlias(self.paragon, 'paragon')
-    self:addRequestAlias(self.spells.groupregen, 'rejuv')
+    self:addRequestAlias(self.spells.groupregen, 'groupregen')
+    self:addRequestAlias(self.spells.grouphp, 'grouphp')
 end
 
 function BeastLord:availableBuffs()
     self.spells.SV = self.spells.grouphp
     self.spells.SE = self.spells.groupregen
-    return {SV=self.spells.grouphp and self.spells.grouphp.Name or nil, SE=self.spells.groupregen and self.spells.groupregen.Name or nil}
+    return {
+        SV=self.spells.grouphp and self.spells.grouphp.Name or nil,
+        SE=self.spells.groupregen and self.spells.groupregen.Name or nil
+    }
 end
 
 function BeastLord:initHeals()

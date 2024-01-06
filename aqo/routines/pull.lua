@@ -111,11 +111,11 @@ function pull.checkPullConditions()
     end
     if config.get('GROUPWATCHWHO') == 'none' then return true end
     if config.get('GROUPWATCHWHO') == 'self' then
-        if state.loop.PctEndurance < config.get('MEDENDSTART') or state.loop.PctMana < config.get('MEDMANASTART') then
+        if state.loop.PctHPs < config.get('MEDHPSTART') or state.loop.PctEndurance < config.get('MEDENDSTART') or state.loop.PctMana < config.get('MEDMANASTART') then
             medding = true
             return false
         end
-        if (state.loop.PctEndurance < config.get('MEDENDSTOP') or state.loop.PctMana < config.get('MEDMANASTOP')) and medding then
+        if (state.loop.PctHPs < config.get('MEDHPSTOP') or state.loop.PctEndurance < config.get('MEDENDSTOP') or state.loop.PctMana < config.get('MEDMANASTOP')) and medding then
             return false
         else
             medding = false
@@ -130,15 +130,22 @@ function pull.checkPullConditions()
                     if not holdPulls then holdPullTimer:reset() holdPulls = true end
                     return false
                 end
+                local pcthp = member.PctHPs()
                 local pctmana = member.PctMana()
                 if member.Dead() then
                     return false
                 elseif healers[member.Class.ShortName()] and config.get('GROUPWATCHWHO') == 'healer' and pctmana then
+                    if pcthp < config.get('MEDHPSTOP') then
+                        medding = true
+                        return false
+                    end
                     if pctmana < config.get('MEDMANASTOP') then
                         medding = true
                         return false
                     end
                     if pctmana < config.get('MEDMANASTART') and medding then
+                        return false
+                    elseif pcthp < config.get('MEDHPSTART') and medding then
                         return false
                     else
                         medding = false
@@ -400,6 +407,8 @@ function pull.pullMob()
         if pull_state == constants.pullStates.APPROACHING or pull_state == constants.pullStates.ENGAGING then
             pull.clearPullVars('pullMob-deadOrInjured')
             movement.stop()
+            return
+        elseif not pull_state then
             return
         end
     end

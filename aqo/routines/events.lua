@@ -17,6 +17,8 @@ local events = {}
 function events.init(_class)
     class = _class
 
+    mq.event('eventNewLevel', 'You have gained a level', events.eventNewLevel)
+    mq.event('eventNewSpellMemmed', '#*#You have finished scribing #1#.', events.eventNewSpellMemmed)
     mq.event('zoned', 'You have entered #*#', events.zoned)
     mq.event('cannotSee', '#*#cannot see your target#*#', events.movecloser)
     mq.event('tooFar', '#*#Your target is too far away#*#', events.movecloser)
@@ -47,6 +49,14 @@ function events.initClassBasedEvents()
         mq.event('eventGearrequest', '#1# tells #*#,#*#\'gear #2#\'', events.eventGear)
     end
     mq.event('eventepic', '#*# tells #*#,#*#\'epicburn\'', events.epicburn)
+end
+
+function events.eventNewLevel()
+    -- TODO refresh abilities
+end
+
+function events.eventNewSpellMemmed(line, spell)
+    -- TODO refresh abilities
 end
 
 function events.zoned()

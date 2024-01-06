@@ -122,7 +122,7 @@ end
 
 function Magician:initSpellLines()
     self:addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
-    self:addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame'}, {opt='USEFIRENUKES'})
+    self:addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Burst of Flame'}, {opt='USEFIRENUKES'})
     self:addSpell('fastfire', {'Burning Earth'}, {opt='USEFIRENUKES'})
     self:addSpell('magicnuke', {'Rock of Taelosia'}, {opt='USEMAGICNUKES'})
     self:addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',

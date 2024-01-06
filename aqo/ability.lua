@@ -1,5 +1,6 @@
 ---@type Mq
 local mq = require('mq')
+local config = require('interface.configuration')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local state = require('state')
@@ -130,7 +131,9 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
     else
         -- duration is number of ticks, so it tostring'd
         if spell.Duration.TotalSeconds() ~= 0 then
-            if spell.TargetType() == 'Single' or spell.TargetType() == 'Targeted AE' then
+            if mq.TLO.Me.PctMana() < config.get('DOTMANAMIN') then
+                result = false
+            elseif spell.TargetType() == 'Single' or spell.TargetType() == 'Targeted AE' then
                 local buff_duration = mq.TLO.Target.MyBuffDuration(spell.Name())() or 0
                 local cast_time = spell.MyCastTime() or 0
                 local debuffMissingOrFading = not mq.TLO.Target.MyBuff(spell.Name())() or buff_duration < cast_time + 3000
@@ -140,7 +143,9 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
                 result = true
             end
         else
-            if spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' or spell.TargetType() == 'Line of Sight' then
+            if mq.TLO.Me.PctMana() < config.get('NUKEMANAMIN') then
+                result = false
+            elseif spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' or spell.TargetType() == 'Line of Sight' then
                 result = dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight() and mq.TLO.Target.Type() ~= 'Corpse'
             else
                 -- instant detrimental spell that requires no target, sure
@@ -155,19 +160,19 @@ end
 function Ability.canUseSpell(spell, abilityType, skipReagentCheck)
     logger.debug(logger.flags.ability.validation, 'ENTER canUseSpell \ag%s\ax', spell.Name())
     if abilityType == AbilityTypes.Spell and not mq.TLO.Me.SpellReady(spell.Name())() then
-        if logger.flags.common.cast then
+        if logger.flags.ability.validation then
             logger.debug(logger.flags.ability.validation, 'Spell not ready (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
         end
         return false
     end
     if state.class ~= 'brd' and (mq.TLO.Me.Casting() or mq.TLO.Me.Moving()) then
-        if logger.flags.common.cast then
+        if logger.flags.ability.validation then
             logger.debug(logger.flags.ability.validation, 'Not in control or moving (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
         end
         return false
     end
     if abilityType ~= AbilityTypes.Item and (spell.Mana() > mq.TLO.Me.CurrentMana() or spell.EnduranceCost() > mq.TLO.Me.CurrentEndurance()) then
-        if logger.flags.common.cast then
+        if logger.flags.ability.validation then
             logger.debug(logger.flags.ability.validation, 'Not enough mana or endurance (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
         end
         return false
@@ -198,8 +203,9 @@ function Ability.use(theAbility, doSwap, skipReadyCheck)
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
     if not theAbility.timer:timerExpired() then return result end
     if mq.TLO.Me.Casting() and (state.class ~= 'BRD' or theAbility.MyCastTime >= 500) then return result end
+    if theAbility.swap then doSwap = true end
     if (skipReadyCheck or theAbility:isReady() or (theAbility.CastType == AbilityTypes.Spell and doSwap)) and (not theAbility.condition or theAbility.condition(theAbility)) and class:isAbilityEnabled(theAbility.opt) then
-        if theAbility.CastType == AbilityTypes.Spell and doSwap then
+        if theAbility.CastType == AbilityTypes.Spell and doSwap and not mq.TLO.Me.Gem(theAbility.CastName)() then
             result = Ability.swapAndCast(theAbility, state.swapGem)
         else
             --if theAbility.pause then mq.cmd('/squelch /dga aqo /squelch /aqo pauseforbuffs') end
@@ -569,13 +575,14 @@ function Ability:setCommonSpellData(spellRef)
     if spellRef.HasSPA(374)() then
         for i=1,5 do
             if spellRef.Attrib(i)() == 374 then
+                local triggerName = spellRef.Trigger(i).Name()
                 -- mount blessing buff
-                if not spellRef.Trigger(i).Name():find('Illusion') and not spellRef.Trigger(i).Name():find('Effect') and not spellRef.Trigger(i).Name():find('Form') then
-                    self.CheckFor = spellRef.Trigger(i).Name()
+                if not triggerName:find('Illusion') and not triggerName:find('Effect') and not triggerName:find('Form') then
+                    self.CheckFor = triggerName
                     self.RemoveBuff = spellRef()
                 else
                     self.CheckFor = spellRef()
-                    self.RemoveBuff = spellRef.Trigger(i).Name()
+                    self.RemoveBuff = triggerName
                 end
             elseif spellRef.Attrib(i)() == 113 then
                 -- summon mount SPA

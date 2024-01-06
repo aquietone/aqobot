@@ -83,6 +83,24 @@ local config = {
         tlo = 'SwitchWithMA',
         tlotype = 'bool',
     },
+    NUKEMANAMIN = {
+        value = 15,
+        tip = 'Minimum mana threshold to pause casting nukes',
+        classes = constants.nukeClasses,
+        label = 'Nuke Mana Min',
+        type = 'inputint',
+        tlo = 'NukeManaMin',
+        tlotype = 'int',
+    },
+    DOTMANAMIN = {
+        value = 15,
+        tip = 'Minimum mana threshold to pause casting DoTs',
+        classes = constants.dotClasses,
+        label = 'DoT Mana Min',
+        type = 'inputint',
+        tlo = 'DotManaMin',
+        tlotype = 'int',
+    },
 
     -- Heal settings
     HEALPCT = {
@@ -317,6 +335,22 @@ local config = {
         tlo = 'MedCombat',
         tlotype = 'bool',
     },
+    MEDHPSTART = {
+        value = 5,
+        tip = 'The Percent HP to begin medding at',
+        label = 'Med HP Start',
+        type = 'inputint',
+        tlo = 'MedHPStart',
+        tlotype = 'int',
+    },
+    MEDHPSTOP = {
+        value = 30,
+        tip = 'The Percent HP to stop medding at',
+        label = 'Med HP Stop',
+        type = 'inputint',
+        tlo = 'MedHPStop',
+        tlotype = 'int',
+    },
     MEDMANASTART = {
         value = 5,
         tip = 'The Percent Mana to begin medding at',
@@ -462,13 +496,13 @@ function config.categories()
 end
 
 local configByCategory = {
-    Assist={'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','RESISTSTOPCOUNT'},
+    Assist={'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','RESISTSTOPCOUNT','NUKEMANAMIN','DOTMANAMIN'},
     Camp={'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASEPAUSED'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','GROUPSTAYCLOSE','PULLWITH'},
     Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','XTARGETHEAL','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET'},
     Tank={'MAINTANK'},
-    Rest={'MEDCOMBAT','RECOVERPCT','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','MANASTONESTART','MANASTONESTARTHP','MANASTONESTOPHP','MANASTONETIME'},
+    Rest={'MEDCOMBAT','RECOVERPCT','MEDHPSTART','MEDHPSTOP','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','MANASTONESTART','MANASTONESTARTHP','MANASTONESTOPHP','MANASTONETIME'},
     Loot={'LOOTMOBS','LOOTCOMBAT'},
     Debug={'TIMESTAMPS'},
 }
