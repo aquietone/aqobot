@@ -2,9 +2,7 @@
 
 EverQuest class automation Lua scripts for MacroQuest.
 
-![](./images/general.png) ![](./images/skills.png)
-![](./images/burn.png) ![](./images/heal.png)
-![](./images/pull.png) ![](./images/debug.png)
+![](./images/aqo_console_tab_b.png)
 
 ## Description
 Provides a CWTN-like interface for bard, necro, ranger, shadow knight and warrior (so far) class automation with assist and chase modes, pre-configured spells, discs, AAs and abilities to use, and a UI to control a handful of settings.
@@ -29,6 +27,15 @@ The script uses the same sort of command structure to the class plugins, using c
 - To show the UI: `/rng show`
 - To hide the UI: `/rng hide`
 - To enable burns on demand: `/brd burnnow`
+
+## Images
+
+![](./images/aqo_general_tab.png) ![](./images/aqo_skills_tab.png)  
+![](./images/aqo_burn_tab.png) ![](./images/aqo_heals_tab.png)  
+![](./images/aqo_pull_tab.png) ![](./images/aqo_rest_tab.png)  
+![](./images/aqo_display_tab.png) ![](./images/aqo_debug_tab.png)  
+![](./images/aqo_ability_inspector.png) ![](./images/aqo_clicky_manager.png)  
+![](./images/aqo_state_inspector.png)  
 
 ## Roadmap
 Currently I'm just playing on EMU and haven't played live since the first few months of ToL, so for live nothing has changed since the first few classes added, nec, brd, shd, war, rng.
