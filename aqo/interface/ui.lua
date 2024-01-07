@@ -258,7 +258,6 @@ local function drawAssistTab()
     end
     local current_camp_radius = config.get('CAMPRADIUS')
 
-
     drawConfigurationForCategory(assistTabConfigs)
 
     if current_camp_radius ~= config.get('CAMPRADIUS') then
@@ -396,7 +395,7 @@ local function drawDebugTab()
         ImGui.TextColored(YELLOW, 'X: %.02f  Y: %.02f  Z: %.02f', camp.X, camp.Y, camp.Z)
         ImGui.TextColored(YELLOW, 'Radius:')
         ImGui.SameLine()
-        ImGui.SetCursorPosX(150)  
+        ImGui.SetCursorPosX(150)
         ImGui.TextColored(YELLOW, '%d', config.CAMPRADIUS.value)
         ImGui.TextColored(YELLOW, 'Distance from camp:')
         ImGui.SameLine()
@@ -405,15 +404,6 @@ local function drawDebugTab()
     else
         ImGui.TextColored(RED, '--')
     end
-
-    -- for k,v in pairs(state) do
-    --     if type(v) ~= 'table' and type(v) ~= 'function' then
-    --         ImGui.TextColored(YELLOW, '%s:', k)
-    --         ImGui.SameLine()
-    --         ImGui.SetCursorPosX(150)
-    --         ImGui.TextColored(RED, '%s', v)
-    --     end
-    -- end
 end
 
 ---@ConsoleWidget

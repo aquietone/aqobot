@@ -194,27 +194,17 @@ function Cleric:initBuffs()
     table.insert(self.singleBuffs, self.spells.singleaego)
     table.insert(self.groupBuffs, self.spells.groupaego)
 
-    self:addRequestAlias(self.spells.singleaego, 'singleaego')
-    self:addRequestAlias(self.spells.groupaego, 'aego')
-    self:addRequestAlias(self.spells.symbol, 'symbol')
-    self:addRequestAlias(self.spells.groupsymbol, 'grpsymbol')
-    self:addRequestAlias(self.spells.spellhaste, 'spellhaste')
-    self:addRequestAlias(self.spells.di, 'di')
-    self:addRequestAlias(self.radiant, 'radiant')
+    self:addRequestAlias(self.spells.singleaego, 'SINGLEAEGO')
+    self:addRequestAlias(self.spells.groupaego, 'AEGO')
+    self:addRequestAlias(self.spells.symbol, 'SINGLESYMBOL')
+    self:addRequestAlias(self.spells.groupsymbol, 'SYMBOL')
+    self:addRequestAlias(self.spells.spellhaste, 'SPELLHASTE')
+    self:addRequestAlias(self.spells.di, 'DI')
+    self:addRequestAlias(self.radiant, 'RC')
     self.cr = common.getAA('Celestial Regeneration')
-    self:addRequestAlias(self.cr, 'cr')
+    self:addRequestAlias(self.cr, 'CR')
     self.focusedcr = common.getAA('Focused Celestial Regeneration')
-    self:addRequestAlias(self.focusedcr, 'focusedcr')
-end
-
-function Cleric:availableBuffs()
-    self.spells.SYMBOL = self.spells.groupsymbol
-    self.spells.AEGO = self.spells.groupaego
-    self.spells.SPELLHASTE = self.spells.spellhaste
-    return {
-        SYMBOL = self.spells.SYMBOL and self.spells.SYMBOL.Name or nil,
-        AEGO = self.spells.AEGO and self.spells.AEGO.Name or nil,
-        SPELLHASTE = self.spells.SPELLHASTE and self.spells.SPELLHASTE.Name or nil}
+    self:addRequestAlias(self.focusedcr, 'FCR')
 end
 
 function Cleric:initBurns()
@@ -260,7 +250,7 @@ end
 function Cleric:initRecoverAbilities()
     self.qm = common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true})
     table.insert(self.recoverAbilities, self.qm)
-    self:addRequestAlias(self.qm, 'qm')
+    self:addRequestAlias(self.qm, 'QM')
 end
 
 return Cleric

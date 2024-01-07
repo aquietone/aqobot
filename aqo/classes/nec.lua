@@ -109,6 +109,7 @@ function Necromancer:initSpellLines()
     self:addSpell('defensiveproc', {'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, {classes={WAR=true,PAL=true,SHD=true}})
     self:addSpell('reflect', {'Mirror'})
     self:addSpell('hpbuff', {'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}) -- pre-unity
+    self:addSpell('dmf', {'Dead Men Floating'})
     -- Pet spells
     self:addSpell('pet', {'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'})
     self:addSpell('pethaste', {'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'})
@@ -249,8 +250,11 @@ function Necromancer:initBuffs()
     table.insert(self.petBuffs, self.spells.inspire)
     table.insert(self.petBuffs, self.spells.pethaste)
     table.insert(self.petBuffs, common.getAA('Fortify Companion'))
-    
-    self:addRequestAlias(self.spells.defensiveproc, 'defensiveproc')
+    local dmf = common.getAA('Dead Man Floating')
+    table.insert(self.selfBuffs, dmf or self.spells.dmf)
+
+    self:addRequestAlias(self.spells.defensiveproc, 'PUSTULES')
+    self:addRequestAlias(dmf or self.spells.dmf, 'DMF')
 end
 
 function Necromancer:initDebuffs()

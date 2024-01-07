@@ -47,20 +47,6 @@ function Enchanter:init()
     end
 end
 
-function Enchanter:availableBuffs()
-    if self.spells.unified then
-        self.spells.KEI = self.spells.unified
-        self.spells.HASTE = self.spells.unified
-    else
-        self.spells.KEI = self.spells.keigroup
-        self.spells.HASTE = self.spells.grouphaste
-    end
-    return {
-        KEI = self.spells.KEI and self.spells.KEI.Name or nil,
-        HASTE = self.spells.HASTE and self.spells.HASTE.Name or nil
-    }
-end
-
 function Enchanter:initClassOptions()
     self:addOption('AURA1', 'Aura 1', 'twincast', self.AURAS, 'The first aura to keep up', 'combobox', nil, 'Aura1', 'string')
     self:addOption('AURA2', 'Aura 2', 'combatinnate', self.AURAS, 'The second aura to keep up', 'combobox', nil, 'Aura2', 'string')
@@ -237,15 +223,13 @@ function Enchanter:initBuffs()
     table.insert(self.selfBuffs, self.azure)
     if self.spells.unified then
         table.insert(self.selfBuffs, self.spells.unified)
-        self.kei = self.spells.unified
-        self.haste = self.spells.unified
+        self:addRequestAlias(self.spells.unified, 'KEI')
+        self:addRequestAlias(self.spells.unified, 'HASTE')
     else
         table.insert(self.selfBuffs, self.spells.kei)
-        self.kei = self.spells.kei
-        self.haste = self.spells.haste
+        self:addRequestAlias(self.spells.kei, 'KEI')
+        self:addRequestAlias(self.spells.haste, 'HASTE')
     end
-    self:addRequestAlias(self.kei, 'kei')
-    self:addRequestAlias(self.haste, 'haste')
 
     table.insert(self.petBuffs, self.spells.pethaste)
     table.insert(self.petBuffs, common.getAA('Fortify Companion'))

@@ -131,30 +131,30 @@ local function validateRequester(requester)
 end
 
 function events.eventRequest(line, requester, requested)
-    requested = requested:lower()
-    if requested:find('^gear .+') then
+    requested = requested:upper()
+    if requested:find('^GEAR .+') then
         return events.eventGear(line, requester, requested)
     end
     if class:isEnabled('SERVEBUFFREQUESTS') and validateRequester(requester) then
         local tranquil = false
         local mgb = false
-        if requested:find('^tranquil') then
+        if requested:find('^TRANQUIL') then
             requested = requested:gsub('tranquil','')
             tranquil = true
         end
-        if requested:find('^mgb') then
-            requested = requested:gsub('mgb','')
+        if requested:find('^MGB') then
+            requested = requested:gsub('MGB','')
             mgb = true
         end
         if requested:find(' '..mq.TLO.Me.CleanName():lower()..'$') then
             requested = requested:gsub(' '..mq.TLO.Me.CleanName():lower(),'')
         end
-        if requested:find(' pet$') then
-            requested = requested:gsub(' pet', '')
+        if requested:find(' PET$') then
+            requested = requested:gsub(' PET', '')
             requester = mq.TLO.Spawn('pc '..requester).Pet.CleanName()
             logger.info('Pet Name for request: ', requester)
         end
-        if requested == 'list buffs' then
+        if requested == 'LIST BUFFS' then
             local buffList = ''
             for alias,ability in pairs(class.requestAliases) do
                 buffList = ('%s | %s : %s'):format(buffList, alias, ability.Name)
@@ -162,8 +162,8 @@ function events.eventRequest(line, requester, requested)
             mq.cmdf('/t %s %s', requester, buffList)
             return
         end
-        if requested == 'armpet' and state.class == 'mag' then
-            table.insert(class.requests, {requester=requester, requested='armpet', expiration=timer:new(15000)})
+        if requested == 'ARMPET' and state.class == 'mag' then
+            table.insert(class.requests, {requester=requester, requested='ARMPET', expiration=timer:new(15000)})
             return
         end
         local requestedAbility = class:getAbilityForAlias(requested)

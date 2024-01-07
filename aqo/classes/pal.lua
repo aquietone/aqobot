@@ -50,18 +50,15 @@ function Paladin:init()
     self:initDPSAbilities()
     self:addCommonAbilities()
 
+    -- self:addSpell('brells', {'Brell's Brawny Bulwark'})
+    -- table.insert(self.selfBuffs, self.spells.brells)
+    -- self:addRequestAlias(self.spells.brells, 'BRELLS')
+
     self.rezStick = common.getItem('Staff of Forbidden Rites')
 end
 
 function Paladin:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getSkill('Kick'))
-end
-
-function Paladin:availableBuffs()
-    self.spells.BRELLS = self.spells.brells
-    return {
-        BRELLS = self.spells.BRELLS and self.spells.BRELLS.Name or nil
-    }
 end
 
 return Paladin

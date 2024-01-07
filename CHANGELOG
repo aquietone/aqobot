@@ -1,3 +1,8 @@
+# 2024/01/07
+- Consolidate actor buff requests and request aliases
+- Fix nukemanamin / dotmanamin checks for non-mana using abilities / non-casters
+- Fix WillLand check for buff actors
+
 # 2024/01/06
 - Try to merge some emu vs live config for shm and bst
 - Check dot / nuke min mana on casts

@@ -69,7 +69,7 @@ function status.send(class)
     end
     -- Send info on any missing or fading buffs
     local wantBuffs = class:wantBuffs()
-    local availableBuffs = class.availableBuffs and class:availableBuffs()
+    local availableBuffs = class:getRequestAliases()
     local gimme = {}
     local availableSupplies = {}
     local status = {

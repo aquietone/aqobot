@@ -194,11 +194,11 @@ function Magician:initBuffs()
     table.insert(self.petBuffs, common.getAA('Aegis of Kildrukaun'))
     table.insert(self.petBuffs, common.getAA('Fortify Companion'))
 
-    self:addRequestAlias(self.spells.orb, 'orb')
-    self:addRequestAlias(self.spells.ds, 'ds')
-    self:addRequestAlias(self.spells.weapons, 'arm')
-    self:addRequestAlias(self.spells.jewelry, 'jewelry')
-    self:addRequestAlias(self.spells.armor, 'armor')
+    self:addRequestAlias(self.spells.orb, 'NUKEORB')
+    self:addRequestAlias(self.spells.ds, 'DS')
+    self:addRequestAlias(self.spells.weapons, 'ARM')
+    self:addRequestAlias(self.spells.jewelry, 'JEWELRY')
+    self:addRequestAlias(self.spells.armor, 'ARMOR')
 end
 
 function Magician:initDebuffs()

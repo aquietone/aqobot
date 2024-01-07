@@ -114,13 +114,6 @@ function Shaman:initClassOptions()
     self:addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox', nil, 'UseEpic', 'bool')
 end
 
-function Shaman:availableBuffs()
-    self.spells.FOCUS = self.spells.groupunity
-    return {
-        FOCUS = self.spells.FOCUS and self.spells.FOCUS.Name or nil
-    }
-end
-
 function Shaman:initSpellLines()
     -- Lvl 100+ main heal
     self:addSpell('reckless1', {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
@@ -278,16 +271,13 @@ function Shaman:initBuffs()
     table.insert(self.selfBuffs, self.spells.champion)
     table.insert(self.selfBuffs, common.getAA('Languid Bite'))
     table.insert(self.singleBuffs, self.spells.groupunity)
-    -- table.insert(self.singleBuffs, self.spells.talisman)
     table.insert(self.singleBuffs, common.getAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}}))
     --table.insert(self.groupBuffs, common.getAA('Group Pact of the Wolf', {group=true, self=false}))
-    --table.insert(self.groupBuffs, self.spells.talisman)
     -- pact of the wolf, remove pact of the wolf effect
 
-    self:addRequestAlias(self.radiant, 'radiant')
-    self:addRequestAlias(self.spells.torpor, 'torpor')
-    self:addRequestAlias(self.spells.talisman, 'talisman')
-    self:addRequestAlias(self.spells.focus, 'focus')
+    self:addRequestAlias(self.radiant, 'RC')
+    self:addRequestAlias(self.spells.torpor, 'HOT')
+    self:addRequestAlias(self.spells.focus, 'FOCUS')
 end
 
 function Shaman:initDebuffs()

@@ -56,15 +56,6 @@ function Ranger:initClassOptions()
     self:addOption('USEFADE', 'Use Fade', true, nil, 'Use Cover Tracks AA to reduce aggro', 'checkbox', nil, 'UseFade', 'bool')
 end
 
-function Ranger:availableBuffs()
-    self.spells.SHOUT = self.spells.predator
-    self.spells.STR = self.spells.strength
-    return {
-        SHOUT = self.spells.SHOUT and self.spells.SHOUT.Name or nil,
-        STR = self.spells.STR and self.spells.STR.Name or nil
-    }
-end
-
 function Ranger:initSpellLines()
     self:addSpell('shots', {'Inevitable Shots', 'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
     self:addSpell('focused', {'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
@@ -208,9 +199,9 @@ function Ranger:initBuffs()
     table.insert(self.selfBuffs, self.spells.dmgbuff)
     self.auspice = common.getAA('Auspice of the Hunter')
 
-    self:addRequestAlias(self.spells.predator, 'predator')
-    self:addRequestAlias(self.spells.strength, 'strength')
-    self:addRequestAlias(self.auspice, 'auspice')
+    self:addRequestAlias(self.spells.predator, 'SHOUT')
+    self:addRequestAlias(self.spells.strength, 'STR')
+    self:addRequestAlias(self.auspice, 'AUSPICE')
 end
 
 function Ranger:initDebuffs()

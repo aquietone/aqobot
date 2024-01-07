@@ -131,7 +131,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
     else
         -- duration is number of ticks, so it tostring'd
         if spell.Duration.TotalSeconds() ~= 0 then
-            if mq.TLO.Me.PctMana() < config.get('DOTMANAMIN') then
+            if mq.TLO.Me.CurrentMana() > 0 and spell.Mana() > 0 and mq.TLO.Me.PctMana() < config.get('DOTMANAMIN') then
                 result = false
             elseif spell.TargetType() == 'Single' or spell.TargetType() == 'Targeted AE' then
                 local buff_duration = mq.TLO.Target.MyBuffDuration(spell.Name())() or 0
@@ -143,7 +143,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
                 result = true
             end
         else
-            if mq.TLO.Me.PctMana() < config.get('NUKEMANAMIN') then
+            if mq.TLO.Me.CurrentMana() > 0 and spell.Mana() > 0 and mq.TLO.Me.PctMana() < config.get('NUKEMANAMIN') then
                 result = false
             elseif spell.TargetType() == 'Single' or spell.TargetType() == 'LifeTap' or spell.TargetType() == 'Line of Sight' then
                 result = dist and dist <= spell.MyRange() and mq.TLO.Target.LineOfSight() and mq.TLO.Target.Type() ~= 'Corpse'

@@ -264,19 +264,10 @@ function BeastLord:initBuffs()
 
     self.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
     self.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
-    self:addRequestAlias(self.fParagon, 'fparagon')
-    self:addRequestAlias(self.paragon, 'paragon')
-    self:addRequestAlias(self.spells.groupregen, 'groupregen')
-    self:addRequestAlias(self.spells.grouphp, 'grouphp')
-end
-
-function BeastLord:availableBuffs()
-    self.spells.SV = self.spells.grouphp
-    self.spells.SE = self.spells.groupregen
-    return {
-        SV=self.spells.grouphp and self.spells.grouphp.Name or nil,
-        SE=self.spells.groupregen and self.spells.groupregen.Name or nil
-    }
+    self:addRequestAlias(self.fParagon, 'FPARAGON')
+    self:addRequestAlias(self.paragon, 'PARAGON')
+    self:addRequestAlias(self.spells.groupregen, 'SE')
+    self:addRequestAlias(self.spells.grouphp, 'SV')
 end
 
 function BeastLord:initHeals()

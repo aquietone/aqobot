@@ -296,6 +296,14 @@ function base:disableClicky(itemName)
     end
 end
 
+function base:getRequestAliases()
+    local aliases = {}
+    for name,ability in pairs(self.requestAliases) do
+        aliases[name] = ability.CastName
+    end
+    return aliases
+end
+
 function base:addRequestAlias(ability, alias)
     self.requestAliases[alias] = ability
 end
@@ -597,7 +605,7 @@ function base:wantBuffs()
             if availableBuffs then
                 if availableBuffs[buff] then
                     if (not mq.TLO.Me.Buff(availableBuffs[buff])() or mq.TLO.Me.Buff(availableBuffs[buff]).Duration() < 60000)
-                            and mq.TLO.Spell(availableBuffs[buff]).WillLand() then
+                            and mq.TLO.Spell(availableBuffs[buff]).WillLand() > 0 then
                         table.insert(request, buff)
                     end
                 end
@@ -742,10 +750,10 @@ end
 function base:nowCast(args)
     if #args == 3 then
         local sendTo = args[1]:lower()
-        local alias = args[2]:lower()
+        local alias = args[2]:upper()
         local target = args[3]:lower()
         if sendTo == 'me' or sendTo == mq.TLO.Me.CleanName():lower() then
-            local spellToCast = self.spells[alias] or self[alias]
+            local spellToCast = self.spells[base:getAbilityForAlias(alias)] or self[alias:lower()]
             table.insert(self.requests, {requester=target, requested=spellToCast, expiration=timer:new(15000), tranquil=false, mgb=false})
         else
             local sendToSpawn = mq.TLO.Spawn('pc ='..sendTo)
@@ -755,9 +763,9 @@ function base:nowCast(args)
             end
         end
     elseif #args == 2 then
-        local alias = args[1]:lower()
+        local alias = args[1]:upper()
         local target = args[2]:lower()
-        local spellToCast = self.spells[alias] or self[alias]
+        local spellToCast = self.spells[base:getAbilityForAlias(alias)] or self[alias:lower()]
         if spellToCast then
             table.insert(self.requests, {requester=target, requested=spellToCast, expiration=timer:new(15000), tranquil=false, mgb=false})
         end
@@ -777,7 +785,7 @@ function base:handleRequests()
             end
             local requesterSpawn = mq.TLO.Spawn(requesterSpawn)
             if (requesterSpawn.Distance3D() or 300) < 100 then
-                if request.requested == 'armpet' and state.class == 'mag' then
+                if request.requested == 'ARMPET' and state.class == 'mag' then
                     self:armPetRequest(request.requester)
                     table.remove(self.requests, 1)
                     return

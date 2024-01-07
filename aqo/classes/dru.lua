@@ -67,13 +67,6 @@ function Druid:initClassOptions()
     self:addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox', nil, 'UseDebuff', 'bool')
 end
 
-function Druid:availableBuffs()
-    self.spells.SKIN = self.spells.skin
-    return {
-        SKIN = self.spells.SKIN and self.spells.SKIN.Name or nil
-    }
-end
-
 function Druid:initSpellLines()
     if state.emu then
         self:addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
@@ -265,7 +258,9 @@ function Druid:initBuffs()
     table.insert(self.selfBuffs, self.spells.reptile)
     table.insert(self.selfBuffs, common.getAA('Spirit of the Black Wolf'))
     self.bear = common.getAA('Spirit of the Bear')
-    self:addRequestAlias(self.bear, 'bear')
+    self:addRequestAlias(self.bear, 'GROWTH')
+    self:addRequestAlias(self.spells.reptile, 'REPTILE')
+    self:addRequestAlias(self.spells.skin, 'SKIN')
 
     table.insert(self.selfBuffs, self.spells.skin)
     table.insert(self.selfBuffs, self.spells.regen)
