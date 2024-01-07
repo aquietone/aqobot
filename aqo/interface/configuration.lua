@@ -469,6 +469,22 @@ local config = {
         type = 'checkbox',
         tlo = 'Timestamps',
         tlotype = 'bool',
+    },
+    THEME = {
+        value = 'BLACK',
+        tip = 'Pick a UI color scheme',
+        label = 'Theme',
+        type = 'combobox',
+        tlo = 'Theme',
+        tlotype = 'string',
+    },
+    OPACITY = {
+        value = 100,
+        tip = 'Set the window opacity',
+        label = 'Opacity',
+        type = 'inputint',
+        tlo = 'Opacity',
+        tlotype = 'int',
     }
 }
 

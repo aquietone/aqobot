@@ -13,18 +13,11 @@ local mode = require('mode')
 local state = require('state')
 
 -- UI Control variables
-local openGUI = true
-local shouldDrawGUI = true
-local uiTheme = 'BLACK'--'TEAL'
-
-local abilityGUIOpen = false
-local shouldDrawAbilityGUI = false
-
-local clickyManagerOpen = false
-local shouldDrawClickyManager = false
-
-local helpGUIOpen = false
-local shouldDrawHelpGUI = false
+local openGUI, shouldDrawGUI = true, true
+local stateGUIOpen, shouldDrawStateGUI = false, false
+local abilityGUIOpen, shouldDrawAbilityGUI = false, false
+local clickyManagerOpen, shouldDrawClickyManager = false, false
+local helpGUIOpen, shouldDrawHelpGUI= false, false
 
 -- UI constants
 local MINIMUM_WIDTH = 430
@@ -145,6 +138,15 @@ function ui.drawCheckBoxLeftLabel(labelText, idText, resultVar, helpText, xOffse
     return resultVar
 end
 
+function ui.drawSliderInt(labelText, resultVar, helpText, minValue, maxValue, xOffset, yOffset)
+    if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
+    ImGui.SetCursorPosX(xOffset)
+    ImGui.SetCursorPosY(yOffset+5)
+    resultVar = ImGui.SliderInt(labelText, resultVar, minValue, maxValue)
+    helpMarker(helpText)
+    return resultVar
+end
+
 function ui.drawInputInt(labelText, resultVar, helpText, xOffset, yOffset)
     if not yOffset and not xOffset then xOffset, yOffset = ImGui.GetCursorPos() end
     ImGui.SetCursorPosX(xOffset)
@@ -247,7 +249,7 @@ end
 local assistTabConfigs = {
     'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA',
     'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASEPAUSED','RESISTSTOPCOUNT',
-    'MAINTANK','LOOTMOBS','LOOTCOMBAT',
+    'NUKEMANAMIN','DOTMANAMIN','MAINTANK','LOOTMOBS','LOOTCOMBAT',
 }
 local function drawAssistTab()
     local x,_ = ImGui.GetContentRegionAvail()
@@ -265,6 +267,13 @@ local function drawAssistTab()
 end
 
 local function drawSkillsTab()
+    if ImGui.Button('View Ability Lists', x, BUTTON_HEIGHT) then
+        abilityGUIOpen = true
+    end
+    ImGui.SameLine()
+    if ImGui.Button('Manage Clickies', x, BUTTON_HEIGHT) then
+        clickyManagerOpen = true
+    end
     local x, y = ImGui.GetCursorPos()
     local xOffset = x
     local yOffset = y
@@ -351,7 +360,7 @@ end
 
 local function drawDebugComboBox()
     ImGui.PushItemWidth(300)
-    if ImGui.BeginCombo('##debugoptions', 'debug options') then
+    if ImGui.BeginCombo('##debugoptions', 'Console Flags...') then
         for category, subcategories in pairs(logger.flags) do
             for subcategory, enabled in pairs(subcategories) do
                 logger.flags[category][subcategory] = ImGui.Checkbox(category..' - '..subcategory, enabled)
@@ -359,7 +368,6 @@ local function drawDebugComboBox()
         end
         ImGui.EndCombo()
     end
-    uiTheme = ui.drawComboBox('Theme', uiTheme, constants.uiThemes, true, 'Pick a UI color scheme')
     ImGui.PopItemWidth()
 end
 
@@ -373,15 +381,9 @@ local function drawDebugTab()
     if ImGui.Button(icons.FA_DOWNLOAD..' Update AQO', buttonWidth, BUTTON_HEIGHT) then
         os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     end
-    if ImGui.Button('View Ability Lists', x, BUTTON_HEIGHT) then
-        abilityGUIOpen = true
+    if ImGui.Button('View State Inspector', x, BUTTON_HEIGHT) then
+        stateGUIOpen = true
     end
-    if ImGui.Button('Manage Clickies', x, BUTTON_HEIGHT) then
-        clickyManagerOpen = true
-    end
-    config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages')
-    logger.timestamps = config.TIMESTAMPS.value
-    drawDebugComboBox()
     ImGui.TextColored(YELLOW, 'Mode:')
     ImGui.SameLine()
     ImGui.SetCursorPosX(150)
@@ -404,14 +406,14 @@ local function drawDebugTab()
         ImGui.TextColored(RED, '--')
     end
 
-    for k,v in pairs(state) do
-        if type(v) ~= 'table' and type(v) ~= 'function' then
-            ImGui.TextColored(YELLOW, '%s:', k)
-            ImGui.SameLine()
-            ImGui.SetCursorPosX(150)
-            ImGui.TextColored(RED, '%s', v)
-        end
-    end
+    -- for k,v in pairs(state) do
+    --     if type(v) ~= 'table' and type(v) ~= 'function' then
+    --         ImGui.TextColored(YELLOW, '%s:', k)
+    --         ImGui.SameLine()
+    --         ImGui.SetCursorPosX(150)
+    --         ImGui.TextColored(RED, '%s', v)
+    --     end
+    -- end
 end
 
 ---@ConsoleWidget
@@ -421,11 +423,20 @@ function ui.setConsole(_console)
 end
 
 local function drawConsole()
+    drawDebugComboBox()
+    ImGui.SameLine()
+    config.TIMESTAMPS.value = ui.drawCheckBox('Timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages', ImGui.GetCursorPosX(), ImGui.GetCursorPosY()-5)
+    logger.timestamps = config.TIMESTAMPS.value
     -- Reduce spacing so everything fits snugly together
     ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(0, 0))
     local contentSizeX, contentSizeY = ImGui.GetContentRegionAvail()
     console:Render(ImVec2(contentSizeX, contentSizeY))
     ImGui.PopStyleVar()
+end
+
+local function drawDisplayTab()
+    config.THEME.value = ui.drawComboBox('Theme', config.THEME.value, constants.uiThemes, true, 'Pick a UI color scheme')
+    config.OPACITY.value = ui.drawSliderInt('Opacity', config.OPACITY.value, 'Set the window opacity', 0, 100)
 end
 
 local uiTabs = {
@@ -436,6 +447,7 @@ local uiTabs = {
     {label=icons.FA_FIRE..' Burn', draw=drawBurnTab, color=ORANGE},
     {label=icons.FA_BICYCLE..' Pull', draw=drawPullTab, color=GREEN},
     {label=icons.FA_BATTERY_QUARTER..' Rest', draw=drawRestTab, color=RED},
+    {label=icons.FA_PICTURE_O..' Display', draw=drawDisplayTab, color=GREY},
     {label=icons.FA_CODE..' Debug', draw=drawDebugTab, color=YELLOW},
 }
 local function drawBody()
@@ -507,6 +519,8 @@ end
 
 local function pushStyle(theme)
     local t = constants.uiThemes[theme]
+    t.windowbg.w = 1*(config.OPACITY.value/100)
+    t.bg.w = 1*(config.OPACITY.value/100)
     ImGui.PushStyleColor(ImGuiCol.WindowBg, t.windowbg)
     ImGui.PushStyleColor(ImGuiCol.TitleBg, t.bg)
     ImGui.PushStyleColor(ImGuiCol.TitleBgActive, t.active)
@@ -535,16 +549,51 @@ local function popStyles()
     ImGui.PopStyleVar(1)
 end
 
-local function drawTableTree(table)
+local TABLE_FLAGS = bit32.bor(ImGuiTableFlags.ScrollY,ImGuiTableFlags.RowBg,ImGuiTableFlags.BordersOuter,ImGuiTableFlags.BordersV,ImGuiTableFlags.SizingStretchSame,ImGuiTableFlags.Sortable,
+                                ImGuiTableFlags.Hideable, ImGuiTableFlags.Resizable, ImGuiTableFlags.Reorderable)
+
+local function drawNestedTableTree(table)
     for k, v in pairs(table) do
+        ImGui.TableNextRow()
+        ImGui.TableNextColumn()
         if type(v) == 'table' then
-            if ImGui.TreeNode(k) then
-                drawTableTree(v)
+            local open = ImGui.TreeNodeEx(k, ImGuiTreeNodeFlags.SpanFullWidth)
+            if open then
+                drawNestedTableTree(v)
                 ImGui.TreePop()
             end
         else
-            ImGui.Text('%s: %s', k, v)
+            ImGui.TextColored(YELLOW, '%s', k)
+            ImGui.TableNextColumn()
+            ImGui.TextColored(RED, '%s', v)
+            ImGui.TableNextColumn()
         end
+    end
+end
+
+local function drawTableTree(table)
+    if ImGui.BeginTable('StateTable', 2, TABLE_FLAGS, -1, -1) then
+        ImGui.TableSetupScrollFreeze(0, 1)
+        ImGui.TableSetupColumn('Key', ImGuiTableColumnFlags.None, 2, 1)
+        ImGui.TableSetupColumn('Value', ImGuiTableColumnFlags.None, 2, 2)
+        ImGui.TableHeadersRow()
+        for k, v in pairs(table) do
+            ImGui.TableNextRow()
+            ImGui.TableNextColumn()
+            if type(v) == 'table' then
+                local open = ImGui.TreeNodeEx(k, ImGuiTreeNodeFlags.SpanFullWidth)
+                if open then
+                    drawNestedTableTree(v)
+                    ImGui.TreePop()
+                end
+            elseif type(v) ~= 'function' then
+                ImGui.TextColored(YELLOW, '%s', k)
+                ImGui.TableNextColumn()
+                ImGui.TextColored(RED, '%s', v)
+                ImGui.TableNextColumn()
+            end
+        end
+        ImGui.EndTable()
     end
 end
 
@@ -585,7 +634,7 @@ local function drawAbilityInspector()
                     ImGui.TreePop()
                 end
             end
-            if ImGui.TreeNode('Lists') then
+            if ImGui.TreeNode('Class Lists') then
                 for i, list in ipairs(constants.classLists) do
                     if #class[list] > 0 then
                         if ImGui.TreeNode(list..'##lists'..i) then
@@ -626,10 +675,16 @@ local function drawAbilityInspector()
                 end
                 ImGui.TreePop()
             end
-            if ImGui.TreeNode('State') then
-                drawTableTree(state)
-                ImGui.TreePop()
-            end
+        end
+        ImGui.End()
+    end
+end
+
+local function drawStateInspector()
+    if stateGUIOpen then
+        stateGUIOpen, shouldDrawStateGUI = ImGui.Begin(('State Inspector##AQOBOTUI%s'):format(state.class), stateGUIOpen)
+        if shouldDrawStateGUI then
+            drawTableTree(state)
         end
         ImGui.End()
     end
@@ -725,7 +780,7 @@ end
 -- ImGui main function for rendering the UI window
 function ui.main()
     if not openGUI then return end
-    pushStyle(uiTheme)
+    pushStyle(config.THEME.value)
     openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, 0)
     if shouldDrawGUI then
         drawHeader()
@@ -735,6 +790,7 @@ function ui.main()
     end
     ImGui.End()
     drawAbilityInspector()
+    drawStateInspector()
     drawClickyManager()
     drawHelpWindow()
     popStyles()

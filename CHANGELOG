@@ -3,6 +3,8 @@
 - Check dot / nuke min mana on casts
 - HP med start/stop settings
 - Misc cleanup
+- Move some debug tab clutter to other tabs
+- Make state inspector into a table
 
 # 2023/12/24
 - Add very basic actor based buffing logic

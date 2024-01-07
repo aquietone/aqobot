@@ -105,6 +105,8 @@ constants.buffClasses = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,r
 constants.healClasses = {clr=true,dru=true,shm=true}
 constants.tankClasses = {pal=true,shd=true,war=true}
 constants.meleeClasses = {ber=true,brd=true,bst=true,mnk=true,rng=true,rog=true}
+constants.nukeClasses = {bst=true,clr=true,dru=true,enc=true,mag=true,nec=true,rng=true,shm=true,wiz=true}
+constants.dotClasses = {bst=true,dru=true,enc=true,nec=true,rng=true,shd=true,shm=true}
 constants.fdClasses = {mnk=true,nec=true,shd=true,bst=true}
 
 constants.DMZ = {

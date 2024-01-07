@@ -48,8 +48,13 @@ function Enchanter:init()
 end
 
 function Enchanter:availableBuffs()
-    self.spells.KEI = self.spells.keigroup
-    self.spells.HASTE = self.spells.grouphaste
+    if self.spells.unified then
+        self.spells.KEI = self.spells.unified
+        self.spells.HASTE = self.spells.unified
+    else
+        self.spells.KEI = self.spells.keigroup
+        self.spells.HASTE = self.spells.grouphaste
+    end
     return {
         KEI = self.spells.KEI and self.spells.KEI.Name or nil,
         HASTE = self.spells.HASTE and self.spells.HASTE.Name or nil
@@ -137,7 +142,7 @@ function Enchanter:initSpellLines()
     self:addSpell('unity', {'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
     self:addSpell('procbuff', {'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}) -- single target dmg proc buff
     self:addSpell('kei', {'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
-    self:addSpell('keigroup', {'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity'})
+    self:addSpell('keigroup', {'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Clairvoyance', 'Voice of Quellious'})
     self:addSpell('haste', {'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
     self:addSpell('grouphaste', {'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
     self:addSpell('nightsterror', {'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}) -- melee attack proc
