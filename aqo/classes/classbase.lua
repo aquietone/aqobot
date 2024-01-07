@@ -524,6 +524,7 @@ end
 function base:findNextSpell()
     -- alliance
     -- synergy
+    if not self.spellRotations[self.OPTS.SPELLSET.value] then return nil end
     for _,spell in ipairs(self.spellRotations[self.OPTS.SPELLSET.value]) do
         local resistCount = state.resists[spell.Name] or 0
         local resistStopCount = config.get('RESISTSTOPCOUNT')

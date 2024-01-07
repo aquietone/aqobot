@@ -351,6 +351,7 @@ local function findNextSong()
     if not mq.TLO.Target.Snared() and Bard:isEnabled('USESNARE') and ((mq.TLO.Target.PctHPs() or 100) < 30) then
         return Bard.spells.snare
     end
+    if not Bard.spellRotations[Bard.OPTS.SPELLSET.value] then return nil end
     for _,song in ipairs(Bard.spellRotations[Bard.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.ID
         local song_name = song.Name
