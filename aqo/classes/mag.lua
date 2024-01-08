@@ -553,7 +553,7 @@ function Magician:summonItem(spell, targetID, summonsItem, inventoryItem)
     logger.info('going to summon item %s', spell.Name)
     --mq.cmd('/mqt 0')
     if not mq.TLO.Me.Gem(spell.Name)() then
-        abilities.swapSpell(spell, 12)
+        abilities.swapSpell(spell, 12, true)
     end
     mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
     if not spell:isReady() then logger.info('Spell %s was not ready', spell.Name) return false end

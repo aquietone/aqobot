@@ -471,18 +471,18 @@ function Ranger:checkSpellSet()
     local spellSet = self.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            abilities.swapSpell(self.spells.shots, 1)
-            abilities.swapSpell(self.spells.focused, 2)
-            abilities.swapSpell(self.spells.composite, 3, composite_names)
-            abilities.swapSpell(self.spells.heart, 4)
-            abilities.swapSpell(self.spells.opener, 5)
-            abilities.swapSpell(self.spells.summer, 6)
-            abilities.swapSpell(self.spells.healtot, 7)
-            abilities.swapSpell(self.spells.rune, 8)
-            abilities.swapSpell(self.spells.dot, 9)
-            abilities.swapSpell(self.spells.dotds, 10)
-            abilities.swapSpell(self.spells.dmgbuff, 12)
-            abilities.swapSpell(self.spells.buffs, 13)
+            if abilities.swapSpell(self.spells.shots, 1) then return end
+            if abilities.swapSpell(self.spells.focused, 2) then return end
+            if abilities.swapSpell(self.spells.composite, 3, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.heart, 4) then return end
+            if abilities.swapSpell(self.spells.opener, 5) then return end
+            if abilities.swapSpell(self.spells.summer, 6) then return end
+            if abilities.swapSpell(self.spells.healtot, 7) then return end
+            if abilities.swapSpell(self.spells.rune, 8) then return end
+            if abilities.swapSpell(self.spells.dot, 9) then return end
+            if abilities.swapSpell(self.spells.dotds, 10) then return end
+            if abilities.swapSpell(self.spells.dmgbuff, 12) then return end
+            if abilities.swapSpell(self.spells.buffs, 13) then return end
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()

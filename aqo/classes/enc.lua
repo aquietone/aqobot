@@ -341,19 +341,19 @@ function Enchanter:checkSpellSet()
     local spellSet = self.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            abilities.swapSpell(self.spells.tash, 1)
-            abilities.swapSpell(self.spells.dotmiti, 2)
-            abilities.swapSpell(self.spells.meznoblur, 3)
-            abilities.swapSpell(self.spells.mezae, 4)
-            abilities.swapSpell(self.spells.dot, 5)
-            abilities.swapSpell(self.spells.dot2, 6)
-            abilities.swapSpell(self.spells.synergy, 7)
-            abilities.swapSpell(self.spells.nuke5, 8)
-            abilities.swapSpell(self.spells.composite, 9, composite_names)
-            abilities.swapSpell(self.spells.stunaerune, 10)
-            abilities.swapSpell(self.spells.guard, 11)
-            abilities.swapSpell(self.spells.nightsterror, 12)
-            abilities.swapSpell(self.spells.combatinnate, 13)
+            if abilities.swapSpell(self.spells.tash, 1) then return end
+            if abilities.swapSpell(self.spells.dotmiti, 2) then return end
+            if abilities.swapSpell(self.spells.meznoblur, 3) then return end
+            if abilities.swapSpell(self.spells.mezae, 4) then return end
+            if abilities.swapSpell(self.spells.dot, 5) then return end
+            if abilities.swapSpell(self.spells.dot2, 6) then return end
+            if abilities.swapSpell(self.spells.synergy, 7) then return end
+            if abilities.swapSpell(self.spells.nuke5, 8) then return end
+            if abilities.swapSpell(self.spells.composite, 9, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.stunaerune, 10) then return end
+            if abilities.swapSpell(self.spells.guard, 11) then return end
+            if abilities.swapSpell(self.spells.nightsterror, 12) then return end
+            if abilities.swapSpell(self.spells.combatinnate, 13) then return end
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()

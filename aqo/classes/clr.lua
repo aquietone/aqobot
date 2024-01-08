@@ -1,5 +1,7 @@
 local mq = require('mq')
 local class = require('classes.classbase')
+local timer = require('utils.timer')
+local abilities = require('ability')
 local common = require('common')
 local state = require('state')
 
@@ -67,10 +69,14 @@ end
 
 function Cleric:initClassOptions()
     self:addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox', nil, 'UseYaulp', 'bool')
+    self:addOption('USESPLASH', 'Use Splash', true, nil, 'Toggle use of splash heal', 'checkbox', nil, 'UseSplash', 'bool')
+    self:addOption('USEVIE', 'Use Vie', true, nil, 'Toggle use of Vie spell line', 'checkbox', nil, 'UseVie', 'bool')
     self:addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox', nil, 'UseHammer', 'bool')
     self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
     self:addOption('USESTUN', 'Use Stun', true, nil, 'Toggle use of stuns', 'checkbox', nil, 'UseStun', 'bool')
     self:addOption('USEDEBUFF', 'Use Reverse DS', true, nil, 'Toggle use of Mark reverse DS', 'checkbox', nil, 'UseDebuff', 'bool')
+    self:addOption('USESYMBOL', 'Use Symbol', false, nil, 'Toggle use of Symbol buff line', 'checkbox', nil, 'UseSymbol', 'bool')
+    self:addOption('USERETORT', 'Use Retort', true, nil, 'Toggle use of Retort spell line', 'checkbox', nil, 'UseRetort', 'bool')
 end
 
 function Cleric:initSpellLines()
@@ -88,7 +94,7 @@ function Cleric:initSpellLines()
     self:addSpell('hotdps', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, {opt='USEHOTDPS', hot=true})
     -- Slot 6
     self:addSpell('issuance', {'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit'})
-    self:addSpell('splash', {'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash'}, {group=true, threshold=3})
+    self:addSpell('splash', {'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash'}, {opt='USESPLASH', group=true, threshold=3})
     self:addSpell('ward', {'Ward of Commitment', 'Ward of Persistence', 'Ward of Righteousness', 'Ward of Assurance', 'Ward of Surety'}, {tank=true, regular=true}) -- heals on break
     self:addSpell('composite', {'Ecliptic Blessing', 'Composite Blessing', 'Dichotomic Blessing'}, {tank=true, panic=true})
 
@@ -96,15 +102,15 @@ function Cleric:initSpellLines()
 
     self:addSpell('aura', {'Bastion of Divinity', 'Aura of Divinity'}, {aura=true})
     self:addSpell('spellhaste', {'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Aura of Devotion'}, {classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}})
-    self:addSpell('groupaego', {'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, {classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('singleaego', {'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, {classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('groupsymbol', {'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, {classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end})
-    self:addSpell('singlesymbol', {'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'}, {classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end})
+    self:addSpell('groupaego', {'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, {classes={CLR=true,WAR=true,SHD=true,PAL=true}})
+    self:addSpell('singleaego', {'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, {classes={CLR=true,WAR=true,SHD=true,PAL=true}})
+    self:addSpell('groupsymbol', {'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, {opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end})
+    self:addSpell('singlesymbol', {'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'}, {opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end})
     self:addSpell('di', {'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', 'Divine Intervention'})
     self:addSpell('shining', {'Shining Steel', 'Shining Fortitude', 'Shining Aegis', 'Shining Fortress', 'Shining Bulwark'})
     self:addSpell('armor', {'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'})
-    self:addSpell('vie', {'Rallied Citadel of Vie', 'Rallied Sanctuary of Vie'})
-    self:addSpell('bigvie', {'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie'})
+    self:addSpell('vie', {'Rallied Citadel of Vie', 'Rallied Sanctuary of Vie'}, {opt='USEVIE'})
+    self:addSpell('bigvie', {'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie'}, {opt='USEVIE'})
 
     self:addSpell('yaulp', {'Yaulp VI'}, {combat=true, ooc=false, opt='USEYAULP'})
     self:addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
@@ -114,7 +120,7 @@ function Cleric:initSpellLines()
     self:addSpell('aestun', {'Silent Dictation'})
 
     -- slot 12
-    self:addSpell('retort', {'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort'}, {classes={WAR=true,SHD=true,PAL=true}})
+    self:addSpell('retort', {'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort'}, {opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}})
     -- twincast nuke
     self:addSpell('rebuke', {'Unyielding Admonition', 'Unyielding Rebuke', 'Unyielding Censure', 'Unyielding Judgement'})
     -- slot 13
@@ -236,6 +242,35 @@ function Cleric:initRecoverAbilities()
     self.qm = common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true})
     table.insert(self.recoverAbilities, self.qm)
     self:addRequestAlias(self.qm, 'QM')
+end
+
+local composite_names = {['Ecliptic Blessing']=true, ['Composite Blessing']=true, ['Dissident Blessing']=true, ['Dichotomic Blessing']=true}
+local checkSpellTimer = timer:new(30000)
+function Cleric:checkSpellSet()
+    if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
+    local spellSet = self.OPTS.SPELLSET.value
+    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
+        if spellSet == 'standard' then
+            if mq.TLO.Me.Level() >= 101 then
+                if abilities.swapSpell(self.spells.remedy1, 1) then return end
+                if abilities.swapSpell(self.spells.remedy2, 2) then return end
+                if abilities.swapSpell(self.spells.intervention1, 3) then return end
+                if abilities.swapSpell(self.spells.intervention2, 4) then return end
+                if abilities.swapSpell(self.spells.renewal, 5) then return end
+                if abilities.swapSpell(self.spells.di, 6) then return end
+                if abilities.swapSpell(self.spells.ward, 7) then return end
+                if abilities.swapSpell(self.spells.groupheal, 8) then return end
+                if abilities.swapSpell(self.spells.groupheal2, 9) then return end
+                if abilities.swapSpell(self.spells.composite, 10, false, composite_names) then return end
+                if abilities.swapSpell(self.spells.retort, 11) then return end
+                if abilities.swapSpell(self.spells.rebuke, 12) then return end
+                if abilities.swapSpell(self.spells.shining, 13) then return end
+            else
+
+            end
+        end
+        checkSpellTimer:reset()
+    end
 end
 
 return Cleric

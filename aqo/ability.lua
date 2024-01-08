@@ -438,14 +438,16 @@ end
 ---Swap the specified spell into the specified gem slot.
 ---@param spell table @The MQ Spell to memorize.
 ---@param gem number @The gem index to memorize the spell into.
+---@param wait_for_spell_ready boolean|nil @Toggle waiting for spell to become ready
 ---@param other_names table|nil @List of spell names to compare against, because of dissident,dichotomic,composite
-function Ability.swapSpell(spell, gem, other_names)
+function Ability.swapSpell(spell, gem, wait_for_spell_ready, other_names)
     if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
     if mq.TLO.Me.Gem(gem)() == spell.Name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.Name)
     state.actionTaken = true
     state.memSpell = spell
+    state.wait_for_spell_ready = wait_for_spell_ready or false
     state.memSpellTimer:reset()
     return true
 end
@@ -454,7 +456,7 @@ function Ability.swapAndCast(spell, gem)
     if not spell then return false end
     if not mq.TLO.Me.Gem(spell.Name)() then
         state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
-        if not Ability.swapSpell(spell, gem) then
+        if not Ability.swapSpell(spell, gem, true) then
             -- failed to mem?
             return false
         end
@@ -499,8 +501,12 @@ function Ability:setSpellData()
         end
 
         local itemSpellRef = itemRef.Spell
+        local itemBlessingRef = itemRef.Blessing
         self:setCommonSpellData(itemSpellRef)
 
+        if itemBlessingRef and itemBlessingRef() and itemBlessingRef() ~= itemSpellRef() then
+            self.CheckFor = itemBlessingRef()
+        end
         self.MyCastTime = itemRef.CastTime()
         if itemRef.EffectType() == 'Click Worn' then
             self.MustEquip = true
@@ -573,19 +579,20 @@ function Ability:setCommonSpellData(spellRef)
     end
 
     if spellRef.HasSPA(374)() then
+        -- Trigger spell SPA
         for i=1,5 do
             if spellRef.Attrib(i)() == 374 then
                 local triggerName = spellRef.Trigger(i).Name()
-                -- mount blessing buff
-                if not triggerName:find('Illusion') and not triggerName:find('Effect') and not triggerName:find('Form') then
-                    self.CheckFor = triggerName
-                    self.RemoveBuff = spellRef()
-                else
-                    self.CheckFor = spellRef()
+                if spellRef.Trigger(i).HasSPA(58)() then
+                    -- Change form SPA
                     self.RemoveBuff = triggerName
+                    self.CheckFor = spellRef()
+                else
+                    self.CheckFor = triggerName
                 end
             elseif spellRef.Attrib(i)() == 113 then
                 -- summon mount SPA
+                self.RemoveBuff = spellRef()
             end
         end
     elseif spellRef.HasSPA(470)() then

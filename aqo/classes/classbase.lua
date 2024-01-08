@@ -808,7 +808,7 @@ function base:handleRequests()
                 local restoreGem
                 if request.requested.CastType == abilities.Types.Spell and not mq.TLO.Me.Gem(request.requested.Name)() then
                     restoreGem = {Name=mq.TLO.Me.Gem(state.swapGem)()}
-                    abilities.swapSpell(request.requested, state.swapGem)
+                    abilities.swapSpell(request.requested, state.swapGem, true)
                     mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.Name)() end)
                 end
                 if request.requested:isReady() then

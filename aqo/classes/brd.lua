@@ -466,61 +466,61 @@ function Bard:checkSpellSet()
     local spellSet = self.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'melee' then
-            abilities.swapSpell(self.spells.aria, 1)
-            abilities.swapSpell(self.spells.arcane, 2)
-            abilities.swapSpell(self.spells.spiteful, 3)
-            abilities.swapSpell(self.spells.suffering, 4)
-            abilities.swapSpell(self.spells.insult, 5)
-            abilities.swapSpell(self.spells.warmarch, 6)
-            abilities.swapSpell(self.spells.sonata, 7)
-            abilities.swapSpell(self.spells.mezst, 8)
-            abilities.swapSpell(self.spells.mezae, 9)
-            abilities.swapSpell(self.spells.crescendo, 10)
-            abilities.swapSpell(self.spells.pulse, 11)
-            abilities.swapSpell(self.spells.composite, 12, composite_names)
-            abilities.swapSpell(self.spells.dirge, 13)
+            if abilities.swapSpell(self.spells.aria, 1) then return end
+            if abilities.swapSpell(self.spells.arcane, 2) then return end
+            if abilities.swapSpell(self.spells.spiteful, 3) then return end
+            if abilities.swapSpell(self.spells.suffering, 4) then return end
+            if abilities.swapSpell(self.spells.insult, 5) then return end
+            if abilities.swapSpell(self.spells.warmarch, 6) then return end
+            if abilities.swapSpell(self.spells.sonata, 7) then return end
+            if abilities.swapSpell(self.spells.mezst, 8) then return end
+            if abilities.swapSpell(self.spells.mezae, 9) then return end
+            if abilities.swapSpell(self.spells.crescendo, 10) then return end
+            if abilities.swapSpell(self.spells.pulse, 11) then return end
+            if abilities.swapSpell(self.spells.composite, 12, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.dirge, 13) then return end
             state.spellSetLoaded = spellSet
         elseif spellSet == 'caster' then
-            abilities.swapSpell(self.spells.aria, 1)
-            abilities.swapSpell(self.spells.arcane, 2)
-            abilities.swapSpell(self.spells.firenukebuff, 3)
-            abilities.swapSpell(self.spells.suffering, 4)
-            abilities.swapSpell(self.spells.insult, 5)
-            abilities.swapSpell(self.spells.warmarch, 6)
-            abilities.swapSpell(self.spells.firemagicdotbuff, 7)
-            abilities.swapSpell(self.spells.mezst, 8)
-            abilities.swapSpell(self.spells.mezae, 9)
-            abilities.swapSpell(self.spells.crescendo, 10)
-            abilities.swapSpell(self.spells.pulse, 11)
-            abilities.swapSpell(self.spells.composite, 12, composite_names)
-            abilities.swapSpell(self.spells.dirge, 13)
+            if abilities.swapSpell(self.spells.aria, 1) then return end
+            if abilities.swapSpell(self.spells.arcane, 2) then return end
+            if abilities.swapSpell(self.spells.firenukebuff, 3) then return end
+            if abilities.swapSpell(self.spells.suffering, 4) then return end
+            if abilities.swapSpell(self.spells.insult, 5) then return end
+            if abilities.swapSpell(self.spells.warmarch, 6) then return end
+            if abilities.swapSpell(self.spells.firemagicdotbuff, 7) then return end
+            if abilities.swapSpell(self.spells.mezst, 8) then return end
+            if abilities.swapSpell(self.spells.mezae, 9) then return end
+            if abilities.swapSpell(self.spells.crescendo, 10) then return end
+            if abilities.swapSpell(self.spells.pulse, 11) then return end
+            if abilities.swapSpell(self.spells.composite, 12, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.dirge, 13) then return end
             state.spellSetLoaded = spellSet
         elseif spellSet == 'meleedot' then
-            abilities.swapSpell(self.spells.aria, 1)
-            abilities.swapSpell(self.spells.chantflame, 2)
-            abilities.swapSpell(self.spells.chantfrost, 3)
-            abilities.swapSpell(self.spells.suffering, 4)
-            abilities.swapSpell(self.spells.insult, 5)
-            abilities.swapSpell(self.spells.warmarch, 6)
-            abilities.swapSpell(self.spells.chantdisease, 7)
-            abilities.swapSpell(self.spells.mezst, 8)
-            abilities.swapSpell(self.spells.mezae, 9)
-            abilities.swapSpell(self.spells.crescendo, 10)
-            abilities.swapSpell(self.spells.pulse, 11)
-            abilities.swapSpell(self.spells.composite, 12, composite_names)
-            abilities.swapSpell(self.spells.dirge, 13)
+            if abilities.swapSpell(self.spells.aria, 1) then return end
+            if abilities.swapSpell(self.spells.chantflame, 2) then return end
+            if abilities.swapSpell(self.spells.chantfrost, 3) then return end
+            if abilities.swapSpell(self.spells.suffering, 4) then return end
+            if abilities.swapSpell(self.spells.insult, 5) then return end
+            if abilities.swapSpell(self.spells.warmarch, 6) then return end
+            if abilities.swapSpell(self.spells.chantdisease, 7) then return end
+            if abilities.swapSpell(self.spells.mezst, 8) then return end
+            if abilities.swapSpell(self.spells.mezae, 9) then return end
+            if abilities.swapSpell(self.spells.crescendo, 10) then return end
+            if abilities.swapSpell(self.spells.pulse, 11) then return end
+            if abilities.swapSpell(self.spells.composite, 12, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.dirge, 13) then return end
             state.spellSetLoaded = spellSet
         else -- emu spellsets
-            abilities.swapSpell(self.spells.emuaura, 1)
-            abilities.swapSpell(self.spells.pulse, 2)
-            abilities.swapSpell(self.spells.emuhaste, 3)
-            abilities.swapSpell(self.spells.suffering, 4)
-            abilities.swapSpell(self.spells.firenukebuff, 5)
-            abilities.swapSpell(self.spells.bardhaste, 6)
-            abilities.swapSpell(self.spells.overhaste, 7)
-            abilities.swapSpell(self.spells.selos, 8)
-            --abilities.swapSpell(self.spells.snare, 9)
-            --abilities.swapSpell(self.spells.chantflame, 10)
+            if abilities.swapSpell(self.spells.emuaura, 1) then return end
+            if abilities.swapSpell(self.spells.pulse, 2) then return end
+            if abilities.swapSpell(self.spells.emuhaste, 3) then return end
+            if abilities.swapSpell(self.spells.suffering, 4) then return end
+            if abilities.swapSpell(self.spells.firenukebuff, 5) then return end
+            if abilities.swapSpell(self.spells.bardhaste, 6) then return end
+            if abilities.swapSpell(self.spells.overhaste, 7) then return end
+            if abilities.swapSpell(self.spells.selos, 8) then return end
+            --if abilities.swapSpell(self.spells.snare, 9) then return end
+            --if abilities.swapSpell(self.spells.chantflame, 10) then return end
         end
         checkSpellTimer:reset()
     end

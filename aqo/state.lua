@@ -79,7 +79,6 @@ function state.resetCombatState(debug, caller)
     state.resists = {}
 end
 
-
 state.actionTaken = false
 
 state.positioning = false
@@ -124,12 +123,13 @@ end
 
 state.memSpell = false
 state.memSpellTimer = timer:new(10000)
+state.wait_for_spell_ready = false
 state.restoreGem = nil
 
 function state.handleMemSpell()
     if state.memSpell then
-        if mq.TLO.Me.SpellReady(state.memSpell.Name)() then
-            logger.info('Memorized spell is ready: %s', state.memSpell.Name)
+        if (mq.TLO.Me.Gem(state.memSpell.Name)() and not state.wait_for_spell_ready) or mq.TLO.Me.SpellReady(state.memSpell.Name)() then
+            logger.info('Finished memorizing: \ag%s\ax', state.memSpell.Name)
             state.resetMemSpellState()
             return true
         elseif state.memSpellTimer:timerExpired() then
@@ -148,6 +148,7 @@ end
 
 function state.resetMemSpellState()
     state.memSpell = nil
+    state.wait_for_spell_ready = false
     state.actionTaken = false
 end
 
@@ -201,7 +202,6 @@ function state.resetCastingState()
     state.casting = false
     state.fizzled = nil
     state.interrupted = nil
-    state.restoreGem = nil
     state.actionTaken = false
 end
 

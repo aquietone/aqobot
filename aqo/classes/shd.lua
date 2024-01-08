@@ -284,34 +284,34 @@ function ShadowKnight:checkSpellSet()
     local spellSet = self.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            abilities.swapSpell(self.spells.tap1, 1)
-            abilities.swapSpell(self.spells.tap2, 2)
-            abilities.swapSpell(self.spells.largetap, 3)
-            abilities.swapSpell(self.spells.composite, 4, composite_names)
-            abilities.swapSpell(self.spells.spear, 5)
-            abilities.swapSpell(self.spells.terror, 6)
-            abilities.swapSpell(self.spells.aeterror, 7)
-            abilities.swapSpell(self.spells.dottap, 8)
-            abilities.swapSpell(self.spells.challenge, 9)
-            abilities.swapSpell(self.spells.bitetap, 10)
-            abilities.swapSpell(self.spells.stance, 11)
-            abilities.swapSpell(self.spells.skin, 12)
-            abilities.swapSpell(self.spells.acdebuff, 13)
+            if abilities.swapSpell(self.spells.tap1, 1) then return end
+            if abilities.swapSpell(self.spells.tap2, 2) then return end
+            if abilities.swapSpell(self.spells.largetap, 3) then return end
+            if abilities.swapSpell(self.spells.composite, 4, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.spear, 5) then return end
+            if abilities.swapSpell(self.spells.terror, 6) then return end
+            if abilities.swapSpell(self.spells.aeterror, 7) then return end
+            if abilities.swapSpell(self.spells.dottap, 8) then return end
+            if abilities.swapSpell(self.spells.challenge, 9) then return end
+            if abilities.swapSpell(self.spells.bitetap, 10) then return end
+            if abilities.swapSpell(self.spells.stance, 11) then return end
+            if abilities.swapSpell(self.spells.skin, 12) then return end
+            if abilities.swapSpell(self.spells.acdebuff, 13) then return end
             state.spellSetLoaded = spellSet
         elseif spellSet == 'dps' then
-            abilities.swapSpell(self.spells.tap1, 1)
-            abilities.swapSpell(self.spells.tap2, 2)
-            abilities.swapSpell(self.spells.largetap, 3)
-            abilities.swapSpell(self.spells.composite, 4, composite_names)
-            abilities.swapSpell(self.spells.spear, 5)
-            abilities.swapSpell(self.spells.corruption, 6)
-            abilities.swapSpell(self.spells.poison, 7)
-            abilities.swapSpell(self.spells.dottap, 8)
-            abilities.swapSpell(self.spells.disease, 9)
-            abilities.swapSpell(self.spells.bitetap, 10)
-            abilities.swapSpell(self.spells.stance, 11)
-            abilities.swapSpell(self.spells.skin, 12)
-            abilities.swapSpell(self.spells.acdebuff, 13)
+            if abilities.swapSpell(self.spells.tap1, 1) then return end
+            if abilities.swapSpell(self.spells.tap2, 2) then return end
+            if abilities.swapSpell(self.spells.largetap, 3) then return end
+            if abilities.swapSpell(self.spells.composite, 4, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.spear, 5) then return end
+            if abilities.swapSpell(self.spells.corruption, 6) then return end
+            if abilities.swapSpell(self.spells.poison, 7) then return end
+            if abilities.swapSpell(self.spells.dottap, 8) then return end
+            if abilities.swapSpell(self.spells.disease, 9) then return end
+            if abilities.swapSpell(self.spells.bitetap, 10) then return end
+            if abilities.swapSpell(self.spells.stance, 11) then return end
+            if abilities.swapSpell(self.spells.skin, 12) then return end
+            if abilities.swapSpell(self.spells.acdebuff, 13) then return end
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()

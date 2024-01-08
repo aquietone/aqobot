@@ -514,28 +514,28 @@ function Necromancer:checkSpellSet()
     local spellSet = self.OPTS.SPELLSET.value
     if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
         if spellSet == 'standard' then
-            abilities.swapSpell(self.spells.composite, 1, composite_names)
-            abilities.swapSpell(self.spells.pyreshort, 2)
-            abilities.swapSpell(self.spells.venom, 3)
-            abilities.swapSpell(self.spells.magic, 4)
-            abilities.swapSpell(self.spells.haze, 5)
-            abilities.swapSpell(self.spells.grasp, 6)
-            abilities.swapSpell(self.spells.leech, 7)
-            --abilities.swapSpell(self.spells.decay, 11)
-            abilities.swapSpell(self.spells.combodisease, 11)
-            abilities.swapSpell(self.spells.synergy, 13)
+            if abilities.swapSpell(self.spells.composite, 1, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.pyreshort, 2) then return end
+            if abilities.swapSpell(self.spells.venom, 3) then return end
+            if abilities.swapSpell(self.spells.magic, 4) then return end
+            if abilities.swapSpell(self.spells.haze, 5) then return end
+            if abilities.swapSpell(self.spells.grasp, 6) then return end
+            if abilities.swapSpell(self.spells.leech, 7) then return end
+            --if abilities.swapSpell(self.spells.decay, 11) then return end
+            if abilities.swapSpell(self.spells.combodisease, 11) then return end
+            if abilities.swapSpell(self.spells.synergy, 13) then return end
             state.spellSetLoaded = spellSet
         elseif spellSet == 'short' then
-            abilities.swapSpell(self.spells.composite, 1, composite_names)
-            abilities.swapSpell(self.spells.pyreshort, 2)
-            abilities.swapSpell(self.spells.venom, 3)
-            abilities.swapSpell(self.spells.magic, 4)
-            abilities.swapSpell(self.spells.haze, 5)
-            abilities.swapSpell(self.spells.grasp, 6)
-            abilities.swapSpell(self.spells.leech, 7)
-            --abilities.swapSpell(self.spells.decay, 11)
-            abilities.swapSpell(self.spells.combodisease, 11)
-            abilities.swapSpell(self.spells.synergy, 13)
+            if abilities.swapSpell(self.spells.composite, 1, false, composite_names) then return end
+            if abilities.swapSpell(self.spells.pyreshort, 2) then return end
+            if abilities.swapSpell(self.spells.venom, 3) then return end
+            if abilities.swapSpell(self.spells.magic, 4) then return end
+            if abilities.swapSpell(self.spells.haze, 5) then return end
+            if abilities.swapSpell(self.spells.grasp, 6) then return end
+            if abilities.swapSpell(self.spells.leech, 7) then return end
+            --if abilities.swapSpell(self.spells.decay, 11) then return end
+            if abilities.swapSpell(self.spells.combodisease, 11) then return end
+            if abilities.swapSpell(self.spells.synergy, 13) then return end
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
@@ -543,65 +543,65 @@ function Necromancer:checkSpellSet()
     end
     if spellSet == 'standard' then
         if self:isEnabled('USEMANATAP') then
-            abilities.swapSpell(self.spells.manatap, 8)
+            if abilities.swapSpell(self.spells.manatap, 8) then return end
         else
-            abilities.swapSpell(self.spells.ignite, 8)
+            if abilities.swapSpell(self.spells.ignite, 8) then return end
         end
         if self:isEnabled('USEALLIANCE') then
-            abilities.swapSpell(self.spells.alliance, 9)
+            if abilities.swapSpell(self.spells.alliance, 9) then return end
         else
             if self:isEnabled('USEMANATAP') then
-                abilities.swapSpell(self.spells.ignite, 9)
+                if abilities.swapSpell(self.spells.ignite, 9) then return end
             else
-                abilities.swapSpell(self.spells.scourge, 9)
+                if abilities.swapSpell(self.spells.scourge, 9) then return end
             end
         end
         if self:isEnabled('USEBUFFSHIELD') then
-            abilities.swapSpell(self.spells.shield, 12)
+            if abilities.swapSpell(self.spells.shield, 12) then return end
         else
             if self:isEnabled('USEMANATAP') and self:isEnabled('USEALLIANCE') then
-                abilities.swapSpell(self.spells.ignite, 12)
+                if abilities.swapSpell(self.spells.ignite, 12) then return end
             elseif self:isEnabled('USEMANATAP') or self:isEnabled('USEALLIANCE') then
-                abilities.swapSpell(self.spells.scourge, 12)
+                if abilities.swapSpell(self.spells.scourge, 12) then return end
             else
-                abilities.swapSpell(self.spells.corruption, 12)
+                if abilities.swapSpell(self.spells.corruption, 12) then return end
             end
         end
         if not self:isEnabled('USEWOUNDS') then
-            abilities.swapSpell(self.spells.pyrelong, 10)
+            if abilities.swapSpell(self.spells.pyrelong, 10) then return end
         else
-            abilities.swapSpell(self.spells.wounds, 10)
+            if abilities.swapSpell(self.spells.wounds, 10) then return end
         end
     elseif spellSet == 'short' then
         if self:isEnabled('USEMANATAP') then
-            abilities.swapSpell(self.spells.manatap, 8)
+            if abilities.swapSpell(self.spells.manatap, 8) then return end
         else
-            abilities.swapSpell(self.spells.ignite, 8)
+            if abilities.swapSpell(self.spells.ignite, 8) then return end
         end
         if self:isEnabled('USEALLIANCE') then
-            abilities.swapSpell(self.spells.alliance, 9)
+            if abilities.swapSpell(self.spells.alliance, 9) then return end
         else
             if self:isEnabled('USEMANATAP') then
-                abilities.swapSpell(self.spells.ignite, 9)
+                if abilities.swapSpell(self.spells.ignite, 9) then return end
             else
-                abilities.swapSpell(self.spells.scourge, 9)
+                if abilities.swapSpell(self.spells.scourge, 9) then return end
             end
         end
         if self:isEnabled('USEINSPIRE') then
-            abilities.swapSpell(self.spells.inspire, 12)
+            if abilities.swapSpell(self.spells.inspire, 12) then return end
         else
             if self:isEnabled('USEMANATAP') and self:isEnabled('USEALLIANCE') then
-                abilities.swapSpell(self.spells.ignite, 12)
+                if abilities.swapSpell(self.spells.ignite, 12) then return end
             elseif self:isEnabled('USEMANATAP') or self:isEnabled('USEALLIANCE') then
-                abilities.swapSpell(self.spells.scourge, 12)
+                if abilities.swapSpell(self.spells.scourge, 12) then return end
             else
-                abilities.swapSpell(self.spells.venin, 12)
+                if abilities.swapSpell(self.spells.venin, 12) then return end
             end
         end
         if not self:isEnabled('USEWOUNDS') then
-            abilities.swapSpell(self.spells.pyrelong, 10)
+            if abilities.swapSpell(self.spells.pyrelong, 10) then return end
         else
-            abilities.swapSpell(self.spells.swarm, 10)
+            if abilities.swapSpell(self.spells.swarm, 10) then return end
         end
     end
 end
