@@ -193,12 +193,26 @@ function base:isAbilityEnabled(key)
     return not key or not self.OPTS[key] or self.OPTS[key].value
 end
 
+function base:addNSpells(spellGroup, numToAdd, spellList, options)
+    for i=1,numToAdd do
+        local foundSpell = common.getBestSpell(spellList, options, spellGroup)
+        self.spells[spellGroup..i] = foundSpell
+        if not foundSpell then
+            logger.info('Could not find spell: \ag%s\ax', spellGroup..i)
+            return
+        end
+        local j = 1
+        while spellList[1] ~= foundSpell.BaseName or j > 25 do
+            j = j + 1 -- prevent infinite loop in case of some strange edge case maybe
+            table.remove(spellList, 1)
+        end
+        table.remove(spellList, 1)
+    end
+end
+
 function base:addSpell(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options, spellGroup)
     self.spells[spellGroup] = foundSpell
-    --[[if foundSpell then
-        logger.info('[%s] Found spell: %s (%s)', spellGroup, foundSpell.Name, foundSpell.ID)
-    else]]
     if not foundSpell then
         logger.info('Could not find spell: \ag%s\ax', spellGroup)
     end

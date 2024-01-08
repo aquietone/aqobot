@@ -35,7 +35,7 @@ local function getSpell(spellName)
     local spell = mq.TLO.Spell(spellName)
     local rankname = spell.RankName()
     if not mq.TLO.Me.Book(rankname)() then return nil end
-    return {ID=spell.ID(), Name=rankname, Ref=spell, Level=spell.Level()}
+    return {ID=spell.ID(), Name=rankname, Ref=spell, Level=spell.Level(), BaseName=spell.BaseName()}
 end
 
 function common.getBestSpell(spells, options, spellGroup)

@@ -126,6 +126,7 @@ local function buffSelf(base)
     end
 end
 
+-- buff group members, not necessarily your own characters
 local function buffSingle(base)
     local groupSize = mq.TLO.Group.Members() or 0
     for i=1,groupSize do
@@ -144,6 +145,7 @@ local function buffSingle(base)
     end
 end
 
+-- buff characters on the same post office
 local function buffActors(base)
     local availableBuffs = base:getRequestAliases()
     for name, charState in pairs(state.actors) do
@@ -164,41 +166,6 @@ local function buffActors(base)
     end
 end
 
-local function buffGroup(base)
-    for _,aBuff in ipairs(base.groupBuffs) do
-        local buffName = aBuff.Name -- TODO: buff name may not match AA or item name
-        if state.subscription ~= 'GOLD' then buffName = aBuff.Name:gsub(' Rk%..*', '') end
-        if aBuff.CastType == abilities.Types.Spell then
-            local anyoneMissing = false
-            if not mq.TLO.Group.GroupSize() then
-                if not mq.TLO.Me.Buff(buffName)() and not mq.TLO.Me.Song(buffName)() then
-                    anyoneMissing = true
-                end
-            else
-                for i=1,mq.TLO.Group.Members() do
-                    local member = mq.TLO.Group.Member(i)
-                    local distance = member.Distance3D() or 300
-                    if buff.needsBuff(aBuff, member) and distance < 100 then
-                        anyoneMissing = true
-                    end
-                end
-            end
-            if anyoneMissing then
-                if abilities.swapAndCast(aBuff, state.swapGem) then return true end
-            end
-        elseif aBuff.CastType == abilities.Types.Disc then
-            
-        elseif aBuff.CastType == abilities.Types.AA then
-            buff.groupBuff(aBuff)
-        elseif aBuff.CastType == abilities.Types.Item then
-            local item = mq.TLO.FindItem(aBuff.ID)
-            if not mq.TLO.Me.Buff(item.Spell.Name())() then
-                aBuff:use()
-            end
-        end
-    end
-end
-
 local function buffOOC(base)
     -- call class specific buff routine for any special cases
     if base.buff_class then
@@ -211,9 +178,6 @@ local function buffOOC(base)
     if buffSelf(base) then return true end
     if buffActors(base) then return true end
     if buffSingle(base) then return true end
-    --if buff_tank(base) then return true end
-    --if buffGroup(base) then return true end
-
 end
 
 local function buffPet(base)
