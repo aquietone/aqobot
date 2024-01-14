@@ -52,7 +52,13 @@ end
 -- berate 56
 -- bellow 52
 function Warrior:initTankAbilities()
-    table.insert(self.tankAbilities, common.getSkill('Taunt', {aggro=true, condition=conditions.aggroBelow}))
+    local lowAggroInMelee = function(ability)
+        local aggropct = mq.TLO.Target.PctAggro() or 100
+        local targetDistance = mq.TLO.Target.Distance3D() or 300
+        local targetMaxRange  = mq.TLO.Target.MaxRangeTo() or 0
+        return (ability.aggro == nil or aggropct < 100) and targetDistance <= targetMaxRange
+    end
+    table.insert(self.tankAbilities, common.getSkill('Taunt', {aggro=true, condition=lowAggroInMelee}))
 
     self.mash_defensive = common.getBestDisc({'Vigorous Defense', 'Primal Defense'})
     table.insert(self.tankAbilities, self.mash_defensive)

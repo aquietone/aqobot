@@ -1,5 +1,6 @@
 --- @type Mq
 local mq = require('mq')
+
 ---@class Timer
 ---@field expiration number #Time, in milliseconds, after which the timer expires.
 ---@field start_time number #Time since epoch, in milliseconds, when timer is counting from.

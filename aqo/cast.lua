@@ -175,7 +175,7 @@ function casting.cast(spell, targetID, interruptCheck)
                 end
             else
                 if mq.TLO.Target.ID() ~= targetID then
-                    mq.cmdf('/mqtarget id %s', targetID)
+                    target.DoTarget()
                 end
                 if spell.CastType == abilities.Types.Spell then
                     mq.cmdf('/cast "%s"', spell.CastName)

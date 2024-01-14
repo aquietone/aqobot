@@ -98,7 +98,7 @@ local config = {
         classes = constants.dotClasses,
         label = 'DoT Mana Min',
         type = 'inputint',
-        tlo = 'DotManaMin',
+        tlo = 'DoTManaMin',
         tlotype = 'int',
     },
 

@@ -126,7 +126,7 @@ function Enchanter:initSpellLines()
     self:addSpell('charm', {'Esoteric Command', 'Marvel\'s Command'})
     -- buffs
     self:addSpell('unity', {'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
-    self:addSpell('procbuff', {'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}) -- single target dmg proc buff
+    self:addSpell('procbuff', {'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}, {swap=false}) -- single target dmg proc buff
     self:addSpell('kei', {'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
     self:addSpell('keigroup', {'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Clairvoyance', 'Voice of Quellious'})
     self:addSpell('haste', {'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
@@ -286,14 +286,14 @@ end
 -- nuke5
 -- dot2
 function Enchanter:findNextSpell()
-    if self:isEnabled('USEDEBUFF') and self.spells.tash and not mq.TLO.Target.Tashed() and self.spells.tash:isReady() then return self.spells.tash end
-    if self.spells.composite and self.spells.composite:isReady() then return self.spells.composite end
+    if self:isEnabled('USEDEBUFF') and self.spells.tash and not mq.TLO.Target.Tashed() and self.spells.tash:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.tash end
+    if self.spells.composite and self.spells.composite:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.composite end
     if castSynergy() then return nil end
-    --if state.emu and self.spells.spasm and self.spells.spasm:isReady() then return self.spells.spasm end
-    if self.spells.nuke5 and self.spells.nuke5:isReady() then return self.spells.nuke5 end
-    if self.spells.dot and self.spells.dot:isReady() then return self.spells.dot end
-    if self.spells.dot2 and self.spells.dot2:isReady() then return self.spells.dot2 end
-    if self.spells.nuke4 and self.spells.nuke4:isReady() then return self.spells.nuke4 end
+    --if state.emu and self.spells.spasm and self.spells.spasm:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.spasm end
+    if self.spells.nuke5 and self.spells.nuke5:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.nuke5 end
+    if self.spells.dot and self.spells.dot:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.dot end
+    if self.spells.dot2 and self.spells.dot2:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.dot2 end
+    if self.spells.nuke4 and self.spells.nuke4:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.nuke4 end
     return nil -- we found no missing dot that was ready to cast, so return nothing
 end
 
@@ -311,7 +311,7 @@ function Enchanter:recover()
         if cursor and cursor:find(self.azure.Name) then mq.cmd('/autoinventory') mq.delay(1) end
         local manacrystal = mq.TLO.FindItem(self.azure.Name)
         if manacrystal() then
-            abilities.use(abilities.Item:new({Name=manacrystal(), ID=manacrystal.ID()}))
+            abilities.use(abilities.Item:new({Name=manacrystal(), ID=manacrystal.ID()}), self)
         end
     end
     if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then

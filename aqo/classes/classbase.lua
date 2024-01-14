@@ -406,7 +406,7 @@ function base:cure()
     if mq.TLO.Me.SPA(15)() < 0 then
         if mq.TLO.Me.CountersCurse() > 0 then
             for _,cure in self.cures do
-                if cure.curse or cure.all and cure:isReady() then
+                if cure.curse or cure.all and cure:isReady() == abilities.IsReady.SHOULD_CAST then
                     if mq.TLO.Target.ID() ~= state.loop.ID then
                         mq.cmd('/squelch /mqtar')
                     end
@@ -465,13 +465,13 @@ function base:mash()
         if self.mashClass then self:mashClass() end
         if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if self.useCommonListProcessor then
-                common.processList(self.tankAbilities, false)--true)
+                common.processList(self.tankAbilities, self, false)--true)
             else
                 self:doCombatLoop(self.tankAbilities)
             end
         end
         if self.useCommonListProcessor then
-            common.processList(self.DPSAbilities, false)--true)
+            common.processList(self.DPSAbilities, self, false)--true)
         else
             self:doCombatLoop(self.DPSAbilities)
         end
@@ -488,13 +488,13 @@ function base:ae()
         if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if self.aeClass then self.aeClass() end
             if self.useCommonListProcessor then
-                common.processList(self.AETankAbilities, false)--true)
+                common.processList(self.AETankAbilities, self, false)--true)
             else
                 self:doCombatLoop(self.AETankAbilities)
             end
         end
         if self.useCommonListProcessor then
-            common.processList(self.AEDPSAbilities, false)--true)
+            common.processList(self.AEDPSAbilities, self, false)--true)
         else
             self:doCombatLoop(self.AEDPSAbilities)
         end
@@ -512,13 +512,13 @@ function base:burn()
 
         if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if self.useCommonListProcessor then
-                common.processList(self.tankBurnAbilities, false)
+                common.processList(self.tankBurnAbilities, self, false)
             else
                 self:doCombatLoop(self.tankBurnAbilities, state.burn_type)
             end
         end
         if self.useCommonListProcessor then
-            common.processList(self.burnAbilities, false)
+            common.processList(self.burnAbilities, self, false)
         else
             self:doCombatLoop(self.burnAbilities, state.burn_type)
         end
@@ -542,7 +542,7 @@ function base:findNextSpell()
     for _,spell in ipairs(self.spellRotations[self.OPTS.SPELLSET.value]) do
         local resistCount = state.resists[spell.Name] or 0
         local resistStopCount = config.get('RESISTSTOPCOUNT')
-        if spell:isReady() and self:isAbilityEnabled(spell.opt)
+        if self:isAbilityEnabled(spell.opt) and spell:isReady() == abilities.IsReady.SHOULD_CAST
                 and (resistStopCount == 0 or resistCount < resistStopCount)
                 and (not spell.condition or spell.condition()) then
             return spell
@@ -652,13 +652,13 @@ function base:aggro()
     if mq.TLO.Target() and mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID and mq.TLO.Target.Named() then
         local useDefensives = true
         if self.useCommonListProcessor then
-            if common.processList(self.fadeAbilities, true) then
+            if common.processList(self.fadeAbilities, self, true) then
                 if mq.TLO.Me.TargetOfTarget.ID() ~= state.loop.ID then
                     useDefensives = false
                 end
             end
             if useDefensives then
-                common.processList(self.defensiveAbilities, true)
+                common.processList(self.defensiveAbilities, self, true)
             end
         else
             for _,ability in ipairs(self.fadeAbilities) do
@@ -688,7 +688,7 @@ function base:aggro()
     -- 2. Is my aggro above some threshold? Use aggro reduction abilities
     if mq.TLO.Target() and pctAggro >= 70 and mq.TLO.Target.Named() then
         if self.useCommonListProcessor then
-            common.processList(self.aggroReducers, true)
+            common.processList(self.aggroReducers, self, true)
         else
             for _,ability in ipairs(self.aggroReducers) do
                 if self:isAbilityEnabled(ability.opt) then
@@ -718,7 +718,7 @@ function base:recover()
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     if self.useCommonListProcessor then
-        common.processList(self.recoverAbilities, true)
+        common.processList(self.recoverAbilities, self, true)
     else
         for _,ability in ipairs(self.recoverAbilities) do
             if self:isAbilityEnabled(ability.opt) and (not ability.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
@@ -731,7 +731,7 @@ function base:recover()
                 end
             end
         end
-        if useAbility and useAbility:isReady() then
+        if useAbility and useAbility:isReady() == abilities.IsReady.SHOULD_CAST then
             if mq.TLO.Me.MaxHPs() < 6000 then return end
             local originalTargetID = 0
             if useAbility.TargetType == 'Single' and mq.TLO.Target.ID() ~= state.loop.ID then
@@ -754,7 +754,7 @@ function base:managepet()
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
     if self.spells.pet.Mana > mq.TLO.Me.CurrentMana() then return end
     if self.spells.pet.ReagentID and mq.TLO.FindItemCount(self.spells.pet.ReagentID)() < self.spells.pet.ReagentCount then return end
-    abilities.swapAndCast(self.spells.pet, state.swapGem)
+    abilities.swapAndCast(self.spells.pet, state.swapGem, self)
     state.queuedAction = function() mq.cmd('/pet ghold on') end
 end
 
@@ -811,7 +811,7 @@ function base:handleRequests()
                     abilities.swapSpell(request.requested, state.swapGem, true)
                     mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.Name)() end)
                 end
-                if request.requested:isReady() then
+                if request.requested:isReady() == abilities.IsReady.SHOULD_CAST then
                     local tranquilUsed = '/dgt all Casting'
                     if request.tranquil then
                         if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then

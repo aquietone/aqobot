@@ -3,6 +3,7 @@ local mq = require('mq')
 local class = require('classes.classbase')
 local config = require('interface.configuration')
 local conditions = require('routines.conditions')
+local abilities = require('ability')
 local constants = require('constants')
 local common = require('common')
 local state = require('state')
@@ -306,7 +307,7 @@ function BeastLord:recoverClass()
                 needEnd = needEnd + 1
             end
         end
-        if (needEnd+lowmana) >= 3 and self.paragon:isReady() then
+        if (needEnd+lowmana) >= 3 and self.paragon:isReady() == abilities.IsReady.SHOULD_CAST then
             self.paragon:use()
         end
     end

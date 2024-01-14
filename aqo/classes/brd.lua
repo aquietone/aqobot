@@ -418,7 +418,7 @@ function Bard:useEpic()
         return
     end
     local fierceeye_rdy = mq.TLO.Me.AltAbilityReady(self.fierceeye.Name)()
-    if self.epic:isReady() and fierceeye_rdy then
+    if self.epic:isReady() == abilities.IsReady.SHOULD_CAST and fierceeye_rdy then
         mq.cmd('/stopsong')
         mq.delay(250)
         self.fierceeye:use()

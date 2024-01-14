@@ -323,7 +323,7 @@ local function findNextSpell()
     local tothp = mq.TLO.Me.TargetOfTarget.PctHPs()
     if tothp and mq.TLO.Target() and mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.TargetOfTarget() and tothp < 65 then
         for _,spell in ipairs(Ranger.combat_heal_spells) do
-            if spell:isReady() then
+            if spell:isReady() == abilities.IsReady.SHOULD_CAST then
                 return spell
             end
         end
@@ -333,7 +333,7 @@ local function findNextSpell()
         if spell.Name ~= Ranger.spells.dot.Name or Ranger:isEnabled('USEDOTS')
                 or (state.burnActive and isNamed)
                 or (config.get('BURNALWAYS') and isNamed) then
-            if spell:isReady() then
+            if spell:isReady() == abilities.IsReady.SHOULD_CAST then
                 return spell
             end
         end
@@ -341,7 +341,7 @@ local function findNextSpell()
     if Ranger:isEnabled('USEARROWSPELLS') then
         for _,spell in ipairs(Ranger.arrow_spells) do
             if not Ranger.spells.composite or spell.Name ~= Ranger.spells.composite.Name or Ranger:isEnabled('USECOMPOSITE') then
-                if spell:isReady() then
+                if spell:isReady() == abilities.IsReady.SHOULD_CAST then
                     return spell
                 end
             end
@@ -349,7 +349,7 @@ local function findNextSpell()
     end
     if Ranger:isEnabled('USENUKES') then
         for _,spell in ipairs(Ranger.dd_spells) do
-            if spell:isReady() then
+            if spell:isReady() == abilities.IsReady.SHOULD_CAST then
                 return spell
             end
         end

@@ -17,7 +17,6 @@ local loot = require('utils.lootutils')
 local movement = require('utils.movement')
 local timer = require('utils.timer')
 
-local ability = require('ability')
 local common = require('common')
 local constants = require('constants')
 local mode = require('mode')
@@ -41,7 +40,6 @@ local function init()
     -- Initialize class specific functions
     class:init()
     aqo.events.initClassBasedEvents()
-    ability.init(class)
 
     -- Initialize binds
     commands.init(class)
@@ -211,8 +209,10 @@ local function main()
 
     local debugTimer = timer:new(3000)
     local statusTimer = timer:new(1000)
+    local delay = 500
     -- Main Loop
     while true do
+        local loopStart = mq.gettime()
         if state.debug and debugTimer:timerExpired() then
             logger.debug(logger.flags.aqo.main, 'Start Main Loop')
             debugTimer:reset()
@@ -236,7 +236,7 @@ local function main()
                     if not state.actionTaken then
                         class:mainLoop()
                     end
-                    mq.delay(50)
+                    delay = 50
                 else
                     -- stay in camp or stay chasing chase target if not paused but invis
                     local pet_target_id = mq.TLO.Pet.Target.ID() or 0
@@ -246,7 +246,7 @@ local function main()
                     aqo.camp.checkCamp()
                     common.checkChase()
                     common.rest()
-                    mq.delay(50)
+                    delay = 50
                 end
             end
         else
@@ -258,12 +258,14 @@ local function main()
             if config.get('CHASEPAUSED') then
                 common.checkChase()
             end
-            mq.delay(500)
+            delay = 500
         end
         if statusTimer:timerExpired() then
             status.send(class)
             statusTimer:reset()
         end
+        logger.debug(logger.flags.aqo.main, 'loop execution time: %s loop delay: %s', mq.gettime() - loopStart, delay)
+        mq.delay(delay)
     end
 end
 

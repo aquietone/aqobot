@@ -175,17 +175,17 @@ local function getHeal(healAbilities, healType, whoToHeal, opts)
         if heal[healType] and healEnabled(opts, heal.opt) then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
                 if healType == HEAL_TYPES.GROUPHOT then
-                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() then return heal end
+                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() == abilities.IsReady.SHOULD_CAST then return heal end
                 elseif heal.CastType == abilities.Types.Spell then
                     local spell = mq.TLO.Spell(heal.Name)
-                    if abilities.canUseSpell(spell, heal.type) then
+                    if abilities.canUseSpell(spell, heal) == abilities.IsReady.CAN_CAST then
                         return heal
                     end
                 elseif heal.CastType == abilities.Types.Item then
                     local theItem = mq.TLO.FindItem(heal.ID)
-                    if heal:isReady(theItem) then return heal end
+                    if heal:isReady(theItem) == abilities.IsReady.SHOULD_CAST then return heal end
                 else
-                    if heal:isReady() then return heal end
+                    if heal:isReady() == abilities.IsReady.SHOULD_CAST then return heal end
                 end
             end
         end

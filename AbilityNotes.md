@@ -1,10 +1,10 @@
 # Notes
 
-Call static Ability.use to perform checks before casting (can use, should use, condition, option) and handle swapping, precast, postcast. (use when )
+Call static Ability.use to perform checks before casting (can use, should use, condition, option) and handle swapping, precast, postcast. (Called when )
 
-Call instance ability:execute to cast with zero checks. (just used by static Ability.Use after checks are performed)
+Call instance ability:execute to cast with zero checks. (Called by static Ability.use or instanced ability:use after checks are performed)
 
-Call instance ability:use to cast with timer and readiness checks. (use when condition, option already checked prior such as findNextSpell loops)
+Call instance ability:use to cast with timer and readiness checks. (Call when condition, option already checked prior such as findNextSpell loops)
 
 ## Ability
 
@@ -16,16 +16,24 @@ Defines characteristics and use of:
 - Item Clickies
 - Skills
 
-### Should Use Spell
+### AbilityTypes
 
-Checks whether it makes sense to use an ability.
+Enum for specifying the type of an ability
+
+### IsReady
+
+Enum for return values from Ability.shouldUseSpell and Ability.canUseSpell.
+
+### Should Use Spell (static method)
+
+Checks whether it makes sense to use an ability on a given target.
 If beneficial and has duration, check the spell stacks and target is in range.
 If beneficial and is instant, check target is in range if target is required.
 
 If detrimental and has duration, check target in range and LoS and not debuffed or debuff about to fade and not corpse.
 If detrimental and is instant, check target is in range and LOS and not corpse.
 
-### Can Use Spell
+### Can Use Spell (static method)
 
 Checks whether you have the resources to use an ability.
 Is the spell ready?
@@ -33,9 +41,9 @@ Is the character moving or already casting? (If not a bard)
 Does the character have enough mana or endurance?
 Does the character have the proper reagents?
 
-### Use
+### Use (static method)
 
-Static method for using an ability.
+Method for using an ability.
 If the ability's timer is not expired, do not use it.
 If already casting, do not use it. (unless cast time < 500 and class is bard)
 If isReady is true or the ability is a spell which can be swapped in and the condition is met and the ability is enabled, proceed.
@@ -44,7 +52,7 @@ Use precast if defined.
 Execute the ability.
 Use postcast if defined.
 
-## Spell
+## Spell (extends Ability)
 
 Defines an Ability of type Spell.
 Spell timer is set to ${Spell[].RecastTime}
@@ -66,7 +74,7 @@ Set casting state.
 
 Return CanUseSpell and ShouldUseSpell
 
-## Disc
+## Disc (extends Ability)
 
 Defines an Ability of type Disc.
 Disc timer is set to ${Spell[].RecastTime}
@@ -94,7 +102,7 @@ Return CombatAbilityReady and CanUseSpell and ShouldUseSpell.
 
 Return IsSkill and Duration > 0 TargetType == Self and not StacksWithDiscs.
 
-## AA
+## AA (extends Ability)
 
 Defines an Ability of type AA.
 AA timer is set to ${AltAbility[].ReuseTimer}
@@ -114,7 +122,7 @@ Set casting state.
 
 Return AltAbilityReady and CanUseSpell and ShouldUseSpell.
 
-## Item
+## Item (extends Ability)
 
 Defines an Ability of type Item.
 Item timer is set to ${FindItem[].Clicky.TimerID}*1000
@@ -137,7 +145,7 @@ Set casting state.
 If prestige item and not gold status, do not use.
 Return item.Timer == 0 and CanUseSpell and ShouldUseSpell
 
-## Skill
+## Skill (extends Ability)
 
 Defines an Ability of type Skill.
 Skill timer is set to 2000.

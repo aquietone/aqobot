@@ -203,7 +203,7 @@ function assist.targetAssistSpawn(assistMobID)
     local assistSpawn = mq.TLO.Spawn('id '..assistMobID)
     if state.assistMobID == assistMobID and assistSpawn.Type() ~= 'Corpse' then
         -- MAs target didn't change but we aren't currently fighting it for some reason, so reacquire target
-        mq.cmdf('/mqt id %s', assistMobID)
+        assistSpawn.DoTarget()
     elseif assist.shouldAssist(assistSpawn) then
         -- this is a brand new assist target
         if mq.TLO.Target.ID() ~= assistMobID then

@@ -402,9 +402,9 @@ function common.checkCursor()
     end
 end
 
-function common.processList(aList, returnOnFirstUse)
+function common.processList(aList, class, returnOnFirstUse)
     for _,entry in ipairs(aList) do
-        if abilities.use(entry) and returnOnFirstUse then return true end
+        if abilities.use(entry, class) and returnOnFirstUse then return true end
     end
 end
 

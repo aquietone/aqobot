@@ -363,7 +363,7 @@ function Magician:armPets()
                 if ownerPetID > 0 and ownerPetDistance < 50 and ownerPetLevel > 0 and (ownerPetPrimary == 0 or ownerPetPrimary == EnchanterPetPrimaryWeaponId) then
                     state.armPet = ownerPetID
                     state.armPetOwner = owner
-                    mq.delay(2000, function() return self.spells.weapons:isReady() end)
+                    mq.delay(2000, function() return self.spells.weapons:isReady() == abilities.IsReady.SHOULD_CAST end)
                     self.armPet(ownerPetID, weapons, owner)
                 end
             end
@@ -394,7 +394,7 @@ function Magician:armPetRequest(requester)
             local restoreGem4 = {Name=mq.TLO.Me.Gem(9)()}
             state.armPet = ownerPetID
             state.armPetOwner = requester
-            mq.delay(2000, function() return self.spells.weapons:isReady() end)
+            mq.delay(2000, function() return self.spells.weapons:isReady() == abilities.IsReady.SHOULD_CAST end)
             self.armPet(ownerPetID, weapons, requester)
             if mq.TLO.Me.Gem(12)() ~= restoreGem1.Name then abilities.swapSpell(restoreGem1, 12) end
             if mq.TLO.Me.Gem(11)() ~= restoreGem2.Name then abilities.swapSpell(restoreGem2, 12) end
@@ -420,11 +420,11 @@ function Magician:armPet(petID, weapons, owner)
     end
 
     if self.spells.armor then
-        mq.delay(3000, function() return self.spells.armor:isReady() end)
+        mq.delay(3000, function() return self.spells.armor:isReady() == abilities.IsReady.SHOULD_CAST end)
         if not self.giveOther(petID, self.spells.armor) then return end
     end
     if self.spells.jewelry then
-        mq.delay(3000, function() return self.spells.jewelry:isReady() end)
+        mq.delay(3000, function() return self.spells.jewelry:isReady() == abilities.IsReady.SHOULD_CAST end)
         if not self.giveOther(petID, self.spells.jewelry) then return end
     end
     if mq.TLO.FindItemCount('=Gold')() >= 1 then
@@ -556,7 +556,7 @@ function Magician:summonItem(spell, targetID, summonsItem, inventoryItem)
         abilities.swapSpell(spell, 12, true)
     end
     mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
-    if not spell:isReady() then logger.info('Spell %s was not ready', spell.Name) return false end
+    if spell:isReady() ~= abilities.IsReady.SHOULD_CAST then logger.info('Spell %s was not ready', spell.Name) return false end
     castUtils.cast(spell, targetID)
 
     mq.delay(300)

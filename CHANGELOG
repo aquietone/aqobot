@@ -1,3 +1,6 @@
+# 2024/01/13
+- Some refactoring around ability can/should use methods
+
 # 2024/01/07
 - Consolidate actor buff requests and request aliases
 - Fix nukemanamin / dotmanamin checks for non-mana using abilities / non-casters
