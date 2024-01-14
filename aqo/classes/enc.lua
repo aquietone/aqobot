@@ -143,14 +143,8 @@ function Enchanter:initSpellLines()
     self:addSpell('shield', {'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'})
     self:addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
 
-    self:addSpell('synergy', {'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
-    if self.spells.synergy then
-        if self.spells.synergy.Name:find('rend') then
-            self:addSpell('nuke5', {'Mindreap', 'Mindrift', 'Mindslash'})
-        elseif self.spells.synergy.Name:find('reap') then
-            self:addSpell('nuke5', {'Mindrift', 'Mindslash'})
-        end
-    end
+    self:addNSpells('mindnuke', 2, {'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
+
     if state.emu then
         self:addSpell('nuke5', {'Chromaburst', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
         self:addSpell('nuke4', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
@@ -169,10 +163,10 @@ function Enchanter:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.mezae)
     table.insert(self.spellRotations.standard, self.spells.dot)
     table.insert(self.spellRotations.standard, self.spells.dot2)
-    table.insert(self.spellRotations.standard, self.spells.synergy)
+    table.insert(self.spellRotations.standard, self.spells.mindnuke1)
     table.insert(self.spellRotations.standard, self.spells.nuke3)
     table.insert(self.spellRotations.standard, self.spells.nuke4)
-    table.insert(self.spellRotations.standard, self.spells.nuke5)
+    table.insert(self.spellRotations.standard, self.spells.mindnuke2)
     table.insert(self.spellRotations.standard, self.spells.composite)
     table.insert(self.spellRotations.standard, self.spells.stunaerune)
     table.insert(self.spellRotations.standard, self.spells.guard)
@@ -271,11 +265,11 @@ function Enchanter:initDefensiveAbilities()
 end
 
 local function castSynergy()
-    if Enchanter.spells.synergy and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(Enchanter.spells.synergy.Name)() then
-        if mq.TLO.Spell(Enchanter.spells.synergy.Name).Mana() > mq.TLO.Me.CurrentMana() then
+    if Enchanter.spells.mindnuke1 and not mq.TLO.Me.Song('Beguiler\'s Synergy')() and mq.TLO.Me.SpellReady(Enchanter.spells.mindnuke1.Name)() then
+        if mq.TLO.Spell(Enchanter.spells.mindnuke1.Name).Mana() > mq.TLO.Me.CurrentMana() then
             return false
         end
-        Enchanter.spells.synergy:use()
+        Enchanter.spells.mindnuke1:use()
         return true
     end
     return false

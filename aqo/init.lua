@@ -157,24 +157,6 @@ local function doLooting()
     end
 end
 
--- local fsm = {}
--- function fsm.IDLE()
-
--- end
--- function fsm.TANK_SCAN()
---     aqo.tank.findMobToTank()
--- end
--- function fsm.TANK_ENGAGE() end
--- function fsm.PULL_SCAN() end
--- function fsm.PULL_APPROACH() end
--- function fsm.PULL_ENGAGE() end
--- function fsm.PULL_RETURN() end
--- function fsm.PULL_WAIT() end
-
--- function fsm.processState()
---     return fsm[state.currentState]()
--- end
-
 local function handleStates()
     -- Async state handling
     --if state.looting then loot.lootMobs() return true end

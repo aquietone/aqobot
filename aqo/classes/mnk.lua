@@ -100,11 +100,11 @@ function Monk:initBurns()
     local crystalPalm = common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'})
     local heel = common.getBestDisc({'Heel of Kai', 'Heel of Kanji'})
     if crystalPalm then
-        crystalPalm.condition = function() return not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end
+        crystalPalm.condition = function() return not speedFocus or not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end
         table.insert(self.burnAbilities, speedFocus)
     end
     if heel then
-        heel.condition = function() return not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end
+        heel.condition = function() return not crystalPalm or not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end
         table.insert(self.burnAbilities, crystalPalm)
     end
     table.insert(self.burnAbilities, heel)

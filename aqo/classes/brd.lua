@@ -455,7 +455,6 @@ function Bard:invis()
     mq.delay(1)
     mq.cmd('/cast "selo\'s song of travel"')
     mq.delay(3500, function() return mq.TLO.Me.Invis() end)
-    mq.TLO.Me.Invis() = true
 end
 
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}

@@ -193,6 +193,11 @@ function base:isAbilityEnabled(key)
     return not key or not self.OPTS[key] or self.OPTS[key].value
 end
 
+---Add the best N spells from the list of spells to the class spell list
+---@param spellGroup string # Name of the spell category
+---@param numToAdd number # Number of spells from the category to be added
+---@param spellList table # Table of spell names to search in order
+---@param options table # Table of options to be applied to the spell
 function base:addNSpells(spellGroup, numToAdd, spellList, options)
     for i=1,numToAdd do
         local foundSpell = common.getBestSpell(spellList, options, spellGroup)
@@ -210,6 +215,10 @@ function base:addNSpells(spellGroup, numToAdd, spellList, options)
     end
 end
 
+---Add the best spell from the list of spells to the class spell list
+---@param spellGroup string # Name of the spell category
+---@param spellList table # Table of spell names to search in order
+---@param options table # Table of options to be applied to the spell
 function base:addSpell(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options, spellGroup)
     self.spells[spellGroup] = foundSpell
@@ -854,7 +863,6 @@ local function lifesupport()
                 local castTime = item.CastTime()
                 mq.cmdf('/useitem "%s"', healclicky)
                 mq.delay(250+(castTime or 0), function() return not mq.TLO.Me.ItemReady(healclicky)() end)
-                mq.TLO.Me.PctHPs() = mq.TLO.Me.PctHPs()
                 if mq.TLO.Me.PctHPs() > 75 then return end
             end
         end

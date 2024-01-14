@@ -116,9 +116,7 @@ end
 
 function Shaman:initSpellLines()
     -- Lvl 100+ main heal
-    self:addSpell('reckless1', {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
-    self:addSpell('reckless2', {'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
-    self:addSpell('reckless3', {'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
+    self:addNSpells('reckless', 3, {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
     -- Below lvl 100 main heal
     self:addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
 
