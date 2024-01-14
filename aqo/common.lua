@@ -170,7 +170,7 @@ function common.isFightingModeBased()
     elseif mode:isAssistMode() then
 
     elseif mode:getName() == 'manual' then
-        if mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
 
         else
 
@@ -317,8 +317,8 @@ local modrods = {['Summoned: Dazzling Modulation Shard']=true,['Sickle of Umbral
 ---Attempt to click mod rods if mana is below 75%.
 function common.checkMana()
     -- modrods
-    local pct_mana = state.loop.PctMana
-    local pct_end = state.loop.PctEndurance
+    local pct_mana = mq.TLO.Me.PctMana()
+    local pct_end = mq.TLO.Me.PctEndurance()
     local group_mana = mq.TLO.Group.LowMana(70)()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 and mq.TLO.Me.Class.CanCast() then
@@ -346,7 +346,7 @@ function common.checkMana()
 
     if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.Class.CanCast() then
         local manastone = mq.TLO.FindItem('Manastone')
-        if manastone() and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and state.loop.PctHPs > config.get('MANASTONESTARTHP') then
+        if manastone() and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then
             local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000, true)
             while mq.TLO.Me.PctHPs() > config.get('MANASTONESTOPHP') and not manastoneTimer:timerExpired() do
                 mq.cmd('/useitem manastone')
@@ -362,10 +362,10 @@ function common.rest()
     if state.mobCount > 0 and (mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if sitTimer:timerExpired() then
-        if state.loop.PctHPs < config.get('MEDHPSTART') then
+        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') then
             state.medding = true
         end
-        if (mq.TLO.Me.Class.CanCast() and state.loop.PctMana < config.get('MEDMANASTART')) or state.loop.PctEndurance < config.get('MEDENDSTART') then
+        if (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') then
             state.medding = true
         end
         if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and state.medding then
@@ -376,9 +376,9 @@ function common.rest()
         end
     end
     if mq.TLO.Me.Class.CanCast() then
-        if state.loop.PctMana > 85 then state.medding = false end
+        if mq.TLO.Me.PctMana() > 85 then state.medding = false end
     else
-        if state.loop.PctEndurance > 85 then state.medding = false end
+        if mq.TLO.Me.PctEndurance() > 85 then state.medding = false end
     end
 end
 

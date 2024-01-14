@@ -123,11 +123,11 @@ function ShadowKnight:initSpellConditions()
         end
     end
 
-    if self.spells.aeterror then self.spells.aeterror.condition = function() return mode.currentMode:isTankMode() and state.loop.PctHPs > 70 and mobsMissingAggro() end end
-    local aggroCondition = function() return mode.currentMode:isTankMode() and state.loop.PctHPs > 70 end
+    if self.spells.aeterror then self.spells.aeterror.condition = function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 and mobsMissingAggro() end end
+    local aggroCondition = function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 end
     if self.spells.challenge then self.spells.challenge.condition = aggroCondition end
     --if self.spells.terror then self.spells.terror.condition = aggroCondition end
-    local lifetapCondition = function() return state.loop.PctHPs < 85 end
+    local lifetapCondition = function() return mq.TLO.Me.PctHPs() < 85 end
     if self.spells.largetap then self.spells.largetap.condition = lifetapCondition end
     if self.spells.tap1 then self.spells.tap1.condition = lifetapCondition end
 end
@@ -246,7 +246,7 @@ function ShadowKnight:mashClass()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         -- hate's attraction
         if self.attraction and self:isEnabled(self.attraction.opt) and mobhp and mobhp > 95 then
             self.attraction:use()
@@ -255,7 +255,7 @@ function ShadowKnight:mashClass()
 end
 
 function ShadowKnight:burnClass()
-    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
         if self.mantle then self.mantle:use() end
         if self.carapace then self.carapace:use() end
         if self.guardian then self.guardian:use() end
@@ -265,8 +265,8 @@ function ShadowKnight:burnClass()
 end
 
 function ShadowKnight:ohshit()
-    if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
+        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if self.flash and mq.TLO.Me.AltAbilityReady(self.flash.Name)() then
                 self.flash:use()
             elseif self.deflection and self:isEnabled(self.deflection.opt)  then

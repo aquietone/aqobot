@@ -1,5 +1,6 @@
 # 2024/01/13
 - Some refactoring around ability can/should use methods
+- Remove state.loop variables
 
 # 2024/01/07
 - Consolidate actor buff requests and request aliases

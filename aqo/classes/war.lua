@@ -154,9 +154,9 @@ function Warrior:initBuffs()
 end
 
 function Warrior:ohShitClass()
-    if state.loop.PctHPs < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
+    if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if self.resurgence then self.resurgence:use() end
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == state.loop.ID then
+        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
             if self.flash and mq.TLO.Me.CombatAbilityReady(self.flash.Name)() then
                 self.flash:use()
             elseif self.fortitude and self:isEnabled(self.fortitude.opt) then

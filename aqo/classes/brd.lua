@@ -314,10 +314,10 @@ local function isSongReady(spellId, spellName)
     if not spellName then return false end
     local actualSpellName = spellName
     if state.subscription ~= 'GOLD' then actualSpellName = spellName:gsub(' Rk%..*', '') end
-    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and state.loop.PctMana < state.minMana) then
+    if mq.TLO.Spell(spellName).Mana() > mq.TLO.Me.CurrentMana() or (mq.TLO.Spell(spellName).Mana() > 1000 and mq.TLO.Me.PctMana() < state.minMana) then
         return false
     end
-    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and state.loop.PctEndurance < state.minEndurance) then
+    if mq.TLO.Spell(spellName).EnduranceCost() > mq.TLO.Me.CurrentEndurance() or (mq.TLO.Spell(spellName).EnduranceCost() > 1000 and mq.TLO.Me.PctEndurance() < state.minEndurance) then
         return false
     end
     if mq.TLO.Spell(spellName).TargetType() == 'Single' then
@@ -366,7 +366,7 @@ end
 
 function Bard:cast()
     if self:isEnabled('USETWIST') or mq.TLO.Me.Invis() then return false end
-    if not state.loop.Invis and self:doneSinging() then
+    if not mq.TLO.Me.Invis() and self:doneSinging() then
         --if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' then
         if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.Combat() then
             if (self.OPTS.USEEPIC.value == 'always' or state.burnActive or (self.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
@@ -455,7 +455,7 @@ function Bard:invis()
     mq.delay(1)
     mq.cmd('/cast "selo\'s song of travel"')
     mq.delay(3500, function() return mq.TLO.Me.Invis() end)
-    state.loop.Invis = true
+    mq.TLO.Me.Invis() = true
 end
 
 local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}

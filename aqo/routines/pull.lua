@@ -111,11 +111,11 @@ function pull.checkPullConditions()
     end
     if config.get('GROUPWATCHWHO') == 'none' then return true end
     if config.get('GROUPWATCHWHO') == 'self' then
-        if state.loop.PctHPs < config.get('MEDHPSTART') or state.loop.PctEndurance < config.get('MEDENDSTART') or state.loop.PctMana < config.get('MEDMANASTART') then
+        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or mq.TLO.Me.PctMana() < config.get('MEDMANASTART') then
             medding = true
             return false
         end
-        if (state.loop.PctHPs < config.get('MEDHPSTOP') or state.loop.PctEndurance < config.get('MEDENDSTOP') or state.loop.PctMana < config.get('MEDMANASTOP')) and medding then
+        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or mq.TLO.Me.PctMana() < config.get('MEDMANASTOP')) and medding then
             return false
         else
             medding = false
@@ -305,10 +305,10 @@ local function pullEngage(pull_spawn)
     end
     local tot_id = mq.TLO.Me.TargetOfTarget.ID()
     local targethp = mq.TLO.Target.PctHPs()
-    --if (tot_id > 0 and tot_id ~= state.loop.ID) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
+    --if (tot_id > 0 and tot_id ~= mq.TLO.Me.ID()) or (targethp and targethp < 100) then --or mq.TLO.Target.PctHPs() < 100 then
     if tot_id > 0 and tot_id ~= mq.TLO.Me.ID() and tot_id ~= mq.TLO.Pet.ID() then
         if targethp and targethp < 99 then
-            logger.info('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pullMobID, tot_id, state.loop.ID, targethp)
+            logger.info('\arPull target already engaged, skipping \ax(\at%s\ax) %s %s %s', pullMobID, tot_id, mq.TLO.Me.ID(), targethp)
             -- TODO: clear skip targets
             PULL_TARGET_SKIP[pullMobID] = 1
             pull.clearPullVars('pullEngage-hpCheck')
@@ -403,7 +403,7 @@ local pullEngageTimer = timer:new(3000)
 ---Sets common.tankMobID to the mob being pulled.
 function pull.pullMob()
     local pull_state = state.pullStatus
-    if anyoneDead() or state.loop.PctHPs < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
+    if anyoneDead() or mq.TLO.Me.PctHPs() < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
         if pull_state == constants.pullStates.APPROACHING or pull_state == constants.pullStates.ENGAGING then
             pull.clearPullVars('pullMob-deadOrInjured')
             movement.stop()
@@ -482,7 +482,7 @@ function pull.pullMob()
         pullEngage(pull_spawn)
         pullEngageTimer:reset()
     elseif pull_state == constants.pullStates.WAIT_FOR_AGGRO then
-        if (mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID and common.hostileXTargets()) or not mq.TLO.Target() then
+        if (mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() and common.hostileXTargets()) or not mq.TLO.Target() then
             if mq.TLO.Me.Combat() then mq.cmd('/attack off') end
             if mq.TLO.Me.AutoFire() then mq.cmd('/autofire off') end
             if mq.TLO.Stick.Active() then mq.cmd('/stick off') end

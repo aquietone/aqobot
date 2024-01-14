@@ -409,7 +409,7 @@ function Necromancer:burnClass()
         end
     end
 
-    if self.lifeburn and state.loop.PctHPs > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and (state.emu or (self.dyinggrasp and mq.TLO.Me.AltAbilityReady('Dying Grasp')())) then
+    if self.lifeburn and mq.TLO.Me.PctHPs() > 90 and mq.TLO.Me.AltAbilityReady('Life Burn')() and (state.emu or (self.dyinggrasp and mq.TLO.Me.AltAbilityReady('Dying Grasp')())) then
         self.lifeburn:use()
         mq.delay(5)
         if self.dyinggrasp then self.dyinggrasp:use() end
@@ -435,13 +435,13 @@ function Necromancer:preburn()
 end
 
 function Necromancer:recover()
-    if self.spells.lich and state.loop.PctHPs < 40 and mq.TLO.Me.Buff(self.spells.lich.Name)() then
+    if self.spells.lich and mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.Buff(self.spells.lich.Name)() then
         logger.info('Removing lich to avoid dying!')
         mq.cmdf('/removebuff %s', self.spells.lich.Name)
     end
     -- modrods
     common.checkMana()
-    local pct_mana = state.loop.PctMana
+    local pct_mana = mq.TLO.Me.PctMana()
     if self.deathbloom and pct_mana < 65 then
         -- death bloom at some %
         self.deathbloom:use()
@@ -478,9 +478,9 @@ function Necromancer:aggroOld()
     if state.emu then return end
     if mode.currentMode:isManualMode() then return end
     if self:isEnabled('USEFD') and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID or checkAggroTimer:timerExpired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or checkAggroTimer:timerExpired() then
             if self.deathseffigy and mq.TLO.Me.PctAggro() >= 90 then
-                if self.dyinggrasp and state.loop.PctHPs < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
+                if self.dyinggrasp and mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
                     self.dyinggrasp:use()
                 end
                 self.deathseffigy:use()

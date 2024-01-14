@@ -359,7 +359,7 @@ end
 
 local snared_id = 0
 function Ranger:cast()
-    if not state.loop.Invis and mq.TLO.Me.CombatState() == 'COMBAT' then
+    if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.isFighting() then
             if self.spells.snare and mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and self.OPTS.USESNARE.value then
                 self.spells.snare:use()
@@ -420,7 +420,7 @@ function Ranger:aggroClass()
         mq.delay(5000, function() return mq.TLO.Me.PctAggro() <= 75 end)
         if self:isEnabled('USERANGE') then mq.cmd('/autofire on') else mq.cmd('/attack on') end
     end
-    if state.loop.PctHPs < 50 and self:isEnabled('USERANGE') then
+    if mq.TLO.Me.PctHPs() < 50 and self:isEnabled('USERANGE') then
         -- If ranged, we might be in some bad position aggroing extra stuff, return to camp
         if mode.currentMode:isReturnToCampMode() then
             movement.navToLoc(camp.X, camp.Y, camp.Z)
@@ -496,7 +496,7 @@ function Ranger:assist()
         useOpener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
-        if state.loop.PctHPs > 40 then
+        if mq.TLO.Me.PctHPs() > 40 then
             if not self:isEnabled('USERANGE') or not attackRanged() then
                 if self:isEnabled('USEMELEE') then assist.attack() end
             end
@@ -508,7 +508,7 @@ function Ranger:assist()
         useOpener()
         -- if we should be assisting but aren't in los, try to be?
         -- try to deal with ranger noobishness running out to ranged and dying
-        if state.loop.PctHPs > 40 then
+        if mq.TLO.Me.PctHPs() > 40 then
             if not self:isEnabled('USERANGE') or not attackRanged() then
                 if self:isEnabled('USEMELEE') then
                     assist.getCombatPosition()

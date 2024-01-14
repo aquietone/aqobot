@@ -36,16 +36,12 @@ for _,routine in ipairs(routines) do
 end
 
 local function init()
-
-    -- Initialize class specific functions
     class:init()
     aqo.events.initClassBasedEvents()
-
-    -- Initialize binds
     commands.init(class)
-
-    -- Initialize UI
     ui.init(class)
+    tlo.init(class)
+    status.init()
 
     state.currentZone = mq.TLO.Zone.ID()
     state.subscription = mq.TLO.Me.Subscription()
@@ -66,9 +62,6 @@ local function init()
     mq.cmd('/squelch /autofeed 5000')
     mq.cmd('/squelch /autodrink 5000')
     mq.cmdf('/setwintitle %s (Level %s %s)', mq.TLO.Me.CleanName(), mq.TLO.Me.Level(), state.class)
-
-    tlo.init(class)
-    status.init()
 end
 
 ---Check if the current game state is not INGAME, and exit the script if it is.
@@ -79,17 +72,6 @@ local function updateLoopState()
         mq.exit()
     end
     state.actionTaken = false
-    state.loop = {
-        PctHPs = mq.TLO.Me.PctHPs(),
-        PctMana = mq.TLO.Me.PctMana(),
-        PctEndurance = mq.TLO.Me.PctEndurance(),
-        ID = mq.TLO.Me.ID(),
-        Invis = mq.TLO.Me.Invis(),
-        PetName = mq.TLO.Me.Pet.CleanName(),
-        TargetID = mq.TLO.Target.ID(),
-        TargetHP = mq.TLO.Target.PctHPs(),
-        PetID = mq.TLO.Pet.ID()
-    }
 end
 
 ---Reset assist/tank ID and turn off attack if we have no target or are targeting a corpse
@@ -133,7 +115,7 @@ end
 ---Remove harmful buffs such as lich if HP is getting low, regardless of paused state
 local torporLandedInCombat = false
 local function buffSafetyCheck()
-    if state.class == 'nec' and state.loop.PctHPs < 40 and class.spells.lich then
+    if state.class == 'nec' and mq.TLO.Me.PctHPs() < 40 and class.spells.lich then
         mq.cmdf('/removebuff %s', class.spells.lich.Name)
     end
     if not torporLandedInCombat and mq.TLO.Me.Song('Transcendent Torpor')() and mq.TLO.Me.CombatState() == 'COMBAT' then
@@ -226,7 +208,7 @@ local function main()
                 if state.reacquireTargetID then mq.cmdf('/mqtar id %s', state.reacquireTargetID) state.reacquireTargetID = nil end
                 aqo.camp.cleanTargets()
                 checkTarget()
-                if not state.loop.Invis and not common.isBlockingWindowOpen() then
+                if not mq.TLO.Me.Invis() and not common.isBlockingWindowOpen() then
                     -- do active combat assist things when not paused and not invis
                     checkFD()
                     common.checkCursor()
@@ -250,7 +232,7 @@ local function main()
                 end
             end
         else
-            if state.loop.Invis then
+            if mq.TLO.Me.Invis() then
                 -- if paused and invis, back pet off, otherwise let it keep doing its thing if we just paused mid-combat for something
                 local pet_target_id = mq.TLO.Pet.Target.ID() or 0
                 if mq.TLO.Pet.ID() > 0 and pet_target_id > 0 then mq.cmd('/pet back') end

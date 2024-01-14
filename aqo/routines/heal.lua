@@ -57,12 +57,12 @@ local function getHurt(opts)
     local mostHurtPct = 100
     local mostHurtClass = nil
     local mostHurtDistance = 300
-    local myHP = state.loop.PctHPs
+    local myHP = mq.TLO.Me.PctHPs()
     if myHP < config.get('PANICHEALPCT') then
-        return state.loop.ID, HEAL_TYPES.PANIC
+        return mq.TLO.Me.ID(), HEAL_TYPES.PANIC
     elseif myHP < config.get('HOTHEALPCT') then
         mostHurtName = mq.TLO.Me.CleanName()
-        mostHurtID = state.loop.ID
+        mostHurtID = mq.TLO.Me.ID()
         mostHurtPct = myHP
         mostHurtClass = mq.TLO.Me.Class.ShortName()
         mostHurtDistance = 0
@@ -173,7 +173,7 @@ local groupHOTTimer = timer:new(60000)
 local function getHeal(healAbilities, healType, whoToHeal, opts)
     for _,heal in ipairs(healAbilities) do
         if heal[healType] and healEnabled(opts, heal.opt) then
-            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= state.loop.ID) then
+            if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() == abilities.IsReady.SHOULD_CAST then return heal end
                 elseif heal.CastType == abilities.Types.Spell then
@@ -215,7 +215,7 @@ function healing.heal(healAbilities, opts)
 end
 
 function healing.healPetOrSelf(healAbilities, opts)
-    local myHP = state.loop.PctHPs
+    local myHP = mq.TLO.Me.PctHPs()
     local petHP = mq.TLO.Pet.PctHPs() or 100
     if myHP < 60 then healing.healSelf(healAbilities, opts) end
     if not healEnabled(opts, 'HEALPET') then return end
@@ -229,7 +229,7 @@ function healing.healPetOrSelf(healAbilities, opts)
 end
 
 function healing.healSelf(healAbilities, opts)
-    if state.loop.PctHPs > config.get('HEALPCT') then return end
+    if mq.TLO.Me.PctHPs() > config.get('HEALPCT') then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then
             local originalTargetID = mq.TLO.Target.ID()

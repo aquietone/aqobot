@@ -407,7 +407,7 @@ function base:cure()
         if mq.TLO.Me.CountersCurse() > 0 then
             for _,cure in self.cures do
                 if cure.curse or cure.all and cure:isReady() == abilities.IsReady.SHOULD_CAST then
-                    if mq.TLO.Target.ID() ~= state.loop.ID then
+                    if mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
                         mq.cmd('/squelch /mqtar')
                     end
                     cure:use()
@@ -458,7 +458,7 @@ function base:doMashClickies()
 end
 
 function base:mash()
-    if mq.TLO.Target.ID() == state.loop.ID then return end
+    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
     local cur_mode = mode.currentMode
     if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
@@ -480,7 +480,7 @@ function base:mash()
 end
 
 function base:ae()
-    if mq.TLO.Target.ID() == state.loop.ID then return end
+    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
     if not self:isEnabled('USEAOE') then return end
     local cur_mode = mode.currentMode
@@ -504,7 +504,7 @@ end
 function base:burn()
     -- Some items use Timer() and some use IsItemReady(), this seems to be mixed bag.
     -- Test them both for each item, and see which one(s) actually work.
-    if mq.TLO.Target.ID() == state.loop.ID then return end
+    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
     if self.doneSinging and not self:doneSinging() then return end
     if common.isBurnConditionMet() then
@@ -649,11 +649,11 @@ function base:aggro()
     if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') or mode.currentMode:isManualMode() then return end
     local pctAggro = mq.TLO.Me.PctAggro() or 0
     -- 1. Am i on aggro? Use fades or defensives immediately
-    if mq.TLO.Target() and mq.TLO.Me.TargetOfTarget.ID() == state.loop.ID and mq.TLO.Target.Named() then
+    if mq.TLO.Target() and mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() and mq.TLO.Target.Named() then
         local useDefensives = true
         if self.useCommonListProcessor then
             if common.processList(self.fadeAbilities, self, true) then
-                if mq.TLO.Me.TargetOfTarget.ID() ~= state.loop.ID then
+                if mq.TLO.Me.TargetOfTarget.ID() ~= mq.TLO.Me.ID() then
                     useDefensives = false
                 end
             end
@@ -666,7 +666,7 @@ function base:aggro()
                     if ability.precast then ability.precast() end
                     ability:use()
                     if ability.postcast then ability.postcast() end
-                    if mq.TLO.Me.TargetOfTarget.ID() ~= state.loop.ID then
+                    if mq.TLO.Me.TargetOfTarget.ID() ~= mq.TLO.Me.ID() then
                         -- No longer on aggro, skip popping defensives
                         useDefensives = false
                         break
@@ -712,9 +712,9 @@ function base:recover()
     if self.recoverClass then self:recoverClass() end
     -- modrods
     common.checkMana()
-    local pct_hp = state.loop.PctHPs
-    local pct_mana = state.loop.PctMana
-    local pct_end = state.loop.PctEndurance
+    local pct_hp = mq.TLO.Me.PctHPs()
+    local pct_mana = mq.TLO.Me.PctMana()
+    local pct_end = mq.TLO.Me.PctEndurance()
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
     if self.useCommonListProcessor then
@@ -722,7 +722,7 @@ function base:recover()
     else
         for _,ability in ipairs(self.recoverAbilities) do
             if self:isAbilityEnabled(ability.opt) and (not ability.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
-                if ability.mana and pct_mana < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or state.loop.PctHPs > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
+                if ability.mana and pct_mana < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
                     useAbility = ability
                     break
                 elseif ability.endurance and pct_end < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') then
@@ -734,7 +734,7 @@ function base:recover()
         if useAbility and useAbility:isReady() == abilities.IsReady.SHOULD_CAST then
             if mq.TLO.Me.MaxHPs() < 6000 then return end
             local originalTargetID = 0
-            if useAbility.TargetType == 'Single' and mq.TLO.Target.ID() ~= state.loop.ID then
+            if useAbility.TargetType == 'Single' and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
                 originalTargetID = mq.TLO.Target.ID()
                 mq.TLO.Me.DoTarget()
             end
@@ -845,7 +845,7 @@ function base:handleRequests()
 end
 
 local function lifesupport()
-    if mq.TLO.Me.CombatState() == 'COMBAT' and not state.loop.Invis and not mq.TLO.Me.Casting() and mq.TLO.Me.Standing() and state.loop.PctHPs < 60 then
+    if mq.TLO.Me.CombatState() == 'COMBAT' and not mq.TLO.Me.Invis() and not mq.TLO.Me.Casting() and mq.TLO.Me.Standing() and mq.TLO.Me.PctHPs() < 60 then
         for _,healclicky in ipairs(constants.instantHealClickies) do
             local item = mq.TLO.FindItem(healclicky)
             local spell = item.Clicky.Spell
@@ -854,8 +854,8 @@ local function lifesupport()
                 local castTime = item.CastTime()
                 mq.cmdf('/useitem "%s"', healclicky)
                 mq.delay(250+(castTime or 0), function() return not mq.TLO.Me.ItemReady(healclicky)() end)
-                state.loop.PctHPs = mq.TLO.Me.PctHPs()
-                if state.loop.PctHPs > 75 then return end
+                mq.TLO.Me.PctHPs() = mq.TLO.Me.PctHPs()
+                if mq.TLO.Me.PctHPs() > 75 then return end
             end
         end
     end
