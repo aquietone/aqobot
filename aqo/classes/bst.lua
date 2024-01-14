@@ -58,42 +58,41 @@ function BeastLord:initClassOptions()
     -- swarm pet, sow, snare, roar of thunder, mending, haste, focus
 end
 
-function BeastLord:initSpellLines()
-    self:addSpell('alliance', {'Venomous Conjunction', 'Venomous Coalition', 'Venomous Covenant', 'Venomous Alliance'}) -- adds extra damage to bst dots + fulmination
-    self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', 'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, {opt='USENUKES'}) -- (DD)
-    self:addSpell('nuke2', {'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}, {opt='USENUKES'}) -- (DD)
-    self:addSpell('nuke3', {'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}, {opt='USENUKES'}) -- (DD)
-    self:addNSpells('lance', 2, {'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Glacier Spear'}, {opt='USENUKES'}) -- (DD) / Restless Roar (AE DD)
+BeastLord.SpellLines = {
+    {Group='alliance', Spells={'Venomous Conjunction', 'Venomous Coalition', 'Venomous Covenant', 'Venomous Alliance'}}, -- adds extra damage to bst dots + fulmination
+    {Group='nuke1', Spells={'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', 'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'}, Options={opt='USENUKES'}}, -- (DD)
+    {Group='nuke2', Spells={'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite'}, Options={opt='USENUKES'}}, -- (DD)
+    {Group='nuke3', Spells={'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma'}, Options={opt='USENUKES'}}, -- (DD)
+    {Group='lance', NumToPick=2, Spells={'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Glacier Spear'}, Options={opt='USENUKES'}}, -- (DD) / Restless Roar (AE DD)
 
-    self:addSpell('dddot1', {'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}) -- (DD DoT)
-    self:addSpell('dot1', {'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', 'Chimera Blood'}, {opt='USEDOTS'}) -- (DoT)
-    if self.spells.dot1 then self.spells.dot1.condition = function() return state.burnActive end end
-    self:addSpell('dddot2', {'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}) -- (DD DoT)
-    self:addSpell('swarmpet', {'Reptilian Venom'}, {delay=1500})
+    {Group='dddot1', Spells={'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill'}}, -- (DD DoT)
+    {Group='dot1', Spells={'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', 'Chimera Blood'}, Options={opt='USEDOTS', condition=function() return state.burnActive end}}, -- (DoT)
+    {Group='dddot2', Spells={'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood'}}, -- (DD DoT)
+    {Group='swarmpet', Spells={'Reptilian Venom'}, Options={delay=1500}},
 
-    self:addSpell('slow', {'Sha\'s Legacy'}, {opt='USESLOW'})
+    {Group='slow', Spells={'Sha\'s Legacy'}, Options={opt='USESLOW'}},
 
-    self:addSpell('composite', {'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}) -- inc pet flurry, ds miti, self flurry, hp/mana/end regen, dec weapon delay
+    {Group='composite', Spells={'Ecliptic Fury', 'Composite Fury', 'Dissident Fury'}}, -- inc pet flurry, ds miti, self flurry, hp/mana/end regen, dec weapon delay
 
-    self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, {opt='SUMMONPET'})
-    self:addSpell('combatbuff', {'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard', 'Growl of the Panther'}, {skipifbuff='Wild Spirit Infusion'}) -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
-    self:addSpell('petrune', {'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity'}) -- (pet rune) / Sympathetic Warder (pet healproc)
-    self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Healing of Mikkity', 'Healing of Sorsha'}, {opt='HEALPET', pet=50}) -- (Pet heal)
-    self:addSpell('pethaste',{'Unsurpassed Velocity', 'Growl of the Beast', 'Arag\'s Celerity'}, {swap=true}) -- pet haste
-    self:addSpell('petbuff', {'Spirit of Siver', 'Spirit of Oroshar', 'Spirit of Rellic'}, {swap=true}) -- pet buff
-    self:addSpell('petunity', {'Cohort\'s Unity', 'Comrade\'s Unity', 'Ally\'s Unity', 'Companion\'s Unity'}, {swap=true}) -- combined pet buffs, Unsurpassed Velocity, Spirit of Siver
-    self:addSpell('petaggression', {'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression'}, {swap=true})
+    {Group='pet', Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, Options={opt='SUMMONPET'}},
+    {Group='combatbuff', Spells={'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard', 'Growl of the Panther'}, Options={skipifbuff='Wild Spirit Infusion'}}, -- (self buff) / Griklor's Feralgia (self buff/swarm pet)
+    {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity'}}, -- (pet rune) / Sympathetic Warder (pet healproc)
+    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Healing of Mikkity', 'Healing of Sorsha'}, Options={opt='HEALPET', pet=50}}, -- (Pet heal)
+    {Group='pethaste',Spells={'Unsurpassed Velocity', 'Growl of the Beast', 'Arag\'s Celerity'}, Options={swap=true}}, -- pet haste
+    {Group='petbuff', Spells={'Spirit of Siver', 'Spirit of Oroshar', 'Spirit of Rellic'}, Options={swap=true}}, -- pet buff
+    {Group='petunity', Spells={'Cohort\'s Unity', 'Comrade\'s Unity', 'Ally\'s Unity', 'Companion\'s Unity'}, Options={swap=true}}, -- combined pet buffs, Unsurpassed Velocity, Spirit of Siver
+    {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression'}, Options={swap=true}},
 
-    self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Trushar\'s Mending'}, {me=75, self=true}) -- (Player heal) / Salve of Artikla (Pet heal)
+    {Group='heal', Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Trushar\'s Mending'}, Options={me=75, self=true}}, -- (Player heal) / Salve of Artikla (Pet heal)
 
     -- below lvl 100
-    self:addSpell('fero', {'Ferocity of Irionu', 'Ferocity'}, {classes={WAR=true,MNK=true,BER=true,ROG=true}}) -- like shm avatar
+    {Group='fero', Spells={'Ferocity of Irionu', 'Ferocity'}, Options={classes={WAR=true,MNK=true,BER=true,ROG=true}}}, -- like shm avatar
     -- lvl 100+
-    self:addSpell('groupfero', {'Shared Merciless Ferocity'}) -- group avatar
-    self:addSpell('regen', {'Feral Vigor'}, {classes={WAR=true,SHD=true,PAL=true}}) -- single regen
-    self:addSpell('groupregen', {'Spiritual Erudition', 'Spiritual Insight', 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'}, {swap=true}) -- group buff
-    self:addSpell('grouphp', {'Spiritual Vigor', 'Spiritual Vitality', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'}, {swap=true})
-    self:addSpell('groupunity', {'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'}, {swap=true})
+    {Group='groupfero', Spells={'Shared Merciless Ferocity'}}, -- group avatar
+    {Group='regen', Spells={'Feral Vigor'}, Options={classes={WAR=true,SHD=true,PAL=true}}}, -- single regen
+    {Group='groupregen', Spells={'Spiritual Erudition', 'Spiritual Insight', 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'}, Options={swap=true}}, -- group buff
+    {Group='grouphp', Spells={'Spiritual Vigor', 'Spiritual Vitality', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'}, Options={swap=true}},
+    {Group='groupunity', Spells={'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'}, Options={swap=true}},
 
     --     --Spells(Group)
     --     self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit'})
@@ -125,7 +124,7 @@ function BeastLord:initSpellLines()
     --     self:addSpell('alliance', {'Venpmous Conjunction', 'Venomous Coalition', 'Venomous Covenant', 'Venomous Alliance'}) --
     --     self:addSpell('petheal', {'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith'}) -- (Pet heal)
     --     self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
-end
+}
 
 function BeastLord:initSpellRotations()
     -- composite, alliance

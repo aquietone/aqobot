@@ -66,48 +66,49 @@ function ShadowKnight:initClassOptions()
     self:addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox', nil, 'UseEpic', 'bool')
 end
 
-function ShadowKnight:initSpellLines()
-    self:addSpell('composite', {'Composite Fang'}) -- big lifetap
-    self:addSpell('alliance', {'Bloodletting Coalition'}) -- alliance
+ShadowKnight.SpellLines = {
+    {Group='composite', Spells={'Composite Fang'}}, -- big lifetap
+    {Group='alliance', Spells={'Bloodletting Coalition'}}, -- alliance
     -- Aggro
-    self:addSpell('challenge', {'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate'}) -- main hate spell
-    self:addSpell('terror', {'Terror of Tarantis', 'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}) -- ST increase hate by 1
-    self:addSpell('aeterror', {'Animus', 'Antipathy', 'Dread Gaze'}, {threshold=2}) -- ST increase hate by 1
+    {Group='challenge', Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate'}}, -- main hate spell
+    {Group='terror', Spells={'Terror of Tarantis', 'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}}, -- ST increase hate by 1
+    {Group='aeterror', Spells={'Animus', 'Antipathy', 'Dread Gaze'}, Options={threshold=2}}, -- ST increase hate by 1
     --['']={'Oppressor\'s Audacity', 'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
     -- Lifetaps
-    self:addSpell('largetap', {'Dire Rebuke', 'Dire Censure'}) -- large lifetap
-    self:addSpell('tap1', {'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'})--, 'Drain Soul', 'Lifedraw'}) -- lifetap
-    self:addSpell('tap2', {'Touch of Mortimus', 'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'}) -- lifetap + temp hp buff Gift of Namdrows
-    self:addSpell('dottap', {'Bond of Tatalros', 'Bond of Bynn', 'Bond of Inruku'}) -- lifetap dot
-    self:addSpell('bitetap', {'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'}) -- lifetap with hp/mana recourse
+    {Group='largetap', Spells={'Dire Rebuke', 'Dire Censure'}}, -- large lifetap
+    {Group='tap1', Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'}},--, 'Drain Soul', 'Lifedraw'}) -- lifetap
+    {Group='tap2', Spells={'Touch of Mortimus', 'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'}}, -- lifetap + temp hp buff Gift of Namdrows
+    {Group='dottap', Spells={'Bond of Tatalros', 'Bond of Bynn', 'Bond of Inruku'}}, -- lifetap dot
+    {Group='bitetap', Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'}}, -- lifetap with hp/mana recourse
     -- AE lifetap + aggro
-    self:addSpell('aetap', {'Insidious Repudiation', 'Insidious Renunciation'}) -- large hate + lifetap
+    {Group='aetap', Spells={'Insidious Repudiation', 'Insidious Renunciation'}}, -- large hate + lifetap
     -- DPS
-    self:addSpell('spear', {'Spear of Lazam', 'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'}) -- poison nuke
-    self:addSpell('poison', {'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'}) -- poison dot
-    self:addSpell('disease', {'Plague of the Fleawalker', 'Plague of Fleshrot'}) -- disease dot
-    self:addSpell('corruption', {'Vitriolic Blight', 'Unscrupulous Blight'}) -- corruption dot
-    self:addSpell('acdis', {'Dire Squelch', 'Dire Seizure'}) -- disease + ac dot
-    self:addSpell('acdebuff', {'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony'}) -- ac debuff
+    {Group='spear', Spells={'Spear of Lazam', 'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'}}, -- poison nuke
+    {Group='poison', Spells={'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'}}, -- poison dot
+    {Group='disease', Spells={'Plague of the Fleawalker', 'Plague of Fleshrot'}}, -- disease dot
+    {Group='corruption', Spells={'Vitriolic Blight', 'Unscrupulous Blight'}}, -- corruption dot
+    {Group='acdis', Spells={'Dire Squelch', 'Dire Seizure'}}, -- disease + ac dot
+    {Group='acdebuff', Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony'}}, -- ac debuff
     --['']={'Odious Bargain', 'Despicable Bargain'}), -- ae hate nuke, does this get used?
     -- Short Term Buffs
-    self:addSpell('stance', {'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'}) -- temp HP buff, 2.5min
-    self:addSpell('skin', {'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'}) -- Xenacious' Skin proc, 5min buff
-    self:addSpell('disruption', {'Confluent Disruption', 'Scream of Death'}) -- lifetap proc on heal
+    {Group='stance', Spells={'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'}}, -- temp HP buff, 2.5min
+    {Group='skin', Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'}}, -- Xenacious' Skin proc, 5min buff
+    {Group='disruption', Spells={'Confluent Disruption', 'Scream of Death'}}, -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    self:addSpell('pet', {'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}) -- pet
-    self:addSpell('pethaste', {'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}) -- pet haste
+    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}}, -- pet
+    {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}}, -- pet haste
     -- Unity Buffs
-    self:addSpell('shroud', {'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, {swap=false}) -- Shroud of Zelinstein Strike proc
-    self:addSpell('bezaproc', {'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, {opt='USEBEZA'}) -- Mental Anguish Strike proc
-    self:addSpell('aziaproc', {'Mortimus\' Horror', 'Brightfield\'s Horror'}, {opt='USEAZIA'}) -- Brightfield's Horror Strike proc
-    self:addSpell('ds', {'Goblin Skin', 'Tekuel Skin'}) -- large damage shield self buff
-    self:addSpell('lich', {'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}) -- lich mana regen
-    self:addSpell('drape', {'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}) -- self buff hp, ac, ds
-    self:addSpell('atkbuff', {'Call of Blight', 'Penumbral Call'}) -- atk buff, hp drain on self
+    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false}}, -- Shroud of Zelinstein Strike proc
+    {Group='bezaproc', Spells={'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, Options={opt='USEBEZA'}}, -- Mental Anguish Strike proc
+    {Group='aziaproc', Spells={'Mortimus\' Horror', 'Brightfield\'s Horror'}, Options={opt='USEAZIA'}}, -- Brightfield's Horror Strike proc
+    {Group='ds', Spells={'Goblin Skin', 'Tekuel Skin'}}, -- large damage shield self buff
+    {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}}, -- lich mana regen
+    {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}}, -- self buff hp, ac, ds
+    {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call'}}, -- atk buff, hp drain on self
+    {Group='voice', Spells={'Voice of Innoruuk'}, Options={opt='USEVOICEOFTHULE'}},
     --['']=common.get_best_spell({'Remorseless Demeanor'})
-end
+}
 
 function ShadowKnight:initSpellConditions()
     local function mobsMissingAggro()
@@ -232,7 +233,6 @@ function ShadowKnight:initBuffs()
         table.insert(self.selfBuffs, self.spells.skin)
         table.insert(self.selfBuffs, self.spells.shroud)
         table.insert(self.selfBuffs, common.getAA('Touch of the Cursed'))
-        self:addSpell('voice', {'Voice of Innoruuk'}, {opt='USEVOICEOFTHULE'})
         table.insert(self.selfBuffs, self.spells.voice)
     else
         table.insert(self.selfBuffs, buffazia)

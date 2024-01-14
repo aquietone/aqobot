@@ -120,32 +120,32 @@ function Magician:initClassOptions()
     self:addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox', nil, 'UseTempDS', 'bool')
 end
 
-function Magician:initSpellLines()
-    self:addSpell('prenuke', {'Fickle Fire'}, {opt='USEFIRENUKES'})
-    self:addSpell('firenuke', {'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Burst of Flame'}, {opt='USEFIRENUKES'})
-    self:addSpell('fastfire', {'Burning Earth'}, {opt='USEFIRENUKES'})
-    self:addSpell('magicnuke', {'Rock of Taelosia'}, {opt='USEMAGICNUKES'})
-    self:addSpell('pet', {'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
+Magician.SpellLines = {
+    {Group='prenuke', Spells={'Fickle Fire'}, Options={opt='USEFIRENUKES'}},
+    {Group='firenuke', Spells={'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Burst of Flame'}, Options={opt='USEFIRENUKES'}},
+    {Group='fastfire', Spells={'Burning Earth'}, Options={opt='USEFIRENUKES'}},
+    {Group='magicnuke', Spells={'Rock of Taelosia'}, Options={opt='USEMAGICNUKES'}},
+    {Group='pet', Spells={'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
                         'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
-                        'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'})
-    self:addSpell('petbuff', {'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'})
-    self:addSpell('petstrbuff', {'Rathe\'s Strength', 'Earthen Strength'}, {skipifbuff='Champion'})
-    self:addSpell('orb', {'Summon: Molten Orb', 'Summon: Lava Orb'}, {summonMinimum=1, nodmz=true, pause=true})
-    self:addSpell('petds', {'Iceflame Guard'})
-    self:addSpell('servant', {'Raging Servant', 'Rampaging Servant'})
-    self:addSpell('ds', {'Circle of Fireskin'}, {opt='USEDS'})
-    self:addSpell('bigds', {'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, {opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('shield', {'Elemental Aura'})
+                        'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'}},
+    {Group='petbuff', Spells={'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'}},
+    {Group='petstrbuff', Spells={'Rathe\'s Strength', 'Earthen Strength'}, Options={skipifbuff='Champion'}},
+    {Group='orb', Spells={'Summon: Molten Orb', 'Summon: Lava Orb'}, Options={summonMinimum=1, nodmz=true, pause=true}},
+    {Group='petds', Spells={'Iceflame Guard'}},
+    {Group='servant', Spells={'Raging Servant', 'Rampaging Servant'}},
+    {Group='ds', Spells={'Circle of Fireskin'}, Options={opt='USEDS'}},
+    {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}}},
+    {Group='shield', Spells={'Elemental Aura'}},
 
-    --self:addSpell('manaregen', {'Elemental Simulacrum', 'Elemental Siphon'}) -- self mana regen
-    self:addSpell('acregen', {'Phantom Shield', 'Xegony\'s Phantasmal Guard'}) -- self regen/ac buff
-    self:addSpell('petheal', {'Planar Renewal'}, {opt='HEALPET', pet=50}) -- pet heal
+    --{Group='manaregen', Spells={'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
+    {Group='acregen', Spells={'Phantom Shield', 'Xegony\'s Phantasmal Guard'}}, -- self regen/ac buff
+    {Group='petheal', Spells={'Planar Renewal'}, Options={opt='HEALPET', pet=50}}, -- pet heal
 
-    self:addSpell('armor', {'Grant Spectral Plate'}) -- targeted, Summon Folded Pack of Spectral Plate
-    self:addSpell('weapons', {'Grant Spectral Armaments'}) -- targeted, Summons Folded Pack of Spectral Armaments
-    self:addSpell('jewelry', {'Grant Enibik\'s Heirlooms'}) -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
-    self:addSpell('belt', {'Summon Crystal Belt'}) -- Summoned: Crystal Belt
-end
+    {Group='armor', Spells={'Grant Spectral Plate'}}, -- targeted, Summon Folded Pack of Spectral Plate
+    {Group='weapons', Spells={'Grant Spectral Armaments'}}, -- targeted, Summons Folded Pack of Spectral Armaments
+    {Group='jewelry', Spells={'Grant Enibik\'s Heirlooms'}}, -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
+    {Group='belt', Spells={'Summon Crystal Belt'}}, -- Summoned: Crystal Belt
+}
 
 function Magician:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.servant)

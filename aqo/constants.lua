@@ -99,7 +99,7 @@ constants.groupWatchOptions = {healer=1,self=1,none=1}
 constants.pullWith = {melee=1,ranged=1,spell=1,item=1,custom=1}
 constants.pullStates = {NOT='NOT',SCAN='SCAN',APPROACHING='APPROACHING',ENGAGING='ENGAGING',WAIT_FOR_AGGRO='WAIT_FOR_AGGRO',RETURNING='RETURNING',WAITING='WAITING',PULLED='PULLED'}
 
-constants.manaClasses = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true}
+constants.manaClasses = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true,rng=true}
 constants.petClasses = {bst=true,mag=true,nec=true,dru=true,enc=true,shd=true,shm=true}
 constants.buffClasses = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true}
 constants.healClasses = {clr=true,dru=true,shm=true}

@@ -215,6 +215,16 @@ function base:addNSpells(spellGroup, numToAdd, spellList, options)
     end
 end
 
+function base:initSpellLines()
+    for _,line in ipairs(self.SpellLines) do
+        if line.NumToPick then
+            self:addNSpells(line.Group, line.NumToPick, line.Spells, line.Options)
+        else
+            self:addSpell(line.Group, line.Spells, line.Options)
+        end
+    end
+end
+
 ---Add the best spell from the list of spells to the class spell list
 ---@param spellGroup string # Name of the spell category
 ---@param spellList table # Table of spell names to search in order

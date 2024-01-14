@@ -72,88 +72,98 @@ function Enchanter:initClassOptions()
     self:addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, 'Toggle use of AOE tash ability', 'checkbox', nil, 'UseDebuffAOE', 'bool')
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
 end
+--[[
+    edict of tashan
+    deviser's auspice
+    chaotic puzzlement
+    bewildering wave
+    mind vortex
+    throttling grip
+    hastening of jharin
+    mindrift
+    composite reinforcement
+    polyluminous rune
+    voice of perception
+    night's perpetual terror
+    constance's animation
+]]
+-- mindreap, polyluminous assault, chromashear, psychological appropriation, chromatic flare
+Enchanter.SpellLines = {
+    {Group='composite', Spells={'Ecliptic Reinforcement', 'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}}, -- restore mana, add dmg proc, inc dmg
+    {Group='alliance', Spells={'Chromatic Conjunction', 'Chromatic Coalition', 'Chromatic Covenant', 'Chromatic Alliance'}},
 
-function Enchanter:initSpellLines()
-    self:addSpell('composite', {'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}) -- restore mana, add dmg proc, inc dmg
-    self:addSpell('alliance', {'Chromatic Coalition', 'Chromatic Covenant'})
+    {Group='mezst', Spells={'Flummox', 'Addle', 'Euphoria'}}, -- 9 ticks
+    {Group='mezst2', Spells={'Flummoxing Flash', 'Addling Flash'}}, -- 6 ticks
+    {Group='mezae', Spells={'Stupefying Wave', 'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}}, -- targeted AE mez
+    {Group='mezaehate', Spells={'Vexing Glance', 'Confounding Glance'}}, -- targeted AE mez + 100% hate reduction
+    {Group='mezpbae', Spells={'Wonderment', 'Bewilderment'}},
+    {Group='mezpbae2', Spells={'Perilous Confounding', 'Perilous Bewilderment'}}, -- lvl 120
+    {Group='meznoblur', Spells={'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception'}},
+    {Group='mezaeprocblur', Spells={'Entrancing Stare', 'Mesmeric Stare'}}, -- targeted AE mez
+    {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}}, -- mez proc on being hit
 
-    self:addSpell('mezst', {'Flummox', 'Addle', 'Euphoria'}) -- 9 ticks
-    self:addSpell('mezst2', {'Flummoxing Flash', 'Addling Flash'}) -- 6 ticks
-    self:addSpell('mezae', {'Stupefying Wave', 'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}) -- targeted AE mez
-    self:addSpell('mezaehate', {'Vexing Glance', 'Confounding Glance'}) -- targeted AE mez + 100% hate reduction
-    self:addSpell('mezpbae', {'Wonderment', 'Bewilderment'})
-    self:addSpell('mezpbae2', {'Perilous Confounding', 'Perilous Bewilderment'}) -- lvl 120
-    self:addSpell('meznoblur', {'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception'})
-    self:addSpell('mezaeprocblur', {'Entrancing Stare', 'Mesmeric Stare'}) -- targeted AE mez
-    self:addSpell('mezshield', {'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}) -- mez proc on being hit
+    {Group='rune', Spells={'Disquieting Rune', 'Marvel\'s Rune'}}, -- 160k rune, self
+    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc'}}, -- 90k rune, single target
+    {Group='dotrune', Spells={'Aegis of Dhakka', 'Aegis of Xetheg'}}, -- absorb DoT dmg
+    {Group='guard', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}}, -- spell + melee guard
+    {Group='dotmiti', Spells={'Deviser\'s Auspice', 'Transfixer\'s Auspice'}}, -- DoT guard
+    {Group='spellmiti', Spells={'Aegis of Elmara', 'Aegis of Sefra'}}, -- 20% spell mitigation
 
-    self:addSpell('rune', {'Disquieting Rune', 'Marvel\'s Rune'}) -- 160k rune, self
-    self:addSpell('rune2', {'Rune of Zoraxmen', 'Rune of Tearc'}) -- 90k rune, single target
-    self:addSpell('dotrune', {'Aegis of Dhakka', 'Aegis of Xetheg'}) -- absorb DoT dmg
-    self:addSpell('guard', {'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}) -- spell + melee guard
-    self:addSpell('dotmiti', {'Deviser\'s Auspice', 'Transfixer\'s Auspice'}) -- DoT guard
-    self:addSpell('spellmiti', {'Aegis of Elmara', 'Aegis of Sefra'}) -- 20% spell mitigation
-
-    self:addSpell('meleemiti', {'Gloaming Auspice', 'Eclipsed Auspice'}) -- melee guard, + hate
-    self:addSpell('absorbbuff', {'Brimstone Stability', 'Brimstone Endurance'}) -- increase absorb dmg, + hate
-    self:addSpell('aggrorune', {'Esoteric Rune', 'Ghastly Rune'}) -- single target rune + hate increase
+    {Group='meleemiti', Spells={'Gloaming Auspice', 'Eclipsed Auspice'}}, -- melee guard, + hate
+    {Group='absorbbuff', Spells={'Brimstone Stability', 'Brimstone Endurance'}}, -- increase absorb dmg, + hate
+    {Group='aggrorune', Spells={'Esoteric Rune', 'Ghastly Rune'}}, -- single target rune + hate increase
     -- Polyradiant Rune -- hate mod rune, stun proc on fade
 
-    self:addSpell('groupdotrune', {'Legion of Dhakka', 'Legion of Xetheg', 'Legion of Cekenar'})
-    self:addSpell('groupspellrune', {'Legion of Ogna', 'Legion of Liako', 'Legion of Kildrukaun'})
-    self:addSpell('groupaggrorune', {'Gloaming Rune', 'Eclipsed Rune'}) -- group rune + aggro reduction proc
+    {Group='groupdotrune', Spells={'Legion of Dhakka', 'Legion of Xetheg', 'Legion of Cekenar'}},
+    {Group='groupspellrune', Spells={'Legion of Ogna', 'Legion of Liako', 'Legion of Kildrukaun'}},
+    {Group='groupaggrorune', Spells={'Gloaming Rune', 'Eclipsed Rune'}}, -- group rune + big nuke/aggro reduction proc
 
-    self:addSpell('dot', {'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Shatter'}, {opt='USEDOT'}) -- big dot
-    self:addSpell('dot2', {'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Arcane Noose'}, {opt='USEDOT'}) -- decent dot
-    self:addSpell('debuffdot', {'Dismaying Constriction', 'Perplexing Constriction'}) -- debuff + nuke + dot
-    self:addSpell('manadot', {'Tears of Kasha', 'Tears of Xenacious'}) -- hp + mana DoT
-    self:addSpell('nukerune', {'Chromatic Spike', 'Chromatic Flare'}) -- 15k nuke + self rune
-    self:addSpell('nuke', {'Cognitive Appropriation', 'Psychological Appropriation'}) -- 20k
-    self:addSpell('nuke2', {'Chromaclap', 'Chromashear'}) -- 23k
-    self:addSpell('nuke3', {'Polyradiant Assault', 'Polyluminous Assault'}) -- 27k nuke
-    self:addSpell('nuke4', {'Obscuring Eclipse'}) -- 27k nuke
-    self:addSpell('aenuke', {'Gravity Roil'}) -- 23k targeted ae nuke
+    {Group='dot', Spells={'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Shatter'}, Options={opt='USEDOT'}}, -- big dot
+    {Group='dot2', Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Arcane Noose'}, Options={opt='USEDOT'}}, -- decent dot
+    {Group='debuffdot', Spells={'Dismaying Constriction', 'Perplexing Constriction'}}, -- debuff + nuke + dot
+    {Group='manadot', Spells={'Tears of Kasha', 'Tears of Xenacious'}}, -- hp + mana DoT
+    {Group='nukerune', Spells={'Chromatic Spike', 'Chromatic Flare'}}, -- 18k nuke + self rune
 
-    self:addSpell('calm', {'Still Mind'})
-    self:addSpell('tash', {'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani', 'Echo of Tashan'}, {opt='USEDEBUFF'})
-    self:addSpell('stunst', {'Dizzying Spindle', 'Dizzying Vortex'}) -- single target stun
-    self:addSpell('stunae', {'Remote Color Calibration', 'Remote Color Conflagration'})
-    self:addSpell('stunpbae', {'Color Calibration', 'Color Conflagration'})
-    self:addSpell('stunaerune', {'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}) -- self rune, proc ae stun on fade
+    {Group='mindnuke', NumToPick=2, Spells={'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'}}, -- 77k nuke, procs synery
+    {Group='nuke1', Spells={'Polyradiant Assault', 'Polyluminous Assault', 'Colored Chaos'}}, -- 35k nuke
+    {Group='nuke2', Spells={'Chromaclap', 'Chromashear', 'Chromaburst'}}, -- 28k
+    {Group='nuke3', Spells={'Cognitive Appropriation', 'Psychological Appropriation'}}, -- 24k
+    {Group='aenuke', Spells={'Gravity Roil'}}, -- 23k targeted ae nuke
 
-    self:addSpell('pet', {'Flariton\'s Animation', 'Constance\'s Animation', 'Aeidorb\'s Animation'})
-    self:addSpell('pethaste', {'Invigorated Minion'})
-    self:addSpell('charm', {'Esoteric Command', 'Marvel\'s Command'})
+    {Group='calm', Spells={'Still Mind'}},
+    {Group='tash', Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani', 'Echo of Tashan'}, Options={opt='USEDEBUFF'}},
+    {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex'}}, -- single target stun
+    {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
+    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration'}},
+    {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}}, -- self rune, proc ae stun on fade
+
+    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Aeidorb\'s Animation'}},
+    {Group='pethaste', Spells={'Invigorated Minion'}},
+    {Group='charm', Spells={'Esoteric Command', 'Marvel\'s Command'}},
     -- buffs
-    self:addSpell('unity', {'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity'}) -- mez proc on being hit
-    self:addSpell('procbuff', {'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}, {swap=false}) -- single target dmg proc buff
-    self:addSpell('kei', {'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'})
-    self:addSpell('keigroup', {'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Clairvoyance', 'Voice of Quellious'})
-    self:addSpell('haste', {'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}) -- single target buff
-    self:addSpell('grouphaste', {'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar'}) -- group haste
-    self:addSpell('nightsterror', {'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}) -- melee attack proc
+    {Group='unity', Spells={'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity'}}, -- mez proc on being hit
+    {Group='procbuff', Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}, Options={swap=false}}, -- single target dmg proc buff
+    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'}},
+    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Clairvoyance', 'Voice of Quellious'}},
+    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}}, -- single target buff
+    {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar'}}, -- group haste
+    {Group='nightsterror', Spells={'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}}, -- melee attack proc
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
-    self:addSpell('twincast', {'Twincast Aura'})
-    self:addSpell('regen', {'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}) -- mana + end regen aura
-    self:addSpell('spellfocus', {'Intensifying Aura', 'Enhancing Aura', 'Fortifying Aura'}) -- increase dmg of DDs
-    self:addSpell('combatinnate', {'Mana Ripple Aura', 'Mana Radix Aura', 'Mana Replication Aura'}) -- dmg proc on spells, Issuance of Mana Radix == place aura at location
-    self:addSpell('disempower', {'Arcane Disjunction Aura'})
+    {Group='twincast', Spells={'Twincast Aura'}},
+    {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}}, -- mana + end regen aura
+    {Group='spellfocus', Spells={'Intensifying Aura', 'Enhancing Aura', 'Fortifying Aura'}}, -- increase dmg of DDs
+    {Group='combatinnate', Spells={'Mana Ripple Aura', 'Mana Radix Aura', 'Mana Replication Aura'}}, -- dmg proc on spells, Issuance of Mana Radix == place aura at location
+    {Group='disempower', Spells={'Arcane Disjunction Aura'}},
     -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
-    self:addSpell('shield', {'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'})
-    self:addSpell('ward', {'Ward of the Beguiler', 'Ward of the Transfixer'})
+    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'}},
+    {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
 
-    self:addNSpells('mindnuke', 2, {'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash'}) -- 63k nuke
 
-    if state.emu then
-        self:addSpell('nuke5', {'Chromaburst', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
-        self:addSpell('nuke4', {'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'})
-        self:addSpell('nuke3', {'Colored Chaos'})
-        self:addSpell('unified', {'Unified Alacrity'})
-        self:addSpell('dispel', {'Abashi\'s Disempowerment', 'Recant Magic'}, {opt='USEDISPEL'})
-        self:addSpell('spasm', {'Synapsis Spasm'}, {opt='USEDEBUFF'})
-    end
-end
+    {Group='spasm', Spells={'Synapsis Spasm'}, Options={opt='USEDEBUFF', emu=true}},
+    {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic'}, Options={opt='USEDISPEL'}},
+}
 
 function Enchanter:initSpellRotations()
     -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
@@ -164,9 +174,10 @@ function Enchanter:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.dot)
     table.insert(self.spellRotations.standard, self.spells.dot2)
     table.insert(self.spellRotations.standard, self.spells.mindnuke1)
-    table.insert(self.spellRotations.standard, self.spells.nuke3)
-    table.insert(self.spellRotations.standard, self.spells.nuke4)
     table.insert(self.spellRotations.standard, self.spells.mindnuke2)
+    table.insert(self.spellRotations.standard, self.spells.nuke1)
+    table.insert(self.spellRotations.standard, self.spells.nuke2)
+    table.insert(self.spellRotations.standard, self.spells.nuke3)
     table.insert(self.spellRotations.standard, self.spells.composite)
     table.insert(self.spellRotations.standard, self.spells.stunaerune)
     table.insert(self.spellRotations.standard, self.spells.guard)

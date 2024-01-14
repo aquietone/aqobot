@@ -23,17 +23,17 @@ function Wizard:init()
     table.insert(self.recoverAbilities, common.getAA('Harvest of Druzzil'))
 end
 
-function Wizard:initSpellLines()
-    self:addSpell('nuke1', {'Ether Flame', 'Draught of Ro', 'Pillar of Fire'})
-    self:addSpell('nuke2', {'Ancient: Spear of Gelaqua', 'Fire Spiral of Al\'Kabor'})
-    self:addSpell('Swarm', {'Solist\'s Frozen Sword'})
-    self:addSpell('rain', {'Gelid Rains'})
-    self:addSpell('aeTrap', {'Fire Rune'})
-    self:addSpell('ae1', {'Circle of Thunder'})
-    self:addSpell('ae2', {'Jyll\'s Static Pulse'})
-    self:addSpell('ae3', {'Jyll\'s Zephyr of Ice'})
-    self:addSpell('ae4', {'Jyll\'s Wave of Heat'})
-end
+Wizard.SpellLines = {
+    {Group='nuke1', Spells={'Ether Flame', 'Draught of Ro', 'Pillar of Fire'}},
+    {Group='nuke2', Spells={'Ancient: Spear of Gelaqua', 'Fire Spiral of Al\'Kabor'}},
+    {Group='Swarm', Spells={'Solist\'s Frozen Sword'}},
+    {Group='rain', Spells={'Gelid Rains'}},
+    {Group='aeTrap', Spells={'Fire Rune'}},
+    {Group='ae1', Spells={'Circle of Thunder'}},
+    {Group='ae2', Spells={'Jyll\'s Static Pulse'}},
+    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice'}},
+    {Group='ae4', Spells={'Jyll\'s Wave of Heat'}},
+}
 
 function Wizard:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.swarm)

@@ -62,64 +62,64 @@ function Necromancer:initClassOptions()
     self:addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox', nil, 'BurnProc', 'bool')
 end
 
-function Necromancer:initSpellLines()
-    self:addSpell('composite', {'Ecliptic Paroxysm', 'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'}, {opt='USEDOTS'})
-    self:addSpell('wounds', {'Putrefying Wounds', 'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'}, {opt='USEWOUNDS'})
-    self:addSpell('fireshadow', {'Raging Shadow', 'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'}, {opt='USEDOTS'})
-    self:addSpell('pyreshort', {'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'}, {opt='USEDOTS'})
-    self:addSpell('pyrelong', {'Pyre of the Abandoned', 'Pyre of the Neglected', 'Pyre of the Wretched', 'Pyre of the Fereth', 'Pyre of the Lost', 'Pyre of the Forsaken', 'Pyre of the Piq\'a', 'Pyre of the Bereft', 'Pyre of the Forgotten', 'Pyre of Mori', 'Night Fire'}, {opt='USEDOTS'})
-    self:addSpell('venom', {'Luggald Venom', 'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad Venom', 'Glistenwing Venom', 'Binaesa Venom', 'Naeya Venom', 'Argendev\'s Venom', 'Slitheren Venom', 'Chaos Venom', 'Blood of Thule'}, {opt='USEDOTS'})
-    self:addSpell('magic', {'Extermination', 'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'}, {opt='USEDOTS'})
-    self:addSpell('decay', {'Goremand\'s Decay', 'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'}, {opt='USEDOTS'})
-    self:addSpell('grip', {'Grip of Terrastride', 'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'}, {opt='USEDOTS'})
-    self:addSpell('haze', {'Uncia\'s Pallid Haze', 'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'}, {opt='USEDOTS'})
-    self:addSpell('grasp', {'Helmsbane\'s Grasp', 'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Ancient: Curse of Mori', 'Fang of Death'}, {opt='USEDOTS'})
-    self:addSpell('leech', {'Ghastly Leech', 'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'}, {opt='USEDOTS'})
-    self:addSpell('ignite', {'Ignite Remembrance', 'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'}, {opt='USEDOTS'})
-    self:addSpell('scourge', {'Scourge of Destiny', 'Scourge of Fates'}, {opt='USEDOTS'})
-    self:addSpell('corruption', {'Deterioration', 'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'}, {opt='USEDOTS'})
+Necromancer.SpellLines = {
+    {Group='composite', Spells={'Ecliptic Paroxysm', 'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'}, Options={opt='USEDOTS'}},
+    {Group='wounds', Spells={'Putrefying Wounds', 'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'}, Options={opt='USEWOUNDS'}},
+    {Group='fireshadow', Spells={'Raging Shadow', 'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'}, Options={opt='USEDOTS'}},
+    {Group='pyreshort', Spells={'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'}, Options={opt='USEDOTS'}},
+    {Group='pyrelong', Spells={'Pyre of the Abandoned', 'Pyre of the Neglected', 'Pyre of the Wretched', 'Pyre of the Fereth', 'Pyre of the Lost', 'Pyre of the Forsaken', 'Pyre of the Piq\'a', 'Pyre of the Bereft', 'Pyre of the Forgotten', 'Pyre of Mori', 'Night Fire'}, Options={opt='USEDOTS'}},
+    {Group='venom', Spells={'Luggald Venom', 'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad Venom', 'Glistenwing Venom', 'Binaesa Venom', 'Naeya Venom', 'Argendev\'s Venom', 'Slitheren Venom', 'Chaos Venom', 'Blood of Thule'}, Options={opt='USEDOTS'}},
+    {Group='magic', Spells={'Extermination', 'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'}, Options={opt='USEDOTS'}},
+    {Group='decay', Spells={'Goremand\'s Decay', 'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'}, Options={opt='USEDOTS'}},
+    {Group='grip', Spells={'Grip of Terrastride', 'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'}, Options={opt='USEDOTS'}},
+    {Group='haze', Spells={'Uncia\'s Pallid Haze', 'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'}, Options={opt='USEDOTS'}},
+    {Group='grasp', Spells={'Helmsbane\'s Grasp', 'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Ancient: Curse of Mori', 'Fang of Death'}, Options={opt='USEDOTS'}},
+    {Group='leech', Spells={'Ghastly Leech', 'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'}, Options={opt='USEDOTS'}},
+    {Group='ignite', Spells={'Ignite Remembrance', 'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'}, Options={opt='USEDOTS'}},
+    {Group='scourge', Spells={'Scourge of Destiny', 'Scourge of Fates'}, Options={opt='USEDOTS'}},
+    {Group='corruption', Spells={'Deterioration', 'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'}, Options={opt='USEDOTS'}},
     -- Lifetaps
-    self:addSpell('tapee', {'Soullash', 'Soulflay', 'Soulgouge', 'Soulsiphon', 'Soulrend', 'Soulrip', 'Soulspike'}) -- unused
-    self:addSpell('tap', {'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak'}) -- unused
-    self:addSpell('tapsummon', {'Vollmondnacht Orb', 'Dusternacht Orb', 'Dunkelnacht Orb', 'Finsternacht Orb', 'Shadow Orb'}) -- unused
+    {Group='tapee', Spells={'Soullash', 'Soulflay', 'Soulgouge', 'Soulsiphon', 'Soulrend', 'Soulrip', 'Soulspike'}}, -- unused
+    {Group='tap', Spells={'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak'}}, -- unused
+    {Group='tapsummon', Spells={'Vollmondnacht Orb', 'Dusternacht Orb', 'Dunkelnacht Orb', 'Finsternacht Orb', 'Shadow Orb'}}, -- unused
     -- Wounds proc
-    self:addSpell('proliferation', {'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'})
+    {Group='proliferation', Spells={'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'}},
     -- combo dots
-    self:addSpell('combodisease', {'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'}, {opt='USEDOTS'})
-    self:addSpell('chaotic', {'Chaotic Fetor', 'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}, {opt='USEDOTS'}) -- unused
+    {Group='combodisease', Spells={'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'}, Options={opt='USEDOTS'}},
+    {Group='chaotic', Spells={'Chaotic Fetor', 'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}, Options={opt='USEDOTS'}}, -- unused
     -- sphere
-    self:addSpell('sphere', {'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}) -- unused
+    {Group='sphere', Spells={'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}}, -- unused
     -- Alliance
-    self:addSpell('alliance', {'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'}, {opt='USEALLIANCE'})
+    {Group='alliance', Spells={'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'}, Options={opt='USEALLIANCE'}},
     -- Nukes
-    self:addSpell('synergy', {'Decree for Blood', 'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'}, {opt='USENUKES'})
-    self:addSpell('venin', {'Necrotizing Venin', 'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin'}, {opt='USENUKES'})
+    {Group='synergy', Spells={'Decree for Blood', 'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'}, Options={opt='USENUKES'}},
+    {Group='venin', Spells={'Necrotizing Venin', 'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin'}, Options={opt='USENUKES'}},
     -- Debuffs
-    self:addSpell('scentterris', {'Scent of Terris'}) -- AA only
-    self:addSpell('scentmortality', {'Scent of The Realm', 'Scent of The Grave', 'Scent of Mortality', 'Scent of Extinction', 'Scent of Dread', 'Scent of Nightfall', 'Scent of Doom', 'Scent of Gloom', 'Scent of Midnight'})
-    self:addSpell('snare', {'Afflicted Darkness', 'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness'}, {opt='USESNARE'}) -- unused
+    {Group='scentterris', Spells={'Scent of Terris'}}, -- AA only
+    {Group='scentmortality', Spells={'Scent of The Realm', 'Scent of The Grave', 'Scent of Mortality', 'Scent of Extinction', 'Scent of Dread', 'Scent of Nightfall', 'Scent of Doom', 'Scent of Gloom', 'Scent of Midnight'}},
+    {Group='snare', Spells={'Afflicted Darkness', 'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness'}, Options={opt='USESNARE'}}, -- unused
     -- Mana Drain
-    self:addSpell('manatap', {'Mind Disintegrate', 'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'}, {opt='USEMANATAP'})
+    {Group='manatap', Spells={'Mind Disintegrate', 'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'}, Options={opt='USEMANATAP'}},
     -- Buffs
-    self:addSpell('lich', {'Realmside', 'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, {opt='USELICH', nodmz=true})
-    self:addSpell('flesh', {'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'})
-    self:addSpell('shield', {'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'})
-    self:addSpell('rune', {'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}) -- unused
-    self:addSpell('tapproc', {'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}) -- unused
-    self:addSpell('defensiveproc', {'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, {classes={WAR=true,PAL=true,SHD=true}})
-    self:addSpell('reflect', {'Mirror'})
-    self:addSpell('hpbuff', {'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}) -- pre-unity
-    self:addSpell('dmf', {'Dead Men Floating'})
+    {Group='lich', Spells={'Realmside', 'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, Options={opt='USELICH', nodmz=true}},
+    {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}},
+    {Group='shield', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'}},
+    {Group='rune', Spells={'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}}, -- unused
+    {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
+    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}}},
+    {Group='reflect', Spells={'Mirror'}},
+    {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}}, -- pre-unity
+    {Group='dmf', Spells={'Dead Men Floating'}},
     -- Pet spells
-    self:addSpell('pet', {'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'})
-    self:addSpell('pethaste', {'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'})
-    self:addSpell('petheal', {'Bracing Revival', 'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve'}) -- unused
-    self:addSpell('petaegis', {'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}) -- unused
-    self:addSpell('petshield', {'Cascading Runeshield', 'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}) -- unused
-    self:addSpell('petillusion', {'Form of Mottled Bone'})
-    self:addSpell('inspire', {'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'})
-    self:addSpell('swarm', {'Call Skeleton Thrall', 'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'})
-end
+    {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'}},
+    {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'}},
+    {Group='petheal', Spells={'Bracing Revival', 'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve'}}, -- unused
+    {Group='petaegis', Spells={'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}}, -- unused
+    {Group='petshield', Spells={'Cascading Runeshield', 'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}}, -- unused
+    {Group='petillusion', Spells={'Form of Mottled Bone'}},
+    {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}},
+    {Group='swarm', Spells={'Call Skeleton Thrall', 'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'}},
+}
 
 function Necromancer:initSpellConditions()
     if self.spells.manatap then self.spells.manatap.condition = function() return (mq.TLO.Group.LowMana(70)() or 0) > 2 end end

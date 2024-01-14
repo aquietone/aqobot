@@ -114,67 +114,67 @@ function Shaman:initClassOptions()
     self:addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox', nil, 'UseEpic', 'bool')
 end
 
-function Shaman:initSpellLines()
+Shaman.SpellLines = {
     -- Lvl 100+ main heal
-    self:addNSpells('reckless', 3, {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, {panic=true, regular=true, tank=true})
+    {Group='reckless', NumToPick=3, Spells={'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, Options={panic=true, regular=true, tank=true}},
     -- Below lvl 100 main heal
-    self:addSpell('heal', {'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
+    {Group='heal', Spells={'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, Options={panic=true, regular=true, tank=true, pet=60}},
 
     -- Lvl 100+ group heals
-    self:addSpell('splash', {'Spiritual Shower', 'Spiritual Squall', 'Spiritual Swell'}, {group=true}) -- splash, easiest to cast on self, requires los
-    self:addSpell('recourse', {'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse'}, {group=true})
-    self:addSpell('intervention', {'Immortal Intervention', 'Antediluvian Intervention', 'Primordial Intervention', 'Prehistoric Intervention', 'Historian\'s Intervention'}, {group=true})
-    self:addSpell('composite', {'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Dichotomic Roar'}) -- stacks with HoT but overwrites regen, blocked by dots
-    self:addSpell('selfprocheal', {'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}) -- self buff, proc heal when hit
+    {Group='splash', Spells={'Spiritual Shower', 'Spiritual Squall', 'Spiritual Swell'}, Options={group=true}}, -- splash, easiest to cast on self, requires los
+    {Group='recourse', Spells={'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse'}, Options={group=true}},
+    {Group='intervention', Spells={'Immortal Intervention', 'Antediluvian Intervention', 'Primordial Intervention', 'Prehistoric Intervention', 'Historian\'s Intervention'}, Options={group=true}},
+    {Group='composite', Spells={'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Dichotomic Roar'}}, -- stacks with HoT but overwrites regen, blocked by dots
+    {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}}, -- self buff, proc heal when hit
     -- Below lvl 100 group heal
-    self:addSpell('groupheal', {'Word of Reconstitution', 'Word of Restoration'}, {group=true})
+    {Group='groupheal', Spells={'Word of Reconstitution', 'Word of Restoration'}, Options={group=true}},
 
     -- HoTs
-    self:addSpell('grouphot', {'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal'}, {opt='USEHOTGROUP', grouphot=true}) -- group HoT
-    self:addSpell('hottank', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTTANK', hot=true})
-    self:addSpell('hotdps', {'Spiritual Serenity', 'Breath of Trushar'}, {opt='USEHOTDPS', hot=true})
-    self:addSpell('torpor', {'Transcendent Torpor'})
+    {Group='grouphot', Spells={'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal'}, Options={opt='USEHOTGROUP', grouphot=true}}, -- group HoT
+    {Group='hottank', Spells={'Spiritual Serenity', 'Breath of Trushar'}, Options={opt='USEHOTTANK', hot=true}},
+    {Group='hotdps', Spells={'Spiritual Serenity', 'Breath of Trushar'}, Options={opt='USEHOTDPS', hot=true}},
+    {Group='torpor', Spells={'Transcendent Torpor'}},
 
     -- Cures
-    self:addSpell('cure', {'Blood of Nadox'})
-    self:addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
+    {Group='cure', Spells={'Blood of Nadox'}},
+    {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
 
     -- Debuffs
-    self:addSpell('slow', {'Turgur\'s Insects', 'Togor\'s Insects'}, {opt='USESLOW'})
-    self:addSpell('slowproc', {'Lingering Sloth'}, {classes={WAR=true,PAL=true,SHD=true}})
-    self:addSpell('idol', {'Idol of Malos'}, {opt='USEDEBUFF'})
-    self:addSpell('malo', {'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'}, {opt='USEDEBUFF'})
-    self:addSpell('dispel', {'Abashi\'s Disempowerment'}, {opt='USEDISPEL'})
-    self:addSpell('debuff', {'Crippling Spasm'}, {opt='USEDEBUFF'})
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects'}, Options={opt='USESLOW'}},
+    {Group='slowproc', Spells={'Lingering Sloth'}, Options={classes={WAR=true,PAL=true,SHD=true}}},
+    {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF'}},
+    {Group='malo', Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'}, Options={opt='USEDEBUFF'}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment'}, Options={opt='USEDISPEL'}},
+    {Group='debuff', Spells={'Crippling Spasm'}, Options={opt='USEDEBUFF'}},
 
     -- DPS
-    self:addSpell('tcnuke', {'Gelid Gift', 'Polar Gift', 'Wintry Gift', 'Frostbitten Gift', 'Glacial Gift', 'Frostfall Boon'}, {opt='USENUKES'}) -- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower
-    self:addSpell('nuke', {'Yoppa\'s Spear of Venom', 'Spear of Torment'}, {opt='USENUKES'})
-    self:addSpell('slownuke', {'Ice Age'}, {opt='USENUKES'})
-    self:addSpell('dot1', {'Nectar of Pain'}, {opt='USEDOTS'})
-    self:addSpell('dot2', {'Curse of Sisslak'}, {opt='USEDOTS'})
-    self:addSpell('dot3', {'Blood of Yoppa'}, {opt='USEDOTS'})
-    self:addSpell('dot4', {'Breath of Wunshi', {opt='USEDOTS'}})
+    {Group='tcnuke', Spells={'Gelid Gift', 'Polar Gift', 'Wintry Gift', 'Frostbitten Gift', 'Glacial Gift', 'Frostfall Boon'}, Options={opt='USENUKES'}}, -- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower
+    {Group='nuke', Spells={'Yoppa\'s Spear of Venom', 'Spear of Torment'}, Options={opt='USENUKES'}},
+    {Group='slownuke', Spells={'Ice Age'}, Options={opt='USENUKES'}},
+    {Group='dot1', Spells={'Nectar of Pain'}, Options={opt='USEDOTS'}},
+    {Group='dot2', Spells={'Curse of Sisslak'}, Options={opt='USEDOTS'}},
+    {Group='dot3', Spells={'Blood of Yoppa'}, Options={opt='USEDOTS'}},
+    {Group='dot4', Spells={'Breath of Wunshi', Options={opt='USEDOTS'}}},
 
     -- Buffs
-    self:addSpell('proc', {'Spirit of the Leopard', 'Spirit of the Jaguar'}, {classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}})
-    self:addSpell('champion', {'Champion', 'Ferine Avatar'})
-    self:addSpell('panther', {'Talisman of the Panther'})
-    -- self:addSpell('talisman', {'Talisman of Unification'}, {group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
-    -- self:addSpell('focus', {'Talisman of Wunshi'}, {classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('evasion', {'Talisman of Unification'}, {self=true, classes={WAR=true,SHD=true,PAL=true}})
-    self:addSpell('singlefocus', {'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'})
-    self:addSpell('singleunity', {'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'})
-    self:addSpell('groupunity', {'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'})
-    self:addSpell('growth', {'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'})
+    {Group='proc', Spells={'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}}},
+    {Group='champion', Spells={'Champion', 'Ferine Avatar'}},
+    {Group='panther', Spells={'Talisman of the Panther'}},
+    -- {Group='talisman', Spells={'Talisman of Unification'}, Options={group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
+    -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
+    {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
+    {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
+    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'}},
+    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}}},
+    {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}},
 
     -- Utility
-    self:addSpell('canni', {'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, {mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false})
-    self:addSpell('pet', {'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'})
+    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
+    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'}},
 
-    self:addSpell('alliance', {'Ancient Coalition', 'Ancient Alliance'}) -- keep up on tank, proc ae heal from target
+    {Group='alliance', Spells={'Ancient Coalition', 'Ancient Alliance'}}, -- keep up on tank, proc ae heal from target
     --Call of the Ancients -- 5 minute duration ward AE healing
-end
+}
 
 function Shaman:initSpellConditions()
     if self.spells.tcnuke then
@@ -275,7 +275,7 @@ function Shaman:initBuffs()
 
     self:addRequestAlias(self.radiant, 'RC')
     self:addRequestAlias(self.spells.torpor, 'HOT')
-    self:addRequestAlias(self.spells.focus, 'FOCUS')
+    self:addRequestAlias(self.spells.groupunity, 'FOCUS')
 end
 
 function Shaman:initDebuffs()

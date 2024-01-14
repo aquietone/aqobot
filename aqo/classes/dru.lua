@@ -67,95 +67,76 @@ function Druid:initClassOptions()
     self:addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox', nil, 'UseDebuff', 'bool')
 end
 
-function Druid:initSpellLines()
-    if state.emu then
-        self:addSpell('heal', {'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, {panic=true, regular=true, tank=true, pet=60})
-        self:addSpell('groupheal', {'Word of Reconstitution', 'Word of Restoration', 'Moonshadow'}, {group=true})
-        self:addSpell('firenuke', {'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, {opt='USENUKES'})
-        self:addSpell('coldnuke', {'Ancient: Glacier Frost'}, {opt='USENUKES'})
-        self:addSpell('twincast', {'Sunburst Blessing'}, {opt='USENUKES'})
-        self:addSpell('dot', {'Wasp Swarm', 'Swarming Death', 'Winged Death'}, {opt='USEDOTS'})
-        self:addSpell('dot2', {'Vengeance of the Sun'}, {opt='USEDOTS'})
-        self:addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
-        self:addSpell('aura', {'Aura of Life', 'Aura of the Grove'})
-        self:addSpell('pet', {'Nature Wanderer\'s Behest'})
-        self:addSpell('reptile', {'Skin of the Reptile'}, {classes={MNK=true,WAR=true,PAL=true,SHD=true}})
-        self:addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
-    else
-        -- Main spell set
-        self:addSpell('twincast', {'Twincast'})
-        self:addSpell('heal1', {'Resuscitation', 'Soothseance', 'Rejuvenescence', 'Revitalization', 'Resurgence'}, {panic=true, regular=true, tank=true, pet=60}) -- healing spam on cd
-        self:addSpell('heal2', {'Adrenaline Fury', 'Adrenaline Spate', 'Adrenaline Deluge', 'Adrenaline Barrage', 'Adrenaline Torrent'}, {panic=true, regular=true, tank=true, pet=60}) -- healing spam on cd
-        self:addSpell('groupheal1', {'Lunacea', 'Lunarush', 'Lunalesce', 'Lunasalve', 'Lunasoothe'}, {group=true}) -- group heal
-        self:addSpell('groupheal2', {'Survival of the Heroic', 'Survival of the Unrelenting', 'Survival of the Favored', 'Survival of the Auspicious', 'Survival of the Serendipitous'}, {group=true}) -- group heal
-        self:addSpell('dot1', {'Nature\'s Boiling Wrath', 'Nature\'s Sweltering Wrath', 'Nature\'s Fervid Wrath', 'Nature\'s Blistering Wrath', 'Nature\'s Fiery Wrath'}, {opt='USEDOTS'})
-        self:addSpell('dot2', {'Horde of Hotaria', 'Horde of Duskwigs', 'Horde of Hyperboreads', 'Horde of Polybiads', 'Horde of Aculeids'}, {opt='USEDOTS'})
-        self:addSpell('dot3', {'Sunscald', 'Sunpyre', 'Sunshock', 'Sunflame', 'Sunflash'}, {opt='USEDOTS'})
-        self:addSpell('dot5', {'Searing Sunray', 'Tenebrous Sunray', 'Erupting Sunray', 'Overwhelming Sunray', 'Consuming Sunray'}, {opt='USEDOTS'}) -- inc spell dmg taken, dot, dec fire resist, dec AC
-        --self:addSpell('', {'Mythical Moonbeam', 'Onyx Moonbeam', 'Opaline Moonbeam', 'Pearlescent Moonbeam', 'Argent Moonbeam'}) -- sunray but cold resist
-        self:addSpell('nuke1', {'Remote Sunscorch', 'Remote Sunbolt', 'Remote Sunshock', 'Remote Sunblaze', 'Remote Sunflash'}, {opt='USENUKES'}) -- nuke + heal tot
-        self:addSpell('nuke2', {'Winter\'s Wildgale', 'Winter\'s Wildbrume', 'Winter\'s Wildshock', 'Winter\'s Wildblaze', 'Winter\'s Wildflame'}, {opt='USENUKES'})
-        self:addSpell('nuke3', {'Summer Sunscald', 'Summer Sunpyre', 'Summer Sunshock', 'Summer Sunflame', 'Summer Sunfire'}, {opt='USENUKES'})
-        self:addSpell('nuke4', {'Tempest Roar', 'Bloody Roar', 'Typhonic Roar', 'Cyclonic Roar', 'Anabatic Roar'}, {opt='USENUKES'})
+Druid.SpellLines = {
+    -- Main spell set
+    {Group='twincast', Spells={'Twincast'}},
+    {Group='heal1', Spells={'Resuscitation', 'Soothseance', 'Rejuvenescence', 'Revitalization', 'Resurgence', 'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'}, Options={panic=true, regular=true, tank=true, pet=60}},
+    {Group='heal2', Spells={'Adrenaline Fury', 'Adrenaline Spate', 'Adrenaline Deluge', 'Adrenaline Barrage', 'Adrenaline Torrent'}, Options={panic=true, regular=true, tank=true, pet=60}}, -- healing spam on cd
+    {Group='groupheal1', Spells={'Lunacea', 'Lunarush', 'Lunalesce', 'Lunasalve', 'Lunasoothe', 'Word of Reconstitution', 'Word of Restoration', 'Moonshadow'}, Options={group=true}},
+    {Group='groupheal2', Spells={'Survival of the Heroic', 'Survival of the Unrelenting', 'Survival of the Favored', 'Survival of the Auspicious', 'Survival of the Serendipitous'}, Options={group=true}}, -- group heal
+    {Group='dot1', Spells={'Nature\'s Boiling Wrath', 'Nature\'s Sweltering Wrath', 'Nature\'s Fervid Wrath', 'Nature\'s Blistering Wrath', 'Nature\'s Fiery Wrath'}, Options={opt='USEDOTS'}},
+    {Group='dot2', Spells={'Horde of Hotaria', 'Horde of Duskwigs', 'Horde of Hyperboreads', 'Horde of Polybiads', 'Horde of Aculeids', 'Wasp Swarm', 'Swarming Death', 'Winged Death'}, Options={opt='USEDOTS'}},
+    {Group='dot3', Spells={'Sunscald', 'Sunpyre', 'Sunshock', 'Sunflame', 'Sunflash', 'Vengeance of the Sun'}, Options={opt='USEDOTS'}},
+    {Group='dot5', Spells={'Searing Sunray', 'Tenebrous Sunray', 'Erupting Sunray', 'Overwhelming Sunray', 'Consuming Sunray'}, Options={opt='USEDOTS'}}, -- inc spell dmg taken, dot, dec fire resist, dec AC
+    --{Group='', Spells={'Mythical Moonbeam', 'Onyx Moonbeam', 'Opaline Moonbeam', 'Pearlescent Moonbeam', 'Argent Moonbeam'}}, -- sunray but cold resist
+    {Group='nuke1', Spells={'Remote Sunscorch', 'Remote Sunbolt', 'Remote Sunshock', 'Remote Sunblaze', 'Remote Sunflash'}, Options={opt='USENUKES'}}, -- nuke + heal tot
+    {Group='nuke2', Spells={'Winter\'s Wildgale', 'Winter\'s Wildbrume', 'Winter\'s Wildshock', 'Winter\'s Wildblaze', 'Winter\'s Wildflame', 'Ancient: Glacier Frost'}, Options={opt='USENUKES'}},
+    {Group='nuke3', Spells={'Summer Sunscald', 'Summer Sunpyre', 'Summer Sunshock', 'Summer Sunflame', 'Summer Sunfire', 'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, Options={opt='USENUKES'}},
+    {Group='nuke4', Spells={'Tempest Roar', 'Bloody Roar', 'Typhonic Roar', 'Cyclonic Roar', 'Anabatic Roar'}, Options={opt='USENUKES'}},
 
-        self:addSpell('composite', {'Ecliptic Winds', 'Composite Winds', 'Dichotomic Winds'})
-        self:addSpell('alliance', {'Arbor Tender\'s Coalition', 'Bosquetender\'s Alliance'})
-        self:addSpell('unity', {'Wildtender\'s Unity', 'Copsetender\'s Unity'})
-        
-        -- Other spells
-        self:addSpell('dot4', {'Chill of the Ferntender', 'Chill of the Dusksage Tender', 'Chill of the Arbor Tender', 'Chill of the Wildtender', 'Chill of the Copsetender'}, {opt='USEDOTS'})
-        self:addSpell('heal3', {'Vivavida', 'Clotavida', 'Viridavida', 'Curavida', 'Panavida'}, {panic=true, regular=true, tank=true, pet=60}) -- healing spam if other heals on cd
-        self:addSpell('growth', {'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'})
+    {Group='composite', Spells={'Ecliptic Winds', 'Composite Winds', 'Dichotomic Winds'}},
+    {Group='alliance', Spells={'Arbor Tender\'s Coalition', 'Bosquetender\'s Alliance'}},
+    {Group='unity', Spells={'Wildtender\'s Unity', 'Copsetender\'s Unity'}},
 
-        self:addSpell('healtot', {'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}) -- Heal tot, dec atk, dec AC
-        self:addSpell('tcnuke', {'Sunbliss Blessing', 'Sunwarmth Blessing', 'Sunrake Blessing', 'Sunflash Blessing', 'Sunfire Blessing'}, {opt='USENUKES'})
-        self:addSpell('harvest', {'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}) -- self return 10k mana
-        self:addSpell('cure', {'Sanctified Blood'}, {curse=true,disease=true,poison=true,corruption=true}) -- cure dis/poi/cor/cur
+    -- Other spells
+    {Group='dot4', Spells={'Chill of the Ferntender', 'Chill of the Dusksage Tender', 'Chill of the Arbor Tender', 'Chill of the Wildtender', 'Chill of the Copsetender'}, Options={opt='USEDOTS'}},
+    {Group='heal3', Spells={'Vivavida', 'Clotavida', 'Viridavida', 'Curavida', 'Panavida'}, Options={panic=true, regular=true, tank=true, pet=60}}, -- healing spam if other heals on cd
+    {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}},
+    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE'}},
 
-        -- Buffs
-        self:addSpell('skin', {'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing'})
-        self:addSpell('regen', {'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'})
-        self:addSpell('mask', {'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender'}) -- self mana regen, part of unity AA
-        self:addSpell('singleskin', {'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin'})
-        self:addSpell('reptile', {'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile'}, {classes={MNK=true,WAR=true,PAL=true,SHD=true}}) -- debuff on hit, lowers atk++AC
+    {Group='healtot', Spells={'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}}, -- Heal tot, dec atk, dec AC
+    {Group='tcnuke', Spells={'Sunbliss Blessing', 'Sunwarmth Blessing', 'Sunrake Blessing', 'Sunflash Blessing', 'Sunfire Blessing', 'Sunburst Blessing'}, Options={opt='USENUKES'}},
+    {Group='harvest', Spells={'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}}, -- self return 10k mana
+    {Group='cure', Spells={'Sanctified Blood'}, Options={curse=true,disease=true,poison=true,corruption=true}}, -- cure dis/poi/cor/cur
+    {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
+    {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET'}},
 
-        -- Aura
-        self:addSpell('aura', {'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura'}) -- adds cold dmg proc to spells
-    end
-end
+    -- Buffs
+    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing'}},
+    {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}},
+    {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender'}}, -- self mana regen, part of unity AA
+    {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin'}},
+    {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
+
+    -- Aura
+    {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}}, -- adds cold dmg proc to spells
+}
 
 function Druid:initSpellRotations()
-    if state.emu then
-        table.insert(self.spellRotations.standard, self.spells.dot)
-        table.insert(self.spellRotations.standard, self.spells.dot2)
-        table.insert(self.spellRotations.standard, self.spells.twincast)
-        table.insert(self.spellRotations.standard, self.spells.firenuke)
-        table.insert(self.spellRotations.standard, self.spells.coldnuke)
-    else
-        table.insert(self.spellRotations.standard, self.spells.dot1)
-        table.insert(self.spellRotations.standard, self.spells.dot2)
-        table.insert(self.spellRotations.standard, self.spells.dot3)
-        table.insert(self.spellRotations.standard, self.spells.dot4)
-        table.insert(self.spellRotations.standard, self.spells.dot5)
+    table.insert(self.spellRotations.standard, self.spells.dot1)
+    table.insert(self.spellRotations.standard, self.spells.dot2)
+    table.insert(self.spellRotations.standard, self.spells.dot3)
+    table.insert(self.spellRotations.standard, self.spells.dot4)
+    table.insert(self.spellRotations.standard, self.spells.dot5)
 
-        table.insert(self.spellRotations.standard, self.spells.nuke1)
-        table.insert(self.spellRotations.standard, self.spells.nuke2)
-        table.insert(self.spellRotations.standard, self.spells.nuke3)
-        table.insert(self.spellRotations.standard, self.spells.nuke4)
-    end
+    table.insert(self.spellRotations.standard, self.spells.tcnuke)
+    table.insert(self.spellRotations.standard, self.spells.nuke1)
+    table.insert(self.spellRotations.standard, self.spells.nuke2)
+    table.insert(self.spellRotations.standard, self.spells.nuke3)
+    table.insert(self.spellRotations.standard, self.spells.nuke4)
 end
 
 function Druid:initHeals()
+    table.insert(self.healAbilities, self.spells.heal1)
+    table.insert(self.healAbilities, self.spells.heal2)
+    table.insert(self.healAbilities, self.spells.heal3)
+    table.insert(self.healAbilities, self.spells.groupheal1)
+    table.insert(self.healAbilities, self.spells.groupheal2)
+    table.insert(self.healAbilities, common.getAA('Convergence of Spirits', {panic=true}))
     if state.emu then
-        table.insert(self.healAbilities, self.spells.heal)
-        table.insert(self.healAbilities, self.spells.groupheal)
-        table.insert(self.healAbilities, common.getAA('Convergence of Spirits', {panic=true}))
         table.insert(self.healAbilities, common.getAA('Peaceful Convergence of Spirits', {panic=true}))
     else
         -- Heal AA's
-        table.insert(self.healAbilities, self.spells.heal1)
-        table.insert(self.healAbilities, self.spells.heal2)
-        table.insert(self.healAbilities, self.spells.heal3)
         table.insert(self.healAbilities, common.getAA('Convergence of Spirits')) -- instant heal + hot
         table.insert(self.healAbilities, common.getAA('Blessing of Tunare')) -- targeted AE splash heal if lunarush down
         table.insert(self.healAbilities, common.getAA('Wildtender\'s Survival')) -- casts highest survival spell. group heal

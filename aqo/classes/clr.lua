@@ -79,54 +79,55 @@ function Cleric:initClassOptions()
     self:addOption('USERETORT', 'Use Retort', true, nil, 'Toggle use of Retort spell line', 'checkbox', nil, 'UseRetort', 'bool')
 end
 
-function Cleric:initSpellLines()
+Cleric.SpellLines = {
     -- emu or before remedies standard heal
-    self:addSpell('lightheal', {'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'}, {tank=true, panic=true, regular=true})
+    {Group='lightheal', Spells={'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'}, Options={tank=true, panic=true, regular=true}},
+    {Group='lightheal', Spells={'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'}, Options={tank=true, panic=true, regular=true}},
     -- live, multiple remedies main heals
-    self:addNSpells('remedy', 3, {'Avowed Remedy', 'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy', 'Sacred Remedy', 'Pious Remedy', 'Supernal Remedy', 'Remedy'}, {tank=true, panic=true, regular=true})
+    {Group='remedy', NumToPick=3, Spells={'Avowed Remedy', 'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy', 'Sacred Remedy', 'Pious Remedy', 'Supernal Remedy', 'Remedy'}, Options={tank=true, panic=true, regular=true}},
     -- Slot 5
-    self:addSpell('renewal', {'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'}, {tank=true, panic=true}) -- slower heal
-    self:addNSpells('intervention', 2, {'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention'}, {tank=true, panic=true, regular=true})
-    self:addSpell('groupheal', {'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', 'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'}, {threshold=3, regular=true, single=true, group=true, pct=70})
-    self:addSpell('groupheal2', {'Word of Greater Vivification', 'Word of Greater Rejuvination', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation'}, {threshold=3, regular=true, single=true, group=true, pct=70})
-    self:addSpell('grouphot', {'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', 'Elixir of Divinity'}, {opt='USEHOTGROUP', grouphot=true})
-    self:addSpell('hottank', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, {opt='USEHOTTANK', hot=true})
-    self:addSpell('hotdps', {'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, {opt='USEHOTDPS', hot=true})
+    {Group='renewal', Spells={'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'}, Options={tank=true, panic=true}}, -- slower heal
+    {Group='intervention', NumToPick=2, Spells={'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention'}, Options={tank=true, panic=true, regular=true}},
+    {Group='groupheal', Spells={'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', 'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'}, Options={threshold=3, regular=true, single=true, group=true, pct=70}},
+    {Group='groupheal2', Spells={'Word of Greater Vivification', 'Word of Greater Rejuvination', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation'}, Options={threshold=3, regular=true, single=true, group=true, pct=70}},
+    {Group='grouphot', Spells={'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', 'Elixir of Divinity'}, Options={opt='USEHOTGROUP', grouphot=true}},
+    {Group='hottank', Spells={'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTTANK', hot=true}},
+    {Group='hotdps', Spells={'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTDPS', hot=true}},
     -- Slot 6
-    self:addSpell('issuance', {'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit'})
-    self:addSpell('splash', {'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash'}, {opt='USESPLASH', group=true, threshold=3})
-    self:addSpell('ward', {'Ward of Commitment', 'Ward of Persistence', 'Ward of Righteousness', 'Ward of Assurance', 'Ward of Surety'}, {tank=true, regular=true}) -- heals on break
-    self:addSpell('composite', {'Ecliptic Blessing', 'Composite Blessing', 'Dichotomic Blessing'}, {tank=true, panic=true})
+    {Group='issuance', Spells={'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit'}},
+    {Group='splash', Spells={'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash'}, Options={opt='USESPLASH', group=true, threshold=3}},
+    {Group='ward', Spells={'Ward of Commitment', 'Ward of Persistence', 'Ward of Righteousness', 'Ward of Assurance', 'Ward of Surety'}, Options={tank=true, regular=true}}, -- heals on break
+    {Group='composite', Spells={'Ecliptic Blessing', 'Composite Blessing', 'Dichotomic Blessing'}, Options={tank=true, panic=true}},
 
-    self:addSpell('mark', {'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, {opt='USEDEBUFF'})
+    {Group='mark', Spells={'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, Options={opt='USEDEBUFF'}},
 
-    self:addSpell('aura', {'Bastion of Divinity', 'Aura of Divinity'}, {aura=true})
-    self:addSpell('spellhaste', {'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Aura of Devotion'}, {classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}})
-    self:addSpell('groupaego', {'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, {classes={CLR=true,WAR=true,SHD=true,PAL=true}})
-    self:addSpell('singleaego', {'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, {classes={CLR=true,WAR=true,SHD=true,PAL=true}})
-    self:addSpell('groupsymbol', {'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, {opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end})
-    self:addSpell('singlesymbol', {'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'}, {opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end})
-    self:addSpell('di', {'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', 'Divine Intervention'})
-    self:addSpell('shining', {'Shining Steel', 'Shining Fortitude', 'Shining Aegis', 'Shining Fortress', 'Shining Bulwark'})
-    self:addSpell('armor', {'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'})
-    self:addSpell('vie', {'Rallied Citadel of Vie', 'Rallied Sanctuary of Vie'}, {opt='USEVIE'})
-    self:addSpell('bigvie', {'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie'}, {opt='USEVIE'})
+    {Group='aura', Spells={'Bastion of Divinity', 'Aura of Divinity'}, Options={aura=true}},
+    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Aura of Devotion'}, Options={classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}}},
+    {Group='groupaego', Spells={'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}}},
+    {Group='singleaego', Spells={'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}}},
+    {Group='groupsymbol', Spells={'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end}},
+    {Group='singlesymbol', Spells={'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end}},
+    {Group='di', Spells={'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', 'Divine Intervention'}},
+    {Group='shining', Spells={'Shining Steel', 'Shining Fortitude', 'Shining Aegis', 'Shining Fortress', 'Shining Bulwark'}},
+    {Group='armor', Spells={'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'}},
+    {Group='vie', Spells={'Rallied Citadel of Vie', 'Rallied Sanctuary of Vie'}, Options={opt='USEVIE'}},
+    {Group='bigvie', Spells={'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie'}, Options={opt='USEVIE'}},
 
-    self:addSpell('yaulp', {'Yaulp VI'}, {combat=true, ooc=false, opt='USEYAULP'})
-    self:addSpell('hammerpet', {'Unswerving Hammer of Justice'}, {opt='USEHAMMER'})
+    {Group='yaulp', Spells={'Yaulp VI'}, Options={combat=true, ooc=false, opt='USEYAULP'}},
+    {Group='hammerpet', Spells={'Unswerving Hammer of Justice'}, Options={opt='USEHAMMER'}},
 
-    self:addSpell('rgc', {'Remove Greater Curse'}, {curse=true})
-    self:addSpell('stun', {'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Holy Might', 'Stun'}, {opt='USESTUN'})
-    self:addSpell('aestun', {'Silent Dictation'})
+    {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
+    {Group='stun', Spells={'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Holy Might', 'Stun'}, Options={opt='USESTUN'}},
+    {Group='aestun', Spells={'Silent Dictation'}},
 
     -- slot 12
-    self:addSpell('retort', {'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort'}, {opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}})
+    {Group='retort', Spells={'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort'}, Options={opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}}},
     -- twincast nuke
-    self:addSpell('rebuke', {'Unyielding Admonition', 'Unyielding Rebuke', 'Unyielding Censure', 'Unyielding Judgement'})
+    {Group='rebuke', Spells={'Unyielding Admonition', 'Unyielding Rebuke', 'Unyielding Censure', 'Unyielding Judgement'}},
     -- slot 13
-    self:addSpell('da', {'Divine Bulwark', 'Divine Keep', 'Divine Indemnity', 'Divine Haven', 'Divine Fortitude', 'Divine Eminence', 'Divine Destiny', 'Divine Custody', 'Divine Barrier', 'Divine Aura'})
-    self:addSpell('alliance', {'Sincere Coalition', 'Divine Alliance'}, {tank=true, regular=true})
-end
+    {Group='da', Spells={'Divine Bulwark', 'Divine Keep', 'Divine Indemnity', 'Divine Haven', 'Divine Fortitude', 'Divine Eminence', 'Divine Destiny', 'Divine Custody', 'Divine Barrier', 'Divine Aura'}},
+    {Group='alliance', Spells={'Sincere Coalition', 'Divine Alliance'}, Options={tank=true, regular=true}},
+}
 
 function Cleric:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.stun)

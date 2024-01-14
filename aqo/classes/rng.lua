@@ -41,7 +41,7 @@ function Ranger:initClassOptions()
     self:addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA', 'UseUnityAzia', 'bool')
     self:addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA', 'UseUnityBeza', 'bool')
     self:addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox', nil, 'UseRange', 'bool')
-    self:addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox', nil, 'UseMelee', 'bool')
+    -- self:addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox', nil, 'UseMelee', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW', 'UsePoisonArrow', 'bool')
     self:addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW', 'UseFireArrow', 'bool')
@@ -56,48 +56,49 @@ function Ranger:initClassOptions()
     self:addOption('USEFADE', 'Use Fade', true, nil, 'Use Cover Tracks AA to reduce aggro', 'checkbox', nil, 'UseFade', 'bool')
 end
 
-function Ranger:initSpellLines()
-    self:addSpell('shots', {'Inevitable Shots', 'Claimed Shots'}, {opt='USEARROWSPELLS'}) -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    self:addSpell('focused', {'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'}, {opt='USEARROWSPELLS'})--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
-    self:addSpell('composite', {'Composite Fusillade'}) -- double bow shot and fire+ice nuke
-    self:addSpell('heart', {'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
-    self:addSpell('opener', {'Stealthy Shot'}, {opt='USEARROWSPELLS'}) -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
+Ranger.SpellLines = {
+    {Group='shots', Spells={'Inevitable Shots', 'Claimed Shots'}, Options={opt='USEARROWSPELLS'}}, -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
+    {Group='focused', Spells={'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'}, Options={opt='USEARROWSPELLS'}},--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
+    {Group='composite', Spells={'Composite Fusillade'}}, -- double bow shot and fire+ice nuke
+    {Group='heart', Spells={'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'}, Options={opt='USEARROWSPELLS'}}, -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    {Group='opener', Spells={'Stealthy Shot'}, Options={opt='USEARROWSPELLS'}}, -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
-    self:addSpell('firenuke1', {'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}) -- fire + ice nuke, Summer's Sleet
-    self:addSpell('firenuke2', {'Laurion Ash', 'Hearth Embers'}) -- fire + ice nuke, Summer's Sleet
-    self:addSpell('coldnuke1', {'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'}) -- 'Fernflash Boon', 
-    self:addSpell('coldnuke2', {'Gelid Wind', 'Frost Wind'}) -- 
-    self:addSpell('healtot', {'Desperate Quenching', 'Desperate Geyser'}) -- heal ToT, Desperate Meltwater, fast cast, long cd
-    self:addSpell('healtot2', {'Elizerain Spring', 'Darkflow Spring'}) -- heal ToT, Meltwater Spring, slow cast
-    self:addSpell('dot', {'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'}, {opt='USEDOTS'}) -- main DoT
-    self:addSpell('dotds', {'Swarm of Fernflies', 'Swarm of Bloodflies'}, {opt='USEDOTS'}) -- DoT + reverse DS, Swarm of Hyperboreads
-    self:addSpell('dmgbuff', {'Arbor Stalker\'s Enrichment'}) -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
-    self:addSpell('alliance', {'Arbor Stalker\'s Coalition'})
-    self:addSpell('buffs', {'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}) -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
+    {Group='firenuke1', Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}}, -- fire + ice nuke, Summer's Sleet
+    {Group='firenuke2', Spells={'Laurion Ash', 'Hearth Embers'}}, -- fire + ice nuke, Summer's Sleet
+    {Group='coldnuke1', Spells={'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'}}, -- 'Fernflash Boon', 
+    {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}}, -- 
+    {Group='healtot', Spells={'Desperate Quenching', 'Desperate Geyser'}}, -- heal ToT, Desperate Meltwater, fast cast, long cd
+    {Group='healtot2', Spells={'Elizerain Spring', 'Darkflow Spring'}}, -- heal ToT, Meltwater Spring, slow cast
+    {Group='dot', Spells={'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'}, Options={opt='USEDOTS'}}, -- main DoT
+    {Group='dotds', Spells={'Swarm of Fernflies', 'Swarm of Bloodflies'}, Options={opt='USEDOTS'}}, -- DoT + reverse DS, Swarm of Hyperboreads
+    {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment'}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    {Group='alliance', Spells={'Arbor Stalker\'s Coalition'}},
+    {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    self:addSpell('cloak', {'Cloak of Needlespikes', 'Cloak of Bloodbarbs'}) -- Cloak of Rimespurs
-    self:addSpell('predator', {'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}) -- Frostroar of the Predator
-    self:addSpell('strength', {'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}) -- Strength of the Arbor Stalker
+    {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs'}}, -- Cloak of Rimespurs
+    {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}}, -- Frostroar of the Predator
+    {Group='strength', Spells={'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}}, -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    self:addSpell('protection', {'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}) -- Protection of the Wakening Land
-    self:addSpell('eyes', {'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}) -- Eyes of the Visionary
-    self:addSpell('hunt', {'Engulfed by the Hunt', 'Steeled by the Hunt'}) -- Provoked by the Hunt
-    self:addSpell('coat', {'Needlespike Coat', 'Moonthorn Coat'}) -- Rimespur Coat
+    {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}}, -- Protection of the Wakening Land
+    {Group='eyes', Spells={'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}}, -- Eyes of the Visionary
+    {Group='hunt', Spells={'Engulfed by the Hunt', 'Steeled by the Hunt'}}, -- Provoked by the Hunt
+    {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat'}}, -- Rimespur Coat
     -- Unity Azia only
-    self:addSpell('barrage', {'Devastating Barrage'}) -- Devastating Velium
+    {Group='barrage', Spells={'Devastating Barrage'}}, -- Devastating Velium
     -- Unity Beza only
-    self:addSpell('blades', {'Arcing Blades', 'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}) -- Howling Blades
-    self:addSpell('ds', {'Shield of Needlespikes', 'Shield of Shadethorns'}) -- DS
-    self:addSpell('rune', {'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}) -- self rune + debuff proc
-    self:addSpell('regen', {'Dusksage Stalker\'s Vigor'}) -- regen
-    self:addSpell('snare', {'Ensnare', 'Snare'}, {opt='USESNARE'})
-    self:addSpell('dispel', {'Nature\'s Balance'}, {opt='USEDISPEL'})
+    {Group='blades', Spells={'Arcing Blades', 'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}}, -- Howling Blades
+    {Group='ds', Spells={'Shield of Needlespikes', 'Shield of Shadethorns'}}, -- DS
+    {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}}, -- self rune + debuff proc
+    {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
+    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE'}},
+    {Group='dispel', Spells={'Nature\'s Balance'}, Options={opt='USEDISPEL'}},
     -- Maelstrom of Blades, 4x 1h slash
     -- Jolting Emberquartz, add proc decrease hate
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-end
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light'}},
+}
 
 function Ranger:initSpellRotations()
     -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
@@ -172,7 +173,6 @@ function Ranger:initBuffs()
     --Slot 4: 	Eyes of the Senshali
     --Slot 5: 	Moonthorn Coat
     if state.emu then
-        self:addSpell('heal', {'Sylvan Water', 'Sylvan Light'})
         table.insert(self.selfBuffs, self.spells.eyes)
         --table.insert(self.selfBuffs, self.spells.protection)
         table.insert(self.selfBuffs, self.spells.blades)

@@ -27,6 +27,7 @@ function Bard:init()
     self:initClassOptions()
     self:loadSettings()
     self:initSpellLines()
+    self:initSpellConditions()
     self:initSpellRotations()
     self:initDPSAbilities()
     self:initBurns()
@@ -70,30 +71,30 @@ function Bard:initClassOptions()
     self:addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox', nil, 'UseRegenSong', 'bool')
 end
 
-function Bard:initSpellLines()
+Bard.SpellLines = {
     -- All spells ID + Rank name
-    self:addSpell('aura', {'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of the Muse', 'Aura of Insight'}) -- spell dmg, overhaste, flurry, triple atk
-    self:addSpell('composite', {'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}) -- DD+melee dmg bonus + small heal
-    self:addSpell('aria', {'Aria of Tenisbre', 'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru', }) -- spell dmg, overhaste, flurry, triple atk
-    self:addSpell('warmarch', {'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}) -- haste, atk, ds
-    self:addSpell('arcane', {'Arcane Rhythm', 'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad', 'Arcane Aria'}) -- spell dmg proc
-    self:addSpell('suffering', {'Kanghammer\'s Song of Suffering', 'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Storm Blade', 'Song of the Storm'}) -- melee dmg proc
-    self:addSpell('spiteful', {'Tatalros\' Spiteful Lyric', 'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}) -- AC
-    self:addSpell('pulse', {'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}, {opt='USEREGENSONG'}) -- heal focus + regen
-    self:addSpell('sonata', {'Dhakka\'s Spry Sonata', 'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}) -- spell shield, AC, dmg mitigation
-    self:addSpell('dirge', {'Dirge of the Restless', 'Dirge of Lost Horizons'}) -- spell+melee dmg mitigation
-    self:addSpell('firenukebuff', {'Flariton\'s Aria', 'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Rizlona\'s Fire', 'Rizlona\'s Embers'}) -- inc fire DD
-    self:addSpell('firemagicdotbuff', {'Tatalros\' Psalm of Potency', 'Fyrthek Fior\'s Psalm of Potency', 'Velketor\'s Psalm of Potency', 'Akett\'s Psalm of Potency'}) -- inc fire+mag dot
-    self:addSpell('crescendo', {'Regar\'s Lively Crescendo', 'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}) -- small heal hp, mana, end
-    self:addSpell('insult', {'Yelinak\'s Insult', 'Sathir\'s Insult'}) -- synergy DD
-    self:addSpell('insult2', {'Eoreg\'s Insult', 'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}) -- synergy DD 2
-    self:addSpell('chantflame', {'Kindleheart\'s Chant of Flame', 'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, {opt='USEFIREDOTS'})
-    self:addSpell('chantfrost', {'Swarn\'s Chant of Frost', 'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, {opt='USEFROSTDOTS'})
-    self:addSpell('chantdisease', {'Goremand\'s Chant of Disease', 'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, {opt='USEDISEASEDOTS'})
-    self:addSpell('chantpoison', {'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, {opt='USEPOISONDOTS'})
-    self:addSpell('alliance', {'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'})
-    self:addSpell('mezst', {'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Lullaby of Morell'})
-    self:addSpell('mezae', {'Wave of Stupor', 'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'})
+    {Group='aura', Spells={'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of the Muse', 'Aura of Insight'}}, -- spell dmg, overhaste, flurry, triple atk
+    {Group='composite', Spells={'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}}, -- DD+melee dmg bonus + small heal
+    {Group='aria', Spells={'Aria of Tenisbre', 'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru'}}, -- spell dmg, overhaste, flurry, triple atk
+    {Group='warmarch', Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}}, -- haste, atk, ds
+    {Group='arcane', Spells={'Arcane Rhythm', 'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad', 'Arcane Aria'}}, -- spell dmg proc
+    {Group='suffering', Spells={'Kanghammer\'s Song of Suffering', 'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Storm Blade', 'Song of the Storm'}}, -- melee dmg proc
+    {Group='spiteful', Spells={'Tatalros\' Spiteful Lyric', 'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}}, -- AC
+    {Group='pulse', Spells={'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}, Options={opt='USEREGENSONG'}}, -- heal focus + regen
+    {Group='sonata', Spells={'Dhakka\'s Spry Sonata', 'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}}, -- spell shield, AC, dmg mitigation
+    {Group='dirge', Spells={'Dirge of the Restless', 'Dirge of Lost Horizons'}}, -- spell+melee dmg mitigation
+    {Group='firenukebuff', Spells={'Flariton\'s Aria', 'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Rizlona\'s Fire', 'Rizlona\'s Embers'}}, -- inc fire DD
+    {Group='firemagicdotbuff', Spells={'Tatalros\' Psalm of Potency', 'Fyrthek Fior\'s Psalm of Potency', 'Velketor\'s Psalm of Potency', 'Akett\'s Psalm of Potency'}}, -- inc fire+mag dot
+    {Group='crescendo', Spells={'Regar\'s Lively Crescendo', 'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}}, -- small heal hp, mana, end
+    {Group='insult', Spells={'Yelinak\'s Insult', 'Sathir\'s Insult'}}, -- synergy DD
+    {Group='insult2', Spells={'Eoreg\'s Insult', 'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}}, -- synergy DD 2
+    {Group='chantflame', Spells={'Kindleheart\'s Chant of Flame', 'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, Options={opt='USEFIREDOTS'}},
+    {Group='chantfrost', Spells={'Swarn\'s Chant of Frost', 'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, Options={opt='USEFROSTDOTS'}},
+    {Group='chantdisease', Spells={'Goremand\'s Chant of Disease', 'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, Options={opt='USEDISEASEDOTS'}},
+    {Group='chantpoison', Spells={'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, Options={opt='USEPOISONDOTS'}},
+    {Group='alliance', Spells={'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}},
+    {Group='mezst', Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Lullaby of Morell'}},
+    {Group='mezae', Spells={'Wave of Stupor', 'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'}},
     -- resonating barrier, new defensive stun proc?
     -- Fatesong of Zoraxmen, increase cold nuke dmg
     -- Appeasing Accelerando, aggro reduction
@@ -103,18 +104,21 @@ function Bard:initSpellLines()
     -- Voice of Suja, charm
     -- Zinnia's Melodic Binding, PB slow
     -- haste song doesn't stack with enc haste?
-    self:addSpell('overhaste', {'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'})
-    self:addSpell('bardhaste', {'Verse of Veeshan', 'Psalm of Veeshan', 'Composition of Ervaj'})
-    self:addSpell('emuhaste', {'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'})
-    self:addSpell('snare', {'Selo\'s Consonant Chain'}, {opt='USESNARE'})
-    self:addSpell('debuff', {'Harmony of Sound'})
+    {Group='overhaste', Spells={'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'}},
+    {Group='bardhaste', Spells={'Verse of Veeshan', 'Psalm of Veeshan', 'Composition of Ervaj'}},
+    {Group='emuhaste', Spells={'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'}},
+    {Group='snare', Spells={'Selo\'s Consonant Chain'}, Options={opt='USESNARE'}},
+    {Group='debuff', Spells={'Harmony of Sound'}},
 
+    {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed'}},
+}
+
+function Bard:initSpellConditions()
     if state.emu then
         if self.spells.chantflame then self.spells.chantflame.CheckFor = 'Chant of Flame' end
         if self.spells.chantfrost then self.spells.chantfrost.CheckFor = 'Chant of Frost' end
         if self.spells.chantdisease then self.spells.chantdisease.CheckFor = 'Chant of Plague' end
         if self.spells.chantpoison then self.spells.chantpoison.CheckFor = 'Chant of Venom' end
-        self:addSpell('selos', {'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed'})
     end
 end
 
