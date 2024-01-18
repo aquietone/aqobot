@@ -235,7 +235,6 @@ end
 ---@param spellList table # Table of spell names to search in order
 ---@param options table # Table of options to be applied to the spell
 function base:addSpell(spellGroup, spellList, options)
-    printf('%s %s', spellGroup, self.spells)
     local foundSpell = common.getBestSpell(spellList, options, spellGroup)
     --print(foundSpell.tostring())
     self.spells[spellGroup] = foundSpell
@@ -577,6 +576,8 @@ function base:findNextSpell()
             return spell, i
         end
     end
+    -- didn't find a next spell to cast, reset rotation
+    state.rotationIndex = 1
 end
 
 function base:debuff()
@@ -597,7 +598,12 @@ function base:cast()
             local spell, index = self:findNextSpell()
             if spell then -- if a dot was found
                 if spell.precast then spell.precast() end
-                if spell:use(true) then state.rotationIndex = index state.actionTaken = true end -- then cast the dot
+                if spell:use(true) then
+                    state.rotationIndex = index
+                    state.actionTaken = true
+                else
+                    state.rotationIndex = 1
+                end -- then cast the dot
                 self.nuketimer:reset()
                 mq.doevents()--'eventResist')
                 if spell.postcast then spell.postcast() end
