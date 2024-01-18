@@ -109,7 +109,9 @@ function Magician:init()
     self:addCommonAbilities()
 end
 
+Magician.PetTypes = {Water='waterpet',Earth='earthpet',Air='airpet',Fire='firepet',Monster='monsterpet'}
 function Magician:initClassOptions()
+    self:addOption('PETTYPE', 'Pet Type', 'Water', self.PetTypes, 'The type of pet to be summoned', 'combobox', nil, 'PetType', 'string')
     self:addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM', 'EarthForm', 'bool')
     self:addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM', 'FireForm', 'bool')
     self:addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox', nil, 'UseFireNukes', 'bool')
@@ -118,41 +120,216 @@ function Magician:initClassOptions()
     self:addOption('SUMMONMODROD', 'Summon Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'SummonModRod', 'bool')
     self:addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox', nil, 'UseDS', 'bool')
     self:addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox', nil, 'UseTempDS', 'bool')
+    self:addOption('USESERVANT', 'Use Servant', true, nil, 'Toggle use of Servant line of spells', 'checkbox', nil, 'UseServant', 'bool')
+    self:addOption('USEVEILDS', 'Use Veil DS', false, nil, 'Toggle use of veil DS line of spells', 'checkbox', nil, 'UseVeilDS', 'bool')
+    self:addOption('USESKINDS', 'Use Skin DS', false, nil, 'Toggle use of skin DS line of spells', 'checkbox', nil, 'UseSkinDS', 'bool')
+    self:addOption('USEPARADOX', 'Use Paradox', true, nil, 'Toggle summoning and use of Paradox item to use in combat', 'checkbox', nil, 'UseParadox', 'bool')
+    self:addOption('USEMINION', 'Use Minion', false, nil, 'Toggle summoning and use of minion item to use in combat', 'checkbox', nil, 'UseMinion', 'bool')
+    self:addOption('USEGATHER', 'Use Gather', false, nil, 'Toggle use of gather line of spells in combat', 'checkbox', nil, 'UseGather', 'bool')
+    self:addOption('USEMODRODS', 'Use Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'UseModRods', 'bool')
 end
 
 Magician.SpellLines = {
-    {Group='prenuke', Spells={'Fickle Fire'}, Options={opt='USEFIRENUKES'}},
-    {Group='firenuke', Spells={'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Burst of Flame'}, Options={opt='USEFIRENUKES'}},
-    {Group='fastfire', Spells={'Burning Earth'}, Options={opt='USEFIRENUKES'}},
-    {Group='magicnuke', Spells={'Rock of Taelosia'}, Options={opt='USEMAGICNUKES'}},
-    {Group='pet', Spells={'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
-                        'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
-                        'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'}},
-    {Group='petbuff', Spells={'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'}},
+    {-- Main fire nuke. Slot 1/2
+        Group='spear',
+        NumToPick=2,
+        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Burst of Flame'},
+        Options={opt='USEFIRENUKES', Gems={function() return not Magician:isEnabled('USEAOE') and 1 or nil end,2}}
+    },
+    {-- Main AE nuke. Slot 1
+        Group='beam',
+        Spells={'Beam of Molten Dacite', 'Beam of Molten Olivine', 'Beam of Molten Komatiite', 'Beam of Molten Rhyolite', 'Beam of Molten Shieldstone', --[[emu cutoff]]},
+        Options={opt='USEAOE', Gem=1}
+    },
+    {-- Strong elemental temporary pet summon. Slot 3
+        Group='servant',
+        Spells={'Ravening Servant', 'Roiling Servant', 'Riotous Servant', 'Reckless Servant', 'Remorseless Servant', --[[emu cutoff]] 'Raging Servant', 'Rampaging Servant'},
+        Options={opt='USESERVANT', Gem=3}
+    },
+    {-- Large nuke, triggers beneficial buff chance. Slot 4
+        Group='chaotic',
+        Spells={'Chaotic Magma', 'Chaotic Calamity', 'Chaotic Pyroclasm', 'Chaotic Inferno', 'Chaotic Fire', --[[emu cutoff]] 'Burning Earth'},
+        Options={Gem=4}
+    },
+    {-- Large nuke based on # of summoned pets. Slot 5
+        Group='ofmany',
+        Spells={'Fusillade of Many', 'Barrage of Many', 'Shockwave of Many', 'Volley of Many', 'Storm of Many', --[[emu cutoff]] },
+        Options={Gem=5}
+    },
+    {-- Main magic nuke. Slot 6
+        Group='shock',
+        Spells={'Shock of Memorial Steel', 'Shock of Carbide Steel', 'Shock of Burning Steel', 'Shock of Arcronite Steel', 'Shock of Darksteel', --[[emu cutoff]] 'Blade Strike', 'Rock of Taelosia', 'Shock of Steel', 'Shock of Swords'},
+        Options={opt='USEMAGICNUKES', Gem=6}
+    },
+    {-- Summons clicky nuke orb with 10 charges. Slot 7
+        Group='orb',
+        Spells={'Summon Molten Komatiite Orb', 'Summon Firebound Orb', --[[emu cutoff]] 'Summon: Molten Orb', 'Summon: Lava Orb'},
+        Options={Gem=7, summonMinimum=1, nodmz=true, pause=true}
+    },
+    {-- Large DS 10 minutes. Slot 8
+        Group='veilds',
+        Spells={'Igneous Veil', 'Volcanic Veil', 'Exothermic Veil', 'Skyfire Veil', --[[emu cutoff]]},
+        Options={opt='USEVEILDS', Gem=8}
+    },
+    {-- Regular group DS. Slot 9
+        Group='groupds',
+        Spells={'Circle of Forgefire Coat', 'Circle of Emberweave Coat', 'Circle of Igneous Skin', 'Circle of the Inferno', 'Circle of Flameweaving', --[[emu cutoff]] 'Circle of Brimstoneskin', 'Circle of Fireskin'},
+        Options={opt='USEDS', Gem=function() return not Magician:isEnabled('USESKINDS') and 9 or nil end}
+    },
+    {-- 30 seconds, 4 charges large DS. Slot 9
+        Group='skinds',
+        Spells={'Boiling Skin', 'Scorching Skin', 'Burning Skin', 'Blistering Skin', 'Corona Skin', --[[emu cutoff]]},
+        Options={opt='USESKINDS', Gem=9}
+    },
+    {-- Twincast next spell. Slot 10
+        Group='twincast',
+        Spells={'Twincast'},
+        Options={Gem=10}
+    },
+    {-- Recover mana, long cast time. Slot 11
+        Group='gather',
+        Spells={'Gather Zeal', 'Gather Vigor', 'Gather Potency', 'Gather Capability'},
+        Options={Gem=11}
+    },
+    {-- Strong pet buff. Slot 12
+        Group='composite',
+        Spells={'Ecliptic Companion', 'Composite Companion', 'Dissident Companion', 'Dichotomic Companion'},
+        Options={Gem=12}
+    },
+    {-- Another clicky nuke. Slot 13
+        Group='paradox',
+        Spells={'Grant Voidfrost Paradox', 'Grant Frostbound Paradox'},
+        Options={opt='USEPARADOX', Gem=function() return not Magician:isEnabled('USEALLIANCE') and 13 or nil end, summonMinimum=1, nodmz=true, pause=true}
+    },
+    {-- Slot 13
+        Group='alliance',
+        Spells={'Firebound Conjunction', 'Firebound Coalition', 'Firebound Covenant', 'Firebound Alliance'},
+        Options={opt='USEALLIANCE', Gem=13}
+    },
+
+    {
+        Group='shield',
+        Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', --[[emu cutoff]] 'Elemental Aura'}
+    },
+    {
+        Group='minion',
+        Spells={'Summon Valorous Servant', 'Summon Forbearing Servant', 'Summon Imperative Servant', 'Summon Insurgent Servant', 'Summon Mutinous Servant'},
+        Options={opt='USEMINION', summonMinimum=1, nodmz=true, pause=true}
+    },
+    {
+        Group='waterpet',
+        Spells={'Recruitment of Water', 'Conscription of Water', 'Manifestation of Water', 'Embodiment of Water', 'Convocation of Water', --[[emu cutoff]]
+                'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
+                'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
+                'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'},
+        Options={}
+    },
+    {
+        Group='airpet',
+        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]]},
+        Options={}
+    },
+    {
+        Group='earthpet',
+        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]]},
+        Options={}
+    },
+    {
+        Group='firepet',
+        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]]},
+        Options={}
+    },
+    {
+        Group='monsterpet',
+        Spells={'Monster Summoning XV', 'Monster Summoning XIV', 'Monster Summoning XIII', 'Monster Summoning XII', 'Monster Summoning XI', --[[emu cutoff]]},
+        Options={}
+    },
+    {
+        Group='petbuff',
+        Spells={'Burnout XVI', 'Burnout XV', 'Burnout XIV', 'Burnout XIII', 'Burnout XII', --[[emu cutoff]] 'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'}
+    },
+    {
+        Group='petds',
+        Spells={'Iceflame Pallisade', 'Iceflame Barricade', 'Iceflame Rampart', 'Iceflame Keep', 'Iceflame Armaments', --[[emu cutoff]] 'Iceflame Guard'}
+    },
+    {
+        Group='petheal',
+        Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal'},
+        Options={opt='HEALPET', pet=50}
+    },
+    {-- aborb 9 smaller hits, spellslot 1
+        Group='petshield',
+        Spells={'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac'},
+        Options={}
+    },
+    {--absorb 5 larger hits, spellslot 2
+        Group='auspice',
+        Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity'},
+        Options={}
+    },
+    {-- large absorb but also large snare
+        Group='petbigshield',
+        Spells={'Kanoite Stance', 'Pyroxene Stance', 'Rhyolite Stance', 'Shieldstone Stance'},
+        Options={}
+    },
+
+    -- self hp buff, blocks shm
+    {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus'--[[emu cutoff]] }, Options={}},
+    {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}}, -- self regen/ac buff
+    {Group='manaregen', Spells={'Valiant Symbiosis', 'Relentless Symbiosis', 'Restless Symbiosis', 'Burning Symbiosis', 'Dark Symbiosis', --[[emu cutoff]] 'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
+    {Group='bodyguard', Spells={'Valorforged Bodyguard', 'Ophiolite Bodyguard', 'Pyroxenite Bodyguard', 'Rhylitic Bodyguard', 'Shieldstone Bodyguard'}, Options={}}, -- proc pet when hit
+
+    -- old emu stuff
     {Group='petstrbuff', Spells={'Rathe\'s Strength', 'Earthen Strength'}, Options={skipifbuff='Champion'}},
-    {Group='orb', Spells={'Summon: Molten Orb', 'Summon: Lava Orb'}, Options={summonMinimum=1, nodmz=true, pause=true}},
-    {Group='petds', Spells={'Iceflame Guard'}},
-    {Group='servant', Spells={'Raging Servant', 'Rampaging Servant'}},
-    {Group='ds', Spells={'Circle of Fireskin'}, Options={opt='USEDS'}},
     {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}}},
-    {Group='shield', Spells={'Elemental Aura'}},
+    -- Chance to increase spell power of next nuke
+    {Group='prenuke', Spells={'Fickle Conflagration', --[[emu cutoff]] 'Fickle Fire'}, Options={opt='USEFIRENUKES'}},
 
-    --{Group='manaregen', Spells={'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
-    {Group='acregen', Spells={'Phantom Shield', 'Xegony\'s Phantasmal Guard'}}, -- self regen/ac buff
-    {Group='petheal', Spells={'Planar Renewal'}, Options={opt='HEALPET', pet=50}}, -- pet heal
-
-    {Group='armor', Spells={'Grant Spectral Plate'}}, -- targeted, Summon Folded Pack of Spectral Plate
-    {Group='weapons', Spells={'Grant Spectral Armaments'}}, -- targeted, Summons Folded Pack of Spectral Armaments
-    {Group='jewelry', Spells={'Grant Enibik\'s Heirlooms'}}, -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
+    {Group='modrod', Spells={'Rod of Courageous Modulation', 'Sickle of Umbral Modulation', 'Wand of Frozen Modulation', 'Wand of Burning Modulation', 'Wand of Dark Modulation'}, Options={opt='USEMODRODS', summonMinimum=1, nodmz=true, pause=true}},
+    {Group='massmodrod', Spells={'Mass Dark Transvergence'}, Options={opt='USEMODRODS', summonMinimum=1, nodmz=true, pause=true}},
+    {Group='armor', Spells={'Grant Alloy\'s Plate', 'Grant the Centien\'s Plate', 'Grant Ocoenydd\'s Plate', 'Grant Wirn\'s Plate', 'Grant Thassis\' Plate', --[[emu cutoff]] 'Grant Spectral Plate'}}, -- targeted, Summon Folded Pack of Spectral Plate
+    {Group='weapons', Spells={'Grant Goliath\'s Armaments', 'Grant Shak Dathor\'s Armaments', 'Grant Yalrek\'s Armaments', 'Grant Wirn\'s Armaments', 'Grant Thassis\' Armaments', --[[emu cutoff]] 'Grant Spectral Armaments'}}, -- targeted, Summons Folded Pack of Spectral Armaments
+    {Group='jewelry', Spells={'Grant Ankexfen\'s Heirlooms', 'Grant the Diabo\'s Heirlooms', 'Grant Crystasia\'s Heirlooms', 'Grant Ioulin\'s Heirlooms', 'Grant Calix\'s Heirlooms', --[[emu cutoff]] 'Grant Enibik\'s Heirlooms'}}, -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
     {Group='belt', Spells={'Summon Crystal Belt'}}, -- Summoned: Crystal Belt
+    {Group='mask', Spells={'Grant Visor of Shoen'}, Options={}},
+    {Group='bundle', Spells={'Grant Bristlebane\'s Festivity Bundle'}, Options={}},
+    -- Cauldron of Endless Abundance
+
+    -- Other BYOS spells
+    {Group='ofsand', Spells={'Ruination of Sand', 'Destruction of Sand', 'Crash of Sand', 'Volley of Sand'}, Options={opt='USEFIRENUKES'}}, -- some one-off nuke??
+    {Group='firebolt', Spells={'Bolt of Molten Dacite', 'Bolt of Molten Olivine', 'Bolt of Molten Komatiite', 'Bolt of Skyfire', 'Bolt of Molten Shieldstone'}, Options={'USEFIRENUKES'}},
+    -- random fire nuke
+    {Group='sands', Spells={'Cremating Sands', 'Ravaging Sands', 'Incinerating Sands', 'Blistering Sands', 'Searing Sands'}, Options={opt='USEFIRENUKES'}},
+    -- summoned mob nuke
+    {Group='summonednuke', Spells={'Dismantle the Unnatural', 'Unmend the Unnatural', 'Obliterate the Unnatural', 'Repudiate the Unnatural', 'Eradicate the Unnatural'}, Options={opt='USEMAGICNUKES'}},
+    -- bolt magic nuke
+    {Group='magicbolt', Spells={'Luclinite Bolt', 'Komatiite Bolt', 'Korascian Bolt', 'Meteoric Bolt'}, Options={opt='USEMAGICNUKES'}},
+    -- magic nuke + malo
+    {Group='magicmalonuke', Spells={'Memorial Steel Malosinera', 'Carbide Malosinetra', 'Burning Malosinara', 'Arcronite Malosinata', 'Darksteel Malosenete'}, Options={opt='USEMAGICNUKES'}},
+    -- targeted AE fire rain
+    {Group='firerain', Spells={'Rain of Molten Dacite', 'Rain of Molten Olivine', 'Rain of Molten Komatiite', 'Rain of Molten Rhyolite', 'Coronal Rain'}, Options={opt='USEAOE'}},
+    -- targeted AE magic rain
+    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses'}, Options={opt='USEAOE'}},
+    {Group='pbaefire', Spells={'Fiery Blast', 'Flaming Blast', 'Burning Blast', 'Searing Blast'}, Options={opt='USEAOE'}},
+    {Group='frontalmagic', Spells={'Beam of Kukris', 'Beam of Falchions', 'Beam of Scimitars', 'Beam of Knives'}, Options={opt='USEAOE'}},
+    -- pet promised heal
+    {Group='pethealpromise', Spells={'Promised Reconstitution', 'Promised Relief', 'Promised Healing', 'Promised Alleviation', 'Promised Invigoration'}, Options={opt='HEALPET'}},
+    -- random chance to heal all pets in area 
+    {Group='chaoticheal', Spells={'Chaotic Magnanimity', 'Chaotic Largesse', 'Chaotic Bestowal', 'Chaotic Munificence', 'Chaotic Benefaction'}, Options={opt='HEALPET'}},
+    -- minion summon clicky 2
+    {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
 }
+
+Magician.composite_names = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
 
 function Magician:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.servant)
-    --table.insert(self.spellRotations.standard, self.spells.prenuke)
-    table.insert(self.spellRotations.standard, self.spells.fastfire)
-    table.insert(self.spellRotations.standard, self.spells.firenuke)
-    table.insert(self.spellRotations.standard, self.spells.magicnuke)
+    table.insert(self.spellRotations.standard, self.spells.ofmany)
+    table.insert(self.spellRotations.standard, self.spells.chaotic)
+    table.insert(self.spellRotations.standard, self.spells.shock)
+    table.insert(self.spellRotations.standard, self.spells.spear1)
+    table.insert(self.spellRotations.standard, self.spells.spear2)
+    table.insert(self.spellRotations.standard, self.spells.beam)
 end
 
 function Magician:initDPSAbilities()
@@ -182,7 +359,7 @@ function Magician:initBuffs()
     end
     table.insert(self.selfBuffs, self.spells.acregen)
     table.insert(self.selfBuffs, self.spells.orb)
-    table.insert(self.selfBuffs, self.spells.ds)
+    table.insert(self.selfBuffs, self.spells.groupds)
     table.insert(self.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true}))
     table.insert(self.combatBuffs, common.getAA('Fire Core'))
     table.insert(self.singleBuffs, self.spells.bigds)
@@ -209,16 +386,28 @@ function Magician:initDefensiveAbilities()
     table.insert(self.fadeAbilities, common.getAA('Companion of Necessity'))
 end
 
---[[
-    "Fire", "Summoned: Fist of Flame",
-    "Water", "Summoned: Orb of Chilling Water",
-    "Shield", "Summoned: Buckler of Draining Defense",
-    "Taunt", "Summoned: Short Sword of Warding",
-    "Slow", "Summoned: Mace of Temporal Distortion",
-    "Malo", "Summoned: Spear of Maliciousness",
-    "Dispel", "Summoned: Wand of Dismissal",
-    "Snare", "Summoned: Tendon Carver",
-]]
+Magician.rotationUpdated = false
+Magician.rotationRefreshTimer = timer:new(60000)
+Magician.rotationRefreshTimer:reset(0)
+Magician.BYOSRotation = {}
+local ALL_DPS_SPELLS = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
+function Magician:getSpellRotation()
+    if not Magician:isEnabled('BYOS') then return self.spellRotations.standard end
+    if not self.rotationUpdated or self.rotationRefreshTimer:timerExpired() then
+        self.BYOSRotation = {}
+        -- rebuild rotation based on mem'd spells and all available DPS spells in no particular order
+        for _,spellGroup in ipairs(ALL_DPS_SPELLS) do
+            if self.spells[spellGroup] and mq.TLO.Me.Gem(self.spells[spellGroup].Name)() then table.insert(self.BYOSRotation, self.spells[spellGroup]) end
+        end
+        self.rotationUpdated = true
+        self.rotationRefreshTimer:reset()
+    end
+    return self.BYOSRotation
+end
+
+function Magician:getPetSpell()
+    return self.spells[self:get('PETTYPE')]
+end
 
 function Magician:pullCustom()
     movement.stop()

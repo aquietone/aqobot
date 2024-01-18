@@ -63,21 +63,106 @@ function Necromancer:initClassOptions()
 end
 
 Necromancer.SpellLines = {
-    {Group='composite', Spells={'Ecliptic Paroxysm', 'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'}, Options={opt='USEDOTS'}},
-    {Group='wounds', Spells={'Putrefying Wounds', 'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'}, Options={opt='USEWOUNDS'}},
-    {Group='fireshadow', Spells={'Raging Shadow', 'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'}, Options={opt='USEDOTS'}},
-    {Group='pyreshort', Spells={'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'}, Options={opt='USEDOTS'}},
-    {Group='pyrelong', Spells={'Pyre of the Abandoned', 'Pyre of the Neglected', 'Pyre of the Wretched', 'Pyre of the Fereth', 'Pyre of the Lost', 'Pyre of the Forsaken', 'Pyre of the Piq\'a', 'Pyre of the Bereft', 'Pyre of the Forgotten', 'Pyre of Mori', 'Night Fire'}, Options={opt='USEDOTS'}},
-    {Group='venom', Spells={'Luggald Venom', 'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad Venom', 'Glistenwing Venom', 'Binaesa Venom', 'Naeya Venom', 'Argendev\'s Venom', 'Slitheren Venom', 'Chaos Venom', 'Blood of Thule'}, Options={opt='USEDOTS'}},
-    {Group='magic', Spells={'Extermination', 'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'}, Options={opt='USEDOTS'}},
+    {-- strongest fire dot. Slot 1
+        Group='pyreshort',
+        Spells={'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'},
+        Options={opt='USEDOTS', Gem=1}
+    },
+    {-- main magic dot. Slot 2
+        Group='magic',
+        Spells={'Extermination', 'Extinction', 'Oblivion', 'Inevitable End', 'Annihilation', 'Termination', 'Doom', 'Demise', 'Mortal Coil', 'Dark Nightmare', 'Horror'},
+        Options={opt='USEDOTS', Gem=2}
+    },
+    {-- main poison dot. Slot 3
+        Group='venom',
+        Spells={'Luggald Venom', 'Hemorrhagic Venom', 'Crystal Crawler Venom', 'Polybiad Venom', 'Glistenwing Venom', 'Binaesa Venom', 'Naeya Venom', 'Argendev\'s Venom', 'Slitheren Venom', 'Chaos Venom', 'Blood of Thule'},
+        Options={opt='USEDOTS', Gem=3}
+    },
+    {-- secondary poison dot. Slot 4
+        Group='haze',
+        Spells={'Uncia\'s Pallid Haze', 'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'},
+        Options={opt='USEDOTS', Gem=4}
+    },
+    {-- lifetap dot. Slot 5
+        Group='grasp',
+        Spells={'Helmsbane\'s Grasp', 'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Ancient: Curse of Mori', 'Fang of Death'},
+        Options={opt='USEDOTS', Gem=5}
+    },
+    {-- lifetap dot. Slot 6
+        Group='leech',
+        Spells={'Ghastly Leech', 'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'},
+        Options={opt='USEDOTS', Gem=6}
+    },
+    {-- Mana Drain. Slot 7
+        Group='manatap',
+        Spells={'Mind Disintegrate', 'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'},
+        Options={opt='USEMANATAP', Gem=7}
+    },
+    {-- Damage absorb shield. Slot 8
+        Group='shield',
+        Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'},
+        Options={opt='USESHIELD', Gem=8}
+    },
+    {-- Alliance. Slot 9
+        Group='alliance',
+        Spells={'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'},
+        Options={opt='USEALLIANCE', Gem=9}
+    },
+    {-- manadrain dot. Slot 7/8/9 if any of alliance or shield or manatap are disabled.
+        Group='ignite',
+        Spells={'Ignite Remembrance', 'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'},
+        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and 7) or (not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or (not Necromancer:isEnabled('USEALLIANCE') and 9) end}
+    },
+    {-- Slot 8/9 if any of alliance or shield are disabled
+        Group='scourge',
+        Spells={'Scourge of Destiny', 'Scourge of Fates'},
+        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or (Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and 9) or nil end}
+    },
+    {-- Slot 9 when none of mana tap, alliance or shield enabled
+        Group='corruption',
+        Spells={'Deterioration', 'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'},
+        Options={opt='USEDOTS', Gem=function() return not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8 or nil end}
+    },
+    {-- Slot 10
+        Group='composite',
+        Spells={'Ecliptic Paroxysm', 'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'},
+        Options={opt='USEDOTS', Gem=10}
+    },
+    {-- Slot 11
+        Group='combodisease',
+        Spells={'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'},
+        Options={opt='USEDOTS', Gem=11}
+    },
+    {-- Slot 12
+        Group='wounds',
+        Spells={'Putrefying Wounds', 'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'},
+        Options={opt='USEWOUNDS', Gem=12}
+    },
+    {-- Slot 12 no wounds, raid spells
+        Group='pyrelong',
+        Spells={'Pyre of the Abandoned', 'Pyre of the Neglected', 'Pyre of the Wretched', 'Pyre of the Fereth', 'Pyre of the Lost', 'Pyre of the Forsaken', 'Pyre of the Piq\'a', 'Pyre of the Bereft', 'Pyre of the Forgotten', 'Pyre of Mori', 'Night Fire'},
+        Options={opt='USEDOTS', Gem=function() return not Necromancer:isEnabled('USEWOUNDS') and Necromancer:get('SPELLSET') == 'standard' and 12 or nil end}
+    },
+    {-- Slot 12 no wounds, raid spells (swapped with pyrelong automatically)
+        Group='fireshadow',
+        Spells={'Raging Shadow', 'Scalding Shadow', 'Broiling Shadow', 'Burning Shadow', 'Smouldering Shadow', 'Coruscating Shadow', 'Blazing Shadow', 'Blistering Shadow', 'Scorching Shadow'},
+        Options={opt='USEDOTS'}
+    },
+    {-- Slot 12 no wounds, group spells
+        Group='swarm',
+        Spells={'Call Skeleton Thrall', 'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'},
+        Options={opt='USESWARMPETS', Gem=function() return not Necromancer:isEnabled('USEWOUNDS') and Necromancer:get('SPELLSET') == 'short' and 12 or nil end}
+    },
+    {-- Slot 13
+        Group='synergy',
+        Spells={'Decree for Blood', 'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'},
+        Options={opt='USENUKES', Gem=13}
+    },
+
+    -- TODO: need to work these in when combo is an expansion behind
     {Group='decay', Spells={'Goremand\'s Decay', 'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague'}, Options={opt='USEDOTS'}},
     {Group='grip', Spells={'Grip of Terrastride', 'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'}, Options={opt='USEDOTS'}},
-    {Group='haze', Spells={'Uncia\'s Pallid Haze', 'Zelnithak\'s Pallid Haze', 'Drachnia\'s Pallid Haze', 'Bomoda\'s Pallid Haze', 'Plexipharia\'s Pallid Haze', 'Halstor\'s Pallid Haze', 'Ivrikdal\'s Pallid Haze', 'Arachne\'s Pallid Haze', 'Fellid\'s Pallid Haze', 'Venom of Anguish'}, Options={opt='USEDOTS'}},
-    {Group='grasp', Spells={'Helmsbane\'s Grasp', 'The Protector\'s Grasp', 'Tserrina\'s Grasp', 'Bomoda\'s Grasp', 'Plexipharia\'s Grasp', 'Halstor\'s Grasp', 'Ivrikdal\'s Grasp', 'Arachne\'s Grasp', 'Fellid\'s Grasp', 'Ancient: Curse of Mori', 'Fang of Death'}, Options={opt='USEDOTS'}},
-    {Group='leech', Spells={'Ghastly Leech', 'Twilight Leech', 'Frozen Leech', 'Ashen Leech', 'Dark Leech'}, Options={opt='USEDOTS'}},
-    {Group='ignite', Spells={'Ignite Remembrance', 'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'}, Options={opt='USEDOTS'}},
-    {Group='scourge', Spells={'Scourge of Destiny', 'Scourge of Fates'}, Options={opt='USEDOTS'}},
-    {Group='corruption', Spells={'Deterioration', 'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'}, Options={opt='USEDOTS'}},
+
     -- Lifetaps
     {Group='tapee', Spells={'Soullash', 'Soulflay', 'Soulgouge', 'Soulsiphon', 'Soulrend', 'Soulrip', 'Soulspike'}}, -- unused
     {Group='tap', Spells={'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak'}}, -- unused
@@ -85,25 +170,20 @@ Necromancer.SpellLines = {
     -- Wounds proc
     {Group='proliferation', Spells={'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'}},
     -- combo dots
-    {Group='combodisease', Spells={'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'}, Options={opt='USEDOTS'}},
     {Group='chaotic', Spells={'Chaotic Fetor', 'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}, Options={opt='USEDOTS'}}, -- unused
     -- sphere
     {Group='sphere', Spells={'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}}, -- unused
-    -- Alliance
-    {Group='alliance', Spells={'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'}, Options={opt='USEALLIANCE'}},
+
     -- Nukes
-    {Group='synergy', Spells={'Decree for Blood', 'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'}, Options={opt='USENUKES'}},
     {Group='venin', Spells={'Necrotizing Venin', 'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin'}, Options={opt='USENUKES'}},
     -- Debuffs
     {Group='scentterris', Spells={'Scent of Terris'}}, -- AA only
     {Group='scentmortality', Spells={'Scent of The Realm', 'Scent of The Grave', 'Scent of Mortality', 'Scent of Extinction', 'Scent of Dread', 'Scent of Nightfall', 'Scent of Doom', 'Scent of Gloom', 'Scent of Midnight'}},
     {Group='snare', Spells={'Afflicted Darkness', 'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness'}, Options={opt='USESNARE'}}, -- unused
-    -- Mana Drain
-    {Group='manatap', Spells={'Mind Disintegrate', 'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'}, Options={opt='USEMANATAP'}},
+
     -- Buffs
     {Group='lich', Spells={'Realmside', 'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, Options={opt='USELICH', nodmz=true}},
     {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}},
-    {Group='shield', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'}},
     {Group='rune', Spells={'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}}, -- unused
     {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
     {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}}},
@@ -118,7 +198,6 @@ Necromancer.SpellLines = {
     {Group='petshield', Spells={'Cascading Runeshield', 'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}}, -- unused
     {Group='petillusion', Spells={'Form of Mottled Bone'}},
     {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}},
-    {Group='swarm', Spells={'Call Skeleton Thrall', 'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'}},
 }
 
 function Necromancer:initSpellConditions()
@@ -181,9 +260,6 @@ function Necromancer:initSpellRotations()
     table.insert(self.spellRotations.short, self.spells.leech)
     table.insert(self.spellRotations.short, self.spells.pyrelong)
     table.insert(self.spellRotations.short, self.spells.ignite)
-
-    self.swap_gem = 8
-    self.swap_gem_dis = 9
 end
 
 function Necromancer:initBurns()
@@ -247,7 +323,7 @@ function Necromancer:initBuffs()
         table.insert(self.selfBuffs, self.unity)
     end
     table.insert(self.selfBuffs, self.spells.shield)
-    table.insert(self.petBuffs, self.spells.inspire)
+    --table.insert(self.petBuffs, self.spells.inspire)
     table.insert(self.petBuffs, self.spells.pethaste)
     table.insert(self.petBuffs, common.getAA('Fortify Companion'))
     local dmf = common.getAA('Dead Man Floating')
@@ -277,15 +353,6 @@ function Necromancer:initDefensiveAbilities()
     table.insert(self.aggroReducers, common.getAA('Death Peace', {opt='USEFD', postcast=postFD}))
 end
 
--- Determine swap gem based on wherever wounds, broiling shadow or pyre of the wretched is currently mem'd
-local function setSwapGems()
-    Necromancer.swap_gem = mq.TLO.Me.Gem(Necromancer.spells.wounds and Necromancer.spells.wounds.Name or 'unknown')() or
-            mq.TLO.Me.Gem(Necromancer.spells.fireshadow and Necromancer.spells.fireshadow.Name or 'unknown')() or
-            mq.TLO.Me.Gem(Necromancer.spells.pyrelong and Necromancer.spells.pyrelong.Name or 'unknown')() or 10
-            Necromancer.swap_gem_dis = mq.TLO.Me.Gem(Necromancer.spells.decay and Necromancer.spells.decay.Name or 'unknown')() or
-            mq.TLO.Me.Gem(Necromancer.spells.grip and Necromancer.spells.grip.Name or 'unknown')() or 11
-end
-
 --[[
 Count the number of necros in group or raid to determine whether alliance should be used.
 This is currently only called once up front when the script starts.
@@ -313,33 +380,36 @@ function Necromancer:swapSpells()
     local woundsDuration = mq.TLO.Target.MyBuffDuration(woundsName)()
     local pyrelongDuration = mq.TLO.Target.MyBuffDuration(pyrelongName)()
     local fireshadowDuration = mq.TLO.Target.MyBuffDuration(fireshadowName)()
-    if mq.TLO.Me.Gem(woundsName)() then
+    local woundsGem = mq.TLO.Me.Gem(woundsName)()
+    local pyrelongGem = mq.TLO.Me.Gem(pyrelongName)()
+    local fireshadowGem = mq.TLO.Me.Gem(fireshadowName)()
+    if woundsGem then
         if not self:isEnabled('USEWOUNDS') or (woundsDuration and woundsDuration > 20000) then
             if not pyrelongDuration or pyrelongDuration < 20000 then
-                abilities.swapSpell(self.spells.pyrelong, self.swap_gem or 10)
+                abilities.swapSpell(self.spells.pyrelong, woundsGem)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                abilities.swapSpell(self.spells.fireshadow, self.swap_gem or 10)
+                abilities.swapSpell(self.spells.fireshadow, woundsGem)
             end
         end
-    elseif mq.TLO.Me.Gem(pyrelongName)() then
+    elseif pyrelongGem then
         if pyrelongDuration and pyrelongDuration > 20000 then
             if self:isEnabled('USEWOUNDS') and (not woundsDuration or woundsDuration < 20000) then
-                abilities.swapSpell(self.spells.wounds, self.swap_gem or 10)
+                abilities.swapSpell(self.spells.wounds, pyrelongGem)
             elseif not fireshadowDuration or fireshadowDuration < 20000 then
-                abilities.swapSpell(self.spells.fireshadow, self.swap_gem or 10)
+                abilities.swapSpell(self.spells.fireshadow, pyrelongGem)
             end
         end
-    elseif mq.TLO.Me.Gem(fireshadowName)() then
+    elseif fireshadowGem then
         if fireshadowDuration and fireshadowDuration > 20000 then
             if self:isEnabled('USEWOUNDS') and (not woundsDuration or woundsDuration < 20000) then
-                abilities.swapSpell(self.spells.wounds, self.swap_gem or 10)
+                abilities.swapSpell(self.spells.wounds, fireshadowGem)
             elseif not pyrelongDuration or pyrelongDuration < 20000 then
-                abilities.swapSpell(self.spells.pyrelong, self.swap_gem or 10)
+                abilities.swapSpell(self.spells.pyrelong, fireshadowGem)
             end
         end
     else
         -- maybe we got interrupted or something and none of these are mem'd anymore? just memorize wounds again
-        abilities.swapSpell(self.spells.wounds, self.swap_gem or 10)
+        abilities.swapSpell(self.spells.wounds, self.spells.wounds.Gem)
     end
 end
 
@@ -507,8 +577,9 @@ function Necromancer:aggroOld()
     end
 end
 
-local composite_names = {['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
-local checkSpellTimer = timer:new(30000)
+Necromancer.composite_names = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
+
+--[[local checkSpellTimer = timer:new(30000)
 function Necromancer:checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
     local spellSet = self.OPTS.SPELLSET.value
@@ -539,7 +610,6 @@ function Necromancer:checkSpellSet()
             state.spellSetLoaded = spellSet
         end
         checkSpellTimer:reset()
-        setSwapGems()
     end
     if spellSet == 'standard' then
         if self:isEnabled('USEMANATAP') then
@@ -604,7 +674,7 @@ function Necromancer:checkSpellSet()
             if abilities.swapSpell(self.spells.swarm, 10) then return end
         end
     end
-end
+end]]
 
 local necCountTimer = timer:new(60000)
 

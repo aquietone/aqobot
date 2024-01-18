@@ -41,7 +41,6 @@ function Ranger:initClassOptions()
     self:addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA', 'UseUnityAzia', 'bool')
     self:addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA', 'UseUnityBeza', 'bool')
     self:addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox', nil, 'UseRange', 'bool')
-    -- self:addOption('USEMELEE', 'Use Melee', true, nil, 'Melee DPS if ranged is disabled or not enough room', 'checkbox', nil, 'UseMelee', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW', 'UsePoisonArrow', 'bool')
     self:addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW', 'UseFireArrow', 'bool')
@@ -57,22 +56,82 @@ function Ranger:initClassOptions()
 end
 
 Ranger.SpellLines = {
-    {Group='shots', Spells={'Inevitable Shots', 'Claimed Shots'}, Options={opt='USEARROWSPELLS'}}, -- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots
-    {Group='focused', Spells={'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'}, Options={opt='USEARROWSPELLS'}},--, 'Hail of Arrows'}) -- 4x archery attacks, Focused Blizzard of Arrows
-    {Group='composite', Spells={'Composite Fusillade'}}, -- double bow shot and fire+ice nuke
-    {Group='heart', Spells={'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'}, Options={opt='USEARROWSPELLS'}}, -- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin
+    {-- Slot 1
+        Group='firenuke1',
+        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash'},
+        Options={Gem=1},
+    },
+    {-- 4x archery attacks, Focused Blizzard of Arrows. Slot 2
+        Group='focused',
+        Spells={'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'},
+        Options={opt='USEARROWSPELLS', Gem=function() return not Ranger:isEnabled('USEAOE') and 2 or nil end}
+    },--, 'Hail of Arrows'})
+    {-- Slot 2
+        Group='aoearrow',
+        Spells={'Arrowstorm'},
+        Options={opt='USEAOE', Gem=function() return not Ranger:isEnabled('USEARROWSPELLS') and 2 or nil end}
+    },
+    {-- heal ToT, Meltwater Spring, slow cast. Slot 3
+        Group='healtot2',
+        Spells={'Elizerain Spring', 'Darkflow Spring'},
+        Options={Gem=3}
+    },
+    {-- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin. Slot 4
+        Group='heart',
+        Spells={'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'},
+        Options={opt='USEARROWSPELLS', Gem=4}
+    },
+    {-- fire + ice nuke, Summer's Sleet. Slot 5
+        Group='firenuke2',
+        Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'},
+        Options={Gem=5}
+    },
+    {-- main DoT. Slot 6
+        Group='dot',
+        Spells={'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'},
+        Options={opt='USEDOTS', Gem=6}
+    },
+    {-- heal ToT, Desperate Meltwater, fast cast, long cd. Slot 7
+        Group='healtot',
+        Spells={'Desperate Quenching', 'Desperate Geyser'},
+        Options={Gem=7}
+    },
+    {-- target or tot splash heal + cure. Slot 8
+        Group='balm',
+        Spells={'Lunar Balm'},
+        Options={Gem=8, poison=true, disease=true, curse=true}
+    },
+    {-- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots. Slot 9
+        Group='shots',
+        Spells={'Inevitable Shots', 'Claimed Shots'},
+        Options={opt='USEARROWSPELLS', Gem=9}
+    },
+    {-- DoT + reverse DS, Swarm of Hyperboreads. Slot 10
+        Group='dotds',
+        Spells={'Swarm of Fernflies', 'Swarm of Bloodflies'},
+        Options={opt='USEDOTS', Gem=10}
+    },
+    {-- Slot 11
+        Group='coldnuke1',
+        Spells={'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'},
+        Options={Gem=11}
+    }, -- 'Fernflash Boon', 
+    {-- double bow shot and fire+ice nuke. Slot 12
+        Group='composite',
+        Spells={'Composite Fusillade'},
+        Options={Gem=12}
+    },
+    {-- Slot 13
+        Group='alliance',
+        Spells={'Arbor Stalker\'s Coalition'},
+        Options={Gem=13}
+    },
+
     {Group='opener', Spells={'Stealthy Shot'}, Options={opt='USEARROWSPELLS'}}, -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
-    {Group='firenuke1', Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'}}, -- fire + ice nuke, Summer's Sleet
-    {Group='firenuke2', Spells={'Laurion Ash', 'Hearth Embers'}}, -- fire + ice nuke, Summer's Sleet
-    {Group='coldnuke1', Spells={'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'}}, -- 'Fernflash Boon', 
+    {Group='firenuke3', Spells={'Laurion Ash', 'Hearth Embers'}}, -- fire + ice nuke, Summer's Sleet
     {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}}, -- 
-    {Group='healtot', Spells={'Desperate Quenching', 'Desperate Geyser'}}, -- heal ToT, Desperate Meltwater, fast cast, long cd
-    {Group='healtot2', Spells={'Elizerain Spring', 'Darkflow Spring'}}, -- heal ToT, Meltwater Spring, slow cast
-    {Group='dot', Spells={'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'}, Options={opt='USEDOTS'}}, -- main DoT
-    {Group='dotds', Spells={'Swarm of Fernflies', 'Swarm of Bloodflies'}, Options={opt='USEDOTS'}}, -- DoT + reverse DS, Swarm of Hyperboreads
     {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment'}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
-    {Group='alliance', Spells={'Arbor Stalker\'s Coalition'}},
     {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
     {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs'}}, -- Cloak of Rimespurs
@@ -121,7 +180,7 @@ function Ranger:initSpellRotations()
     -- entries in the combat_heal_spells table are pairs of {spell id, spell name} in priority order
     self.combat_heal_spells = {}
     table.insert(self.combat_heal_spells, self.spells.healtot)
-    --table.insert(combat_heal_spells, spells.healtot2) -- replacing in main spell lineup with self rune buff
+    table.insert(self.combat_heal_spells, self.spells.healtot2) -- replacing in main spell lineup with self rune buff
 end
 
 function Ranger:initDPSAbilities()
@@ -464,8 +523,7 @@ local function target_missing_buff(name)
     return false
 end
 
-local composite_names = {['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
-local checkSpellTimer = timer:new(30000)
+--[[local checkSpellTimer = timer:new(30000)
 function Ranger:checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
     local spellSet = self.OPTS.SPELLSET.value
@@ -487,7 +545,9 @@ function Ranger:checkSpellSet()
         end
         checkSpellTimer:reset()
     end
-end
+end]]
+
+Ranger.composite_names = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 
 function Ranger:assist()
     if mq.TLO.Navigation.Active() then return end

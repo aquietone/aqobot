@@ -72,29 +72,102 @@ function Bard:initClassOptions()
 end
 
 Bard.SpellLines = {
-    -- All spells ID + Rank name
-    {Group='aura', Spells={'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of the Muse', 'Aura of Insight'}}, -- spell dmg, overhaste, flurry, triple atk
-    {Group='composite', Spells={'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'}}, -- DD+melee dmg bonus + small heal
-    {Group='aria', Spells={'Aria of Tenisbre', 'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru'}}, -- spell dmg, overhaste, flurry, triple atk
-    {Group='warmarch', Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz'}}, -- haste, atk, ds
-    {Group='arcane', Spells={'Arcane Rhythm', 'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad', 'Arcane Aria'}}, -- spell dmg proc
-    {Group='suffering', Spells={'Kanghammer\'s Song of Suffering', 'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Storm Blade', 'Song of the Storm'}}, -- melee dmg proc
-    {Group='spiteful', Spells={'Tatalros\' Spiteful Lyric', 'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric'}}, -- AC
-    {Group='pulse', Spells={'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'}, Options={opt='USEREGENSONG'}}, -- heal focus + regen
-    {Group='sonata', Spells={'Dhakka\'s Spry Sonata', 'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata'}}, -- spell shield, AC, dmg mitigation
-    {Group='dirge', Spells={'Dirge of the Restless', 'Dirge of Lost Horizons'}}, -- spell+melee dmg mitigation
-    {Group='firenukebuff', Spells={'Flariton\'s Aria', 'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Rizlona\'s Fire', 'Rizlona\'s Embers'}}, -- inc fire DD
-    {Group='firemagicdotbuff', Spells={'Tatalros\' Psalm of Potency', 'Fyrthek Fior\'s Psalm of Potency', 'Velketor\'s Psalm of Potency', 'Akett\'s Psalm of Potency'}}, -- inc fire+mag dot
-    {Group='crescendo', Spells={'Regar\'s Lively Crescendo', 'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo'}}, -- small heal hp, mana, end
-    {Group='insult', Spells={'Yelinak\'s Insult', 'Sathir\'s Insult'}}, -- synergy DD
-    {Group='insult2', Spells={'Eoreg\'s Insult', 'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult'}}, -- synergy DD 2
-    {Group='chantflame', Spells={'Kindleheart\'s Chant of Flame', 'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'}, Options={opt='USEFIREDOTS'}},
-    {Group='chantfrost', Spells={'Swarn\'s Chant of Frost', 'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'}, Options={opt='USEFROSTDOTS'}},
-    {Group='chantdisease', Spells={'Goremand\'s Chant of Disease', 'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'}, Options={opt='USEDISEASEDOTS'}},
-    {Group='chantpoison', Spells={'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, Options={opt='USEPOISONDOTS'}},
-    {Group='alliance', Spells={'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}},
-    {Group='mezst', Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Lullaby of Morell'}},
-    {Group='mezae', Spells={'Wave of Stupor', 'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence'}},
+    {-- spell dmg, overhaste, flurry, triple atk. Slot 1
+        Group='aria',
+        Spells={'Aria of Tenisbre', 'Aria of Pli Xin Liako', 'Aria of Margidor', 'Aria of Begalru', 'Aria of Maetanrus', --[[emu cutoff]] },
+        Options={Gem=1}
+    },
+    {-- spell dmg proc. Slot 2
+        Group='arcane',
+        Spells={'Arcane Rhythm', 'Arcane Harmony', 'Arcane Symphony', 'Arcane Ballad', 'Arcane Melody', --[[emu cutoff]] 'Arcane Aria'},
+        Options={Gem=2}
+    },
+    {-- frost dot. Slot 2
+        Group='chantfrost',
+        Spells={'Swarn\'s Chant of Frost', 'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Kirchen\'s Chant of Frost', --[[emu cutoff]] 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'},
+        Options={opt='USEFROSTDOTS', Gem=2}
+    },
+    {-- AC. Slot 3
+        Group='spiteful',
+        Spells={'Tatalros\' Spiteful Lyric', 'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric', 'Fjilnauk\'s Spiteful Lyric', --[[emu cutoff]] },
+        Options={Gem=function() return Bard:get('SPELLSET') == 'melee' and 3 or nil end}
+    },
+    {-- inc fire DD. Slot 3
+        Group='firenukebuff',
+        Spells={'Flariton\'s Aria', 'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Nilsara\'s Aria', --[[emu cutoff]] 'Rizlona\'s Fire', 'Rizlona\'s Embers'},
+        Options={Gem=function() return Bard:get('SPELLSET') == 'caster' and 3 or nil end}
+    },
+    {-- fire dot. Slot 3
+        Group='chantflame',
+        Spells={'Kindleheart\'s Chant of Flame', 'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Nilsara\'s Chant of Flame', --[[emu cutoff]] 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'},
+        Options={opt='USEFIREDOTS', Gem=3}
+    },
+    {-- melee dmg proc. Slot 4
+        Group='suffering',
+        Spells={'Kanghammer\'s Song of Suffering', 'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Fjilnauk\'s Song of Suffering', --[[emu cutoff]] 'Storm Blade', 'Song of the Storm'},
+        Options={Gem=4}
+    },
+    {-- synergy DD. Slot 5
+        Group='insult',
+        Spells={'Nord\'s Disdain', 'Yelinak\'s Insult', 'Sathir\'s Insult', 'Tsaph\'s Insult', 'Garath\'s Insult', --[[emu cutoff]] },
+        Options={opt='USEINSULTS', Gem=5}
+    },
+    {-- haste, atk, ds. Slot 6
+        Group='warmarch',
+        Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'War March of Jocelyn', --[[emu cutoff]] },
+        Options={Gem=6}
+    },
+    {-- spell shield, AC, dmg mitigation. Slot 7
+        Group='sonata',
+        Spells={'Dhakka\'s Spry Sonata', 'Xetheg\'s Spry Sonata', 'Kellek\'s Spry Sonata', 'Kluzen\'s Spry Sonata', 'Dhakka\'s Spry Sonata', --[[emu cutoff]] },
+        Options={Gem=function() return Bard:get('SPELLSET') == 'melee' and 7 or nil end}
+    },
+    {-- inc fire+mag dot. Slot 7
+        Group='firemagicdotbuff',
+        Spells={'Tatalros\' Psalm of Potency', 'Fyrthek Fior\'s Psalm of Potency', 'Velketor\'s Psalm of Potency', 'Akett\'s Psalm of Potency', 'Horthin\'s Psalm of Potency', --[[emu cutoff]] },
+        Options={Gem=function() return Bard:get('SPELLSET') == 'caster' and 7 or nil end}
+    },
+    {-- disease dot. Slot 7
+        Group='chantdisease',
+        Spells={'Goremand\'s Chant of Disease', 'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Horthin\'s Chant of Disease', --[[emu cutoff]] 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'},
+        Options={opt='USEDISEASEDOTS', Gem=7}
+    },
+    {-- single target mez. Slot 8
+        Group='mezst',
+        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell'},
+        Options={opt='MEZST', Gem=8}
+    },
+    {-- aoe mez. Slot 9
+        Group='mezae',
+        Spells={'Wave of Stupor', 'Wave of Nocturn', 'Wave of Sleep', 'Wave of Somnolence', 'Wave of Torpor', --[[emu cutoff]] },
+        Options={opt='MEZAE', Gem=9}
+    },
+    {-- small heal hp, mana, end. Slot 10
+        Group='crescendo',
+        Spells={'Regar\'s Lively Crescendo', 'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo', 'Silisia\'s Lively Crescendo', --[[emu cutoff]] },
+        Options={Gem=10}
+    },
+    {-- heal focus + regen. Slot 11
+        Group='pulse',
+        Spells={'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Pulse of Sionachie', --[[emu cutoff]] 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'},
+        Options={opt='USEREGENSONG', Gem=11}
+    },
+    {-- DD+melee dmg bonus + small heal. Slot 12
+        Group='composite',
+        Spells={'Ecliptic Psalm', 'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'},
+        Options={Gem=12}
+    },
+    {-- spell+melee dmg mitigation. Slot 13
+        Group='dirge',
+        Spells={'Dirge of the Onokiwan', 'Dirge of the Restless', 'Dirge of Lost Horizons'},
+        Options={Gem=13}
+    },
+
+    {Group='aura', Spells={'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of Maetanrus', --[[emu cutoff]] 'Aura of the Muse', 'Aura of Insight'}}, -- spell dmg, overhaste, flurry, triple atk
+    {Group='insultpushback', Spells={'Eoreg\'s Insult', 'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult', 'Fjilnauk\'s Insult', --[[emu cutoff]] }, Options={opt='USEINSULTS'}}, -- synergy DD 2
+    {Group='chantpoison', Spells={'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Serisaria\'s Chant of Poison', --[[emu cutoff]] 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, Options={opt='USEPOISONDOTS'}},
+    {Group='alliance', Spells={'Conjunction of Sticks and Stones', 'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}},
+
     -- resonating barrier, new defensive stun proc?
     -- Fatesong of Zoraxmen, increase cold nuke dmg
     -- Appeasing Accelerando, aggro reduction
@@ -355,8 +428,8 @@ local function findNextSong()
     if not mq.TLO.Target.Snared() and Bard:isEnabled('USESNARE') and ((mq.TLO.Target.PctHPs() or 100) < 30) then
         return Bard.spells.snare
     end
-    if not Bard.spellRotations[Bard.OPTS.SPELLSET.value] then return nil end
-    for _,song in ipairs(Bard.spellRotations[Bard.OPTS.SPELLSET.value]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
+    if not Bard.spellRotations[Bard:get('SPELLSET')] then return nil end
+    for _,song in ipairs(Bard.spellRotations[Bard:get('SPELLSET')]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.ID
         local song_name = song.Name
         if isSongReady(song_id, song_name) and Bard:isAbilityEnabled(song.opt) and not mq.TLO.Target.Buff(song.CheckFor)() then
@@ -461,8 +534,9 @@ function Bard:invis()
     mq.delay(3500, function() return mq.TLO.Me.Invis() end)
 end
 
-local composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
-local checkSpellTimer = timer:new(30000)
+Bard.composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
+
+--[[local checkSpellTimer = timer:new(30000)
 function Bard:checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
     if not self:doneSinging() then return end
@@ -527,7 +601,7 @@ function Bard:checkSpellSet()
         end
         checkSpellTimer:reset()
     end
-end
+end]]
 -- aura, chorus, war march, storm, rizlonas, verse, ancient,selos, chant flame, echoes, nivs
 
 function Bard:pullCustom()

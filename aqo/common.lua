@@ -124,11 +124,6 @@ function common.getSkill(name, options)
     return abilities.Skill:new(spellData)
 end
 
-function common.setSwapGem()
-    if not mq.TLO.Me.Class.CanCast() then return end
-    state.swapGem = mq.TLO.Me.NumGems()
-end
-
 ---Check whether the specified dot is applied to the target.
 ---@param spell_id number @The ID of the spell to check.
 ---@param spell_name string @The name of the spell to check.
@@ -306,6 +301,7 @@ function common.checkItemBuffs()
     end
     if mount and mount > 0 and not mq.TLO.Me.Buff('Mount Blessing')() and mq.TLO.Me.CanMount() then
         local mountItem = mq.TLO.FindItem(mount)
+        -- TODO: ignore stat mount of no blessing
         abilities.use(abilities.Item:new({Name=mountItem(), ID=mountItem.ID()}))
         mq.delay(500+mountItem.CastTime())
         mq.cmdf('/removebuff %s', mountItem.Clicky())

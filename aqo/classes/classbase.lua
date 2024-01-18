@@ -183,14 +183,18 @@ end
 -- For cases where something should only be done by a class who has the option
 -- Ex. USEMEZ logic should only ever be entered for classes who can mez.
 function base:isEnabled(key)
-    return self.OPTS[key] and self.OPTS[key].value
+    return self.OPTS[key] and self.OPTS[key].value == true
 end
 
 -- Return true if the option is nil or the option is true
 -- Ex. Kick has no option to toggle it, so should always be true. Intimidate has a toggle
 -- so should evaluate the option.
 function base:isAbilityEnabled(key)
-    return not key or not self.OPTS[key] or self.OPTS[key].value
+    return not key or not self.OPTS[key] or self.OPTS[key].value == true
+end
+
+function base:get(key)
+    return self.OPTS[key] and self.OPTS[key].value
 end
 
 ---Add the best N spells from the list of spells to the class spell list
@@ -200,6 +204,7 @@ end
 ---@param options table # Table of options to be applied to the spell
 function base:addNSpells(spellGroup, numToAdd, spellList, options)
     for i=1,numToAdd do
+        if options.Gems then options.Gem = options.Gems[i] end
         local foundSpell = common.getBestSpell(spellList, options, spellGroup)
         self.spells[spellGroup..i] = foundSpell
         if not foundSpell then
@@ -230,7 +235,9 @@ end
 ---@param spellList table # Table of spell names to search in order
 ---@param options table # Table of options to be applied to the spell
 function base:addSpell(spellGroup, spellList, options)
+    printf('%s %s', spellGroup, self.spells)
     local foundSpell = common.getBestSpell(spellList, options, spellGroup)
+    --print(foundSpell.tostring())
     self.spells[spellGroup] = foundSpell
     if not foundSpell then
         logger.info('Could not find spell: \ag%s\ax', spellGroup)
@@ -557,14 +564,17 @@ end
 function base:findNextSpell()
     -- alliance
     -- synergy
-    if not self.spellRotations[self.OPTS.SPELLSET.value] then return nil end
-    for _,spell in ipairs(self.spellRotations[self.OPTS.SPELLSET.value]) do
+    local spellRotation = self.getSpellRotation and self:getSpellRotation() or self.spellRotations[self:get('SPELLSET')]
+    if not spellRotation then return nil end
+    local startIndex = state.rotationIndex and state.rotationIndex < #spellRotation and state.rotationIndex + 1 or 1
+    for i=startIndex,#spellRotation do
+        local spell = spellRotation[i]
         local resistCount = state.resists[spell.Name] or 0
         local resistStopCount = config.get('RESISTSTOPCOUNT')
         if self:isAbilityEnabled(spell.opt) and spell:isReady() == abilities.IsReady.SHOULD_CAST
                 and (resistStopCount == 0 or resistCount < resistStopCount)
                 and (not spell.condition or spell.condition()) then
-            return spell
+            return spell, i
         end
     end
 end
@@ -584,10 +594,10 @@ function base:cast()
                     if clicky:use() then return end
                 end
             end
-            local spell = self:findNextSpell()
+            local spell, index = self:findNextSpell()
             if spell then -- if a dot was found
                 if spell.precast then spell.precast() end
-                if spell:use(true) then state.actionTaken = true end -- then cast the dot
+                if spell:use(true) then state.rotationIndex = index state.actionTaken = true end -- then cast the dot
                 self.nuketimer:reset()
                 mq.doevents()--'eventResist')
                 if spell.postcast then spell.postcast() end
@@ -767,13 +777,18 @@ function base:rez()
     if healing.rez(self.rezAbility) then state.actionTaken = true end
 end
 
+function base:getPetSpell()
+    return self.spells.pet
+end
+
 function base:managepet()
-    if not self:isEnabled('SUMMONPET') or not self.spells.pet then return end
+    local petSpell = self:getPetSpell()
+    if not self:isEnabled('SUMMONPET') or not petSpell then return end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
-    if self.spells.pet.Mana > mq.TLO.Me.CurrentMana() then return end
-    if self.spells.pet.ReagentID and mq.TLO.FindItemCount(self.spells.pet.ReagentID)() < self.spells.pet.ReagentCount then return end
-    abilities.swapAndCast(self.spells.pet, state.swapGem, self)
+    if petSpell.Mana > mq.TLO.Me.CurrentMana() then return end
+    if petSpell.ReagentID and mq.TLO.FindItemCount(petSpell.ReagentID)() < petSpell.ReagentCount then return end
+    abilities.swapAndCast(petSpell, state.swapGem, self)
     state.queuedAction = function() mq.cmd('/pet ghold on') end
 end
 
@@ -879,6 +894,60 @@ local function lifesupport()
     end
 end
 
+local function findSpellForSlot(slot)
+    local spell = nil
+    local spellFallback = nil
+    for _, spellInfo in pairs(base.spells) do
+        local gem = spellInfo.Gem
+        if type(gem) == 'function' then gem = gem() end
+        if gem == slot then
+            if not spellInfo.opt and not spell then
+                -- spell assigned to this gem with no related option, default spell for the gem
+                spell = spellInfo
+            elseif spellInfo.opt and base:isEnabled(spellInfo.opt) then
+                if spell ~= nil then
+                    -- spell assigned to this gem with an option, but we've already found one matching spell for this gem
+                    if spell.opt then
+                        -- the spell that was already found for this gem also has an associated option enabled, prioritize options or its a conflict
+                        -- do nothing for now, keep the first spell we found
+                    else
+                        -- the spell that was already found for this gem was the default with no option, override it with this spell based on enabled option
+                        spell = spellInfo
+                    end
+                else
+                    -- spell assigned to this gem with an option, haven't found another spell for the gem yet
+                    spell = spellInfo
+                end
+            else
+                -- in case options were disabled and we had no default spell for the gem, mem whatever option based spell we find anyways
+                spellFallback = spellInfo
+            end
+        end
+    end
+    return spell or spellFallback
+end
+
+base.checkSpellTimer = timer:new(30000)
+function base:checkMemmedSpells()
+    if not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
+    local spellSet = self:get('SPELLSET')
+    if state.spellSetLoaded ~= spellSet or self.checkSpellTimer:timerExpired() then
+        local numGems = mq.TLO.Me.NumGems() or 8
+        for i=1,numGems do
+            local spellToMem = findSpellForSlot(i)
+            if spellToMem and mq.TLO.Me.Gem(i).BaseName() ~= spellToMem.BaseName then
+                if self.composite_names[spellToMem.BaseName] then
+                    if abilities.swapSpell(spellToMem, i, false, self.composite_names) then return end
+                else
+                    if abilities.swapSpell(spellToMem, i) then return end
+                end
+            end
+        end
+        state.spellSetLoaded = spellSet
+        self.checkSpellTimer:reset()
+    end
+end
+
 function base:useEpic()
     mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
     if self.epic and mq.TLO.Me.ItemReady(self.epic)() then
@@ -905,7 +974,7 @@ function base:mainLoop()
             -- into pull return to try to get back to camp
             if state.pullStatus then return end
         end
-        if self.checkSpellSet then self:checkSpellSet() end
+        if self.checkSpellSet then self:checkSpellSet() else self:checkMemmedSpells() end
         if not self:hold() then
             for _,routine in ipairs(self.classOrder) do
                 if not state.actionTaken then self[routine](self) end

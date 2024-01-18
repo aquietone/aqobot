@@ -29,6 +29,7 @@ local state = {
     subscription = 'GOLD',
     resists = {},
     medding = false,
+    swapGem = 8,
     justZonedTimer = timer:new(2000)
 }
 
@@ -131,6 +132,7 @@ function state.handleMemSpell()
         if (mq.TLO.Me.Gem(state.memSpell.Name)() and not state.wait_for_spell_ready) or mq.TLO.Me.SpellReady(state.memSpell.Name)() then
             logger.info('Finished memorizing: \ag%s\ax', state.memSpell.Name)
             state.resetMemSpellState()
+            if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
             return true
         elseif state.memSpellTimer:timerExpired() then
             -- timer expired, spell not memorized, reset state

@@ -54,7 +54,7 @@ function Enchanter:initClassOptions()
     self:addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, 'Toggle use of tash prior to attempting to mez mobs', 'checkbox', nil, 'TashThenMez', 'bool')
     self:addOption('USECHAOTIC', 'Use Chaotic', true, nil, 'Toggle use of Chaotic mez line', 'checkbox', nil, 'UseChaotic', 'bool')
     self:addOption('USECHARM', 'Use Charm', false, nil, 'Attempt to maintain a charm pet instead of using a regular pet', 'checkbox', nil, 'UseCharm', 'bool')
-    self:addOption('USEDOT', 'Use DoT', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoT', 'bool')
+    self:addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEHASTE', 'Buff Haste', true, nil, 'Toggle use of haste buff line', 'checkbox', nil, 'UseHaste', 'bool')
     self:addOption('MEZST', 'Use Mez', true, nil, 'Use single target mez on adds within camp radius', 'checkbox', nil, 'MezST', 'bool')
     self:addOption('MEZAE', 'Use AE Mez', true, nil, 'Use AE Mez if 3 or more mobs are within camp radius', 'checkbox', nil, 'MezAE', 'bool')
@@ -89,17 +89,88 @@ end
 ]]
 -- mindreap, polyluminous assault, chromashear, psychological appropriation, chromatic flare
 Enchanter.SpellLines = {
-    {Group='composite', Spells={'Ecliptic Reinforcement', 'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'}}, -- restore mana, add dmg proc, inc dmg
-    {Group='alliance', Spells={'Chromatic Conjunction', 'Chromatic Coalition', 'Chromatic Covenant', 'Chromatic Alliance'}},
+    {-- Slot 1
+        Group='tash',
+        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan'},
+        Options={opt='USEDEBUFF', Gem=1}
+    },
+    {-- Slot 2
+        Group='charm',
+        Spells={'Esoteric Command', 'Marvel\'s Command', 'Deviser\'s Command', 'Transfixer\'s Command', 'Enticer\'s Command', --[[emu cutoff]] },
+        Options={opt='USECHARM', Gem=2}
+    },
+    {-- 6 tick mez + twincast on next spell. Slot 3
+        Group='meznoblur',
+        Spells={'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception', 'Chaotic Delusion', 'Chaotic Bewildering', --[[emu cutoff]] },
+        Options={opt='USECHAOTIC', Gem=3}
+    },
+    {-- 9 ticks. Slot 3
+        Group='mezst',
+        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', --[[emu cutoff]] 'Euphoria'},
+        Options={Gem=3}
+    },
+    {-- targeted AE mez. Slot 4
+        Group='mezaeprocblur',
+        Spells={'Entrancing Stare', 'Mesmeric Stare', 'Deceiving Stare', 'Transfixing Stare', 'Anodyne Stare', --[[emu cutoff]] },
+        Options={Gem=4}
+    },
+    {-- main dot. Slot 5
+        Group='dot1',
+        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', --[[emu cutoff]] 'Arcane Noose'},
+        Options={opt='USEDOTS', Gem=5}
+    },
+    {-- 77k nuke, procs synery. Slot 6, 7
+        Group='mindnuke',
+        NumToPick=2,
+        Spells={'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash', 'Mindsunder', --[[emu cutoff]] 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'},
+        Options={opt='USENUKES', Gems={6,7}}
+    },
+    {-- 28k nuke. Slot 8
+        Group='nuke2',
+        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', --[[emu cutoff]] 'Chromaburst'},
+        Options={opt='USENUKES', Gem=8}
+    },
+    {-- single target dmg proc buff. Slot 9
+        Group='procbuff',
+        Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Replication', 'Mana Repetition', 'Mana Reciprocation', --[[emu cutoff]] 'Mana Recursion', 'Mana Flare'},
+        Options={swap=false, Gem=9}
+    },
+    {-- extra dot. Slot 10
+        Group='dot2',
+        Spells={'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Tempest', 'Mind Storm', --[[emu cutoff]] 'Mind Shatter'},
+        Options={opt='USEDOTS', Gem=10}
+    },
+    {-- 24k. when use dots off. Slot 10
+        Group='nuke3',
+        Spells={'Cognitive Appropriation', 'Psychological Appropriation', 'Ideological Appropriation', 'Psychic Appropriation', 'Intellectual Appropriation', --[[emu cutoff]]},
+        Options={opt='USENUKES', Gem=function() return not Enchanter:isEnabled('USEDOTS') and 10 or nil end}
+    },
+    {-- restore mana, add dmg proc, inc dmg. Slot 11
+        Group='composite',
+        Spells={'Ecliptic Reinforcement', 'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'},
+        Options={Gem=11}
+    },
+    {-- mez proc on being hit. Slot 12
+        Group='unity',
+        Spells={'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity', 'Transfixer\'s Unity', 'Enticer\'s Unity', --[[emu cutoff]]},
+        Options={Gem=12}
+    },
+    {-- melee attack proc. Slot 13 or 2
+        Group='nightsterror',
+        Spells={'Night\'s Perpetual Terror', 'Night\'s Endless Terror', --[[emu cutoff]]},
+        Options={opt='USENIGHTSTERROR', Gem=function() return (not Enchanter:isEnabled('USEALLIANCE') and 13) or (not Enchanter:isEnabled('USECHARM') and 2) or nil end}
+    },
+    {-- Slot 13
+        Group='alliance',
+        Spells={'Chromatic Conjunction', 'Chromatic Coalition', 'Chromatic Covenant', 'Chromatic Alliance'},
+        Options={opt='USEALLIANCE', Gem=13}
+    },
 
-    {Group='mezst', Spells={'Flummox', 'Addle', 'Euphoria'}}, -- 9 ticks
     {Group='mezst2', Spells={'Flummoxing Flash', 'Addling Flash'}}, -- 6 ticks
     {Group='mezae', Spells={'Stupefying Wave', 'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}}, -- targeted AE mez
     {Group='mezaehate', Spells={'Vexing Glance', 'Confounding Glance'}}, -- targeted AE mez + 100% hate reduction
     {Group='mezpbae', Spells={'Wonderment', 'Bewilderment'}},
     {Group='mezpbae2', Spells={'Perilous Confounding', 'Perilous Bewilderment'}}, -- lvl 120
-    {Group='meznoblur', Spells={'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception'}},
-    {Group='mezaeprocblur', Spells={'Entrancing Stare', 'Mesmeric Stare'}}, -- targeted AE mez
     {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}}, -- mez proc on being hit
 
     {Group='rune', Spells={'Disquieting Rune', 'Marvel\'s Rune'}}, -- 160k rune, self
@@ -118,20 +189,14 @@ Enchanter.SpellLines = {
     {Group='groupspellrune', Spells={'Legion of Ogna', 'Legion of Liako', 'Legion of Kildrukaun'}},
     {Group='groupaggrorune', Spells={'Gloaming Rune', 'Eclipsed Rune'}}, -- group rune + big nuke/aggro reduction proc
 
-    {Group='dot', Spells={'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Shatter'}, Options={opt='USEDOT'}}, -- big dot
-    {Group='dot2', Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Arcane Noose'}, Options={opt='USEDOT'}}, -- decent dot
     {Group='debuffdot', Spells={'Dismaying Constriction', 'Perplexing Constriction'}}, -- debuff + nuke + dot
     {Group='manadot', Spells={'Tears of Kasha', 'Tears of Xenacious'}}, -- hp + mana DoT
     {Group='nukerune', Spells={'Chromatic Spike', 'Chromatic Flare'}}, -- 18k nuke + self rune
 
-    {Group='mindnuke', NumToPick=2, Spells={'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash', 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'}}, -- 77k nuke, procs synery
     {Group='nuke1', Spells={'Polyradiant Assault', 'Polyluminous Assault', 'Colored Chaos'}}, -- 35k nuke
-    {Group='nuke2', Spells={'Chromaclap', 'Chromashear', 'Chromaburst'}}, -- 28k
-    {Group='nuke3', Spells={'Cognitive Appropriation', 'Psychological Appropriation'}}, -- 24k
     {Group='aenuke', Spells={'Gravity Roil'}}, -- 23k targeted ae nuke
 
     {Group='calm', Spells={'Still Mind'}},
-    {Group='tash', Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Bite of Tashani', 'Echo of Tashan'}, Options={opt='USEDEBUFF'}},
     {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
     {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration'}},
@@ -139,15 +204,11 @@ Enchanter.SpellLines = {
 
     {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Aeidorb\'s Animation'}},
     {Group='pethaste', Spells={'Invigorated Minion'}},
-    {Group='charm', Spells={'Esoteric Command', 'Marvel\'s Command'}},
     -- buffs
-    {Group='unity', Spells={'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity'}}, -- mez proc on being hit
-    {Group='procbuff', Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Recursion', 'Mana Flare'}, Options={swap=false}}, -- single target dmg proc buff
     {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'}},
     {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Clairvoyance', 'Voice of Quellious'}},
     {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}}, -- single target buff
     {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar'}}, -- group haste
-    {Group='nightsterror', Spells={'Night\'s Perpetual Terror', 'Night\'s Endless Terror'}}, -- melee attack proc
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
     {Group='twincast', Spells={'Twincast Aura'}},
     {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}}, -- mana + end regen aura
@@ -158,7 +219,6 @@ Enchanter.SpellLines = {
     -- unity buffs
     {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'}},
     {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
-
 
     {Group='spasm', Spells={'Synapsis Spasm'}, Options={opt='USEDEBUFF', emu=true}},
     {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true}},
@@ -339,7 +399,8 @@ local function missing_unity_buffs(name)
     return false
 end
 
-local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
+Enchanter.composite_names = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
+--[[local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 local checkSpellTimer = timer:new(30000)
 function Enchanter:checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
@@ -363,7 +424,7 @@ function Enchanter:checkSpellSet()
         end
         checkSpellTimer:reset()
     end
-end
+end]]
 
 --[[
 #Event CAST_IMMUNE                 "Your target has no mana to affect#*#"

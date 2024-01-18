@@ -287,7 +287,8 @@ local function drawSkillsTab()
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
             local option = class.OPTS[key]
             if option.type == 'combobox' then
-                option.value = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
+                local newValue = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
+                if newValue ~= option.value then option.value = newValue state.spellSetLoaded = nil end
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             elseif option.type == 'inputint' then
                 option.value = ui.drawInputInt(option.label, option.value, option.tip, xOffset, yOffset)
@@ -299,8 +300,9 @@ local function drawSkillsTab()
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
             local option = class.OPTS[key]
             if option.type == 'checkbox' then
-                option.value = ui.drawCheckBox(option.label, option.value, option.tip, xOffset, yOffset)
-                if option.value and option.exclusive then class.OPTS[option.exclusive].value = false end
+                local newValue = ui.drawCheckBox(option.label, option.value, option.tip, xOffset, yOffset)
+                if newValue and option.exclusive then class.OPTS[option.exclusive].value = false end
+                if newValue ~= option.value then option.value = newValue state.spellSetLoaded = nil end
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
         end
@@ -547,7 +549,7 @@ local function drawNestedTableTree(table)
         ImGui.TableNextRow()
         ImGui.TableNextColumn()
         if type(v) == 'table' then
-            local open = ImGui.TreeNodeEx(k, ImGuiTreeNodeFlags.SpanFullWidth)
+            local open = ImGui.TreeNodeEx(tostring(k), ImGuiTreeNodeFlags.SpanFullWidth)
             if open then
                 drawNestedTableTree(v)
                 ImGui.TreePop()

@@ -82,7 +82,7 @@ local Shaman = class:new()
 ]]
 function Shaman:init()
     self.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},hybrid={},dps={}}
     self:initBase('shm')
 
     self:initClassOptions()
@@ -109,52 +109,177 @@ function Shaman:initClassOptions()
     self:addOption('USEDEBUFF', 'Use Malo', true, nil, 'Toggle casting malo on mobs', 'checkbox', nil, 'UseDebuff', 'bool')
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Toggle use of dispel', 'checkbox', nil, 'UseDispel', 'bool')
     self:addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox', nil, 'UseSlow', 'bool')
+    self:addOption('USESLOWAOE', 'Use Slow AOE', true, nil, 'Toggle casting AOE slow on mobs', 'checkbox', nil, 'UseSlowAOE', 'bool')
     self:addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEEPIC', 'Use Epic', true, nil, 'Use epic in burns', 'checkbox', nil, 'UseEpic', 'bool')
+    self:addOption('USEGROWTH', 'Use Growth', true, nil, 'Use Growth line of spells', 'checkbox', nil, 'UseGrowth', 'bool')
+    self:addOption('MEMCUREALL', 'Mem Cure All', false, nil, 'Memorize cure all line of spells', 'checkbox', nil, 'MemCureAll', 'bool')
+    self:addOption('USESPLASH', 'Use Splash', true, nil, 'Memorize splash line of spells', 'checkbox', nil, 'UseSplash', 'bool')
+    self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
 end
 
+Shaman.composite_names = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Dichotomic Roar']=true}
+
 Shaman.SpellLines = {
-    -- Lvl 100+ main heal
-    {Group='reckless', NumToPick=3, Spells={'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'}, Options={panic=true, regular=true, tank=true}},
-    -- Below lvl 100 main heal
-    {Group='heal', Spells={'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'}, Options={panic=true, regular=true, tank=true, pet=60}},
+    {-- proc buff slow + heal, 240 charges. Slot 1
+        Group='slowproc',
+        Spells={'Moroseness', 'Melancholy', 'Ennui', 'Incapacity', 'Sluggishness', 'Lingering Sloth'},
+        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 1 or nil end, classes={WAR=true,PAL=true,SHD=true}}
+    },
+    {-- DPS spellset. Disease DoT. Slot 1
+        Group='maladydot',
+        Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady'},
+        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 1 or nil end}
+    },
+    {-- group HoT. Slot 2
+        Group='grouphot',
+        Spells={'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal', 'Ghost of Renewal'},
+        Options={opt='USEHOTGROUP', Gem=2, grouphot=true}
+    },
+    {-- poison nuke. Slot 3
+        Group='bitenuke',
+        Spells={'Oka\'s Bite', 'Ander\'s Bite', 'Direfang\'s Bite', 'Mawmun\'s Bite', 'Reefmaw\'s Bite'},
+        Options={opt='USENUKES', Gem=3}
+    },
+    {-- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower. Slot 4
+        Group='tcnuke',
+        NumToPick=2,
+        Spells={'Gelid Gift', 'Polar Gift', 'Wintry Gift', 'Frostbitten Gift', 'Glacial Gift', 'Frostfall Boon'},
+        Options={opt='USENUKES', Gems={4,function() return Shaman:get('SPELLSET') ~= 'dps' and not Shaman:isEnabled('USEGROWTH') and 6 or nil end}}
+    },
+    {-- group heal, lower hp == stronger heal. Slot 5
+        Group='intervention',
+        Spells={'Immortal Intervention', 'Antediluvian Intervention', 'Primordial Intervention', 'Prehistoric Intervention', 'Historian\'s Intervention'},
+        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 5 or nil end, group=true}
+    },
+    {-- DPS spellset. Combo disease DoT. Slot 5
+        Group='pandemiccombo',
+        Spells={'Tegi Pandemic', 'Bledrek\'s Pandemic', 'Elkikatar\'s Pandemic', 'Hemocoraxius\' Pandemic'},
+        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 5 or nil end}
+    },
+    {-- disease dot. Not used directly, only by combo spell. Combo spell comes in non-level increase expansions. (pendemiccombo)
+        Group='breathdot',
+        Spells={'Breath of the Hotariton', 'Breath of the Tegi', 'Breath of Bledrek', 'Breath of Elkikatar', 'Breath of Hemocoraxius', 'Breath of Wunshi'},
+        Options={opt='USEDOTS', Gem=function() return not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5 or nil end}
+    },
+    {-- temp hp buff. Slot 6
+        Group='growth',
+        Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'},
+        Options={opt='USEGROWTH', Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6 or nil end}
+    },
+    {-- cure all. Slot 6
+        Group='cureall',
+        Spells={'Blood of Mayong', 'Blood of Tevik', 'Blood of Rivans'},
+        Options={opt='MEMCUREALL', Gem=6}
+    },
+    {-- group heal. Slot 7
+        Group='recourse',
+        Spells={'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse', 'Word of Reconstitution', 'Word of Restoration'},
+        Options={Gem=function() return Shaman:get('SPELLSET') == 'standard' and 7 or nil end, group=true}
+    },
+    {-- DPS spellset. Slot 7
+        Group='poisonnuke',
+        Spells={'Red Eye\'s Spear of Venom', 'Fleshrot\'s Spear of Venom', 'Narandi\'s Spear of Venom', 'Nexona\'s Spear of Venom', 'Serisaria\'s Spear of Venom', 'Yoppa\'s Spear of Venom', 'Spear of Torment'},
+        Options={opt='USENUKES', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and 7 or nil end}
+    },
+    {-- Lvl 100+ main heal. Slot 8, 9, 10
+        Group='reckless',
+        NumToPick=3,
+        Spells={'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'},
+        Options={Gems={8,function() return Shaman:get('SPELLSET') ~= 'dps' and 9 or nil end,function() return Shaman:get('SPELLSET') == 'standard' and 10 or nil end}, panic=true, regular=true, tank=true}
+    },
+    {-- Below lvl 100 main heal. Slot 8
+        Group='heal',
+        Spells={'Krasir\'s Mending', 'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'},
+        Options={Gem=function() return mq.TLO.Me.Level() < 105 and 8 or nil end, panic=true, regular=true, tank=true, pet=60}
+    },
+    {-- DPS spellset. combo malo + DoT. Slot 9
+        Group='malodot',
+        Spells={'Krizad\'s Malosinera', 'Txiki\'s Malosinara', 'Svartmane\'s Malosinara', 'Rirwech\'s Malosinata', 'Livio\'s Malosenia'},
+        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 9 or nil end}
+    },
+    {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
+        Group='nectardot',
+        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain'},
+        Options={opt='USEDOTS', Gem=function() return not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9 or nil end}
+    },
+    {-- DPS spellset. curse DoT. Slot 10
+        Group='cursedot',
+        Spells={'Fandrel\'s Curse', 'Lenrel\'s Curse', 'Marlek\'s Curse', 'Erogo\'s Curse', 'Sraskus\' Curse', 'Curse of Sisslak'},
+        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and 10 or nil end}
+    },
+    {-- splash, easiest to cast on self, requires los. Slot 11
+        Group='splash',
+        Spells={'Spiritual Shower', 'Spiritual Squall', 'Spiritual Swell'},
+        Options={opt='USESPLASH', Gem=11, group=true}
+    },
+    {-- single HoT. Slot 11
+        Group='singlehot',
+        Spells={'Halcyon Gale', 'Halcyon Squall', 'Halcyon Wind', 'Halcyon Billow', 'Halcyon Bluster', 'Transcendent Torpor', 'Spiritual Serenity', 'Breath of Trushar'},
+        Options={opt='USEHOTTANK', Gem=11, hot=true}
+    },
+    {-- Hybrid spellset. Slot 11
+        Group='icenuke',
+        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall'},
+        Options={opt='USENUKES', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11 or nil end}
+    },
+    {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
+        Group='composite',
+        Spells={'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Dichotomic Roar'},
+        Options={Gem=12}
+    },
+    {-- Combo 2x DoTs + 1-2 nukes. Slot 13 (heal) or 6 (dps)
+        Group='chaotic',
+        Spells={'Chaotic Toxin', 'Chaotic Venin', 'Chaotic Poison', 'Chaotic Venom'},
+        Options={Gem=function() return ((Shaman:get('SPELLSET') == 'standard' or not Shaman:isEnabled('USEALLIANCE')) and 13) or (Shaman:get('SPELLSET') == 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6) or nil end}
+    },
+    {-- greater poison dot. Not used directly. only by combo spell. (chaotic)
+        Group='blooddot',
+        Spells={'Caustic Blood', 'Desperate Vampyre Blood', 'Restless Blood', 'Scorpikis Blood', 'Reef Crawler Blood', 'Blood of Yoppa'},
+        Options={opt='USEDOTS', Gem=function() return (not Shaman.spells.chaotic and (Shaman:get('SPELLSET') == 'standard' or not Shaman:isEnabled('USEALLIANCE')) and 13) or (not Shaman.spells.chaotic and Shaman:get('SPELLSET') == 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6) or nil end}
+    },
+    {-- keep up on tank, proc ae heal from target. Slot 13
+        Group='alliance',
+        Spells={'Ancient Conjunction', 'Ancient Coalition', 'Ancient Covenant', 'Ancient Alliance'},
+        Options={opt='USEALLIANCE', Gem=13}
+    },
 
-    -- Lvl 100+ group heals
-    {Group='splash', Spells={'Spiritual Shower', 'Spiritual Squall', 'Spiritual Swell'}, Options={group=true}}, -- splash, easiest to cast on self, requires los
-    {Group='recourse', Spells={'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse'}, Options={group=true}},
-    {Group='intervention', Spells={'Immortal Intervention', 'Antediluvian Intervention', 'Primordial Intervention', 'Prehistoric Intervention', 'Historian\'s Intervention'}, Options={group=true}},
-    {Group='composite', Spells={'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Dichotomic Roar'}}, -- stacks with HoT but overwrites regen, blocked by dots
-    {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}}, -- self buff, proc heal when hit
-    -- Below lvl 100 group heal
-    {Group='groupheal', Spells={'Word of Reconstitution', 'Word of Restoration'}, Options={group=true}},
-
-    -- HoTs
-    {Group='grouphot', Spells={'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal'}, Options={opt='USEHOTGROUP', grouphot=true}}, -- group HoT
-    {Group='hottank', Spells={'Spiritual Serenity', 'Breath of Trushar'}, Options={opt='USEHOTTANK', hot=true}},
-    {Group='hotdps', Spells={'Spiritual Serenity', 'Breath of Trushar'}, Options={opt='USEHOTDPS', hot=true}},
-    {Group='torpor', Spells={'Transcendent Torpor'}},
-
+    -- TODO: Need to work these spells into places they can be used
+    -- self buff, proc heal when hit
+    {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}},
     -- Cures
     {Group='cure', Spells={'Blood of Nadox'}},
     {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
 
-    -- Debuffs
-    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects'}, Options={opt='USESLOW'}},
-    {Group='slowproc', Spells={'Lingering Sloth'}, Options={classes={WAR=true,PAL=true,SHD=true}}},
+    -- TODO: cleanup Leftover EMU specific stuff
+    {Group='torpor', Spells={'Transcendent Torpor'}},
     {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF'}},
-    {Group='malo', Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'}, Options={opt='USEDEBUFF'}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment'}, Options={opt='USEDISPEL'}},
     {Group='debuff', Spells={'Crippling Spasm'}, Options={opt='USEDEBUFF'}},
-
-    -- DPS
-    {Group='tcnuke', Spells={'Gelid Gift', 'Polar Gift', 'Wintry Gift', 'Frostbitten Gift', 'Glacial Gift', 'Frostfall Boon'}, Options={opt='USENUKES'}}, -- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower
-    {Group='nuke', Spells={'Yoppa\'s Spear of Venom', 'Spear of Torment'}, Options={opt='USENUKES'}},
+    -- EMU special: Ice Age nuke has 25% chance to proc slow
     {Group='slownuke', Spells={'Ice Age'}, Options={opt='USENUKES'}},
-    {Group='dot1', Spells={'Nectar of Pain'}, Options={opt='USEDOTS'}},
-    {Group='dot2', Spells={'Curse of Sisslak'}, Options={opt='USEDOTS'}},
-    {Group='dot3', Spells={'Blood of Yoppa'}, Options={opt='USEDOTS'}},
-    {Group='dot4', Spells={'Breath of Wunshi', Options={opt='USEDOTS'}}},
+
+    -- Debuffs
+    {-- Malo spell line. AA malo is Malosinete
+        Group='malo',
+        Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete'},
+        Options={opt='USEDEBUFF'}
+    },
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects'}, Options={opt='USESLOW'}},
+    {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={opt='USESLOWAOE'}},
+
+    -- Extra DoTs just used by combo spells
+    {-- disease dot. Not used directly, only by combo spell. (pendemiccombo)
+        Group='pandemicdot',
+        Spells={'Skraiw\'s Pandemic', 'Doomshade\'s Pandemic', 'Bolman\'s Pandemic', 'Vermistipus\'s Pandemic', 'Spirespine\'s Pandemic'},
+        Options={opt='USEDOTS'}
+    },
+    {-- disease dot. Not used directly, only by combo spell. (malodot)
+        Group='afflictiondot',
+        Spells={'Krizad\'s Affliction', 'Brightfeld\'s Affliction', 'Svartmane\'s Affliction', 'Rirwech\'s Affliction', 'Livio\'s Affliction'},
+        Options={opt='USEDOTS'}
+    },
 
     -- Buffs
     {Group='proc', Spells={'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}}},
@@ -166,13 +291,11 @@ Shaman.SpellLines = {
     {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
     {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'}},
     {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}}},
-    {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}},
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
-    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'}},
+    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'}, Options={'SUMMONPET'}},
 
-    {Group='alliance', Spells={'Ancient Coalition', 'Ancient Alliance'}}, -- keep up on tank, proc ae heal from target
     --Call of the Ancients -- 5 minute duration ward AE healing
 }
 
@@ -190,13 +313,33 @@ function Shaman:initSpellConditions()
 end
 
 function Shaman:initSpellRotations()
-    table.insert(self.spellRotations.standard, self.spells.tcnuke)
-    table.insert(self.spellRotations.standard, self.spells.slownuke)
-    table.insert(self.spellRotations.standard, self.spells.dot1)
-    table.insert(self.spellRotations.standard, self.spells.dot2)
-    table.insert(self.spellRotations.standard, self.spells.dot3)
-    table.insert(self.spellRotations.standard, self.spells.dot4)
-    table.insert(self.spellRotations.standard, self.spells.nuke)
+    if state.emu then
+        table.insert(self.spellRotations.standard, self.spells.slownuke)
+    end
+
+    table.insert(self.spellRotations.standard, self.spells.chaotic)
+    table.insert(self.spellRotations.standard, self.spells.tcnuke1)
+    table.insert(self.spellRotations.standard, self.spells.bitenuke)
+    table.insert(self.spellRotations.standard, self.spells.tcnuke2)
+    table.insert(self.spellRotations.standard, self.spells.chaotic)
+
+    table.insert(self.spellRotations.hybrid, self.spells.chaotic)
+    table.insert(self.spellRotations.hybrid, self.spells.cursedot)
+    table.insert(self.spellRotations.hybrid, self.spells.tcnuke1)
+    table.insert(self.spellRotations.hybrid, self.spells.bitenuke)
+    table.insert(self.spellRotations.hybrid, self.spells.tcnuke2)
+    table.insert(self.spellRotations.hybrid, self.spells.poisonnuke)
+    table.insert(self.spellRotations.hybrid, self.spells.icenuke)
+
+    table.insert(self.spellRotations.dps, self.spells.chaotic)
+    table.insert(self.spellRotations.dps, self.spells.maladydot)
+    table.insert(self.spellRotations.dps, self.spells.pandemiccombo)
+    table.insert(self.spellRotations.dps, self.spells.malodot)
+    table.insert(self.spellRotations.dps, self.spells.cursedot)
+    table.insert(self.spellRotations.dps, self.spells.tcnuke1)
+    table.insert(self.spellRotations.dps, self.spells.bitenuke)
+    table.insert(self.spellRotations.dps, self.spells.poisonnuke)
+    table.insert(self.spellRotations.dps, self.spells.icenuke)
 end
 
 function Shaman:initDPSAbilities()
@@ -219,32 +362,27 @@ function Shaman:initBurns()
 end
 
 function Shaman:initHeals()
-    if not state.emu then
-        -- Main healing: 2-4 Reckless spells
-        if self.spells.reckless1 then
-            table.insert(self.healAbilities, self.spells.reckless1) -- single target
-            table.insert(self.healAbilities, self.spells.reckless2) -- single target
-            table.insert(self.healAbilities, self.spells.reckless3) -- single target
-        else
-            table.insert(self.healAbilities, self.spells.heal)
-        end
-        -- table.insert(self.healAbilities, self.spells.tcnuke) -- cast on MT
-        -- Group Healing
-        table.insert(self.healAbilities, self.spells.splash) -- cast on self
-        table.insert(self.healAbilities, self.spells.recourse) -- group heal, several stages of healing
-        table.insert(self.healAbilities, self.spells.intervention) -- longer refresh quick group heal
-        table.insert(self.healAbilities, self.spells.grouphot)
-        table.insert(self.healAbilities, common.getAA('Soothsayer\'s Intervention')) -- AA instant version of intervention spell
-        table.insert(self.healAbilities, common.getAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
+    if mq.TLO.Me.Level() >= 105 then
+        table.insert(self.healAbilities, self.spells.reckless1) -- single target
+        table.insert(self.healAbilities, self.spells.reckless2) -- single target
+        table.insert(self.healAbilities, self.spells.reckless3) -- single target
     else
         table.insert(self.healAbilities, self.spells.heal)
-        table.insert(self.healAbilities, self.spells.hottank)
-        table.insert(self.healAbilities, self.spells.hotdps)
-        table.insert(self.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
     end
+    -- Group Healing
+    table.insert(self.healAbilities, self.spells.splash) -- cast on self
+    table.insert(self.healAbilities, self.spells.recourse) -- group heal, several stages of healing
+    table.insert(self.healAbilities, self.spells.intervention) -- longer refresh quick group heal
+    table.insert(self.healAbilities, self.spells.grouphot)
+    table.insert(self.healAbilities, common.getAA('Soothsayer\'s Intervention', {group=true, threshold=3})) -- AA instant version of intervention spell
+    table.insert(self.healAbilities, common.getAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
+    table.insert(self.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
+    table.insert(self.healAbilities, self.spells.hottank)
+    table.insert(self.healAbilities, self.spells.hotdps)
 end
 
 function Shaman:initCures()
+    table.insert(self.cures, self.spells.cureall)
     table.insert(self.cures, self.spells.cure)
     table.insert(self.cures, self.radiant)
     table.insert(self.cures, self.spells.rgc)

@@ -67,32 +67,104 @@ function ShadowKnight:initClassOptions()
 end
 
 ShadowKnight.SpellLines = {
-    {Group='composite', Spells={'Composite Fang'}}, -- big lifetap
-    {Group='alliance', Spells={'Bloodletting Coalition'}}, -- alliance
-    -- Aggro
-    {Group='challenge', Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate'}}, -- main hate spell
-    {Group='terror', Spells={'Terror of Tarantis', 'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'}}, -- ST increase hate by 1
-    {Group='aeterror', Spells={'Animus', 'Antipathy', 'Dread Gaze'}, Options={threshold=2}}, -- ST increase hate by 1
+    {-- Regular lifetap. Slot 1
+        Group='tap1',
+        Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'},
+        Options={Gem=1}
+    },--, 'Drain Soul', 'Lifedraw'})
+    {-- Temp buff (Gift of) lifetap. Slot 2
+        Group='tap2',
+        Spells={'Touch of Mortimus', 'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'},
+        Options={Gem=2}
+    },
+    {-- large lifetap. Slot 3
+        Group='largetap',
+        Spells={'Dire Rebuke', 'Dire Censure'},
+        Options={Gem=3}
+    },
+    {-- big lifetap. Slot 4
+        Group='composite',
+        Spells={'Ecliptic Fang', 'Composite Fang', 'Dissident Fang', 'Dichotomic Fang'},
+        Options={Gem=4}
+    },
+    {-- poison nuke. Slot 5
+        Group='spear',
+        Spells={'Spear of Lazam', 'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'},
+        Options={Gem=5}
+    },
+    {-- ST increase hate by 1. Slot 6
+        Group='terror',
+        Spells={'Terror of Tarantis', 'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'},
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 6 or nil end}
+    },
+    -- DPS spellset. poison dot. Slot 6
+    {
+        Group='poison',
+        Spells={'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'},
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 6 or nil end}
+    },
+    {-- ST increase hate by 1. Slot 7
+        Group='aeterror',
+        Spells={'Animus', 'Antipathy', 'Dread Gaze'},
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 7 or nil end, threshold=2}
+    },
+    {-- AE lifetap + aggro. Slot 7
+        Group='aetap',
+        Spells={'Insidious Repudiation', 'Insidious Renunciation'},
+        Options={opt='USEINSIDIOUS', Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 7 or nil end, threshold=2}
+    },
+    {-- DPS spellset. disease dot. Slot 7
+        Group='disease',
+        Spells={'Plague of the Fleawalker', 'Plague of Fleshrot'},
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 7 or nil end}
+    },
+    {-- lifetap dot. Slot 8
+        Group='dottap',
+        Spells={'Bond of Tatalros', 'Bond of Bynn', 'Bond of Inruku'},
+        Options={Gem=8}
+    },
+    {-- main hate spell. Slot 9
+        Group='challenge',
+        Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate'},
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 9 or nil end}
+    },
+    {-- DPS spellset. corruption dot. Slot 9
+        Group='corruption',
+        Spells={'Vitriolic Blight', 'Unscrupulous Blight'},
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 9 or nil end}
+    },
+    {-- ac debuff. Slot 10
+        Group='acdebuff',
+        Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony'},
+        Options={opt='USETORRENT', Gem=10}
+    },
+    {-- temp HP buff, 2.5min. Slot 11
+        Group='stance',
+        Spells={'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'},
+        Options={Gem=11}
+    },
+    {-- Xenacious' Skin proc, 5min buff. Slot 12
+        Group='skin',
+        Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'},
+        Options={Gem=12}
+    },
+    {-- lifetap with hp/mana recourse. Slot 13
+        Group='bitetap',
+        Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'},
+        Options={Gem=function() return ShadowKnight:isEnabled('USETORRENT') and 13 or 10 end}
+    },
+    {-- Slot 13
+        Group='tap3',
+        Spells={'Touch of Drendar'},
+        Options={Gem=13}
+    },
+
+    {Group='alliance', Spells={'Bloodletting Conjunction', 'Bloodletting Coalition', 'Bloodletting Covenant', 'Bloodletting Alliance'}}, -- alliance
     --['']={'Oppressor\'s Audacity', 'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
-    -- Lifetaps
-    {Group='largetap', Spells={'Dire Rebuke', 'Dire Censure'}}, -- large lifetap
-    {Group='tap1', Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'}},--, 'Drain Soul', 'Lifedraw'}) -- lifetap
-    {Group='tap2', Spells={'Touch of Mortimus', 'Touch of Namdrows', 'Touch of the Devourer', 'Touch of Volatis'}}, -- lifetap + temp hp buff Gift of Namdrows
-    {Group='dottap', Spells={'Bond of Tatalros', 'Bond of Bynn', 'Bond of Inruku'}}, -- lifetap dot
-    {Group='bitetap', Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'}}, -- lifetap with hp/mana recourse
-    -- AE lifetap + aggro
-    {Group='aetap', Spells={'Insidious Repudiation', 'Insidious Renunciation'}}, -- large hate + lifetap
-    -- DPS
-    {Group='spear', Spells={'Spear of Lazam', 'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'}}, -- poison nuke
-    {Group='poison', Spells={'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'}}, -- poison dot
-    {Group='disease', Spells={'Plague of the Fleawalker', 'Plague of Fleshrot'}}, -- disease dot
-    {Group='corruption', Spells={'Vitriolic Blight', 'Unscrupulous Blight'}}, -- corruption dot
+
     {Group='acdis', Spells={'Dire Squelch', 'Dire Seizure'}}, -- disease + ac dot
-    {Group='acdebuff', Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony'}}, -- ac debuff
     --['']={'Odious Bargain', 'Despicable Bargain'}), -- ae hate nuke, does this get used?
     -- Short Term Buffs
-    {Group='stance', Spells={'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'}}, -- temp HP buff, 2.5min
-    {Group='skin', Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'}}, -- Xenacious' Skin proc, 5min buff
     {Group='disruption', Spells={'Confluent Disruption', 'Scream of Death'}}, -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
@@ -144,9 +216,8 @@ function ShadowKnight:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.tap1)
     table.insert(self.spellRotations.standard, self.spells.tap2)
     table.insert(self.spellRotations.standard, self.spells.dottap)
-    --table.insert(self.spellRotations.standard, self.spells.stance)
-    --table.insert(self.spellRotations.standard, self.spells.skin)
     table.insert(self.spellRotations.standard, self.spells.acdebuff)
+    table.insert(self.spellRotations.standard, self.spells.tap3)
 
     table.insert(self.spellRotations.dps, self.spells.tap1)
     table.insert(self.spellRotations.dps, self.spells.tap2)
@@ -158,9 +229,8 @@ function ShadowKnight:initSpellRotations()
     table.insert(self.spellRotations.dps, self.spells.dottap)
     table.insert(self.spellRotations.dps, self.spells.disease)
     table.insert(self.spellRotations.dps, self.spells.bitetap)
-    table.insert(self.spellRotations.dps, self.spells.stance)
-    table.insert(self.spellRotations.dps, self.spells.skin)
     table.insert(self.spellRotations.dps, self.spells.acdebuff)
+    table.insert(self.spellRotations.dps, self.spells.tap3)
 end
 
 function ShadowKnight:initTankAbilities()
@@ -277,8 +347,8 @@ function ShadowKnight:ohshit()
     end
 end
 
-local composite_names = {['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
-local checkSpellTimer = timer:new(30000)
+ShadowKnight.composite_names = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
+--[[local checkSpellTimer = timer:new(30000)
 function ShadowKnight:checkSpellSet()
     if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
     local spellSet = self.OPTS.SPELLSET.value
@@ -316,7 +386,7 @@ function ShadowKnight:checkSpellSet()
         end
         checkSpellTimer:reset()
     end
-end
+end]]
 
 --[[self.pullCustom = function()
     if self.spells.challenge then

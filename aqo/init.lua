@@ -45,7 +45,6 @@ local function init()
 
     state.currentZone = mq.TLO.Zone.ID()
     state.subscription = mq.TLO.Me.Subscription()
-    common.setSwapGem()
     config.loadIgnores()
 
     if state.emu then
