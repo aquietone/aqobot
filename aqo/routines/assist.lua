@@ -223,6 +223,7 @@ function assist.setAndAnnounceNewAssistTarget(assistMobID, reset_timers)
     state.assistMobID = assistMobID
     if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
     state.resists = {}
+    state.rotationIndex = nil
     resetCombatTimers()
     if reset_timers then reset_timers() end
     if state.assistMobID ~= assistAnnounced then

@@ -92,7 +92,7 @@ local Magician = class:new()
     'monster', {'Monster Summoning XV', 'Monster Summoning XIV', 'Monster Summoning XIII', 'Monster Summoning XII', 'Monster Summoning XI'}
 ]]
 function Magician:init()
-    self.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
+    self.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'managepet', 'buff', 'rest', 'rez'}
     self.spellRotations = {standard={}}
     self:initBase('mag')
 
@@ -359,10 +359,10 @@ function Magician:initBuffs()
     end
     table.insert(self.selfBuffs, self.spells.acregen)
     table.insert(self.selfBuffs, self.spells.orb)
-    table.insert(self.selfBuffs, self.spells.groupds)
+    -- table.insert(self.selfBuffs, self.spells.groupds)
     table.insert(self.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true}))
     table.insert(self.combatBuffs, common.getAA('Fire Core'))
-    table.insert(self.singleBuffs, self.spells.bigds)
+    -- table.insert(self.singleBuffs, self.spells.bigds)
 
     table.insert(self.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction'}))
     table.insert(self.petBuffs, self.spells.petbuff)
@@ -406,7 +406,7 @@ function Magician:getSpellRotation()
 end
 
 function Magician:getPetSpell()
-    return self.spells[self:get('PETTYPE')]
+    return self.spells[self.PetTypes[self:get('PETTYPE')]]
 end
 
 function Magician:pullCustom()
@@ -417,20 +417,111 @@ function Magician:pullCustom()
 end
 
 -- Below pet arming code shamelessly stolen from Rekka and E3Next
+local petToys = {
+    weapons = {
+        ['Grant Goliath\'s Armaments'] = {
+            foldedBag = 'Folded Pack of Goliath\'s Armaments',
+            fire = '',
+            water = '',
+            magic = '',
+            aggro = '',
+            deaggro = '',
+        },
+        ['Grant Shak Dathor\'s Armaments'] = {
+            foldedBag = 'Folded Pack of Shak Dathor\'s Armaments',
+            fire = 'Summoned: Shadewrought Fireblade',
+            water = 'Summoned: Shadewrought Ice Spear',
+            magic = 'Summoned: Shadewrought Staff',
+            aggro = 'Summoned: Shadewrought Rageaxe',
+            deaggro = 'Summoned: Shadewrought Mindmace',
+        },
+        ['Grant Yalrek\'s Armaments'] = {
+            foldedBag = 'Folded Pack of Yalrek\'s Armaments',
+            fire = 'Summoned: Silver Fireblade',
+            water = 'Summoned: Silver Iceblade',
+            magic = 'Summoned: Silver Shortsword',
+            aggro = 'Summoned: Silver Ragesword',
+            deaggro = 'Summoned: Silver Mindblade',
+        },
+        ['Grant Wirn\'s Armaments'] = {
+            foldedBag = 'Folded Pack of Wirn\'s Armaments',
+            fire = 'Summoned: Gorstruck Fireblade',
+            water = 'Summoned: Gorstruck Iceblade',
+            magic = 'Summoned: Gorstruck Shortsword',
+            aggro = 'Summoned: Gorstruck Ragesword',
+            deaggro = 'Summoned: Gorstruck Mindblade',
+        },
+        ['Grant Thassis\'s Armaments'] = {
+            foldedBag = 'Folded Pack of Thalassic Armaments',
+            fire = 'Summoned: Thalassic Fireblade',
+            water = 'Summoned: Thalassic Iceblade',
+            magic = 'Summoned: Thalassic Shortsword',
+            aggro = 'Summoned: Thalassic Ragesword',
+            deaggro = 'Summoned: Thalassic Mindblade',
+        },
+        ['Grant Spectral Armaments'] = {
+            foldedBag = 'Folded Pack of Spectral Armaments',
+            fire = 'Summoned: Fist of Flame',
+            water = 'Summoned: Orb of Chilling Water',
+            shield = 'Summoned: Buckler of Draining Defense',
+            aggro = 'Summoned: Short Sword of Warding',
+            slow = 'Summoned: Mace of Temporal Distortion',
+            malo = 'Summoned: Spear of Maliciousness',
+            dispel = 'Summoned: Wand of Dismissal',
+            snare = 'Summoned: Tendon Carve,'
+        }
+    },
+    armor = {
+        ['Grant Alloy\'s Plate'] = {
+            foldedBag = 'Folded Pack of Alloy\'s Plate'
+        },
+        ['Grant the Centien\'s Plate'] = {
+            foldedBag = 'Folded Pack of the Centien\'s Plate'
+        },
+        ['Grant Ocoenydd\'s Plate'] = {
+            foldedBag = 'Folded Pack of Ocoenydd\'s Plate'
+        },
+        ['Grant Wirn\'s Plate'] = {
+            foldedBag = 'Folded Pack of Wirn\'s Plate'
+        },
+        ['Grant Thassis\' Plate'] = {
+            foldedBag = 'Folded Pack of Thalassic Plate'
+        },
+        ['Grant Spectral Plate'] = {
+            foldedBag = 'Folded Pack of Spectral Plate'
+        }
+    },
+    jewelry = {
+        ['Grant Ankexfen\'s Heirlooms'] = {
+            foldedBag = 'Folded Pack of Ankexfen\'s Heirlooms'
+        },
+        ['Grant the Diabo\'s Heirlooms'] = {
+            foldedBag = 'Folded Pack of Diabo\'s Heirlooms'
+        },
+        ['Grant Crystasia\'s Heirlooms'] = {
+            foldedBag = 'Folded Pack of Crystasia\'s Heirlooms'
+        },
+        ['Grant Ioulin\'s Heirlooms'] = {
+            foldedBag = 'Folded Pack of Ioulin\'s Heirlooms'
+        },
+        ['Grant Calix\'s Heirlooms'] = {
+            foldedBag = 'Folded Pack of Calix\'s Heirlooms'
+        },
+        ['Grant Enibik\'s Heirlooms'] = {
+            foldedBag = 'Folded Pack of Enibik\'s Heirlooms'
+        }
+    },
+    belts = {
 
+    },
+    masks = {
+
+    }
+}
 local weaponBag = 'Pouch of Quellious'
 local disenchantedBag = 'Huge Disenchanted Backpack'
-local weaponMap = {
-    ['fire'] = 'Summoned: Fist of Flame',
-    ['water'] = 'Summoned: Orb of Chilling Water',
-    ['shield'] = 'Summoned: Buckler of Draining Defense',
-    ['taunt'] = 'Summoned: Short Sword of Warding',
-    ['slow'] = 'Summoned: Mace of Temporal Distortion',
-    ['malo'] = 'Summoned: Spear of Maliciousness',
-    ['dispel'] = 'Summoned: Wand of Dismissal',
-    ['snare'] = 'Summoned: Tendon Carver',
-}
 local summonedItemMap = {
+    ['Grant Shak Dathor\'s Armaments'] = 'Folded Pack of Shak Dathor\'s Armaments',
     ['Grant Spectral Armaments'] = 'Folded Pack of Spectral Armaments',
     ['Grant Spectral Plate'] = 'Folded Pack of Spectral Plate',
     ['Grant Enibik\'s Heirlooms'] = 'Folded Pack of Enibik\'s Heirlooms',
@@ -455,67 +546,6 @@ function Magician:clearCursor()
     end
 end
 
-local armPetStates = {
-    MOVETO='MOVETO',
-    MAKEROOM='MAKEROOM',
-    CASTWEAPONS='CASTWEAPONS',UNFOLDWEAPONS='UNFOLDWEAPONS',TRADEWEAPONS='TRADEWEAPONS',
-    CASTARMOR='CASTARMOR',UNFOLDARMOR='UNFOLDARMOR',TRADEARMOR='TRADEARMOR',
-    CASTJEWELRY='CASTJEWELRY',UNFOLDJEWELRY='UNFOLDJEWELRY',TRADEJEWELRY='TRADEJEWELRY',
-    MOVEBACK='MOVEBACK',
-}
-function Magician:armPetsStateMachine()
-    if state.armPetState == armPetStates.MOVETO then
-        -- while not at pet return
-        -- at pet, set state to makeroom
-    elseif state.armPetState == armPetStates.MAKEROOM then
-        -- shuffle bags, can this fit in a pulse?
-        -- set state to castweapons
-    elseif state.armPetState == armPetStates.CASTWEAPONS then
-        -- start cast, set state to unfold weapons
-    elseif state.armPetState == armPetStates.UNFOLDWEAPONS then
-        -- while not folded bag, return
-        -- unfold bag, set state to trade weapons
-    elseif state.armPetState == armPetStates.TRADEWEAPONS then
-        -- trade weapons
-        -- set state to castarmor
-    elseif state.armPetState == armPetStates.CASTARMOR then
-        -- while not spell ready, return
-        -- start cast, set state to unfoldarmor
-    elseif state.armPetState == armPetStates.UNFOLDARMOR then
-        -- while not folded bag, return
-        -- unfold bag, set state to tradearmor
-    elseif state.armPetState == armPetStates.TRADEARMOR then
-        -- trade armor
-        -- set state to castjewelry
-    elseif state.armPetState == armPetStates.CASTJEWELRY then
-        -- while not spell ready, return
-        -- start cast, set state to unfoldjewelry
-    elseif state.armPetState == armPetStates.UNFOLDJEWELRY then
-        -- while not folded bag, return
-        -- unfold bag, set state to tradejewelry
-    elseif state.armPetState == armPetStates.TRADEJEWELRY then
-        -- trade jewelry
-        -- move back, set state to moveback
-    elseif state.armPetState == armPetStates.MOVEBACK then
-        -- clear state
-    end
-end
-
---[[
-    states:
-    move to pet
-    make bag space
-    cast weapon bag
-    unfold weapon bag
-    trade weapons
-    cast armor
-    unfold armor
-    trade armor
-    cast jewelry
-    unfold jewelry
-    trade jewelry
-    move back
-]]
 function Magician:armPets()
     if mq.TLO.Cursor() then self:clearCursor() end
     if mq.TLO.Cursor() then
@@ -537,7 +567,7 @@ function Magician:armPets()
         state.armPetOwner = mq.TLO.Me.CleanName()
         local weapons = self.petWeapons.Self
         if weapons then
-            self.armPet(petID, weapons, 'Me')
+            self:armPet(petID, weapons, 'Me')
         end
     end
 
@@ -553,7 +583,7 @@ function Magician:armPets()
                     state.armPet = ownerPetID
                     state.armPetOwner = owner
                     mq.delay(2000, function() return self.spells.weapons:isReady() == abilities.IsReady.SHOULD_CAST end)
-                    self.armPet(ownerPetID, weapons, owner)
+                    self:armPet(ownerPetID, weapons, owner)
                 end
             end
         end
@@ -584,7 +614,7 @@ function Magician:armPetRequest(requester)
             state.armPet = ownerPetID
             state.armPetOwner = requester
             mq.delay(2000, function() return self.spells.weapons:isReady() == abilities.IsReady.SHOULD_CAST end)
-            self.armPet(ownerPetID, weapons, requester)
+            self:armPet(ownerPetID, weapons, requester)
             if mq.TLO.Me.Gem(12)() ~= restoreGem1.Name then abilities.swapSpell(restoreGem1, 12) end
             if mq.TLO.Me.Gem(11)() ~= restoreGem2.Name then abilities.swapSpell(restoreGem2, 12) end
             if mq.TLO.Me.Gem(10)() ~= restoreGem3.Name then abilities.swapSpell(restoreGem3, 12) end
@@ -598,7 +628,7 @@ function Magician:armPet(petID, weapons, owner)
     logger.info('Attempting to arm pet %s for %s', mq.TLO.Spawn('id '..petID).CleanName(), owner)
 
     local myX, myY, myZ = mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Me.Z()
-    if not self.giveWeapons(petID, weapons or 'water|fire') then
+    if not self:giveWeapons(petID, weapons or 'water|fire') then
         movement.navToLoc(myX, myY, myZ, nil, 2000)
         if state.isExternalRequest then
             logger.info('tell %s There was an error arming your pet', state.requester)
@@ -607,29 +637,30 @@ function Magician:armPet(petID, weapons, owner)
         end
         return
     end
-
-    if self.spells.armor then
-        mq.delay(3000, function() return self.spells.armor:isReady() == abilities.IsReady.SHOULD_CAST end)
-        if not self.giveOther(petID, self.spells.armor) then return end
-    end
-    if self.spells.jewelry then
-        mq.delay(3000, function() return self.spells.jewelry:isReady() == abilities.IsReady.SHOULD_CAST end)
-        if not self.giveOther(petID, self.spells.jewelry) then return end
-    end
-    if mq.TLO.FindItemCount('=Gold')() >= 1 then
-        logger.info('have gold to give!')
-        mq.cmdf('/mqt id %s', petID)
-        self.pickupWeapon('Gold')
-        if mq.TLO.Cursor() == 'Gold' then
-            self:giveCursorItemToTarget()
-        else
-            self:clearCursor()
+    if state.emu then
+        if self.spells.armor then
+            mq.delay(3000, function() return self.spells.armor:isReady() == abilities.IsReady.SHOULD_CAST end)
+            if not self:giveOther(petID, self.spells.armor, 'armor') then return end
+        end
+        if self.spells.jewelry then
+            mq.delay(3000, function() return self.spells.jewelry:isReady() == abilities.IsReady.SHOULD_CAST end)
+            if not self:giveOther(petID, self.spells.jewelry, 'jewelry') then return end
+        end
+        if mq.TLO.FindItemCount('=Gold')() >= 1 then
+            logger.info('have gold to give!')
+            mq.cmdf('/mqt id %s', petID)
+            self:pickupWeapon('Gold')
+            if mq.TLO.Cursor() == 'Gold' then
+                self:giveCursorItemToTarget()
+            else
+                self:clearCursor()
+            end
         end
     end
 
     local petSpawn = mq.TLO.Spawn('id '..petID)
     if petSpawn() then
-        logger.info('finished arming %s', petSpawn.CleanName())
+        logger.info('Finished arming %s', petSpawn.CleanName())
     end
 
     movement.navToLoc(myX, myY, myZ, nil, 2000)
@@ -637,27 +668,29 @@ end
 
 function Magician:giveWeapons(petID, weaponString)
     local weapons = helpers.split(weaponString, '|')
-    local primary = weaponMap[weapons[1]]
-    local secondary = weaponMap[weapons[2]]
+    local primary = petToys.weapons[self.spells.weapons.BaseName][weapons[1]]
+    local secondary = petToys.weapons[self.spells.weapons.BaseName][weapons[2]]
+    logger.info('weapons: %s %s', primary, secondary)
 
-    if not self.checkForWeapons(primary, secondary) then
+    mq.cmdf('/mqt 0')
+    if not self:checkForWeapons(primary, secondary) then
         return false
     end
 
     mq.cmdf('/mqt id %s', petID)
     if mq.TLO.Target.ID() == petID then
         logger.info('Give primary weapon %s to pet %s', primary, petID)
-        self.pickupWeapon(primary)
+        self:pickupWeapon(primary)
         if mq.TLO.Cursor() == primary then
             self:giveCursorItemToTarget()
         else
             self:clearCursor()
         end
-        if not self.checkForWeapons(primary, secondary) then
+        if not self:checkForWeapons(primary, secondary) then
             return false
         end
         logger.info('Give secondary weapon %s to pet %s', secondary, petID)
-        self.pickupWeapon(secondary)
+        self:pickupWeapon(secondary)
         mq.cmdf('/mqt id %s', petID)
         if mq.TLO.Cursor() == secondary then
             self:giveCursorItemToTarget()
@@ -680,7 +713,7 @@ function Magician:checkForWeapons(primary, secondary)
     if not foundPrimary() or not foundSecondary() then
         local foundWeaponBag = mq.TLO.FindItem('='..weaponBag)
         if foundWeaponBag() then
-            if not self.safeToDestroy(foundWeaponBag) then return false end
+            if not self:safeToDestroy(foundWeaponBag) then return false end
             mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', weaponBag)
             mq.delay(1000, function() return mq.TLO.Cursor() end)
             if mq.TLO.Cursor.ID() == foundWeaponBag.ID() then
@@ -699,7 +732,7 @@ function Magician:checkForWeapons(primary, secondary)
                 return false
             end
         end
-        local summonResult = self.summonItem(self.spells.weapons, mq.TLO.Me.ID(), true, true)
+        local summonResult = self:summonItem(self.spells.weapons, mq.TLO.Me.ID(), petToys.weapons[self.spells.weapons.BaseName].foldedBag, true)
         if not summonResult then
             logger.info('Error occurred summoning items')
             return false
@@ -718,12 +751,12 @@ function Magician:pickupWeapon(weaponName)
     mq.delay(100, function() return mq.TLO.Cursor.ID() == item.ID() end)
 end
 
-function Magician:giveOther(petID, spell)
-    local itemName = summonedItemMap[spell.Name]
+function Magician:giveOther(petID, spell, toyType)
+    local itemName = petToys[toyType][spell.BaseName]
     local item = mq.TLO.FindItem('='..itemName)
     --if not item() then
         mq.cmdf('/mqt id %s', petID)
-        local summonResult = self.summonItem(spell, petID, false, false)
+        local summonResult = self:summonItem(spell, petID, false, false)
         if not summonResult then
             logger.info('Error occurred summoning items')
             return false
@@ -744,11 +777,11 @@ function Magician:summonItem(spell, targetID, summonsItem, inventoryItem)
     if not mq.TLO.Me.Gem(spell.Name)() then
         abilities.swapSpell(spell, 12, true)
     end
-    mq.delay(5000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
+    mq.delay(10000, function() return mq.TLO.Me.SpellReady(spell.Name)() end)
     if spell:isReady() ~= abilities.IsReady.SHOULD_CAST then logger.info('Spell %s was not ready', spell.Name) return false end
     castUtils.cast(spell, targetID)
 
-    mq.delay(300)
+    mq.delay(1000, function() return mq.TLO.Cursor() end)
     if summonsItem then
         if not mq.TLO.Cursor.ID() then
             logger.info('Cursor was empty after casting %s', spell.Name)
@@ -756,8 +789,7 @@ function Magician:summonItem(spell, targetID, summonsItem, inventoryItem)
         end
 
         self:clearCursor()
-        local summonedItem = summonedItemMap[spell.Name]
-        mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonedItem)
+        mq.cmdf('/nomodkey /itemnotify "%s" rightmouseup', summonsItem)
         mq.delay(3000, function() return mq.TLO.Cursor() end)
         mq.delay(1)
         if inventoryItem then self:clearCursor() end
@@ -811,7 +843,7 @@ function Magician:checkInventory()
     local summonedItemCount = mq.TLO.FindItemCount('='..pouch)()
     logger.info('cleanup Pouch of Quellious')
     for i=1,summonedItemCount do
-        if not self.safeToDestroy(bag) then return false end
+        if not self:safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', pouch)
         mq.delay(1000, function() return mq.TLO.Cursor.ID() == pouchID end)
         if mq.TLO.Cursor.ID() ~= pouchID then
@@ -825,7 +857,7 @@ function Magician:checkInventory()
     local bagID = bag.ID()
     summonedItemCount = mq.TLO.FindItemCount('='..disenchantedBag)()
     for i=1,summonedItemCount do
-        if not self.safeToDestroy(bag) then return false end
+        if not self:safeToDestroy(bag) then return false end
         mq.cmdf('/nomodkey /itemnotify "%s" leftmouseup', disenchantedBag)
         mq.delay(1000, function() return mq.TLO.Cursor.ID() == bagID end)
         if mq.TLO.Cursor.ID() ~= bagID then
@@ -842,7 +874,17 @@ function Magician:checkInventory()
     logger.info('find bag slot')
     for i=1,10 do
         local currentSlot = i
-        local containerSlots = mq.TLO.Me.Inventory('pack'..i).Container() or 0
+        local containerSlots = mq.TLO.Me.Inventory('pack'..i).Container()
+        -- slots empty
+        if not containerSlots then
+            logger.info('empty slot! %s', currentSlot)
+            slotToMoveFrom = -1
+            return true
+        end
+    end
+    for i=1,10 do
+        local currentSlot = i
+        local containerSlots = mq.TLO.Me.Inventory('pack'..i).Container()
         local containerItemCount = mq.TLO.InvSlot('pack'..i).Item.Items() or 0
 
         -- slots empty
@@ -860,7 +902,7 @@ function Magician:checkInventory()
             break
         end
 
-        if containerSlots - containerItemCount > 0 then
+        if (containerSlots or 0) - containerItemCount > 0 then
             logger.info('found bag with room')
             containerWithOpenSpace = i
         end

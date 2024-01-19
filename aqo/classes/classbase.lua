@@ -577,7 +577,7 @@ function base:findNextSpell()
         end
     end
     -- didn't find a next spell to cast, reset rotation
-    state.rotationIndex = 1
+    state.rotationIndex = nil
 end
 
 function base:debuff()
@@ -602,7 +602,7 @@ function base:cast()
                     state.rotationIndex = index
                     state.actionTaken = true
                 else
-                    state.rotationIndex = 1
+                    state.rotationIndex = nil
                 end -- then cast the dot
                 self.nuketimer:reset()
                 mq.doevents()--'eventResist')
@@ -783,12 +783,8 @@ function base:rez()
     if healing.rez(self.rezAbility) then state.actionTaken = true end
 end
 
-function base:getPetSpell()
-    return self.spells.pet
-end
-
 function base:managepet()
-    local petSpell = self:getPetSpell()
+    local petSpell = self.getPetSpell and self:getPetSpell() or self.spells.pet
     if not self:isEnabled('SUMMONPET') or not petSpell then return end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
