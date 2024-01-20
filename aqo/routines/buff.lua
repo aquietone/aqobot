@@ -168,10 +168,6 @@ local function buffActors(base)
 end
 
 local function buffOOC(base)
-    -- call class specific buff routine for any special cases
-    if base.buff_class then
-        if base.buff_class() then return true end
-    end
     common.checkItemBuffs()
     if mq.TLO.SpawnCount('pccorpse radius 25')() > 0 then return false end
     -- find an actual buff spell that takes time to cast

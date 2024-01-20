@@ -29,7 +29,7 @@ function TLO.init(_class)
         end
     end
 
-    for k,v in pairs(class.OPTS) do
+    for k,v in pairs(class.options) do
         if v.tlo and v.tlotype then
             tlomembers[v.tlo] = function() return v.tlotype, v.value end
         end

@@ -93,8 +93,8 @@ local Magician = class:new()
 ]]
 function Magician:init()
     self.classOrder = {'assist', 'mash', 'debuff', 'cast', 'burn', 'heal', 'recover', 'managepet', 'buff', 'rest', 'rez'}
-    self.spellRotations = {standard={}}
-    self:initBase('mag')
+    self.spellRotations = {standard={},custom={}}
+    self:initBase('MAG')
 
     self:initClassOptions()
     self:loadSettings()
@@ -128,7 +128,76 @@ function Magician:initClassOptions()
     self:addOption('USEGATHER', 'Use Gather', false, nil, 'Toggle use of gather line of spells in combat', 'checkbox', nil, 'UseGather', 'bool')
     self:addOption('USEMODRODS', 'Use Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'UseModRods', 'bool')
 end
+--[[
+-- Utility
+common.getAA('Call of the Hero')
+common.getAA('Perfected Invisibility')
+common.getAA('Perfected Invisibility to Undead')
+common.getAA('Perfected Levitation')
+common.getAA('Group Perfected Invisibility')
+common.getAA('Group Perfected Invisibility to Undead')
+common.getAA('Mass Group Buff')
+common.getAA('Tranquil Blessings')
+common.getAA('Summon Companion')
+common.getAA('Diminutive Companion')
+common.getAA('Summon Modulation Shard') -- MGB mod rods
 
+-- Burns
+common.getAA('Heart of Skyfire') -- inc spell / crit dmg, reduce agro, 15 min cd, timer 9
+common.getAA('Thaumaturge\'s Focus') -- inc dmg and crit dmg for magic spells, 15 min cd, timer 78
+common.getAA('Host of the Elements') -- swarm pets, 10 min cd, timer 7
+common.getAA('Servant of Ro') -- summons strong temp pet to nuke, 9 min cd, timer 6
+common.getAA('Spire of Elements') -- inc crit chance + melee proc for group, 7:30 cd, timer 40
+common.getAA('Silent Casting')
+common.getAA('Improved Twincast') -- 15 min cd, timer 76
+common.getAA('Focus of Arcanum')
+common.getAA('Forceful Rejuvenation')
+
+-- Defensives
+common.getAA('Companion\'s Shielding') -- large pet heal + 72 seconds of 50% dmg absorb for self, 15 min cd, timer 8
+common.getAA('Heart of Froststone') -- absorb 70% inc spell/melee, 15 min cd, timer 16
+common.getAA('Shield of the Elements') -- 40k heal + hot, absorbs 100% of dmg up to 125k, 15 min cd, timer 11
+common.getAA('Host in the Shell') -- pet rune, 25% dmg absorb, 4 min cd, timer 10
+common.getAA('Dimensional Shield') -- absorb 50% melee dmg, 20 min, timer 17
+
+-- Heals
+common.getAA('Mend Companion')
+common.getAA('Second Wind Ward') -- DI for pet, procs big heal below 20% hp, 20 min cd, timer 43
+
+-- Pet Buffs
+common.getAA('Velocity') -- pet sow
+
+-- Buffs
+common.getAA('Elemental Form') -- self buff, adds some procs, mana, hp
+common.getAA('Thaumaturge\'s Unity') -- self buffs, chaotic largesse, ophiolite bodyguard, shield of shadow, relentless guardian
+
+-- Leap
+common.getAA('Summoner\'s Step')
+
+-- Fades
+common.getAA('Companion of Necessity') -- Fade pet, 10 min cd, timer 3
+common.getAA('Drape of Shadows') -- fade
+common.getAA('Arcane Whisper') -- large agro reducer, 10 min cd, timer 35
+
+-- Rest
+common.getAA('Elemental Conversion') -- 148k pet hp for 35k mana, 15 min cd, timer 42
+
+-- Mash
+common.getAA('Force of Elements') -- 40k nuke, 20 sec cd, timer 73
+common.getAA('Turn Summoned') -- large summoned nuke, 5 min cd, timer 5
+
+common.getAA('Companion\'s Aegis')
+common.getAA('Companion\'s Discipline')
+common.getAA('Companion\'s Fortification')
+common.getAA('Companion\'s Fury')
+common.getAA('Companion\'s Intervening Divine Aura')
+common.getAA('Companion\'s Suspension')
+
+-- Debuff spell replacers
+common.getAA('Malaise') -- aa malo
+common.getAA('Wind of Malaise') -- aa aoe malo
+common.getAA('Eradicate Magic') -- dispel
+]]
 Magician.SpellLines = {
     {-- Main fire nuke. Slot 1/2
         Group='spear',
@@ -320,9 +389,10 @@ Magician.SpellLines = {
     {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
 }
 
-Magician.composite_names = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
+Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
 
 function Magician:initSpellRotations()
+    self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.servant)
     table.insert(self.spellRotations.standard, self.spells.ofmany)
     table.insert(self.spellRotations.standard, self.spells.chaotic)
@@ -386,24 +456,7 @@ function Magician:initDefensiveAbilities()
     table.insert(self.fadeAbilities, common.getAA('Companion of Necessity'))
 end
 
-Magician.rotationUpdated = false
-Magician.rotationRefreshTimer = timer:new(60000)
-Magician.rotationRefreshTimer:reset(0)
-Magician.BYOSRotation = {}
-local ALL_DPS_SPELLS = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
-function Magician:getSpellRotation()
-    if not Magician:isEnabled('BYOS') then return self.spellRotations.standard end
-    if not self.rotationUpdated or self.rotationRefreshTimer:timerExpired() then
-        self.BYOSRotation = {}
-        -- rebuild rotation based on mem'd spells and all available DPS spells in no particular order
-        for _,spellGroup in ipairs(ALL_DPS_SPELLS) do
-            if self.spells[spellGroup] and mq.TLO.Me.Gem(self.spells[spellGroup].Name)() then table.insert(self.BYOSRotation, self.spells[spellGroup]) end
-        end
-        self.rotationUpdated = true
-        self.rotationRefreshTimer:reset()
-    end
-    return self.BYOSRotation
-end
+Magician.allDPSSpellGroups = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
 
 function Magician:getPetSpell()
     return self.spells[self.PetTypes[self:get('PETTYPE')]]

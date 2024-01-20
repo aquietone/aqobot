@@ -99,15 +99,15 @@ constants.groupWatchOptions = {healer=1,self=1,none=1}
 constants.pullWith = {melee=1,ranged=1,spell=1,item=1,custom=1}
 constants.pullStates = {NOT='NOT',SCAN='SCAN',APPROACHING='APPROACHING',ENGAGING='ENGAGING',WAIT_FOR_AGGRO='WAIT_FOR_AGGRO',RETURNING='RETURNING',WAITING='WAITING',PULLED='PULLED'}
 
-constants.manaClasses = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,wiz=true,rng=true}
-constants.petClasses = {bst=true,mag=true,nec=true,dru=true,enc=true,shd=true,shm=true}
-constants.buffClasses = {clr=true,dru=true,shm=true,enc=true,mag=true,nec=true,rng=true,bst=true}
-constants.healClasses = {clr=true,dru=true,shm=true}
-constants.tankClasses = {pal=true,shd=true,war=true}
-constants.meleeClasses = {ber=true,brd=true,bst=true,mnk=true,rng=true,rog=true}
-constants.nukeClasses = {bst=true,clr=true,dru=true,enc=true,mag=true,nec=true,rng=true,shm=true,wiz=true}
-constants.dotClasses = {bst=true,dru=true,enc=true,nec=true,rng=true,shd=true,shm=true}
-constants.fdClasses = {mnk=true,nec=true,shd=true,bst=true}
+constants.manaClasses = {CLR=true,DRU=true,SHM=true,ENC=true,MAG=true,NEC=true,WIZ=true,RNG=true}
+constants.petClasses = {BST=true,MAG=true,NEC=true,DRU=true,ENC=true,SHD=true,SHM=true}
+constants.buffClasses = {CLR=true,DRU=true,SHM=true,ENC=true,MAG=true,NEC=true,RNG=true,BST=true}
+constants.healClasses = {CLR=true,DRU=true,SHM=true}
+constants.tankClasses = {PAL=true,SHD=true,WAR=true}
+constants.meleeClasses = {BER=true,BRD=true,BST=true,MNK=true,RNG=true,ROG=true}
+constants.nukeClasses = {BST=true,CLR=true,DRU=true,ENC=true,MAG=true,NEC=true,RNG=true,SHM=true,WIZ=true}
+constants.dotClasses = {BST=true,DRU=true,ENC=true,NEC=true,RNG=true,SHD=true,SHM=true}
+constants.fdClasses = {MNK=true,NEC=true,SHD=true,BST=true}
 
 constants.DMZ = {
     [344] = 1,

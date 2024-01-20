@@ -43,6 +43,7 @@ function common.getBestSpell(spells, options, spellGroup)
         local bestSpell = getSpell(spellName)
         if bestSpell then
             if not options then options = {} end
+            options.SpellGroup = spellGroup
             for key,value in pairs(options) do
                 bestSpell[key] = value
             end
@@ -194,7 +195,7 @@ function common.checkChase()
     if mode.currentMode:getName() ~= 'chase' then return end
     --if not checkChaseTimer:timerExpired() then return end
     --checkChaseTimer:reset()
-    if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'brd' and mq.TLO.Me.Casting()) then
+    if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'BRD' and mq.TLO.Me.Casting()) then
         if logger.flags.common.chase then
             logger.debug(logger.flags.common.chase, 'Not chasing due to one of: Stick.Active=%s, Me.Combat=%s, Me.AutoFire=%s, Me.Casting=%s', mq.TLO.Stick.Active(), mq.TLO.Me.Combat(), mq.TLO.Me.AutoFire, mq.TLO.Me.Casting())
         end

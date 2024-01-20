@@ -17,7 +17,7 @@ function Enchanter:init()
     self.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     self.spellRotations = {standard={}}
     self.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
-    self:initBase('enc')
+    self:initBase('ENC')
 
     self:initClassOptions()
     self:loadSettings()
@@ -225,7 +225,10 @@ Enchanter.SpellLines = {
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic'}, Options={opt='USEDISPEL'}},
 }
 
+Enchanter.allDPSSpellGroups = {'dot1', 'dot2', 'mindnuke1', 'mindnuke2', 'nuke1', 'nuke2', 'nuke3', 'manadot', 'nukerune', 'debuffdot', 'stunst', 'stunae', 'stunpbae', 'stunaerune'}
+
 function Enchanter:initSpellRotations()
+    self:initBYOSCustom()
     -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     table.insert(self.spellRotations.standard, self.spells.dotmiti)
@@ -399,32 +402,7 @@ local function missing_unity_buffs(name)
     return false
 end
 
-Enchanter.composite_names = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
---[[local composite_names = {['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
-local checkSpellTimer = timer:new(30000)
-function Enchanter:checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
-    local spellSet = self.OPTS.SPELLSET.value
-    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
-        if spellSet == 'standard' then
-            if abilities.swapSpell(self.spells.tash, 1) then return end
-            if abilities.swapSpell(self.spells.dotmiti, 2) then return end
-            if abilities.swapSpell(self.spells.meznoblur, 3) then return end
-            if abilities.swapSpell(self.spells.mezae, 4) then return end
-            if abilities.swapSpell(self.spells.dot, 5) then return end
-            if abilities.swapSpell(self.spells.dot2, 6) then return end
-            if abilities.swapSpell(self.spells.synergy, 7) then return end
-            if abilities.swapSpell(self.spells.nuke5, 8) then return end
-            if abilities.swapSpell(self.spells.composite, 9, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.stunaerune, 10) then return end
-            if abilities.swapSpell(self.spells.guard, 11) then return end
-            if abilities.swapSpell(self.spells.nightsterror, 12) then return end
-            if abilities.swapSpell(self.spells.combatinnate, 13) then return end
-            state.spellSetLoaded = spellSet
-        end
-        checkSpellTimer:reset()
-    end
-end]]
+Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 
 --[[
 #Event CAST_IMMUNE                 "Your target has no mana to affect#*#"

@@ -114,7 +114,7 @@ end
 ---Remove harmful buffs such as lich if HP is getting low, regardless of paused state
 local torporLandedInCombat = false
 local function buffSafetyCheck()
-    if state.class == 'nec' and mq.TLO.Me.PctHPs() < 40 and class.spells.lich then
+    if state.class == 'NEC' and mq.TLO.Me.PctHPs() < 40 and class.spells.lich then
         mq.cmdf('/removebuff %s', class.spells.lich.Name)
     end
     if not torporLandedInCombat and mq.TLO.Me.Song('Transcendent Torpor')() and mq.TLO.Me.CombatState() == 'COMBAT' then
@@ -124,7 +124,7 @@ local function buffSafetyCheck()
         mq.cmdf('/removebuff "Transcendent Torpor"')
         torporLandedInCombat = false
     end
-    if state.class == 'mnk' and mq.TLO.Me.PctHPs() < config.get('HEALPCT') and mq.TLO.Me.AbilityReady('Mend')() then
+    if state.class == 'MNK' and mq.TLO.Me.PctHPs() < config.get('HEALPCT') and mq.TLO.Me.AbilityReady('Mend')() then
         mq.cmd('/doability mend')
     end
 end

@@ -82,10 +82,10 @@ function debuff.eventSnareImmune()
 end
 
 function debuff.setupEvents()
-    if class.OPTS.USESLOW or class.OPTS.USESLOWAOE then
+    if class.options.USESLOW or class.options.USESLOWAOE then
         mq.event('event_debuffSlowImmune', 'Your target is immune to changes in its attack speed#*#', debuff.eventSlowImmune)
     end
-    if class.OPTS.USESNARE then
+    if class.options.USESNARE then
         mq.event('event_debuffRunspeedImmune', 'Your target is immune to changes in its run speed#*#', debuff.eventSnareImmune)
         mq.event('event_debuffSnareImmune', 'Your target is immune to snare spells#*#', debuff.eventSnareImmune)
     end

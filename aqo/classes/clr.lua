@@ -49,7 +49,7 @@ local Cleric = class:new()
 function Cleric:init()
     self.spellRotations = {standard={}}
     self.classOrder = {'heal', 'rez', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest'}
-    self:initBase('clr')
+    self:initBase('CLR')
 
     self:initClassOptions()
     self:loadSettings()
@@ -81,7 +81,72 @@ function Cleric:initClassOptions()
     self:addOption('USERETORT', 'Use Retort', true, nil, 'Toggle use of Retort spell line', 'checkbox', nil, 'UseRetort', 'bool')
     self:addOption('USECURES', 'Use Cures', true, nil, 'Toggle use of cure spells', 'checkbox', nil, 'UseCures', 'bool')
 end
+--[[
+-- dps burns
+common.getAA('Celestial Hammer') -- hammer pet 60 seconds, 10 min cd, timer 12
+-- nuke burns
+common.getAA('Battle Frenzy') -- 100% nuke crit, inc crit dmg, 15 min cd, timer 74
+common.getAA('Turn Undead') -- large undead nuke + dot, 2:30 cd, timer 6
+-- melee burns
+common.getAA('Divine Avatar') -- melee burn, +4k hp regen for 3min, inc nuke crits, 9 min cd, timer 10
+common.getAA('Divine Retribution') -- melee burn, stun procs, 20 min cd, timer 13
 
+-- heal burns
+common.getAA('Celestial Rapidity') -- 50% spell haste for 36 seconds, 10 min cd, timer 73
+common.getAA('Channeling of the Divine') -- twincast 19 spells, 10 min cd, timer 43
+common.getAA('Flurry of Life') -- inc instant heals 35%, 15 min cd, timer 32
+common.getAA('Spire of the Vicar') -- inc healing, reduce inc melee dmg, inc crit chance, inc crit dmg, 7:30 cd, timer 40
+common.getAA('Forceful Rejuvenation') -- 
+common.getAA('Healing Frenzy') -- 100% crit heals for 18 seconds, 15 min cd, timer 63
+common.getAA('Silent Casting') -- 
+
+-- group heals
+common.getAA('Beacon of Life') -- 39k group heal, 3 min cd, timer 17
+common.getAA('Celestial Regeneration') -- large group HoT, 7:30 cd, timer 3
+common.getAA('Divine Arbitration') -- balances group hp then heals 135k across group, 3 min, timer 9
+common.getAA('Exquisite Benediction') -- 13k heal per tick,300 seconds, stationary ward, 20 min cd, timer 11
+
+-- utilities
+common.getAA('Bestow Divine Aura') -- targeted DA, 5 min cd, timer 60
+common.getAA('Blessing of Resurrection') -- normal rez
+common.getAA('Divine Aura') -- self DA, 5 min cd, timer 4
+common.getAA('Divine Resurrection') -- 100% rez
+common.getAA('Repel the Wicked') -- knockback+memblur, 1 min cd, timer 39
+common.getAA('Call of the Herald') -- call to corpse
+common.getAA('Divine Peace') -- fade
+common.getAA('Holy Step') -- leap
+common.getAA('Group Perfected Invisibility to Undead') -- 
+common.getAA('Improved Twincast') -- twincast 21 damage spells, 15 min cd, timer 76
+common.getAA('Innate Invis to Undead') -- 
+common.getAA('Mass Group Buff') -- 
+common.getAA('Tranquil Blessings') -- 
+
+-- non-tank oh shit heals
+common.getAA('Blessing of Sanctuary') -- 82k heal + drops target to bottom of agro, 15 min cd, timer 16
+
+-- single heals
+common.getAA('Burst of Life') -- 53k heal, 3 min cd, timer 44
+common.getAA('Divine Guardian') -- large heal if target drops below 30% hp, cant recast for 1 min after it procs, 5 min cd, timer 75
+common.getAA('Focused Celestial Regeneration') -- large single target HoT, 5 min cd, timer 61
+
+-- self heals
+common.getAA('Sanctuary') -- 165k self heal + drops self to lowest agro, 15 min cd, timer 14
+
+-- cures
+common.getAA('Group Purify Soul') -- group cure all, 15 min cd, timer 34
+common.getAA('Purify Soul') -- single target cure all, 5 min cd, timer 7
+common.getAA('Ward of Purity') -- stationary ward that cures for 300 seconds, 20 min cd, timer 11
+common.getAA('Purified Spirits') -- self cure all, 2 min cd, timer 36
+common.getAA('Radiant Cure') -- group cure poison, disease, curse, 1 min cd, timer 8
+
+-- rest
+common.getAA('Quiet Prayer') -- consume 90k mana to heal 90k hp+mana to target, 20 min cd, timer 41
+common.getAA('Veturika\'s Presence') -- self only restore 90k hp+mana, 20 min cd, timer 41
+common.getAA('Yaulp') -- casts highest yaulp spell
+
+-- buffs
+common.getAA('Saint\'s Unity') -- self buff, casts self armor buff line
+]]
 Cleric.SpellLines = {
     {-- multiple remedies main heals lvl 101+ or just 1 remedy below lvl 100. Slot 1, 2, 5
         Group='remedy',
@@ -132,7 +197,7 @@ Cleric.SpellLines = {
     },
     {-- Group heal with cure component. Slot 8
         Group='grouphealcure',
-        Spells={'Word of Greater Vivification', 'Word of Greater Rejuvination', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation', --[[emu cutoff]] },
+        Spells={'Word of Greater Vivification', 'Word of Greater Rejuvenation', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation', --[[emu cutoff]] },
         Options={opt='USECURES', Gem=function() return Cleric:isEnabled('USESPLASH') and 8 or nil end, threshold=3, regular=true, single=true, group=true, pct=70}
     },
     {-- Regular group heal. Slot 9
@@ -200,6 +265,12 @@ Cleric.SpellLines = {
     -- {Group='vie', Spells={'Rallied Citadel of Vie', 'Rallied Sanctuary of Vie'}, Options={opt='USEVIE'}},
 
     -- Other stuff, BYOS mostly
+    {-- Heal target + nuke targets target. Slot 3, 4
+        Group='contravention',
+        NumToPick=2,
+        Spells={'Avowed Contavention', 'Atoned Contavention', 'Sincere Contavention', 'Merciful Contavention', 'Mystical Contavention', --[[emu cutoff]] },
+        Options={opt='USENUKES'}
+    },
     {Group='grouphotcure', Spells={'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', --[[emu cutoff]] }, Options={opt='USEHOTGROUP', grouphot=true}},
     {Group='grouphot', Spells={'Elixir of Realization', 'Elixir of Benevolence', 'Elixir of Transcendence', 'Elixir of Wulthan', 'Elixir of the Seas', --[[emu cutoff]] 'Elixir of Divinity'}, Options={opt='USEHOTGROUP', grouphot=true}},
     {Group='hottank', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTTANK', hot=true}},
@@ -214,7 +285,10 @@ Cleric.SpellLines = {
     {Group='da', Spells={'Divine Bulwark', 'Divine Keep', 'Divine Indemnity', 'Divine Haven', 'Divine Fortitude', 'Divine Eminence', 'Divine Destiny', 'Divine Custody', --[[emu cutoff]] 'Divine Barrier', 'Divine Aura'}},
 }
 
+Cleric.allDPSSpellGroups = {'rebuke', 'contravention', 'stun', 'aestun'}
+
 function Cleric:initSpellRotations()
+    self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.stun)
 end
 
@@ -347,6 +421,6 @@ function Cleric:initRecoverAbilities()
     self:addRequestAlias(self.qm, 'QM')
 end
 
-Cleric.composite_names = {['Ecliptic Blessing']=true, ['Composite Blessing']=true, ['Dissident Blessing']=true, ['Dichotomic Blessing']=true}
+Cleric.compositeNames = {['Ecliptic Blessing']=true, ['Composite Blessing']=true, ['Dissident Blessing']=true, ['Dichotomic Blessing']=true}
 
 return Cleric

@@ -190,7 +190,7 @@ function Ability.canUseSpell(spell, spellTable, skipReagentCheck)
             return IsReady.NOT_READY
         end
     end
-    if state.class ~= 'brd' then
+    if state.class ~= 'BRD' then
         if mq.TLO.Me.Casting() or mq.TLO.Me.Moving() then
             logger.debug(logger.flags.ability.validation, 'Not in control or moving (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
             return IsReady.BUSY
@@ -271,7 +271,7 @@ end
 function Spell:execute()
     logger.debug(logger.flags.ability.spell, 'ENTER Spell:execute \ag%s\ax', self.Name)
     local requiresTarget = self.TargetType == 'Single'
-    if state.class == 'brd' then mq.cmd('/stopsong') mq.delay(1) end
+    if state.class == 'BRD' then mq.cmd('/stopsong') mq.delay(1) end
     if logger.flags.announce.spell then logger.info('Casting \ag%s\ax%s', self.Name, requiresTarget and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '') end
     mq.cmdf('/cast "%s"', self.Name)
     state.setCastingState(self)
@@ -421,7 +421,7 @@ end
 
 function Item:execute()
     logger.debug(logger.flags.ability.item, 'ENTER item:execute \ag%s\ax', self.Name)
-    if state.class == 'brd' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
+    if state.class == 'BRD' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
     if logger.flags.announce.item then logger.info('Use Item: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '') end
     mq.cmdf('/useitem "%s"', self.Name)
     state.setCastingState(self)

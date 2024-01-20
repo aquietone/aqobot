@@ -15,7 +15,7 @@ local Necromancer = class:new()
 function Necromancer:init()
     self.classOrder = {'assist', 'aggro', 'mash', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
     self.spellRotations = {standard={},short={}}
-    self:initBase('nec')
+    self:initBase('NEC')
 
     self:initClassOptions()
     self:loadSettings()
@@ -200,6 +200,9 @@ Necromancer.SpellLines = {
     {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}},
 }
 
+Necromancer.allDPSSpellGroups = {'pyreshort', 'magic', 'venom', 'haze', 'grasp', 'leech', 'manatap', 'alliance', 'ignite', 'scourge', 'corruption',
+    'composite', 'combodisease', 'wounds', 'pyrelong', 'fireshadow', 'swarm', 'synergy', 'decay', 'grip', 'tapee', 'tap', 'tapsummon', 'chaotic', 'sphere', 'venin', 'snare'}
+
 function Necromancer:initSpellConditions()
     if self.spells.manatap then self.spells.manatap.condition = function() return (mq.TLO.Group.LowMana(70)() or 0) > 2 end end
     if self.spells.alliance then self.spells.alliance.condition = function() return self.neccount > 1 and not mq.TLO.Target.Buff(self.spells.alliance.Name)() and mq.TLO.Spell(self.spells.alliance.Name).StacksTarget() end end
@@ -224,6 +227,7 @@ function Necromancer:initSpellConditions()
 end
 
 function Necromancer:initSpellRotations()
+    self:initBYOSCustom()
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     local standard = {}
     if state.emu then table.insert(self.spellRotations.standard, self.spells.decay) end
@@ -577,104 +581,7 @@ function Necromancer:aggroOld()
     end
 end
 
-Necromancer.composite_names = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
-
---[[local checkSpellTimer = timer:new(30000)
-function Necromancer:checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
-    local spellSet = self.OPTS.SPELLSET.value
-    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
-        if spellSet == 'standard' then
-            if abilities.swapSpell(self.spells.composite, 1, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.pyreshort, 2) then return end
-            if abilities.swapSpell(self.spells.venom, 3) then return end
-            if abilities.swapSpell(self.spells.magic, 4) then return end
-            if abilities.swapSpell(self.spells.haze, 5) then return end
-            if abilities.swapSpell(self.spells.grasp, 6) then return end
-            if abilities.swapSpell(self.spells.leech, 7) then return end
-            --if abilities.swapSpell(self.spells.decay, 11) then return end
-            if abilities.swapSpell(self.spells.combodisease, 11) then return end
-            if abilities.swapSpell(self.spells.synergy, 13) then return end
-            state.spellSetLoaded = spellSet
-        elseif spellSet == 'short' then
-            if abilities.swapSpell(self.spells.composite, 1, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.pyreshort, 2) then return end
-            if abilities.swapSpell(self.spells.venom, 3) then return end
-            if abilities.swapSpell(self.spells.magic, 4) then return end
-            if abilities.swapSpell(self.spells.haze, 5) then return end
-            if abilities.swapSpell(self.spells.grasp, 6) then return end
-            if abilities.swapSpell(self.spells.leech, 7) then return end
-            --if abilities.swapSpell(self.spells.decay, 11) then return end
-            if abilities.swapSpell(self.spells.combodisease, 11) then return end
-            if abilities.swapSpell(self.spells.synergy, 13) then return end
-            state.spellSetLoaded = spellSet
-        end
-        checkSpellTimer:reset()
-    end
-    if spellSet == 'standard' then
-        if self:isEnabled('USEMANATAP') then
-            if abilities.swapSpell(self.spells.manatap, 8) then return end
-        else
-            if abilities.swapSpell(self.spells.ignite, 8) then return end
-        end
-        if self:isEnabled('USEALLIANCE') then
-            if abilities.swapSpell(self.spells.alliance, 9) then return end
-        else
-            if self:isEnabled('USEMANATAP') then
-                if abilities.swapSpell(self.spells.ignite, 9) then return end
-            else
-                if abilities.swapSpell(self.spells.scourge, 9) then return end
-            end
-        end
-        if self:isEnabled('USEBUFFSHIELD') then
-            if abilities.swapSpell(self.spells.shield, 12) then return end
-        else
-            if self:isEnabled('USEMANATAP') and self:isEnabled('USEALLIANCE') then
-                if abilities.swapSpell(self.spells.ignite, 12) then return end
-            elseif self:isEnabled('USEMANATAP') or self:isEnabled('USEALLIANCE') then
-                if abilities.swapSpell(self.spells.scourge, 12) then return end
-            else
-                if abilities.swapSpell(self.spells.corruption, 12) then return end
-            end
-        end
-        if not self:isEnabled('USEWOUNDS') then
-            if abilities.swapSpell(self.spells.pyrelong, 10) then return end
-        else
-            if abilities.swapSpell(self.spells.wounds, 10) then return end
-        end
-    elseif spellSet == 'short' then
-        if self:isEnabled('USEMANATAP') then
-            if abilities.swapSpell(self.spells.manatap, 8) then return end
-        else
-            if abilities.swapSpell(self.spells.ignite, 8) then return end
-        end
-        if self:isEnabled('USEALLIANCE') then
-            if abilities.swapSpell(self.spells.alliance, 9) then return end
-        else
-            if self:isEnabled('USEMANATAP') then
-                if abilities.swapSpell(self.spells.ignite, 9) then return end
-            else
-                if abilities.swapSpell(self.spells.scourge, 9) then return end
-            end
-        end
-        if self:isEnabled('USEINSPIRE') then
-            if abilities.swapSpell(self.spells.inspire, 12) then return end
-        else
-            if self:isEnabled('USEMANATAP') and self:isEnabled('USEALLIANCE') then
-                if abilities.swapSpell(self.spells.ignite, 12) then return end
-            elseif self:isEnabled('USEMANATAP') or self:isEnabled('USEALLIANCE') then
-                if abilities.swapSpell(self.spells.scourge, 12) then return end
-            else
-                if abilities.swapSpell(self.spells.venin, 12) then return end
-            end
-        end
-        if not self:isEnabled('USEWOUNDS') then
-            if abilities.swapSpell(self.spells.pyrelong, 10) then return end
-        else
-            if abilities.swapSpell(self.spells.swarm, 10) then return end
-        end
-    end
-end]]
+Necromancer.compositeNames = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 
 local necCountTimer = timer:new(60000)
 
@@ -684,7 +591,7 @@ local necCountTimer = timer:new(60000)
 -- end
 
 function Necromancer:drawBurnTab()
-    self.OPTS.BURNPROC.value = ui.drawCheckBox('Burn On Proc', self.OPTS.BURNPROC.value, 'Burn when proliferation procs')
+    self.options.BURNPROC.value = ui.drawCheckBox('Burn On Proc', self.options.BURNPROC.value, 'Burn when proliferation procs')
 end
 
 return Necromancer

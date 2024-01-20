@@ -16,7 +16,7 @@ local Warrior = class:new()
 ]]
 function Warrior:init()
     self.classOrder = {'assist', 'mash', 'ae', 'burn', 'ohshit', 'recover', 'buff', 'rest'}
-    self:initBase('war')
+    self:initBase('WAR')
 
     -- What were these again?
     mq.cmd('/squelch /stick mod -2')

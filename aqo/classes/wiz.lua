@@ -11,7 +11,7 @@ local Wizard = class:new()
 function Wizard:init()
     self.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     self.spellRotations = {standard={}, ae={}}
-    self:initBase('wiz')
+    self:initBase('WIZ')
 
     self:loadSettings()
     self:initSpellLines()
@@ -35,7 +35,10 @@ Wizard.SpellLines = {
     {Group='ae4', Spells={'Jyll\'s Wave of Heat'}},
 }
 
+Wizard.allDPSSpellGroups = {'nuke1', 'nuke2', 'Swarm', 'rain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
+
 function Wizard:initSpellRotations()
+    self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.swarm)
     table.insert(self.spellRotations.standard, self.spells.nuke1)
     table.insert(self.spellRotations.standard, self.spells.nuke2)

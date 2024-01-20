@@ -15,6 +15,7 @@ local state = require('state')
 -- UI Control variables
 local openGUI, shouldDrawGUI = true, true
 local stateGUIOpen, shouldDrawStateGUI = false, false
+local spellRotationUIOpen, shouldDrawSpellRotationUI = false, false
 local abilityGUIOpen, shouldDrawAbilityGUI = false, false
 local clickyManagerOpen, shouldDrawClickyManager = false, false
 local helpGUIOpen, shouldDrawHelpGUI= false, false
@@ -273,19 +274,25 @@ local function drawSkillsTab()
     if ImGui.Button('Manage Clickies', x, BUTTON_HEIGHT) then
         clickyManagerOpen = true
     end
+    if class.allDPSSpellGroups then
+        ImGui.SameLine()
+        if ImGui.Button('Spell Rotation', x, BUTTON_HEIGHT) then
+            spellRotationUIOpen = true
+        end
+    end
     local x, y = ImGui.GetCursorPos()
     local xOffset = x
     local yOffset = y
     local maxY = yOffset
     local _, yAvail = ImGui.GetContentRegionAvail()
     local maxLabelWidth = 0
-    for _,key in ipairs(class.OPTS) do
-        local labelSize = ImGui.CalcTextSize(class.OPTS[key].label)
+    for _,key in ipairs(class.options) do
+        local labelSize = ImGui.CalcTextSize(class.options[key].label)
         if labelSize > maxLabelWidth then maxLabelWidth = labelSize end
     end
-    for _,key in ipairs(class.OPTS) do
+    for _,key in ipairs(class.options) do
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
-            local option = class.OPTS[key]
+            local option = class.options[key]
             if option.type == 'combobox' then
                 local newValue = ui.drawComboBox(option.label, option.value, option.options, true, option.tip, xOffset, yOffset)
                 if newValue ~= option.value then option.value = newValue state.spellSetLoaded = nil end
@@ -296,12 +303,12 @@ local function drawSkillsTab()
             end
         end
     end
-    for _,key in ipairs(class.OPTS) do
+    for _,key in ipairs(class.options) do
         if key ~= 'USEGLYPH' and key ~= 'USEINTENSITY' then
-            local option = class.OPTS[key]
+            local option = class.options[key]
             if option.type == 'checkbox' then
                 local newValue = ui.drawCheckBox(option.label, option.value, option.tip, xOffset, yOffset)
-                if newValue and option.exclusive then class.OPTS[option.exclusive].value = false end
+                if newValue and option.exclusive then class.options[option.exclusive].value = false end
                 if newValue ~= option.value then option.value = newValue state.spellSetLoaded = nil end
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
@@ -589,6 +596,59 @@ local function drawTableTree(table)
     end
 end
 
+local selected_left = nil
+local selected_right = nil
+local function drawSpellRotationUI()
+    if spellRotationUIOpen then
+        spellRotationUIOpen, shouldDrawSpellRotationUI = ImGui.Begin(('DPS Spell Rotation Customizer##AQOBOTUI%s'):format(state.class), spellRotationUIOpen)
+        if shouldDrawSpellRotationUI then
+            ImGui.Text('Custom Rotation')
+            ImGui.SameLine()
+            ImGui.SetCursorPosX(280)
+            ImGui.Text('Available Spells')
+            if ImGui.BeginListBox('##AssignedSpells', ImVec2(200,-1)) then
+                for i,spell in ipairs(class.customRotation) do
+                    if ImGui.Selectable(('%s: %s'):format(i, spell.Name), selected_left == i) then
+                        selected_left = i
+                    end
+                    if ImGui.IsMouseDown(0) and ImGui.IsItemHovered() then
+                        if ImGui.BeginDragDropSource() then
+                            ImGui.SetDragDropPayload("Spell", i)
+                            ImGui.Button(class.customRotation[i].Name)
+                            ImGui.EndDragDropSource()
+                        end
+                    end
+                    if ImGui.BeginDragDropTarget() then
+                        local payload = ImGui.AcceptDragDropPayload("Spell")
+                        if payload ~= nil then
+                            local j = payload.Data;
+                            -- swap the keys in the button set
+                            class.customRotation[i], class.customRotation[j] = class.customRotation[j], class.customRotation[i]
+                        end
+                        ImGui.EndDragDropTarget()
+                    end
+                end
+                ImGui.EndListBox()
+            end
+            ImGui.SameLine()
+            if ImGui.Button(icons.FA_ARROW_LEFT) and selected_right then table.insert(class.customRotation, class.spells[selected_right]) end
+            ImGui.SameLine()
+            if ImGui.Button(icons.FA_ARROW_RIGHT) and selected_left then table.remove(class.customRotation, selected_left) end
+            ImGui.SameLine()
+            if ImGui.BeginListBox('##AllSpells', ImVec2(200,-1)) then
+                for _,spellGroup in pairs(class.allDPSSpellGroups) do
+                    local spell = class.spells[spellGroup]
+                    if ImGui.Selectable(spell.Name, selected_right == spellGroup) then
+                        selected_right = spellGroup
+                    end
+                end
+                ImGui.EndListBox()
+            end
+        end
+        ImGui.End()
+    end
+end
+
 local function drawAbilityInspector()
     if abilityGUIOpen then
         abilityGUIOpen, shouldDrawAbilityGUI = ImGui.Begin(('Ability Inspector##AQOBOTUI%s'):format(state.class), abilityGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
@@ -614,10 +674,28 @@ local function drawAbilityInspector()
                     end
                     ImGui.TreePop()
                 end
-                if ImGui.TreeNode('Spell Sets') then
+                if ImGui.TreeNode('DPS Spell Rotations') then
                     for spellSetName,spellSet in pairs(class.spellRotations) do
-                        if ImGui.TreeNode(spellSetName..'##spellset') then
-                            for _,spell in ipairs(spellSet) do
+                        if spellSetName ~= 'custom' then
+                            if ImGui.TreeNode(spellSetName..'##spellset') then
+                                for _,spell in ipairs(spellSet) do
+                                    ImGui.Text(spell.Name)
+                                end
+                                ImGui.TreePop()
+                            end
+                        end
+                    end
+                    if class.BYOSRotation and #class.BYOSRotation > 0 then
+                        if ImGui.TreeNode('BYOS##spellset') then
+                            for _,spell in ipairs(class.BYOSRotation) do
+                                ImGui.Text(spell.Name)
+                            end
+                            ImGui.TreePop()
+                        end
+                    end
+                    if class.customRotation and #class.customRotation > 0 then
+                        if ImGui.TreeNode('BYOSCustom##spellset') then
+                            for _,spell in ipairs(class.customRotation) do
                                 ImGui.Text(spell.Name)
                             end
                             ImGui.TreePop()
@@ -738,7 +816,7 @@ local function drawHelpWindow()
                 end
             end
             if ImGui.TreeNode('Class Configuration') then
-                for key,value in pairs(class.OPTS) do
+                for key,value in pairs(class.options) do
                     local valueType = type(value.value)
                     if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
                         ImGui.TextColored(YELLOW, '/aqo %s <%s>', key, valueType)
@@ -781,6 +859,7 @@ function ui.main()
         if x < MINIMUM_WIDTH then ImGui.SetWindowSize(MINIMUM_WIDTH, y) end
     end
     ImGui.End()
+    drawSpellRotationUI()
     drawAbilityInspector()
     drawStateInspector()
     drawClickyManager()

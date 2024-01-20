@@ -24,8 +24,8 @@ local melees = {MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true,R
 local hottimers = {}
 local reztimer = timer:new(30000)
 
-local function healEnabled(opts, key)
-    return opts[key] == nil or opts[key].value
+local function healEnabled(options, key)
+    return options[key] == nil or options[key].value
 end
 
 --[[
@@ -50,7 +50,7 @@ end
 -- tank.ID, 'panic'
 -- member.ID, 'regular'
 -- 'group', 'regular'
-local function getHurt(opts)
+local function getHurt(options)
     local numHurt = 0
     local mostHurtName = nil
     local mostHurtID = 0
@@ -78,7 +78,7 @@ local function getHurt(opts)
         local distance = tank.Distance3D() or 300
         if tankHP < config.get('PANICHEALPCT') and distance < 200 then return tank.ID(), HEAL_TYPES.PANIC end
     end
-    if healEnabled(opts, 'HEALPET') and mq.TLO.Pet.ID() > 0 then
+    if healEnabled(options, 'HEALPET') and mq.TLO.Pet.ID() > 0 then
         local memberPetHP = mq.TLO.Pet.PctHPs() or 100
         local memberPetDistance = mq.TLO.Pet.Distance3D() or 300
         if memberPetHP < 60 and memberPetDistance < 200 then
@@ -110,7 +110,7 @@ local function getHurt(opts)
                         return member.ID(), HEAL_TYPES.PANIC
                     end
                 end
-                if healEnabled(opts, 'HEALPET') then
+                if healEnabled(options, 'HEALPET') then
                     local memberPetHP = member.Pet.PctHPs() or 100
                     local memberPetDistance = member.Pet.Distance3D() or 300
                     if memberPetHP < config.get('HEALPCT') and memberPetDistance < 200 then
@@ -170,9 +170,9 @@ local function getHurt(opts)
 end
 
 local groupHOTTimer = timer:new(60000)
-local function getHeal(healAbilities, healType, whoToHeal, opts)
+local function getHeal(healAbilities, healType, whoToHeal, options)
     for _,heal in ipairs(healAbilities) do
-        if heal[healType] and healEnabled(opts, heal.opt) then
+        if heal[healType] and healEnabled(options, heal.opt) then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
                 if healType == HEAL_TYPES.GROUPHOT then
                     if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() == abilities.IsReady.SHOULD_CAST then return heal end
@@ -192,9 +192,9 @@ local function getHeal(healAbilities, healType, whoToHeal, opts)
     end
 end
 
-function healing.heal(healAbilities, opts)
-    local whoToHeal, typeOfHeal = getHurt(opts)
-    local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal, opts)
+function healing.heal(healAbilities, options)
+    local whoToHeal, typeOfHeal = getHurt(options)
+    local healToUse = getHeal(healAbilities, typeOfHeal, whoToHeal, options)
     logger.debug(logger.flags.routines.heal, string.format('heal %s %s %s', whoToHeal, typeOfHeal, healToUse and healToUse.name or ''))
     if healToUse and (healToUse.CastType ~= abilities.Types.Spell or not mq.TLO.Me.SpellInCooldown()) then
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
@@ -214,11 +214,11 @@ function healing.heal(healAbilities, opts)
     end
 end
 
-function healing.healPetOrSelf(healAbilities, opts)
+function healing.healPetOrSelf(healAbilities, options)
     local myHP = mq.TLO.Me.PctHPs()
     local petHP = mq.TLO.Pet.PctHPs() or 100
-    if myHP < 60 then healing.healSelf(healAbilities, opts) end
-    if not healEnabled(opts, 'HEALPET') then return end
+    if myHP < 60 then healing.healSelf(healAbilities, options) end
+    if not healEnabled(options, 'HEALPET') then return end
     for _,heal in ipairs(healAbilities) do
         if heal.pet and petHP < heal.pet then
             if abilities.use(heal) then
@@ -228,7 +228,7 @@ function healing.healPetOrSelf(healAbilities, opts)
     end
 end
 
-function healing.healSelf(healAbilities, opts)
+function healing.healSelf(healAbilities, options)
     if mq.TLO.Me.PctHPs() > config.get('HEALPCT') then return end
     for _,heal in ipairs(healAbilities) do
         if heal.self then

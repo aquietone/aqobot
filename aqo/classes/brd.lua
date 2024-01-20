@@ -14,12 +14,12 @@ function Bard:init()
     self.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
     if state.emu then
         self.spellRotations = {emuancient={},emucaster70={},emuaura65={},emuaura55={},emunoaura={}}
-        self.DEFAULT_SPELLSET='emuancient'
+        self.defaultSpellset='emuancient'
     else
         self.spellRotations = {melee={},caster={},meleedot={}}
-        self.DEFAULT_SPELLSET='melee'
+        self.defaultSpellset='melee'
     end
-    self:initBase('brd')
+    self:initBase('BRD')
 
     -- what was this again?
     mq.cmd('/squelch /stick mod 0')
@@ -70,6 +70,7 @@ function Bard:initClassOptions()
     self:addOption('USEDISEASEDOTS', 'Use Disease DoT', false, nil, 'Toggle use of Disease DoT songs if they are in the selected song list', 'checkbox', nil, 'UseDiseaseDoTs', 'bool')
     self:addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox', nil, 'UseRegenSong', 'bool')
 end
+
 
 Bard.SpellLines = {
     {-- spell dmg, overhaste, flurry, triple atk. Slot 1
@@ -185,6 +186,8 @@ Bard.SpellLines = {
 
     {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed'}},
 }
+Bard.allDPSSpellGroups = {'aria', 'arcane', 'chantfrost', 'spiteful', 'firenukebuff', 'chantflame', 'suffering', 'insult', 'warmarch', 'sonata', 'firemagicdotbuff', 'chantdisease',
+    'crescendo', 'pulse', 'composite', 'dirge', 'insultpushback', 'chantpoison', 'alliance', 'overhaste', 'bardhaste', 'emuhaste', 'snare', 'debuff'}
 
 function Bard:initSpellConditions()
     if state.emu then
@@ -196,6 +199,7 @@ function Bard:initSpellConditions()
 end
 
 function Bard:initSpellRotations()
+    self:initBYOSCustom()
     if state.emu then
         table.insert(self.spellRotations.emuancient, self.spells.selos)
         table.insert(self.spellRotations.emuancient, self.spells.chantflame)
@@ -446,7 +450,7 @@ function Bard:cast()
     if not mq.TLO.Me.Invis() and self:doneSinging() then
         --if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' then
         if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.Combat() then
-            if (self.OPTS.USEEPIC.value == 'always' or state.burnActive or (self.OPTS.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
+            if (self.options.USEEPIC.value == 'always' or state.burnActive or (self.options.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
                 if self:useEpic() then mq.delay(250) return true end
             end
             for _,clicky in ipairs(self.castClickies) do
@@ -534,75 +538,7 @@ function Bard:invis()
     mq.delay(3500, function() return mq.TLO.Me.Invis() end)
 end
 
-Bard.composite_names = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
-
---[[local checkSpellTimer = timer:new(30000)
-function Bard:checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
-    if not self:doneSinging() then return end
-    local spellSet = self.OPTS.SPELLSET.value
-    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
-        if spellSet == 'melee' then
-            if abilities.swapSpell(self.spells.aria, 1) then return end
-            if abilities.swapSpell(self.spells.arcane, 2) then return end
-            if abilities.swapSpell(self.spells.spiteful, 3) then return end
-            if abilities.swapSpell(self.spells.suffering, 4) then return end
-            if abilities.swapSpell(self.spells.insult, 5) then return end
-            if abilities.swapSpell(self.spells.warmarch, 6) then return end
-            if abilities.swapSpell(self.spells.sonata, 7) then return end
-            if abilities.swapSpell(self.spells.mezst, 8) then return end
-            if abilities.swapSpell(self.spells.mezae, 9) then return end
-            if abilities.swapSpell(self.spells.crescendo, 10) then return end
-            if abilities.swapSpell(self.spells.pulse, 11) then return end
-            if abilities.swapSpell(self.spells.composite, 12, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.dirge, 13) then return end
-            state.spellSetLoaded = spellSet
-        elseif spellSet == 'caster' then
-            if abilities.swapSpell(self.spells.aria, 1) then return end
-            if abilities.swapSpell(self.spells.arcane, 2) then return end
-            if abilities.swapSpell(self.spells.firenukebuff, 3) then return end
-            if abilities.swapSpell(self.spells.suffering, 4) then return end
-            if abilities.swapSpell(self.spells.insult, 5) then return end
-            if abilities.swapSpell(self.spells.warmarch, 6) then return end
-            if abilities.swapSpell(self.spells.firemagicdotbuff, 7) then return end
-            if abilities.swapSpell(self.spells.mezst, 8) then return end
-            if abilities.swapSpell(self.spells.mezae, 9) then return end
-            if abilities.swapSpell(self.spells.crescendo, 10) then return end
-            if abilities.swapSpell(self.spells.pulse, 11) then return end
-            if abilities.swapSpell(self.spells.composite, 12, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.dirge, 13) then return end
-            state.spellSetLoaded = spellSet
-        elseif spellSet == 'meleedot' then
-            if abilities.swapSpell(self.spells.aria, 1) then return end
-            if abilities.swapSpell(self.spells.chantflame, 2) then return end
-            if abilities.swapSpell(self.spells.chantfrost, 3) then return end
-            if abilities.swapSpell(self.spells.suffering, 4) then return end
-            if abilities.swapSpell(self.spells.insult, 5) then return end
-            if abilities.swapSpell(self.spells.warmarch, 6) then return end
-            if abilities.swapSpell(self.spells.chantdisease, 7) then return end
-            if abilities.swapSpell(self.spells.mezst, 8) then return end
-            if abilities.swapSpell(self.spells.mezae, 9) then return end
-            if abilities.swapSpell(self.spells.crescendo, 10) then return end
-            if abilities.swapSpell(self.spells.pulse, 11) then return end
-            if abilities.swapSpell(self.spells.composite, 12, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.dirge, 13) then return end
-            state.spellSetLoaded = spellSet
-        else -- emu spellsets
-            if abilities.swapSpell(self.spells.emuaura, 1) then return end
-            if abilities.swapSpell(self.spells.pulse, 2) then return end
-            if abilities.swapSpell(self.spells.emuhaste, 3) then return end
-            if abilities.swapSpell(self.spells.suffering, 4) then return end
-            if abilities.swapSpell(self.spells.firenukebuff, 5) then return end
-            if abilities.swapSpell(self.spells.bardhaste, 6) then return end
-            if abilities.swapSpell(self.spells.overhaste, 7) then return end
-            if abilities.swapSpell(self.spells.selos, 8) then return end
-            --if abilities.swapSpell(self.spells.snare, 9) then return end
-            --if abilities.swapSpell(self.spells.chantflame, 10) then return end
-        end
-        checkSpellTimer:reset()
-    end
-end]]
--- aura, chorus, war march, storm, rizlonas, verse, ancient,selos, chant flame, echoes, nivs
+Bard.compositeNames = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 
 function Bard:pullCustom()
     if self.fluxstaff then

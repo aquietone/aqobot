@@ -33,7 +33,7 @@ local Druid = class:new()
 function Druid:init()
     self.classOrder = {'heal', 'assist', 'debuff', 'cast', 'mash', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
     self.spellRotations = {standard={}}
-    self:initBase('dru')
+    self:initBase('DRU')
 
     self:initClassOptions()
     self:loadSettings()
@@ -53,11 +53,11 @@ function Druid:init()
         self.rezAbility = common.getAA('Call of the Wild')
     else
         self.callAbility = common.getAA('Call of the Wild') -- brez
-        self.rezAbility = common.getAA('Rejuvination of Spirit') -- 96% rez ooc only
+        self.rezAbility = common.getAA('Rejuvenation of Spirit') -- 96% rez ooc only
         self.rezStick = common.getItem('Staff of Forbidden Rites')
     end
     self.summonCompanion = common.getAA('Summon Companion')
-    self.nuketimer = timer:new(500)
+    state.nuketimer = timer:new(500)
 end
 
 function Druid:initClassOptions()
@@ -112,7 +112,10 @@ Druid.SpellLines = {
     {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}}, -- adds cold dmg proc to spells
 }
 
+Druid.allDPSSpellGroups = {'dot1', 'dot2', 'dot3', 'dot4', 'dot5', 'tcnuke', 'nuke1', 'nuke2', 'nuke3', 'nuke4', 'snare'}
+
 function Druid:initSpellRotations()
+    self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.dot1)
     table.insert(self.spellRotations.standard, self.spells.dot2)
     table.insert(self.spellRotations.standard, self.spells.dot3)

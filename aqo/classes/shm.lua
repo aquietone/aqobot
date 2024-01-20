@@ -37,9 +37,9 @@ local Shaman = class:new()
     self:addSpell('malo', {'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'})
     Call of the Ancients -- 5 minute duration ward AE healing
 
-    self:addSpell('reckless1', {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'})
-    self:addSpell('reckless2', {'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'})
-    self:addSpell('reckless3', {'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'})
+    self:addSpell('reckless1', {'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvenation', 'Reckless Regeneration'})
+    self:addSpell('reckless2', {'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvenation', 'Reckless Regeneration'})
+    self:addSpell('reckless3', {'Reckless Renewal', 'Reckless Rejuvenation', 'Reckless Regeneration'})
     -- Main healing: 2-4 Reckless spells
     table.insert(self.healAbilities, self.spells.reckless1) -- single target
     table.insert(self.healAbilities, self.spells.reckless2) -- single target
@@ -53,14 +53,14 @@ local Shaman = class:new()
     table.insert(self.healAbilities, common.getAA('Soothsayer\'s Intervention')) -- AA instant version of intervention spell
     table.insert(self.healAbilities, common.getAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
     
-    common.getAA('Forceful Rejuvination') -- use to refresh group heals
+    common.getAA('Forceful Rejuvenation') -- use to refresh group heals
     Chest clicky -- clicky group heal
     Small Manisi Branch -- direct heal clicky
     Apothic Dragon Spine Hammer -- clicky heal like manisi branch
 
     self.callAbility = common.getAA('Call of the Wild')
     self.rezStick = common.getItem('Staff of Forbidden Rites')
-    self.rezAbility = common.getAA('Rejuvination of Spirit') -- 96% rez, ooc only
+    self.rezAbility = common.getAA('Rejuvenation of Spirit') -- 96% rez, ooc only
 
     -- Burns
     table.insert(self.burnAbilities, common.getItem('Blessed Spiritstaff of the Heyokah'), {first=true}) -- 2.0 click
@@ -83,7 +83,7 @@ local Shaman = class:new()
 function Shaman:init()
     self.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
     self.spellRotations = {standard={},hybrid={},dps={}}
-    self:initBase('shm')
+    self:initBase('SHM')
 
     self:initClassOptions()
     self:loadSettings()
@@ -102,7 +102,7 @@ function Shaman:init()
 
     self.rezAbility = common.getAA('Call of the Wild')
     self.summonCompanion = common.getAA('Summon Companion')
-    self.nuketimer = timer:new(3000)
+    state.nuketimer = timer:new(3000)
 end
 
 function Shaman:initClassOptions()
@@ -119,7 +119,7 @@ function Shaman:initClassOptions()
     self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
 end
 
-Shaman.composite_names = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Dichotomic Roar']=true}
+Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Dichotomic Roar']=true}
 
 Shaman.SpellLines = {
     {-- proc buff slow + heal, 240 charges. Slot 1
@@ -186,7 +186,7 @@ Shaman.SpellLines = {
     {-- Lvl 100+ main heal. Slot 8, 9, 10
         Group='reckless',
         NumToPick=3,
-        Spells={'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvination', 'Reckless Regeneration'},
+        Spells={'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvenation', 'Reckless Regeneration'},
         Options={Gems={8,function() return Shaman:get('SPELLSET') ~= 'dps' and 9 or nil end,function() return Shaman:get('SPELLSET') == 'standard' and 10 or nil end}, panic=true, regular=true, tank=true}
     },
     {-- Below lvl 100 main heal. Slot 8
@@ -299,6 +299,9 @@ Shaman.SpellLines = {
     --Call of the Ancients -- 5 minute duration ward AE healing
 }
 
+Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
+    'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot'}
+
 function Shaman:initSpellConditions()
     if self.spells.tcnuke then
         self.spells.tcnuke.precast = function()
@@ -313,6 +316,7 @@ function Shaman:initSpellConditions()
 end
 
 function Shaman:initSpellRotations()
+    self:initBYOSCustom()
     if state.emu then
         table.insert(self.spellRotations.standard, self.spells.slownuke)
     end

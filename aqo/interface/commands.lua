@@ -26,7 +26,6 @@ end
 
 ---Display help information for the script.
 local function showHelp()
-    local myClass = mq.TLO.Me.Class.ShortName():lower()
     local prefix = '\n- /'..state.class..' '
     local output = logger.logLine('AQO Bot 1.0\n')
     output = output .. '\ayCommands:\aw'
@@ -38,13 +37,13 @@ local function showHelp()
         output = output .. '\n\ay' .. category .. ' configuration:\aw'
         for _,key in ipairs(config.getByCategory(category)) do
             local cfg = config[key]
-            if type(cfg) == 'table' and (not cfg.classes or cfg.classes[myClass]) then
+            if type(cfg) == 'table' and (not cfg.classes or cfg.classes[state.class]) then
                 output = output .. prefix .. key .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
             end
         end
     end
     output = output .. '\n\ayClass Configuration\aw'
-    for key,value in pairs(class.OPTS) do
+    for key,value in pairs(class.options) do
         local valueType = type(value.value)
         if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
             output = output .. prefix .. key .. ' <' .. valueType .. '>'
@@ -275,41 +274,41 @@ end
 
 function commands.classSettingsHandler(opt, new_value)
     if new_value then
-        if opt == 'SPELLSET' and class.OPTS.SPELLSET ~= nil then
+        if opt == 'SPELLSET' and class.options.SPELLSET ~= nil then
             if class.spellRotations[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.OPTS.SPELLSET.value = new_value
+                class.options.SPELLSET.value = new_value
             end
-        elseif opt == 'USEEPIC' and class.OPTS.USEEPIC ~= nil then
+        elseif opt == 'USEEPIC' and class.options.USEEPIC ~= nil then
             if class.EPIC_OPTS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.OPTS.USEEPIC.value = new_value
+                class.options.USEEPIC.value = new_value
             end
-        elseif opt == 'AURA1' and class.OPTS.AURA1 ~= nil then
+        elseif opt == 'AURA1' and class.options.AURA1 ~= nil then
             if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.OPTS.AURA1.value = new_value
+                class.options.AURA1.value = new_value
             end
-        elseif opt == 'AURA2' and class.OPTS.AURA2 ~= nil then
+        elseif opt == 'AURA2' and class.options.AURA2 ~= nil then
             if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.OPTS.AURA2.value = new_value
+                class.options.AURA2.value = new_value
             end
-        elseif class.OPTS[opt] and type(class.OPTS[opt].value) == 'boolean' then
+        elseif class.options[opt] and type(class.options[opt].value) == 'boolean' then
             if constants.booleans[new_value] == nil then return end
-            class.OPTS[opt].value = constants.booleans[new_value]
+            class.options[opt].value = constants.booleans[new_value]
             logger.info('Setting %s to: %s', opt, constants.booleans[new_value])
-        elseif class.OPTS[opt] and type(class.OPTS[opt].value) == 'number' then
+        elseif class.options[opt] and type(class.options[opt].value) == 'number' then
             if tonumber(new_value) then
                 logger.info('Setting %s to: %s', opt, tonumber(new_value))
-                if class.OPTS[opt].value ~= nil then class.OPTS[opt].value = tonumber(new_value) end
+                if class.options[opt].value ~= nil then class.options[opt].value = tonumber(new_value) end
             end
         else
             logger.info('Unsupported command line option: %s %s', opt, new_value)
         end
     else
-        if class.OPTS[opt] ~= nil then
-            logger.info('%s: %s', opt:lower(), class.OPTS[opt].value)
+        if class.options[opt] ~= nil then
+            logger.info('%s: %s', opt:lower(), class.options[opt].value)
         else
             logger.info('Unrecognized option: %s', opt)
         end

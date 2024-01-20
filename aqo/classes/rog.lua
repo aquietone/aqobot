@@ -54,7 +54,7 @@ local Rogue = class:new()
 ]]
 function Rogue:init()
     self.classOrder = {'assist', 'aggro', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
-    self:initBase('rog')
+    self:initBase('ROG')
 
     self:initClassOptions()
     self:loadSettings()

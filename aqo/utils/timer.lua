@@ -12,9 +12,9 @@ local Timer = {
 ---Initialize a new timer istance.
 ---@param expiration number @The time, in milliseconds, after which the timer expires.
 ---@return Timer @The timer instance.
-function Timer:new(expiration)
+function Timer:new(expiration, from_zero)
     local t = {
-        start_time = mq.gettime(),
+        start_time = from_zero and 0 or mq.gettime(),
         expiration = expiration
     }
     setmetatable(t, self)

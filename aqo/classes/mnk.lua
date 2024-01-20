@@ -65,9 +65,23 @@ local Monk = class:new()
     table.insert(self.burnAbilities, common.getBestDisc({'Earthforce'})) -- defensive, adds heroic str
 
 ]]
+--[[
+common.getAA('Distant Strike') -- pull ability
+common.getAA('Magnanimous Force') -- knockback + memblur
+common.getAA('Moving Mountains') -- fling mob to you
+common.getAA('Purify Body') -- self remove detrimental affects, 4min cd
+common.getAA('Swift Tails\' Chant') -- restore 6000 end to group, 10 min cd, timer 8
+common.getAA('Ton Po\'s Stance') -- extra crits + attacks, 5 min cd, timer 9
+common.getAA('Devastating Assault') -- 2 minutes of aoe melee, 5 min cd, timer 30
+common.getAA('Dragon Force') -- knockback
+common.getAA('Focused Destructive Force') -- 42 seconds of extra melee attacks on target, 15 min cd, timer 2
+common.getAA('Grappling Strike') -- pulls target towards you
+common.getAA('Neshika\'s Blink') -- leap
+common.getAA('Vehement Rage') -- inc base dmg and minimum dmg, 5 min cd, timer 61
+]]
 function Monk:init()
     self.classOrder = {'assist', 'aggro', 'heal', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
-    self:initBase('mnk')
+    self:initBase('MNK')
 
     self:initClassOptions()
     self:loadSettings()

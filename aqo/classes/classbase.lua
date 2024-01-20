@@ -22,10 +22,11 @@ local state = require('state')
 
 ---@class base
 ---@field classOrder table #All possible class routine methods
----@field OPTS table #Collection of options for the class which appear in the Skills tab
----@field DEFAULT_SPELLSET? string #The spell set selected by default
+---@field options table #Collection of options for the class which appear in the Skills tab
+---@field defaultSpellset? string #The spell set selected by default
 ---@field spells table #Collection of all spell id/name pairs that may be used for the class
 ---@field spellRotations table #Ordered spell rotations which may be loaded for the class and used in the cast routine
+---@field allDPSSpellGroups table #spell group name of all detrimental DPS spells allowed for selection in custom spell rotation
 ---@field DPSAbilities table #Abilities used in mash in any modes
 ---@field tankAbilities table #Abilities used in mash in tank modes
 ---@field burnAbilities table #Abilities used in burn in any modes
@@ -66,8 +67,12 @@ local state = require('state')
 ---@field useCommonListProcessor? boolean #
 local base = {
     -- All possible class routine methods
-    OPTS = {},
+    options = {},
     spells = {},
+    SpellLines = {},
+    compositeNames = {},
+    customRotation = {},
+    BYOSRotation = {},
     spellRotations = {},
     DPSAbilities = {},
     tankAbilities = {},
@@ -87,14 +92,12 @@ local base = {
     singleBuffs = {},
     petBuffs = {},
     cures = {},
+    debuffs = {},
     requests = {},
     requestAliases = {},
     clickies = {},
     castClickies = {},
     pullClickies = {},
-    debuffs = {},
-    --nuketimer
-    --drop_aggro
     --pet
 }
 
@@ -120,7 +123,7 @@ end
 --- @param type string # The UI element type (combobox, checkbox, inputint)
 --- @param exclusive string|nil # The key of another option which is mutually exclusive with this option
 function base:addOption(key, label, value, options, tip, type, exclusive, tlo, tlotype)
-    self.OPTS[key] = {
+    self.options[key] = {
         label=label,
         value=value,
         options=options,
@@ -130,12 +133,12 @@ function base:addOption(key, label, value, options, tip, type, exclusive, tlo, t
         tlo=tlo,
         tlotype=tlotype,
     }
-    table.insert(self.OPTS, key)
+    table.insert(self.options, key)
 end
 
 function base:addCommonOptions()
     if self.spellRotations then
-        self:addOption('SPELLSET', 'Spell Set', self.DEFAULT_SPELLSET or 'standard' , self.spellRotations, 'The spell set to be used', 'combobox', nil, 'SpellSet', 'string')
+        self:addOption('SPELLSET', 'Spell Set', self.defaultSpellset or 'standard' , self.spellRotations, 'The spell set to be used', 'combobox', nil, 'SpellSet', 'string')
         self:addOption('BYOS', 'BYOS', true, nil, 'Bring your own spells', 'checkbox', nil, 'BYOS', 'bool')
     end
     self:addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox', nil, 'UseAOE', 'bool')
@@ -148,7 +151,7 @@ function base:addCommonOptions()
         self:addOption('BUFFPET', 'Buff Pet', true, nil, 'Use pet buffs', 'checkbox', nil, 'BuffPet', 'bool')
         self:addOption('HEALPET', 'Heal Pets', true, nil, 'Toggle healing of pets', 'checkbox', nil, 'HealPet', 'bool')
     end
-    if self.class == 'clr' then
+    if self.class == 'CLR' then
         self:addOption('HEALPET', 'Heal Pets', true, nil, 'Toggle healing of pets', 'checkbox', nil, 'HealPet', 'bool')
     end
     if constants.buffClasses[self.class] then
@@ -183,18 +186,18 @@ end
 -- For cases where something should only be done by a class who has the option
 -- Ex. USEMEZ logic should only ever be entered for classes who can mez.
 function base:isEnabled(key)
-    return self.OPTS[key] and self.OPTS[key].value == true
+    return self.options[key] and self.options[key].value == true
 end
 
 -- Return true if the option is nil or the option is true
 -- Ex. Kick has no option to toggle it, so should always be true. Intimidate has a toggle
 -- so should evaluate the option.
 function base:isAbilityEnabled(key)
-    return not key or not self.OPTS[key] or self.OPTS[key].value == true
+    return not key or not self.options[key] or self.options[key].value == true
 end
 
 function base:get(key)
-    return self.OPTS[key] and self.OPTS[key].value
+    return self.options[key] and self.options[key].value
 end
 
 ---Add the best N spells from the list of spells to the class spell list
@@ -355,10 +358,10 @@ function base:loadSettings()
     local settings = config.loadSettings()
     if not settings or not settings[self.class] then return end
     for setting,value in pairs(settings[self.class]) do
-        if self.OPTS[setting] == nil then
+        if self.options[setting] == nil then
             logger.info('Unrecognized setting: %s=%s', setting, value)
         else
-            self.OPTS[setting].value = value
+            self.options[setting].value = value
         end
     end
     if settings.clickies then
@@ -372,12 +375,28 @@ function base:loadSettings()
     if settings.petWeapons then
         self.petWeapons = settings.petWeapons
     end
+    if settings.BYOSCustom then
+        self.customRotationTemp = {}
+        for i,spellGroup in ipairs(settings.BYOSCustom) do
+            self.customRotationTemp[i] = spellGroup
+        end
+    end
 end
 
 function base:saveSettings()
     local optValues = {}
-    for name,options in pairs(self.OPTS) do optValues[name] = options.value end
-    mq.pickle(config.SETTINGS_FILE, {common=config.getAll(), [self.class]=optValues, clickies=self.clickies, petWeapons=self.petWeapons})
+    for name,options in pairs(self.options) do optValues[name] = options.value end
+    local byos = {}
+    if self.customRotation then for i,spell in ipairs(self.customRotation) do byos[i] = spell.SpellGroup end end
+    mq.pickle(config.SETTINGS_FILE, {common=config.getAll(), [self.class]=optValues, clickies=self.clickies, petWeapons=self.petWeapons, BYOSCustom=byos})
+end
+
+function base:initBYOSCustom()
+    if self.customRotationTemp then
+        for i,spellGroup in ipairs(self.customRotationTemp) do
+            self.customRotation[i] = self.spells[spellGroup]
+        end
+    end
 end
 
 function base:assist()
@@ -419,11 +438,11 @@ end
 
 function base:heal()
     if constants.healClasses[self.class] then
-        healing.heal(self.healAbilities, self.OPTS)
+        healing.heal(self.healAbilities, self.options)
     elseif constants.petClasses[self.class] then
-        healing.healPetOrSelf(self.healAbilities, self.OPTS)
+        healing.healPetOrSelf(self.healAbilities, self.options)
     else
-        healing.healSelf(self.healAbilities, self.OPTS)
+        healing.healSelf(self.healAbilities, self.options)
     end
 end
 
@@ -474,7 +493,7 @@ function base:doMashClickies()
                 mq.delay(50)
                 clickyItem = mq.TLO.FindItem('='..clicky)
             end
-            if self.class == 'brd' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
+            if self.class == 'BRD' and mq.TLO.Me.Casting() then mq.cmd('/stopsong') mq.delay(1) end
             mq.cmdf('/useitem "%s"', clickyItem.Name())
             mq.delay(50)
             mq.delay(250, function() return not mq.TLO.Me.Casting() end)
@@ -500,7 +519,7 @@ function base:mash()
         else
             self:doCombatLoop(self.DPSAbilities)
         end
-        if self.class ~= 'brd' then self:doMashClickies() end
+        if self.class ~= 'BRD' then self:doMashClickies() end
     end
 end
 
@@ -563,7 +582,7 @@ end
 function base:findNextSpell()
     -- alliance
     -- synergy
-    local spellRotation = self.getSpellRotation and self:getSpellRotation() or self.spellRotations[self:get('SPELLSET')]
+    local spellRotation = self:getSpellRotation()
     if not spellRotation then return nil end
     local startIndex = state.rotationIndex and state.rotationIndex < #spellRotation and state.rotationIndex + 1 or 1
     for i=startIndex,#spellRotation do
@@ -584,12 +603,11 @@ function base:debuff()
     debuff.castDebuffs()
 end
 
-base.nuketimer = timer:new(0)
 function base:cast()
     if mq.TLO.Me.SpellInCooldown() or self:isEnabled('DONTCAST') or mq.TLO.Me.Invis() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
     if assist.isFighting() then
-        if self.nuketimer:timerExpired() then
+        if state.nuketimer:timerExpired() then
             for _,clicky in ipairs(self.castClickies) do
                 if clicky.enabled and self:isAbilityEnabled(clicky.opt) and (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
                     if clicky:use() then return end
@@ -604,7 +622,7 @@ function base:cast()
                 else
                     state.rotationIndex = nil
                 end -- then cast the dot
-                self.nuketimer:reset()
+                state.nuketimer:reset()
                 mq.doevents()--'eventResist')
                 if spell.postcast then spell.postcast() end
             end
@@ -627,7 +645,7 @@ function base:cast()
                             spell:use(true)
                             state.actionTaken = true
                             dotted_count = dotted_count + 1
-                            if dotted_count >= self.OPTS.MULTICOUNT.value then break end
+                            if dotted_count >= self.options.MULTICOUNT.value then break end
                         end
                     end
                 end
@@ -673,7 +691,7 @@ function base:mez()
     -- don't try to mez in manual mode
     if mode.currentMode:isManualMode() or mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then return end
     if self:isEnabled('MEZAE') and self.spells.mezae then
-        if mez.doAE(self.spells.mezae, self.OPTS.MEZAECOUNT.value) then state.actionTaken = true end
+        if mez.doAE(self.spells.mezae, self.options.MEZAECOUNT.value) then state.actionTaken = true end
     end
     if self:isEnabled('MEZST') and self.spells.mezst then
         if mez.doSingle(self.spells.mezst) then state.actionTaken = true end
@@ -836,7 +854,7 @@ function base:handleRequests()
             end
             local requesterSpawn = mq.TLO.Spawn(requesterSpawn)
             if (requesterSpawn.Distance3D() or 300) < 100 then
-                if request.requested == 'ARMPET' and state.class == 'mag' then
+                if request.requested == 'ARMPET' and state.class == 'MAG' then
                     self:armPetRequest(request.requester)
                     table.remove(self.requests, 1)
                     return
@@ -929,6 +947,25 @@ local function findSpellForSlot(slot)
     return spell or spellFallback
 end
 
+function base:getSpellRotation()
+    local spellSet = self:get('SPELLSET')
+    if not self:isEnabled('BYOS') then
+        if spellSet == 'custom' then spellSet = self.defaultSpellset or 'standard' end
+        return self.spellRotations[spellSet]
+    end
+    if spellSet == 'custom' and self.customRotation and #self.customRotation > 1 then return self.customRotation end
+    if self.allDPSSpellGroups and not state.rotationUpdated or state.rotationRefreshTimer:timerExpired() then
+        self.BYOSRotation = {}
+        -- rebuild rotation based on mem'd spells and all available DPS spells in no particular order
+        for _,spellGroup in ipairs(self.allDPSSpellGroups) do
+            if self.spells[spellGroup] and mq.TLO.Me.Gem(self.spells[spellGroup].Name)() then table.insert(self.BYOSRotation, self.spells[spellGroup]) end
+        end
+        state.rotationUpdated = true
+        state.rotationRefreshTimer:reset()
+    end
+    return self.BYOSRotation
+end
+
 base.checkSpellTimer = timer:new(30000)
 function base:checkMemmedSpells()
     if not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
@@ -938,8 +975,8 @@ function base:checkMemmedSpells()
         for i=1,numGems do
             local spellToMem = findSpellForSlot(i)
             if spellToMem and mq.TLO.Me.Gem(i).BaseName() ~= spellToMem.BaseName then
-                if self.composite_names[spellToMem.BaseName] then
-                    if abilities.swapSpell(spellToMem, i, false, self.composite_names) then return end
+                if self.compositeNames[spellToMem.BaseName] then
+                    if abilities.swapSpell(spellToMem, i, false, self.compositeNames) then return end
                 else
                     if abilities.swapSpell(spellToMem, i) then return end
                 end

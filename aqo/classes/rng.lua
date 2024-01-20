@@ -21,7 +21,7 @@ local Ranger = class:new()
 function Ranger:init()
     self.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
     self.spellRotations = {standard={}}
-    self:initBase('rng')
+    self:initBase('RNG')
 
     mq.cmd('/squelch /stick mod 0')
 
@@ -159,7 +159,11 @@ Ranger.SpellLines = {
     {Group='heal', Spells={'Sylvan Water', 'Sylvan Light'}},
 }
 
+Ranger.allDPSSpellGroups = {'firenuke1', 'focused', 'aoearrow', 'healtot2', 'heart', 'firenuke2', 'dot', 'healtot', 'shots', 'dotds', 'coldnuke1', 'composite', 
+    'alliance', 'opener', 'firenuke3', 'coldnuke2', 'barrage', 'snare'}
+
 function Ranger:initSpellRotations()
+    self:initBYOSCustom()
     -- entries in the dd_spells table are pairs of {spell id, spell name} in priority order
     self.arrow_spells = {}
     table.insert(self.arrow_spells, self.spells.shots)
@@ -420,7 +424,7 @@ local snared_id = 0
 function Ranger:cast()
     if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.isFighting() then
-            if self.spells.snare and mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and self.OPTS.USESNARE.value then
+            if self.spells.snare and mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and self.options.USESNARE.value then
                 self.spells.snare:use()
                 snared_id = mq.TLO.Target.ID()
                 return true
@@ -523,31 +527,7 @@ local function target_missing_buff(name)
     return false
 end
 
---[[local checkSpellTimer = timer:new(30000)
-function Ranger:checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
-    local spellSet = self.OPTS.SPELLSET.value
-    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
-        if spellSet == 'standard' then
-            if abilities.swapSpell(self.spells.shots, 1) then return end
-            if abilities.swapSpell(self.spells.focused, 2) then return end
-            if abilities.swapSpell(self.spells.composite, 3, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.heart, 4) then return end
-            if abilities.swapSpell(self.spells.opener, 5) then return end
-            if abilities.swapSpell(self.spells.summer, 6) then return end
-            if abilities.swapSpell(self.spells.healtot, 7) then return end
-            if abilities.swapSpell(self.spells.rune, 8) then return end
-            if abilities.swapSpell(self.spells.dot, 9) then return end
-            if abilities.swapSpell(self.spells.dotds, 10) then return end
-            if abilities.swapSpell(self.spells.dmgbuff, 12) then return end
-            if abilities.swapSpell(self.spells.buffs, 13) then return end
-            state.spellSetLoaded = spellSet
-        end
-        checkSpellTimer:reset()
-    end
-end]]
-
-Ranger.composite_names = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
+Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 
 function Ranger:assist()
     if mq.TLO.Navigation.Active() then return end

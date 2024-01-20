@@ -27,7 +27,7 @@ local ShadowKnight = class:new()
 function ShadowKnight:init()
     self.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
     self.spellRotations = {standard={},dps={}}
-    self:initBase('shd')
+    self:initBase('SHD')
 
     mq.cmd('/squelch /stick mod -2')
     mq.cmd('/squelch /stick set delaystrafe on')
@@ -182,6 +182,9 @@ ShadowKnight.SpellLines = {
     --['']=common.get_best_spell({'Remorseless Demeanor'})
 }
 
+ShadowKnight.allDPSSpellGroups = {'tap1', 'tap2', 'largetap', 'composite', 'spear', 'terror', 'poison', 'aeterror', 'aetap', 'disease', 'dottap', 'challenge',
+    'corruption', 'acdebuff', 'bitetap', 'tap3', 'alliance', 'acdis'}
+
 function ShadowKnight:initSpellConditions()
     local function mobsMissingAggro()
         if state.mobCount >= 2 then
@@ -206,6 +209,7 @@ function ShadowKnight:initSpellConditions()
 end
 
 function ShadowKnight:initSpellRotations()
+    self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.aeterror)
     if not state.emu then table.insert(self.spellRotations.standard, self.spells.challenge) end
     table.insert(self.spellRotations.standard, self.spells.terror)
@@ -347,46 +351,7 @@ function ShadowKnight:ohshit()
     end
 end
 
-ShadowKnight.composite_names = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
---[[local checkSpellTimer = timer:new(30000)
-function ShadowKnight:checkSpellSet()
-    if not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
-    local spellSet = self.OPTS.SPELLSET.value
-    if state.spellSetLoaded ~= spellSet or checkSpellTimer:timerExpired() then
-        if spellSet == 'standard' then
-            if abilities.swapSpell(self.spells.tap1, 1) then return end
-            if abilities.swapSpell(self.spells.tap2, 2) then return end
-            if abilities.swapSpell(self.spells.largetap, 3) then return end
-            if abilities.swapSpell(self.spells.composite, 4, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.spear, 5) then return end
-            if abilities.swapSpell(self.spells.terror, 6) then return end
-            if abilities.swapSpell(self.spells.aeterror, 7) then return end
-            if abilities.swapSpell(self.spells.dottap, 8) then return end
-            if abilities.swapSpell(self.spells.challenge, 9) then return end
-            if abilities.swapSpell(self.spells.bitetap, 10) then return end
-            if abilities.swapSpell(self.spells.stance, 11) then return end
-            if abilities.swapSpell(self.spells.skin, 12) then return end
-            if abilities.swapSpell(self.spells.acdebuff, 13) then return end
-            state.spellSetLoaded = spellSet
-        elseif spellSet == 'dps' then
-            if abilities.swapSpell(self.spells.tap1, 1) then return end
-            if abilities.swapSpell(self.spells.tap2, 2) then return end
-            if abilities.swapSpell(self.spells.largetap, 3) then return end
-            if abilities.swapSpell(self.spells.composite, 4, false, composite_names) then return end
-            if abilities.swapSpell(self.spells.spear, 5) then return end
-            if abilities.swapSpell(self.spells.corruption, 6) then return end
-            if abilities.swapSpell(self.spells.poison, 7) then return end
-            if abilities.swapSpell(self.spells.dottap, 8) then return end
-            if abilities.swapSpell(self.spells.disease, 9) then return end
-            if abilities.swapSpell(self.spells.bitetap, 10) then return end
-            if abilities.swapSpell(self.spells.stance, 11) then return end
-            if abilities.swapSpell(self.spells.skin, 12) then return end
-            if abilities.swapSpell(self.spells.acdebuff, 13) then return end
-            state.spellSetLoaded = spellSet
-        end
-        checkSpellTimer:reset()
-    end
-end]]
+ShadowKnight.compositeNames = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 
 --[[self.pullCustom = function()
     if self.spells.challenge then

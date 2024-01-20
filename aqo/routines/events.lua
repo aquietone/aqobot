@@ -37,13 +37,13 @@ end
 function events.initClassBasedEvents()
     -- setup events based on whether certain options are defined, not whether they are enabled.
     debuff.setupEvents()
-    if class.OPTS.MEZST or class.OPTS.MEZAE then
+    if class.options.MEZST or class.options.MEZAE then
         mez.setupEvents()
     end
     if mq.TLO.Me.AltAbility('Tranquil Blessings')() then
         mq.event('eventTranquil', '#*# tells #*#,#*#\'tranquil\'', events.eventTranquil)
     end
-    if class.OPTS.SERVEBUFFREQUESTS then
+    if class.options.SERVEBUFFREQUESTS then
         mq.event('eventRequests', '#1# tells #*#,#*#\'#2#\'', events.eventRequest)
     else
         mq.event('eventGearrequest', '#1# tells #*#,#*#\'gear #2#\'', events.eventGear)
@@ -162,7 +162,7 @@ function events.eventRequest(line, requester, requested)
             mq.cmdf('/t %s %s', requester, buffList)
             return
         end
-        if requested == 'ARMPET' and state.class == 'mag' then
+        if requested == 'ARMPET' and state.class == 'MAG' then
             table.insert(class.requests, {requester=requester, requested='ARMPET', expiration=timer:new(15000)})
             return
         end

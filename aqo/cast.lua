@@ -10,9 +10,9 @@ local casting = {
 }
 
 function casting.cast(spell, targetID, interruptCheck)
-    if state.class == 'brd' and spell.MyCastTime <= 500 and spell.CastType == abilities.Types.Item then
+    if state.class == 'BRD' and spell.MyCastTime <= 500 and spell.CastType == abilities.Types.Item then
         -- do nothing
-    elseif state.class == 'brd' and spell.CastType == abilities.Types.Spell then
+    elseif state.class == 'BRD' and spell.CastType == abilities.Types.Spell then
         -- sing(spell, target)
         return casting.CastReturn.CAST_SUCCESS
     else
@@ -242,7 +242,7 @@ function casting.cast(spell, targetID, interruptCheck)
 end
 
 function casting.Sing(spell, targetID)
-    if state.class ~= 'brd' then return end
+    if state.class ~= 'BRD' then return end
 
     if targetID and targetID > 0 then
         casting.trueTarget(targetID)
@@ -379,7 +379,7 @@ function casting.checkReady(spell)
         return false
     end
 
-    --if state.class == 'brd' and not mq.TLO.Twist.Twisting() then
+    --if state.class == 'BRD' and not mq.TLO.Twist.Twisting() then
     --end
 
     if spell.CastType == abilities.Types.Spell and spell.SpellInBook then

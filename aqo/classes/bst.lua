@@ -29,7 +29,7 @@ local BeastLord = class:new()
 function BeastLord:init()
     self.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
     self.spellRotations = {standard={}}
-    self:initBase('bst')
+    self:initBase('BST')
 
     self:initClassOptions()
     self:loadSettings()
@@ -60,6 +60,72 @@ function BeastLord:initClassOptions()
     self:addOption('USEMENDING', 'Use Mending', false, nil, 'Toggle use of Mending line of heal spells', 'checkbox', nil, 'UseMending', 'bool')
     -- swarm pet, sow, snare, roar of thunder, mending, haste, focus
 end
+--[[
+-- burn
+common.getAA('Attack of the Warder') -- swarm pet 10 min cd, timer 41
+common.getAA('Bestial Alignment') -- melee dmg burn 12 min cd, timer 7
+common.getAA('Bloodlust') -- 42 seconds of 100% proc chance. 12 min cd, timer 76
+common.getAA('Ferociousness') -- inc accuracy and melee dmg burn, 15 min cd, timer 80
+common.getAA('Frenzied Swipes') -- reduced round kick cd for 1 min, 20 min cd, timer 11
+common.getAA('Frenzy of Spirit') -- 1 min inc atk speed, reduced wep delay, inc atk power, 12 min cd, timer 4
+common.getAA('Group Bestial Alignment') -- group melee dmg burn 12 min cd, timer 66
+common.getAA('Spire of the Savage Lord') -- buffs self + pet dmg, buff group dmg + atk power, 7:30 cd, timer 40
+
+-- mash
+common.getAA('Chameleon Strike') -- mash ability aggro reducer, 20 second cd, timer 10
+common.getAA('Roaring Strike') -- mash ability aggro increase, 20 second cd, timer 10
+common.getAA('Enduring Frenzy') -- chance to proc +4k end on people attacking target, 5 min cd, timer 13
+common.getAA('Roar of Thunder') -- 40k dd, reduce aggro, debuff target, 4:30 cd, timer 8
+
+-- pet buffs
+common.getAA('Taste of Blood') -- pet buff, proc blood frenzy on killing blows, inc flurry
+common.getAA('Feralist\'s Unity') -- pet buff, casts symbiotic alliance, dmg absorb + hot on fade
+common.getAA('Hobble of Spirits') -- pet buff proc snares
+
+-- buffs
+common.getAA('Pact of the Wurine') -- perma self buff, inc accuracy, movement speed, max mana, max hp and mana regen
+
+-- defensive
+common.getAA('Companion\'s Shielding') -- large pet heal + 72 seconds of 50% dmg absorb for self, 14 min cd, timer 73
+common.getAA('Protection of the Warder') -- 35% melee dmg absorb, 15 min cd, timer 63
+
+-- rest
+common.getAA('Consumption of Spirit') -- 60k hp for 35k mana, 3 min cd, timer 52
+common.getAA('Focused Paragon of Spirits') -- targeted mana/end regen
+common.getAA('Paragon of Spirit') -- group mana/end regen
+
+-- cures
+common.getAA('Nature\'s Salve') -- cure self + pet, 1 min cd, timer 54
+
+-- heals
+common.getAA('Warder\'s Gift') -- 15% pet hp for 70k self heal, 2:30 cd, timer 74
+
+-- spell replacements
+common.getAA('Sha\'s Reprisal') -- aa slow
+
+-- leap
+common.getAA('Cheetah\'s Pounce') -- 20 sec cd, timer 68
+
+common.getAA('Combat Subtlety')
+common.getAA('Companion\'s Aegis')
+common.getAA('Companion\'s Discipline')
+common.getAA('Companion\'s Fortification')
+common.getAA('Companion\'s Fury')
+common.getAA('Companion\'s Intervening Divine Aura')
+common.getAA('Companion\'s Suspension')
+common.getAA('Diminutive Companion')
+common.getAA('Falsified Death')
+common.getAA('Forceful Rejuvenation')
+common.getAA('Group Shrink')
+common.getAA('Improved Natural Invisibility')
+common.getAA('Mass Group Buff')
+common.getAA('Mend Companion')
+common.getAA('Natural Invisibility')
+common.getAA('Perfected Levitation')
+common.getAA('Playing Possum')
+common.getAA('Shrink')
+common.getAA('Summon Companion')
+common.getAA('Tranquil Blessings')]]
 
 BeastLord.SpellLines = {
     {-- DD. Slot 1
@@ -191,7 +257,10 @@ BeastLord.SpellLines = {
     --     self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
 }
 
+BeastLord.allDPSSpellGroups = {'nuke1', 'nuke2', 'nuke3', 'nuke4', 'roar', 'dddot1', 'dot1', 'dddot2', 'swarmpet', 'alliance'}
+
 function BeastLord:initSpellRotations()
+    self:initBYOSCustom()
     -- composite, alliance
     if state.emu then
         table.insert(self.spellRotations.standard, self.spells.swarmpet)
@@ -263,7 +332,7 @@ function BeastLord:initBurns()
 
         -- Optional Burn
         --Dissident Fury
-        --Forceful Rejuvination
+        --Forceful Rejuvenation
         --Dissident Fury
 
         -- Other
@@ -383,7 +452,7 @@ function BeastLord:recoverClass()
                 local memberPctMana = member.PctMana() or 100
                 local memberDistance = member.Distance3D() or 300
                 local memberClass = member.Class.ShortName() or 'WAR'
-                if constants.manaClasses[memberClass:lower()] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(self.fParagon.Name)() then
+                if constants.manaClasses[memberClass] and memberPctMana < 70 and memberDistance < 100 and mq.TLO.Me.AltAbilityReady(self.fParagon.Name)() then
                     member.DoTarget()
                     self.fParagon:use()
                     if originalTargetID > 0 then mq.cmdf('/squelch /mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
@@ -394,6 +463,6 @@ function BeastLord:recoverClass()
     end
 end
 
-BeastLord.composite_names = {['Ecliptic Fury']=true, ['Composite Fury']=true, ['Dissident Fury']=true, ['Dichotomic Fury']=true}
+BeastLord.compositeNames = {['Ecliptic Fury']=true, ['Composite Fury']=true, ['Dissident Fury']=true, ['Dichotomic Fury']=true}
 
 return BeastLord

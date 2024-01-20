@@ -104,7 +104,7 @@ function camp.checkCamp()
     if not mode.currentMode:isReturnToCampMode() or not camp.Active then return end
     if not checkCampTimer:timerExpired() then return end
     checkCampTimer:reset()
-    if (state.class ~= 'brd' and mq.TLO.Me.Casting()) or not common.clearToBuff() then return end
+    if (state.class ~= 'BRD' and mq.TLO.Me.Casting()) or not common.clearToBuff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
         logger.info('Clearing camp due to zoning.')
         camp.Active = false
