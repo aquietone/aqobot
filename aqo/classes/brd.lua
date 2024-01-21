@@ -538,7 +538,7 @@ function Bard:invis()
     mq.delay(3500, function() return mq.TLO.Me.Invis() end)
 end
 
-Bard.compositeNames = {['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
+Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 
 function Bard:pullCustom()
     if self.fluxstaff then
