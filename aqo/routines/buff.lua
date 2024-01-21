@@ -1,5 +1,6 @@
 ---@type Mq
 local mq = require('mq')
+local assist = require('routines.assist')
 local logger = require('utils.logger')
 local timer = require('utils.timer')
 local abilities = require('ability')
@@ -44,7 +45,7 @@ local function buffCombat(base)
     -- common clicky buffs like geomantra and ... just geomantra
     common.checkCombatBuffs()
     -- typically instant disc buffs like war field champion, etc. or summoning arrows
-    if mq.TLO.Me.CombatState() == 'COMBAT' then
+    if assist.isFighting() then
         for _,buff in ipairs(base.combatBuffs) do
             if base:isAbilityEnabled(buff.opt) then
                 if buff.SummonID then

@@ -73,7 +73,6 @@ local base = {
     compositeNames = {},
     customRotation = {},
     BYOSRotation = {},
-    spellRotations = {},
     DPSAbilities = {},
     tankAbilities = {},
     burnAbilities = {},
@@ -778,7 +777,7 @@ function base:recover()
                 if ability.mana and pct_mana < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
                     useAbility = ability
                     break
-                elseif ability.endurance and pct_end < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') then
+                elseif ability.endurance and pct_end < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) then
                     useAbility = ability
                     break
                 end
