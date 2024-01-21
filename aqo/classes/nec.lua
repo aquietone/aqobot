@@ -8,13 +8,13 @@ local config = require('interface.configuration')
 local abilities = require('ability')
 local mode = require('mode')
 local state = require('state')
-local ui = require('interface.ui')
+local widgets = require('libaqo.widgets')
 
 local Necromancer = class:new()
 
 function Necromancer:init()
     self.classOrder = {'assist', 'aggro', 'mash', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
-    self.spellRotations = {standard={},short={}}
+    self.spellRotations = {standard={},short={},custom={}}
     self:initBase('NEC')
 
     self:initClassOptions()
@@ -60,6 +60,7 @@ function Necromancer:initClassOptions()
     self:addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs, in case mobs are just dying too fast', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USELICH', 'Use Lich', true, nil, 'Toggle use of lich, incase you\'re just farming and don\'t really need it', 'checkbox', nil, 'UseLich', 'bool')
     self:addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox', nil, 'BurnProc', 'bool')
+    self:addOption('SWAPSPELLS', 'Combat Spell Swap', true, nil, 'Toggle swapping of spells during combat with standard spell rotation', 'checkbox', nil, 'SwapSpells', 'bool')
 end
 
 Necromancer.SpellLines = {
@@ -111,12 +112,12 @@ Necromancer.SpellLines = {
     {-- manadrain dot. Slot 7/8/9 if any of alliance or shield or manatap are disabled.
         Group='ignite',
         Spells={'Ignite Remembrance', 'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'},
-        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and 7) or (not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or (not Necromancer:isEnabled('USEALLIANCE') and 9) end}
+        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and 7) or (not Necromancer:isEnabled('USEALLIANCE') and 9) or (not Necromancer:isEnabled('USEBUFFSHIELD') and 8) end}
     },
     {-- Slot 8/9 if any of alliance or shield are disabled
         Group='scourge',
         Spells={'Scourge of Destiny', 'Scourge of Fates'},
-        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or (Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and 9) or nil end}
+        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and 9) or (Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or nil end}
     },
     {-- Slot 9 when none of mana tap, alliance or shield enabled
         Group='corruption',
@@ -136,7 +137,7 @@ Necromancer.SpellLines = {
     {-- Slot 12
         Group='wounds',
         Spells={'Putrefying Wounds', 'Infected Wounds', 'Septic Wounds', 'Cyclotoxic Wounds', 'Mortiferous Wounds', 'Pernicious Wounds', 'Necrotizing Wounds', 'Splirt', 'Splart', 'Splort'},
-        Options={opt='USEWOUNDS', Gem=12}
+        Options={opt='USEWOUNDS', Gem=12, condition=function() return not mq.TLO.Target.MyBuff(Necromancer.spells.wounds.Name)() end}
     },
     {-- Slot 12 no wounds, raid spells
         Group='pyrelong',
@@ -330,7 +331,7 @@ function Necromancer:initBuffs()
     --table.insert(self.petBuffs, self.spells.inspire)
     table.insert(self.petBuffs, self.spells.pethaste)
     table.insert(self.petBuffs, common.getAA('Fortify Companion'))
-    local dmf = common.getAA('Dead Man Floating')
+    local dmf = common.getAA('Dead Man Floating', {skipifbuff='Perfected Dead Men Floating'})
     table.insert(self.selfBuffs, dmf or self.spells.dmf)
 
     self:addRequestAlias(self.spells.defensiveproc, 'PUSTULES')
@@ -376,7 +377,9 @@ end
 
 function Necromancer:swapSpells()
     -- Only swap spells in standard spell set
-    if state.spellSetLoaded ~= 'standard' or mq.TLO.Me.Moving() then return end
+    if not self:isEnabled('SWAPSPELLS') or state.spellSetLoaded ~= 'standard' or mq.TLO.Me.Moving() then return end
+    -- try to only swap after at least a few dots are on the mob
+    if self.spells.haze and not mq.TLO.Target.MyBuff(self.spells.haze.Name)() then return end
 
     local woundsName = self.spells.wounds and self.spells.wounds.Name
     local pyrelongName = self.spells.pyrelong and self.spells.pyrelong.Name
@@ -591,7 +594,7 @@ local necCountTimer = timer:new(60000)
 -- end
 
 function Necromancer:drawBurnTab()
-    self.options.BURNPROC.value = ui.drawCheckBox('Burn On Proc', self.options.BURNPROC.value, 'Burn when proliferation procs')
+    self:set('BURNPROC', widgets.CheckBox('Burn On Proc', self:get('BURNPROC'), 'Burn when proliferation procs'))
 end
 
 return Necromancer

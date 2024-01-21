@@ -26,7 +26,7 @@ local ShadowKnight = class:new()
 ]]
 function ShadowKnight:init()
     self.classOrder = {'assist', 'cast', 'ae', 'mash', 'burn', 'recover', 'rest', 'buff', 'managepet'}
-    self.spellRotations = {standard={},dps={}}
+    self.spellRotations = {standard={},dps={},custom={}}
     self:initBase('SHD')
 
     mq.cmd('/squelch /stick mod -2')

@@ -28,7 +28,7 @@ local BeastLord = class:new()
 ]]
 function BeastLord:init()
     self.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},custom={}}
     self:initBase('BST')
 
     self:initClassOptions()

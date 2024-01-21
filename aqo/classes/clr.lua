@@ -47,7 +47,7 @@ local Cleric = class:new()
 
 ]]
 function Cleric:init()
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},custom={}}
     self.classOrder = {'heal', 'rez', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest'}
     self:initBase('CLR')
 

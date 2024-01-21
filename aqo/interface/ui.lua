@@ -152,7 +152,7 @@ local function drawSkillsTab()
                 if newValue ~= option.value then option.value = newValue state.spellSetLoaded = nil end
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             elseif option.type == 'inputint' then
-                option.value = widgets.InputInt(option.label, option.value, option.tip, item_width, xOffset, yOffset)
+                class:set(key, widgets.InputInt(option.label, option.value, option.tip, item_width, xOffset, yOffset))
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
         end
@@ -267,6 +267,18 @@ local function drawDebugTab()
     else
         ImGui.TextColored(RED, '--')
     end
+    if not state.forceEngage then
+        if ImGui.Button('Force Engage') then
+            state.forceEngage = {ID=mq.TLO.Target.ID(), Name=mq.TLO.Target.CleanName()}
+        end
+    else
+        if ImGui.Button('Stop Force Engage') then
+            state.forceEngage = nil
+        end
+        if state.forceEngage then
+            ImGui.TextColored(RED, 'Fighting %s (%s)', state.forceEngage.Name, state.forceEngage.ID)
+        end
+    end
 end
 
 ---@ConsoleWidget
@@ -309,10 +321,8 @@ local function drawBody()
             if tab.color then ImGui.PushStyleColor(ImGuiCol.Text, tab.color) end
             if ImGui.BeginTabItem(tab.label) then
                 if tab.color then ImGui.PopStyleColor() end
-                if ImGui.BeginChild(tab.label, -1, -1, ImGuiWindowFlags.HorizontalScrollbar) then
-                    ImGui.PushItemWidth(item_width)
+                if ImGui.BeginChild(tab.label, -1, -1, 0, ImGuiWindowFlags.HorizontalScrollbar) then
                     tab.draw()
-                    ImGui.PopItemWidth()
                 end
                 ImGui.EndChild()
                 ImGui.EndTabItem()
@@ -326,7 +336,7 @@ end
 
 local function drawHeader()
     local x, y = ImGui.GetContentRegionAvail()
-    local buttonWidth = (x / 2) - 22
+    local buttonWidth = (x / 2) - 37--22
     if state.paused then
         if ImGui.Button(icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
             camp.setCamp()
@@ -346,10 +356,22 @@ local function drawHeader()
     end
     widgets.HelpMarker('Save Settings')
     ImGui.SameLine()
-    if ImGui.Button(icons.MD_HELP, -1, BUTTON_HEIGHT) then
+    if ImGui.Button(icons.MD_HELP, 26, BUTTON_HEIGHT) then
         helpGUIOpen = true
     end
     widgets.HelpMarker('Help')
+    ImGui.SameLine()
+    local oldLocked = config.get('LOCKED')
+    config.LOCKED.value = widgets.LockButton('aqolocked', config.get('LOCKED'))
+    if not oldLocked and config.get('LOCKED') then
+        -- lock window
+        local windowPos = ImGui.GetWindowPosVec()
+        local windowSize = ImGui.GetWindowSizeVec()
+        config.set('WINDOWPOSX', windowPos.x)
+        config.set('WINDOWPOSY', windowPos.y)
+        config.set('WINDOWWIDTH', windowSize.x)
+        config.set('WINDOWHEIGHT', windowSize.y)
+    end
     ImGui.Text('Bot Status: ')
     ImGui.SameLine()
     ImGui.SetCursorPosX(buttonWidth+16)
@@ -705,7 +727,15 @@ end
 function ui.main()
     if not openGUI then return end
     pushStyle(config.THEME.value)
-    openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, 0)
+    local flags = 0
+    if config.get('LOCKED') then
+        flags = bit32.bor(ImGuiWindowFlags.NoMove, ImGuiWindowFlags.NoResize)
+    end
+    local posX, posY = config.get('WINDOWPOSX'), config.get('WINDOWPOSY')
+    local width, height = config.get('WINDOWWIDTH'), config.get('WINDOWHEIGHT')
+    if posX and posY then ImGui.SetNextWindowPos(ImVec2(posX, posY), ImGuiCond.Once) end
+    if width and height then ImGui.SetNextWindowSize(ImVec2(width, height), ImGuiCond.Once) end
+    openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, flags)
     if shouldDrawGUI then
         drawHeader()
         drawBody()

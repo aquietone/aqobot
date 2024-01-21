@@ -485,7 +485,47 @@ local config = {
         type = 'inputint',
         tlo = 'Opacity',
         tlotype = 'int',
-    }
+    },
+    LOCKED = {
+        value = true,
+        tip = 'Lock the window position',
+        label = 'Lock Window',
+        type = 'checkbox',
+        tlo = 'Locked',
+        tlotype = 'boolean',
+    },
+    WINDOWPOSX = {
+        value = 200,
+        tip = '',
+        label = '',
+        type = 'inputint',
+        tlo = 'WindowPosX',
+        tlotype = 'int'
+    },
+    WINDOWPOSY = {
+        value = 200,
+        tip = '',
+        label = '',
+        type = 'inputint',
+        tlo = 'WindowPosY',
+        tlotype = 'int'
+    },
+    WINDOWWIDTH = {
+        value = 200,
+        tip = '',
+        label = '',
+        type = 'inputint',
+        tlo = 'WindowWidth',
+        tlotype = 'int'
+    },
+    WINDOWHEIGHT = {
+        value = 200,
+        tip = '',
+        label = '',
+        type = 'inputint',
+        tlo = 'WindowHeight',
+        tlotype = 'int'
+    },
 }
 
 function config.get(key)

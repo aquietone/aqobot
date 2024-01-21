@@ -82,7 +82,7 @@ local Shaman = class:new()
 ]]
 function Shaman:init()
     self.classOrder = {'heal', 'cure', 'assist', 'aggro', 'debuff', 'cast', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
-    self.spellRotations = {standard={},hybrid={},dps={}}
+    self.spellRotations = {standard={},hybrid={},dps={},custom={}}
     self:initBase('SHM')
 
     self:initClassOptions()

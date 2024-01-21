@@ -15,7 +15,7 @@ local Enchanter = class:new()
 ]]
 function Enchanter:init()
     self.classOrder = {'assist', 'mez', 'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'managepet', 'rez'}
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},custom={}}
     self.AURAS = {twincast=true, combatinnate=true, spellfocus=true, regen=true, disempower=true,}
     self:initBase('ENC')
 

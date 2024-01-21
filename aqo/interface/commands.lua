@@ -274,41 +274,41 @@ end
 
 function commands.classSettingsHandler(opt, new_value)
     if new_value then
-        if opt == 'SPELLSET' and class.options.SPELLSET ~= nil then
+        if opt == 'SPELLSET' and class:get('SPELLSET') then
             if class.spellRotations[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.options.SPELLSET.value = new_value
+                class:set('SPELLSET', new_value)
             end
-        elseif opt == 'USEEPIC' and class.options.USEEPIC ~= nil then
+        elseif opt == 'USEEPIC' and class:get('USEEPIC') then
             if class.EPIC_OPTS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.options.USEEPIC.value = new_value
+                class:set('USEEPIC', new_value)
             end
-        elseif opt == 'AURA1' and class.options.AURA1 ~= nil then
+        elseif opt == 'AURA1' and class:get('AURA1') then
             if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.options.AURA1.value = new_value
+                class:set('AURA1', new_value)
             end
-        elseif opt == 'AURA2' and class.options.AURA2 ~= nil then
+        elseif opt == 'AURA2' and class:get('AURA2') then
             if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
-                class.options.AURA2.value = new_value
+                class:set('AURA2', new_value)
             end
-        elseif class.options[opt] and type(class.options[opt].value) == 'boolean' then
+        elseif type(class:get(opt)) == 'boolean' then
             if constants.booleans[new_value] == nil then return end
-            class.options[opt].value = constants.booleans[new_value]
+            class:set(opt, constants.booleans[new_value])
             logger.info('Setting %s to: %s', opt, constants.booleans[new_value])
-        elseif class.options[opt] and type(class.options[opt].value) == 'number' then
+        elseif type(class:get(opt)) == 'number' then
             if tonumber(new_value) then
                 logger.info('Setting %s to: %s', opt, tonumber(new_value))
-                if class.options[opt].value ~= nil then class.options[opt].value = tonumber(new_value) end
+                class:set(opt, tonumber(new_value))
             end
         else
             logger.info('Unsupported command line option: %s %s', opt, new_value)
         end
     else
         if class.options[opt] ~= nil then
-            logger.info('%s: %s', opt:lower(), class.options[opt].value)
+            logger.info('%s: %s', opt:lower(), class:get(opt))
         else
             logger.info('Unrecognized option: %s', opt)
         end

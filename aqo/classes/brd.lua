@@ -13,10 +13,10 @@ function Bard:init()
     self.classOrder = {'assist', 'mez', 'assist', 'aggro', 'burn', 'cast', 'mash', 'ae', 'recover', 'buff', 'rest'}
     self.EPIC_OPTS = {always=1,shm=1,burn=1,never=1}
     if state.emu then
-        self.spellRotations = {emuancient={},emucaster70={},emuaura65={},emuaura55={},emunoaura={}}
+        self.spellRotations = {emuancient={},emucaster70={},emuaura65={},emuaura55={},emunoaura={},custom={}}
         self.defaultSpellset='emuancient'
     else
-        self.spellRotations = {melee={},caster={},meleedot={}}
+        self.spellRotations = {melee={},caster={},meleedot={},custom={}}
         self.defaultSpellset='melee'
     end
     self:initBase('BRD')
@@ -450,7 +450,8 @@ function Bard:cast()
     if not mq.TLO.Me.Invis() and self:doneSinging() then
         --if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' then
         if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.Combat() then
-            if (self.options.USEEPIC.value == 'always' or state.burnActive or (self.options.USEEPIC.value == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
+            local useEpic = self:get('USEEPIC')
+            if (useEpic == 'always' or state.burnActive or (useEpic == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
                 if self:useEpic() then mq.delay(250) return true end
             end
             for _,clicky in ipairs(self.castClickies) do

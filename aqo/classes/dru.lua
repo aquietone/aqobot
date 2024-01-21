@@ -32,7 +32,7 @@ local Druid = class:new()
 ]]
 function Druid:init()
     self.classOrder = {'heal', 'assist', 'debuff', 'cast', 'mash', 'burn', 'recover', 'rez', 'buff', 'rest', 'managepet'}
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},custom={}}
     self:initBase('DRU')
 
     self:initClassOptions()

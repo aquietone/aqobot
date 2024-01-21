@@ -86,7 +86,9 @@ local function buffSelf(base)
                 local spell = mq.TLO.Spell(buff.Name)
                 canCast = abilities.canUseSpell(spell, buff)
             end
-            if canCast == abilities.IsReady.CAN_CAST and not haveBuff(buffName) and not haveBuff(buff.CheckFor) and mq.TLO.Spell(buff.CheckFor or buff.Name).Stacks() and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
+            if canCast == abilities.IsReady.CAN_CAST and not haveBuff(buffName) and not haveBuff(buff.CheckFor)
+                    and mq.TLO.Spell(buff.CheckFor or buff.Name).Stacks() and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()])
+                    and (not buff.skipifbuff or not mq.TLO.Me.Buff(buff.skipifbuff)()) then
                 if buff.TargetType == 'Single' then mq.TLO.Me.DoTarget() end
                 result = abilities.use(buff, base, true)
                 if result then

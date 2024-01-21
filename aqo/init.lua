@@ -116,6 +116,9 @@ local torporLandedInCombat = false
 local function buffSafetyCheck()
     if state.class == 'NEC' and mq.TLO.Me.PctHPs() < 40 and class.spells.lich then
         mq.cmdf('/removebuff %s', class.spells.lich.Name)
+        if class.spells.flesh then
+            mq.cmdf('/removebuff %s', class.spells.flesh.Name)
+        end
     end
     if not torporLandedInCombat and mq.TLO.Me.Song('Transcendent Torpor')() and mq.TLO.Me.CombatState() == 'COMBAT' then
         torporLandedInCombat = true

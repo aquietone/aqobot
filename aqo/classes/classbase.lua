@@ -139,6 +139,7 @@ function base:addCommonOptions()
     if self.spellRotations then
         self:addOption('SPELLSET', 'Spell Set', self.defaultSpellset or 'standard' , self.spellRotations, 'The spell set to be used', 'combobox', nil, 'SpellSet', 'string')
         self:addOption('BYOS', 'BYOS', true, nil, 'Bring your own spells', 'checkbox', nil, 'BYOS', 'bool')
+        self:addOption('FORCEROTATE', 'Rotate Spells', false, nil, 'Force iterating through the spell rotation even if earlier spells are ready', 'checkbox', nil, 'ForceRotate', 'bool')
     end
     self:addOption('USEAOE', 'Use AOE', true, nil, 'Toggle use of AOE abilities', 'checkbox', nil, 'UseAOE', 'bool')
     if not state.emu then self:addOption('USEALLIANCE', 'Use Alliance', true, nil, 'Use alliance spell', 'checkbox', nil, 'UseAlliance', 'bool') end
@@ -197,6 +198,10 @@ end
 
 function base:get(key)
     return self.options[key] and self.options[key].value
+end
+
+function base:set(key, value)
+    self.options[key].value = value
 end
 
 ---Add the best N spells from the list of spells to the class spell list
@@ -418,6 +423,7 @@ function base:assist()
         end
         assist.sendPet()]]
     end
+    if state.forceEngage then assist.sendPet() end
 end
 
 function base:tank()
@@ -644,7 +650,7 @@ function base:cast()
                             spell:use(true)
                             state.actionTaken = true
                             dotted_count = dotted_count + 1
-                            if dotted_count >= self.options.MULTICOUNT.value then break end
+                            if dotted_count >= self:get('MULTICOUNT') then break end
                         end
                     end
                 end
@@ -690,7 +696,7 @@ function base:mez()
     -- don't try to mez in manual mode
     if mode.currentMode:isManualMode() or mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then return end
     if self:isEnabled('MEZAE') and self.spells.mezae then
-        if mez.doAE(self.spells.mezae, self.options.MEZAECOUNT.value) then state.actionTaken = true end
+        if mez.doAE(self.spells.mezae, self:get('MEZAECOUNT')) then state.actionTaken = true end
     end
     if self:isEnabled('MEZST') and self.spells.mezst then
         if mez.doSingle(self.spells.mezst) then state.actionTaken = true end

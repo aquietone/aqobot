@@ -20,7 +20,7 @@ local Ranger = class:new()
 ]]
 function Ranger:init()
     self.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},custom={}}
     self:initBase('RNG')
 
     mq.cmd('/squelch /stick mod 0')
@@ -424,7 +424,7 @@ local snared_id = 0
 function Ranger:cast()
     if not mq.TLO.Me.Invis() and mq.TLO.Me.CombatState() == 'COMBAT' then
         if assist.isFighting() then
-            if self.spells.snare and mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and self.options.USESNARE.value then
+            if self.spells.snare and mq.TLO.Target.ID() ~= snared_id and not mq.TLO.Target.Snared() and self:isEnabled('USESNARE') then
                 self.spells.snare:use()
                 snared_id = mq.TLO.Target.ID()
                 return true

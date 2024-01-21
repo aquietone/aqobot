@@ -43,7 +43,7 @@ local Paladin = class:new()
 ]]
 function Paladin:init()
     self.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest'}
-    self.spellRotations = {standard={}}
+    self.spellRotations = {standard={},custom={}}
     self:initBase('PAL')
 
     self:loadSettings()

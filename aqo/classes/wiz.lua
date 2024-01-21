@@ -10,7 +10,7 @@ local Wizard = class:new()
 ]]
 function Wizard:init()
     self.classOrder = {'assist', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
-    self.spellRotations = {standard={}, ae={}}
+    self.spellRotations = {standard={}, ae={},custom={}}
     self:initBase('WIZ')
 
     self:loadSettings()
