@@ -35,6 +35,11 @@ function status.callback(message)
     if not message.content.songs then state.actors[message.content.Name].songs = nil end
     if not message.content.wantBuffs then state.actors[message.content.Name].wantBuffs = nil end
     if not message.content.gimme then state.actors[message.content.Name].gimme = nil end
+    for toon, toonState in pairs(state.actors) do
+        if mq.gettime() - (toonState.LastSent or 0) > 30000 then
+            state.actors[toon] = nil
+        end
+    end
 end
 
 local statusTimer = Timer:new(1000)
