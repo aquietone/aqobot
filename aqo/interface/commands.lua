@@ -174,7 +174,7 @@ function commands.commandHandler(...)
             end
         end
         if itemName then
-            local clicky = {name=itemName, clickyType=clickyType, summonMinimum=summonMinimum, opt=useif}
+            local clicky = {name=itemName, clickyType=clickyType, summonMinimum=summonMinimum, opt=useif, enabled=true}
             class:addClicky(clicky)
             class:saveSettings()
         else

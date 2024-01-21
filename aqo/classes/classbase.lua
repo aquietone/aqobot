@@ -277,12 +277,12 @@ function base:getTableForClicky(clickyType)
 end
 
 function base:addClicky(clicky)
-    self.clickies[clicky.name] = {clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=true}
+    self.clickies[clicky.name] = {clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled}
     local item = mq.TLO.FindItem('='..clicky.name)
     if item.Clicky() then
         local t = self:getTableForClicky(clicky.clickyType)
         if t then
-            table.insert(t, common.getItem(clicky.name, {summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=true}))
+            table.insert(t, common.getItem(clicky.name, {summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled}))
         end
         logger.info('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
     end
