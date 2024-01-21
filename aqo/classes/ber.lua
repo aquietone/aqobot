@@ -27,6 +27,7 @@ end
 function Berserker:initClassOptions()
     if state.emu then
         self:addOption('USEDECAP', 'Use Decap', true, nil, 'Toggle use of decap AA', 'checkbox', nil, 'UseDecap', 'bool')
+        self:addOption('USEEPIC', 'Use Epic', true, nil, 'Toggle use of epic 2.0 click', 'checkbox', nil, 'UseEpic', 'bool')
     end
 end
 
