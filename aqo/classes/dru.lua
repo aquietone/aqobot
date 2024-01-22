@@ -112,6 +112,7 @@ Druid.SpellLines = {
     {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}}, -- adds cold dmg proc to spells
 }
 
+Druid.compositeNames = {['Ecliptic Winds']=true,['Composite Winds']=true,['Dissident Winds']=true,['Dichotomic Winds']=true,}
 Druid.allDPSSpellGroups = {'dot1', 'dot2', 'dot3', 'dot4', 'dot5', 'tcnuke', 'nuke1', 'nuke2', 'nuke3', 'nuke4', 'snare'}
 
 function Druid:initSpellRotations()

@@ -119,8 +119,6 @@ function Shaman:initClassOptions()
     self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
 end
 
-Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Dichotomic Roar']=true}
-
 Shaman.SpellLines = {
     {-- proc buff slow + heal, 240 charges. Slot 1
         Group='slowproc',
@@ -226,7 +224,7 @@ Shaman.SpellLines = {
     },
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
         Group='composite',
-        Spells={'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Dichotomic Roar'},
+        Spells={'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Roar of the Lion'},
         Options={Gem=12}
     },
     {-- Combo 2x DoTs + 1-2 nukes. Slot 13 (heal) or 6 (dps)
@@ -299,6 +297,7 @@ Shaman.SpellLines = {
     --Call of the Ancients -- 5 minute duration ward AE healing
 }
 
+Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Roar of the Lion']=true}
 Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
     'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot'}
 
@@ -412,7 +411,6 @@ function Shaman:initBuffs()
     table.insert(self.selfBuffs, common.getAA('Languid Bite'))
     table.insert(self.singleBuffs, self.spells.groupunity)
     table.insert(self.singleBuffs, common.getAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}}))
-    --table.insert(self.groupBuffs, common.getAA('Group Pact of the Wolf', {group=true, self=false}))
     -- pact of the wolf, remove pact of the wolf effect
 
     self:addRequestAlias(self.radiant, 'RC')

@@ -32,7 +32,7 @@ local Rogue = class:new()
     common.getAA('Rogue\'s Fury') -- inc all skills dmg modifiers, min dmg, chance to hit
     common.getBestDisc({'Frenzied Stabbing Discipline'}) -- more backstabs
     common.getAA('Focused Rake\'s Rampage') -- single target rampage
-    common.getBestDisc({'Dissident Weapons'}) -- inc dmg
+    common.getBestDisc({'Ecliptic Weapons', 'Composite Weapons', 'Dissident Weapons', 'Dichotomic Weapons'}) -- inc dmg
     common.getAA('Spire of the Rake') -- inc crit dmg, chance, dmg bonus
     common.getAA('Shadow\'s Flanking') -- inc melee dmg from behind
 

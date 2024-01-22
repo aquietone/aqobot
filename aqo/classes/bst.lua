@@ -257,6 +257,7 @@ BeastLord.SpellLines = {
     --     self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
 }
 
+BeastLord.compositeNames = {['Ecliptic Fury']=true, ['Composite Fury']=true, ['Dissident Fury']=true, ['Dichotomic Fury']=true}
 BeastLord.allDPSSpellGroups = {'nuke1', 'nuke2', 'nuke3', 'lance1', 'lance2', 'roar', 'dddot1', 'dot1', 'dddot2', 'swarmpet', 'alliance'}
 
 function BeastLord:initSpellRotations()
@@ -462,7 +463,5 @@ function BeastLord:recoverClass()
         end
     end
 end
-
-BeastLord.compositeNames = {['Ecliptic Fury']=true, ['Composite Fury']=true, ['Dissident Fury']=true, ['Dichotomic Fury']=true}
 
 return BeastLord

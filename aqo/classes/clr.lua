@@ -207,7 +207,7 @@ Cleric.SpellLines = {
     },
     {-- Slot 10
         Group='composite',
-        Spells={'Ecliptic Blessing', 'Composite Blessing', 'Dissident Blessing', 'Dichotomic Blessing'},
+        Spells={'Ecliptic Blessing', 'Composite Blessing', 'Dissident Blessing', 'Undying Life'},
         Options={Gem=10, tank=true, panic=true}
     },
     -- {-- TODO: when to use? maybe lower levels? slower heal. Slot 11
@@ -285,6 +285,7 @@ Cleric.SpellLines = {
     {Group='da', Spells={'Divine Bulwark', 'Divine Keep', 'Divine Indemnity', 'Divine Haven', 'Divine Fortitude', 'Divine Eminence', 'Divine Destiny', 'Divine Custody', --[[emu cutoff]] 'Divine Barrier', 'Divine Aura'}},
 }
 
+Cleric.compositeNames = {['Ecliptic Blessing']=true, ['Composite Blessing']=true, ['Dissident Blessing']=true, ['Undying Life']=true}
 Cleric.allDPSSpellGroups = {'rebuke', 'contravention', 'stun', 'aestun'}
 
 function Cleric:initSpellRotations()
@@ -420,7 +421,5 @@ function Cleric:initRecoverAbilities()
     table.insert(self.recoverAbilities, self.qm)
     self:addRequestAlias(self.qm, 'QM')
 end
-
-Cleric.compositeNames = {['Ecliptic Blessing']=true, ['Composite Blessing']=true, ['Dissident Blessing']=true, ['Dichotomic Blessing']=true}
 
 return Cleric

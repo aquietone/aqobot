@@ -69,7 +69,6 @@ end
     table.insert(self.burnAbilities, common.getBestDisc({'Ironfist'}, {first=true})) -- inc melee dmg
     table.insert(self.burnAbilities, common.getAA('Spire of the Sensei', {first=true}))  -- inc chance for wep procs
     table.insert(self.burnAbilities, common.getBestDisc({'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'}, {first=true})) -- adds extra attacks
-    table.insert(self.burnAbilities, common.getBestDisc({'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'}, {first=true})) -- large bonus dmg
     table.insert(self.burnAbilities, common.getAA('Infusion of Thunder', {first=true})) -- chance to inc melee dmg + nuke
 
     -- Burn spam
@@ -121,7 +120,6 @@ function Monk:initBurns()
         table.insert(self.burnAbilities, common.getBestDisc({'Ironfist'}, {first=true})) -- inc melee dmg
         table.insert(self.burnAbilities, common.getAA('Spire of the Sensei', {first=true}))  -- inc chance for wep procs
         table.insert(self.burnAbilities, common.getBestDisc({'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'}, {first=true})) -- adds extra attacks
-        table.insert(self.burnAbilities, common.getBestDisc({'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'}, {first=true})) -- large bonus dmg
         table.insert(self.burnAbilities, common.getAA('Infusion of Thunder', {first=true})) -- chance to inc melee dmg + nuke
         table.insert(self.burnAbilities, common.getBestDisc({'Crane Stance'}, {first=true})) -- 2 big kicks
 
@@ -150,6 +148,7 @@ function Monk:initBuffs()
     table.insert(self.combatBuffs, common.getBestDisc({'Fists of Wu'}))
     table.insert(self.combatBuffs, common.getAA('Zan Fi\'s Whistle'))
     table.insert(self.combatBuffs, common.getAA('Infusion of Thunder'))
+    table.insert(self.combatBuffs, common.getBestDisc({'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'})) -- large bonus dmg
 end
 
 function Monk:initDefensiveAbilities()

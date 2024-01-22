@@ -225,6 +225,7 @@ Enchanter.SpellLines = {
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic'}, Options={opt='USEDISPEL'}},
 }
 
+Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 Enchanter.allDPSSpellGroups = {'dot1', 'dot2', 'mindnuke1', 'mindnuke2', 'nuke1', 'nuke2', 'nuke3', 'manadot', 'nukerune', 'debuffdot', 'stunst', 'stunae', 'stunpbae', 'stunaerune'}
 
 function Enchanter:initSpellRotations()
@@ -401,8 +402,6 @@ local function missing_unity_buffs(name)
     end
     return false
 end
-
-Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 
 --[[
 #Event CAST_IMMUNE                 "Your target has no mana to affect#*#"

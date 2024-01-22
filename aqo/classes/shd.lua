@@ -182,6 +182,7 @@ ShadowKnight.SpellLines = {
     --['']=common.get_best_spell({'Remorseless Demeanor'})
 }
 
+ShadowKnight.compositeNames = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 ShadowKnight.allDPSSpellGroups = {'tap1', 'tap2', 'largetap', 'composite', 'spear', 'terror', 'poison', 'aeterror', 'aetap', 'disease', 'dottap', 'challenge',
     'corruption', 'acdebuff', 'bitetap', 'tap3', 'alliance', 'acdis'}
 
@@ -350,8 +351,6 @@ function ShadowKnight:ohshit()
         end
     end
 end
-
-ShadowKnight.compositeNames = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 
 --[[self.pullCustom = function()
     if self.spells.challenge then

@@ -1,78 +1,89 @@
 ---@type Mq
 local mq = require 'mq'
-local config = require('interface.configuration')
-local assist = require('routines.assist')
-local buffing = require('routines.buff')
-local camp = require('routines.camp')
-local curing = require('routines.cure')
-local debuff = require('routines.debuff')
-local healing = require('routines.heal')
-local mez = require('routines.mez')
-local pull = require('routines.pull')
-local tank = require('routines.tank')
-local helpers = require('utils.helpers')
-local logger = require('utils.logger')
-local movement = require('utils.movement')
-local timer = require('utils.timer')
-local abilities = require('ability')
-local common = require('common')
-local constants = require('constants')
-local mode = require('mode')
-local state = require('state')
 
+local config    = require('interface.configuration')
+
+local assist    = require('routines.assist')
+local buffing   = require('routines.buff')
+local camp      = require('routines.camp')
+local curing    = require('routines.cure')
+local debuff    = require('routines.debuff')
+local healing   = require('routines.heal')
+local mez       = require('routines.mez')
+local pull      = require('routines.pull')
+local tank      = require('routines.tank')
+
+local helpers   = require('utils.helpers')
+local logger    = require('utils.logger')
+local movement  = require('utils.movement')
+local timer     = require('utils.timer')
+
+local abilities = require('ability')
+local common    = require('common')
+local constants = require('constants')
+local mode      = require('mode')
+local state     = require('state')
+
+---Each EQ class' implementation extends from and overrides this base class.
+---Base provides the main class routine loop and common implementations to iterate over ability lists
+---and to call into each configured class routine.
 ---@class base
----@field classOrder table #All possible class routine methods
----@field options table #Collection of options for the class which appear in the Skills tab
----@field defaultSpellset? string #The spell set selected by default
----@field spells table #Collection of all spell id/name pairs that may be used for the class
----@field spellRotations table #Ordered spell rotations which may be loaded for the class and used in the cast routine
----@field allDPSSpellGroups table #spell group name of all detrimental DPS spells allowed for selection in custom spell rotation
----@field DPSAbilities table #Abilities used in mash in any modes
----@field tankAbilities table #Abilities used in mash in tank modes
----@field burnAbilities table #Abilities used in burn in any modes
----@field tankBurnAbilities table #Abilities used in burn in tank modes
----@field healAbilities table #Abilities used in heal
----@field AEDPSAbilities table #Abilities used in ae in any mode
----@field AETankAbilities table #Abilities used in ae in tank modes
----@field defensiveAbilities table #Abilities used in aggro in non-tank modes
----@field fadeAbilities table #Abilities used in aggro in non-tank modes
----@field aggroAbilities table #Abilities used in aggro in non-tank modes
----@field recoverAbilities table #Abilities used in recover
----@field combatBuffs table #Abilities used to buff during combat
----@field auras table #Class aura abilities
----@field selfBuffs table #Abilities used to buff yourself
----@field groupBuffs table #Abilities used to buff the group
----@field singleBuffs table #Abilities used to buff individuals by class
----@field petBuffs table #Abilities used for pet buffing
----@field cures table #Abilities used in the cure routine
----@field requests table #Stores pending requests received from other characters
----@field requestAliases table #Aliases which can be used for requesting buffs
----@field clickies table #Combined list of user added clickies of all types
----@field castClickies table #User added items used in the cast routine
----@field pullClickies table #User added items used to pull mobs
----@field debuffs table #Abilities used in the debuff routine
----@field beforeEngage? function #Function to execute before engaging target (rogue stuff)
----@field resetClassTimers? function #Function to execute to reset class specific timers
----@field doneSinging? function #Function to check whether currently singing a song or if the cast time has already completed (bard stuff)
----@field mashClass? function #Function to perform class specific mash logic
----@field aeClass? function #Function to perform class specific AE logic
----@field burnClass? function #Function to perform class specific burn logic
----@field ohShitClass? function #Function to perform class specific ohshit logic
----@field aggroClass? function #Function to perform class specific aggro logic
----@field recoverClass? function #Function to perform class specific recover logic
----@field checkSpellSet? function #Function to load class spell sets
----@field swapSpells? function #Function to perform class specific checks for spell swapping in combat (necro stuff)
----@field rezAbility? Ability #
----@field epic? string # name of epic
----@field useCommonListProcessor? boolean #
+---@field classOrder                table   #Ordered list of routines to run such as tank,assist,pull
+---@field options                   table   #Collection of class specific configuration options
+---Spells
+---@field defaultSpellset?          string  #The name of the default spell set for the class, typically 'standard' except for bards
+---@field SpellLines?               table   #Collection of all spells to be searched for at startup and any hardcoded options for each
+---@field compositeNames?           table   #Base names of each composite spell since progressive spells work funny
+---@field spells                    table   #Collection of all known spells that may be used by the class
+---@field spellRotations?           table   #Ordered spell rotations used in the cast routine, specifically for DPS spells
+---@field BYOSRotation?             table   #Ordered DPS spell rotation used in BYOS mode based on currently mem'd spells
+---@field customRotation?           table   #Ordered user defined DPS spell rotation when in BYOS mode
+---@field allDPSSpellGroups         table   #Spell group names of all DPS spells allowed for selection in custom spell rotation
+---Ability lists
+---@field useCommonListProcessor?   boolean #
+---@field DPSAbilities              table   #Abilities used in mash in any modes
+---@field tankAbilities             table   #Abilities used in mash in tank modes
+---@field burnAbilities             table   #Abilities used in burn in any modes
+---@field tankBurnAbilities         table   #Abilities used in burn in tank modes
+---@field healAbilities             table   #Abilities used in heal routine
+---@field AEDPSAbilities            table   #Abilities used in ae in any mode
+---@field AETankAbilities           table   #Abilities used in ae in tank modes
+---@field defensiveAbilities        table   #Abilities used in aggro in non-tank modes
+---@field fadeAbilities             table   #Abilities used in aggro in non-tank modes
+---@field aggroReducers             table   #Abilities used in aggro in non-tank modes
+---@field recoverAbilities          table   #Abilities used in recover
+---@field combatBuffs               table   #Abilities used to buff during combat
+---@field auras                     table   #Class aura abilities
+---@field selfBuffs                 table   #Abilities used to buff yourself
+---@field singleBuffs               table   #Abilities used to buff individuals by class
+---@field petBuffs                  table   #Abilities used for pet buffing
+---@field cures                     table   #Abilities used in the cure routine
+---@field debuffs                   table   #Abilities used in the debuff routine
+---@field rezAbility?               Ability #
+---@field epic?                     string  # name of epic
+---Request handling
+---@field requests                  table   #Stores pending requests received from other characters
+---@field requestAliases            table   #Aliases which can be used for requesting buffs
+---Clicky management
+---@field clickies                  table   #Combined list of user added clickies of all types
+---@field castClickies              table   #User added items used in the cast routine
+---@field pullClickies              table   #User added items used to pull mobs
+---Class functions
+---@field beforeEngage?             function #Function to execute before engaging target (rogue stuff)
+---@field resetClassTimers?         function #Function to execute to reset class specific timers
+---@field doneSinging?              function #Function to check whether currently singing a song or if the cast time has already completed (bard stuff)
+---@field mashClass?                function #Function to perform class specific mash logic
+---@field aeClass?                  function #Function to perform class specific AE logic
+---@field burnClass?                function #Function to perform class specific burn logic
+---@field ohShitClass?              function #Function to perform class specific ohshit logic
+---@field aggroClass?               function #Function to perform class specific aggro logic
+---@field recoverClass?             function #Function to perform class specific recover logic
+---@field checkSpellSet?            function #Function to load class spell sets
+---@field swapSpells?               function #Function to perform class specific checks for spell swapping in combat (necro stuff)
 local base = {
     -- All possible class routine methods
     options = {},
     spells = {},
-    SpellLines = {},
-    compositeNames = {},
-    customRotation = {},
-    BYOSRotation = {},
     DPSAbilities = {},
     tankAbilities = {},
     burnAbilities = {},
@@ -87,7 +98,6 @@ local base = {
     combatBuffs = {},
     auras = {},
     selfBuffs = {},
-    groupBuffs = {},
     singleBuffs = {},
     petBuffs = {},
     cures = {},
@@ -97,7 +107,6 @@ local base = {
     clickies = {},
     castClickies = {},
     pullClickies = {},
-    --pet
 }
 
 function base:new(o)
@@ -112,8 +121,9 @@ function base:initBase(class)
     self:addCommonOptions()
 end
 
--- Options added by key/value as well as by index/key so that settings can be displayed
--- in the skills tab in the order in which they are defined.
+---Adds a new class configuration option which will be exposed via the UI, CLI and TLO. 
+---Options added by key/value as well as by index/key so that settings can be displayed
+---in the skills tab in the order in which they are defined.
 --- @param key string # The configuration key
 --- @param label string # The text label that appears in the UI
 --- @param value string|boolean|number # The default value for the setting
@@ -134,6 +144,7 @@ function base:addOption(key, label, value, options, tip, type, exclusive, tlo, t
     }
     table.insert(self.options, key)
 end
+
 
 function base:addCommonOptions()
     if self.spellRotations then
@@ -397,9 +408,11 @@ end
 
 function base:initBYOSCustom()
     if self.customRotationTemp then
+        self.customRotation = {}
         for i,spellGroup in ipairs(self.customRotationTemp) do
             self.customRotation[i] = self.spells[spellGroup]
         end
+        self.customRotationTemp = nil
     end
 end
 
@@ -973,7 +986,7 @@ end
 
 base.checkSpellTimer = timer:new(30000)
 function base:checkMemmedSpells()
-    if not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
+    if not mq.TLO.Me.Class.CanCast() or not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
     local spellSet = self:get('SPELLSET')
     if state.spellSetLoaded ~= spellSet or self.checkSpellTimer:timerExpired() then
         local numGems = mq.TLO.Me.NumGems() or 8

@@ -201,6 +201,7 @@ Necromancer.SpellLines = {
     {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}},
 }
 
+Necromancer.compositeNames = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 Necromancer.allDPSSpellGroups = {'pyreshort', 'magic', 'venom', 'haze', 'grasp', 'leech', 'manatap', 'alliance', 'ignite', 'scourge', 'corruption',
     'composite', 'combodisease', 'wounds', 'pyrelong', 'fireshadow', 'swarm', 'synergy', 'decay', 'grip', 'tapee', 'tap', 'tapsummon', 'chaotic', 'sphere', 'venin', 'snare'}
 
@@ -583,8 +584,6 @@ function Necromancer:aggroOld()
         end
     end
 end
-
-Necromancer.compositeNames = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 
 local necCountTimer = timer:new(60000)
 

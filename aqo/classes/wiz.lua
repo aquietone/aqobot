@@ -35,6 +35,7 @@ Wizard.SpellLines = {
     {Group='ae4', Spells={'Jyll\'s Wave of Heat'}},
 }
 
+Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
 Wizard.allDPSSpellGroups = {'nuke1', 'nuke2', 'Swarm', 'rain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
 
 function Wizard:initSpellRotations()

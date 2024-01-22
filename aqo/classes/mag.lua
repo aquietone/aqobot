@@ -390,6 +390,7 @@ Magician.SpellLines = {
 }
 
 Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
+Magician.allDPSSpellGroups = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
 
 function Magician:initSpellRotations()
     self:initBYOSCustom()
@@ -455,8 +456,6 @@ end
 function Magician:initDefensiveAbilities()
     table.insert(self.fadeAbilities, common.getAA('Companion of Necessity'))
 end
-
-Magician.allDPSSpellGroups = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
 
 function Magician:getPetSpell()
     return self.spells[self.PetTypes[self:get('PETTYPE')]]

@@ -159,6 +159,7 @@ Ranger.SpellLines = {
     {Group='heal', Spells={'Sylvan Water', 'Sylvan Light'}},
 }
 
+Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 Ranger.allDPSSpellGroups = {'firenuke1', 'focused', 'aoearrow', 'healtot2', 'heart', 'firenuke2', 'dot', 'healtot', 'shots', 'dotds', 'coldnuke1', 'composite', 
     'alliance', 'opener', 'firenuke3', 'coldnuke2', 'barrage', 'snare'}
 
@@ -526,8 +527,6 @@ local function target_missing_buff(name)
     end
     return false
 end
-
-Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 
 function Ranger:assist()
     if mq.TLO.Navigation.Active() then return end

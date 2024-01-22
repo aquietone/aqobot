@@ -482,6 +482,7 @@ local function drawSpellRotationUI()
             ImGui.SameLine()
             ImGui.SetCursorPosX(280)
             ImGui.Text('Available Spells')
+            if not class.customRotation then class.customRotation = {} end
             if ImGui.BeginListBox('##AssignedSpells', ImVec2(200,-1)) then
                 for i,spell in ipairs(class.customRotation) do
                     if ImGui.Selectable(('%s: %s'):format(i, spell.Name), selected_left == i) then

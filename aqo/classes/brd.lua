@@ -186,6 +186,8 @@ Bard.SpellLines = {
 
     {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed'}},
 }
+
+Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 Bard.allDPSSpellGroups = {'aria', 'arcane', 'chantfrost', 'spiteful', 'firenukebuff', 'chantflame', 'suffering', 'insult', 'warmarch', 'sonata', 'firemagicdotbuff', 'chantdisease',
     'crescendo', 'pulse', 'composite', 'dirge', 'insultpushback', 'chantpoison', 'alliance', 'overhaste', 'bardhaste', 'emuhaste', 'snare', 'debuff'}
 
@@ -538,8 +540,6 @@ function Bard:invis()
     mq.cmd('/cast "selo\'s song of travel"')
     mq.delay(3500, function() return mq.TLO.Me.Invis() end)
 end
-
-Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 
 function Bard:pullCustom()
     if self.fluxstaff then

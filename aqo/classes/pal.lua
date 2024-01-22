@@ -57,6 +57,10 @@ function Paladin:init()
     self.rezStick = common.getItem('Staff of Forbidden Rites')
 end
 
+Paladin.SpellLines = {}
+Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
+Paladin.allDPSSpellGroups = {}
+
 function Paladin:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getSkill('Kick'))
 end
