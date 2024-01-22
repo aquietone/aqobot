@@ -159,10 +159,12 @@ local function buffActors(base)
                 if availableBuffs[buff] then
                     --logger.info('Can cast buff %s for %s', availableBuffs[buff], name)
                     local spawn = mq.TLO.Spawn('pc ='..name..' radius 150')
-                    spawn.DoTarget()
-                    mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
-                    if mq.TLO.Target.ID() == spawn.ID() and not mq.TLO.Target.Buff(availableBuffs[buff])() then
-                        if abilities.use(base:getAbilityForAlias(buff), base, true) then return true end
+                    if spawn() then
+                        spawn.DoTarget()
+                        mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
+                        if mq.TLO.Target.ID() == spawn.ID() and not mq.TLO.Target.Buff(availableBuffs[buff])() then
+                            if abilities.use(base:getAbilityForAlias(buff), base, true) then return true end
+                        end
                     end
                 end
             end

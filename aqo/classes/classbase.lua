@@ -775,9 +775,9 @@ function base:recover()
     local pct_end = mq.TLO.Me.PctEndurance()
     local combat_state = mq.TLO.Me.CombatState()
     local useAbility = nil
-    if self.useCommonListProcessor then
-        common.processList(self.recoverAbilities, self, true)
-    else
+    --if self.useCommonListProcessor then
+    --    common.processList(self.recoverAbilities, self, true)
+    --else
         for _,ability in ipairs(self.recoverAbilities) do
             if self:isAbilityEnabled(ability.opt) and (not ability.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
                 if ability.mana and pct_mana < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) and (ability.ooc or mq.TLO.Me.CombatState() == 'COMBAT') then
@@ -799,7 +799,7 @@ function base:recover()
             if useAbility:use() then state.actionTaken = true end
             if originalTargetID > 0 then mq.cmdf('/squelch /mqtar id %s', originalTargetID) else mq.cmd('/squelch /mqtar clear') end
         end
-    end
+    --end
 end
 
 function base:rez()

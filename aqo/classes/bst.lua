@@ -257,7 +257,7 @@ BeastLord.SpellLines = {
     --     self:addSpell('heal', {'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending'}) -- (Player heal) / Salve of Artikla (Pet heal)
 }
 
-BeastLord.allDPSSpellGroups = {'nuke1', 'nuke2', 'nuke3', 'nuke4', 'roar', 'dddot1', 'dot1', 'dddot2', 'swarmpet', 'alliance'}
+BeastLord.allDPSSpellGroups = {'nuke1', 'nuke2', 'nuke3', 'lance1', 'lance2', 'roar', 'dddot1', 'dot1', 'dddot2', 'swarmpet', 'alliance'}
 
 function BeastLord:initSpellRotations()
     self:initBYOSCustom()

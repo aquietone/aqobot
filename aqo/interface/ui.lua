@@ -83,7 +83,7 @@ local function drawConfigurationForCategory(configs)
                 config.set(cfgKey, widgets.InputText(cfg.label, cfg.value, cfg.tip, item_width, xOffset, yOffset))
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             elseif cfg.type == 'inputint' then
-                config.get(cfgKey, widgets.InputInt(cfg.label, cfg.value, cfg.tip, item_width, xOffset, yOffset))
+                config.set(cfgKey, widgets.InputInt(cfg.label, cfg.value, cfg.tip, item_width, xOffset, yOffset))
                 xOffset, yOffset, maxY = ui.getNextXY(y, yAvail, xOffset, yOffset, maxY, maxLabelWidth)
             end
         end

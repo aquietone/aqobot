@@ -111,11 +111,11 @@ function pull.checkPullConditions()
     end
     if config.get('GROUPWATCHWHO') == 'none' then return true end
     if config.get('GROUPWATCHWHO') == 'self' then
-        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or mq.TLO.Me.PctMana() < config.get('MEDMANASTART') then
+        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) then
             medding = true
             return false
         end
-        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or mq.TLO.Me.PctMana() < config.get('MEDMANASTOP')) and medding then
+        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTOP'))) and medding then
             return false
         else
             medding = false
