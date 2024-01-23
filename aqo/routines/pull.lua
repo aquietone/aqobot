@@ -92,7 +92,7 @@ local function validatePull(pull_spawn, path_len, zone_sn)
     return checkMobAngle(pull_spawn) and checkZRadius(pull_spawn) and checkMobLevel(pull_spawn) and not config.ignoresContains(zone_sn, pull_spawn.CleanName())
 end
 
-local medding = false
+--local medding = false
 local healers = {CLR=true,DRU=true,SHM=true}
 local holdPullTimer = timer:new(5000)
 local holdPulls = false
@@ -112,13 +112,21 @@ function pull.checkPullConditions()
     if config.get('GROUPWATCHWHO') == 'none' then return true end
     if config.get('GROUPWATCHWHO') == 'self' then
         if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) then
-            medding = true
+            state.medding = true
+            if not mq.TLO.Me.Sitting() and state.sitTimer:timerExpired() then
+                mq.cmd('/sit')
+                state.sitTimer:reset()
+            end
             return false
         end
-        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTOP'))) and medding then
+        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTOP'))) and state.medding then
+            if not mq.TLO.Me.Sitting() and state.sitTimer:timerExpired() then
+                mq.cmd('/sit')
+                state.sitTimer:reset()
+            end
             return false
         else
-            medding = false
+            state.medding = false
         end
     end
     if mq.TLO.Group.Members() then
@@ -135,25 +143,24 @@ function pull.checkPullConditions()
                 if member.Dead() then
                     return false
                 elseif healers[member.Class.ShortName()] and config.get('GROUPWATCHWHO') == 'healer' and pctmana then
-                    if pcthp < config.get('MEDHPSTOP') then
-                        medding = true
+                    if pcthp < config.get('MEDHPSTOP') and state.groupWatchWaiting then
                         return false
                     end
-                    if pctmana < config.get('MEDMANASTOP') then
-                        medding = true
+                    if pctmana < config.get('MEDMANASTOP') and state.groupWatchWaiting then
                         return false
                     end
-                    if pctmana < config.get('MEDMANASTART') and medding then
+                    if pctmana < config.get('MEDMANASTART') then
+                        state.groupWatchWaiting = true
                         return false
-                    elseif pcthp < config.get('MEDHPSTART') and medding then
+                    elseif pcthp < config.get('MEDHPSTART') then
+                        state.groupWatchWaiting = true
                         return false
-                    else
-                        medding = false
                     end
                 end
             end
         end
     end
+    state.groupWatchWaiting = false
     return true
 end
 
@@ -265,7 +272,7 @@ local function pullNavToMob(pull_spawn, announce_pull)
     end
     if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mob_x, mob_y) > 100 then
         logger.debug(logger.flags.routines.pull, 'Moving to pull target (\at%s\ax)', state.pullMobID)
-        movement.navToSpawn('id '..state.pullMobID, 'dist=15')
+        movement.navToSpawn('id '..state.pullMobID, 'dist=5')
     end
     return true
 end
@@ -278,7 +285,7 @@ local function pullApproaching(pull_spawn)
     -- return right away if we can't read distance, as pull spawn is probably no longer valid
     if not dist3d then return true end
     -- return true once target is in range and in LOS, or if something appears on xtarget
-    return (config.get('PULLWITH') ~= 'melee' and pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 15 or common.hostileXTargets()
+    return (config.get('PULLWITH') ~= 'melee' and pull_spawn.LineOfSight() and dist3d < 200) or dist3d < 5 or common.hostileXTargets()
 end
 
 ---Aggro the specified target to be pulled. Attempts to use bow and moves closer to melee pull if necessary.
@@ -403,13 +410,14 @@ local pullEngageTimer = timer:new(3000)
 ---Sets common.tankMobID to the mob being pulled.
 function pull.pullMob()
     local pull_state = state.pullStatus
-    if anyoneDead() or mq.TLO.Me.PctHPs() < 60 or (mq.TLO.Group.Injured(70)() or 0) > 0 or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
+    if anyoneDead() or mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or (mq.TLO.Group.Injured(config.get('MEDHPSTART'))() or 0) > 0 or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
         if pull_state == constants.pullStates.APPROACHING or pull_state == constants.pullStates.ENGAGING then
             pull.clearPullVars('pullMob-deadOrInjured')
             movement.stop()
             return
         elseif not pull_state then
-            return
+            -- let this fall through to pull validation which already checks groupwatch stuff
+            --return
         end
     end
     if state.emu and config.get('LOOTMOBS') and mq.TLO.SpawnCount('npccorpse radius '..config.get('CAMPRADIUS')..' zradius 10')() > 0 then

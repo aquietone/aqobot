@@ -27,7 +27,7 @@ local BeastLord = class:new()
     Sympathetic Warder
 ]]
 function BeastLord:init()
-    self.classOrder = {'assist', 'aggro', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'managepet', 'rez'}
+    self.classOrder = {'assist', 'aggro', 'cast', 'recover', 'mash', 'burn', 'heal', 'buff', 'rest', 'managepet', 'rez'}
     self.spellRotations = {standard={},custom={}}
     self:initBase('BST')
 
@@ -397,7 +397,7 @@ function BeastLord:initBuffs()
     table.insert(self.petBuffs, common.getAA('Taste of Blood', {CheckFor='Taste of Blood', condition=conditions.missingPetCheckFor}))
 
     self.paragon = common.getAA('Paragon of Spirit', {opt='USEPARAGON'})
-    self.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true})
+    self.fParagon = common.getAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true, skipTargetCheck=true})
     self:addRequestAlias(self.fParagon, 'FPARAGON')
     self:addRequestAlias(self.paragon, 'PARAGON')
     self:addRequestAlias(self.spells.groupregen, 'SE')

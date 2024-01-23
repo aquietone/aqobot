@@ -32,6 +32,11 @@ function events.init(_class)
     mq.event('eventMissedNote', 'You miss a note, bringing your song to a close#*#', events.fizzled)
     mq.event('eventInterrupt', 'Your spell is interrupted#*#', events.interrupted)
     mq.event('eventInterruptedB', 'Your casting has been interrupted#*#', events.interrupted)
+    mq.event('eventNotMemmed', 'You do not seem to have that spell memorized.', events.notMemorized)
+end
+
+function events.notMemorized(line)
+    if state.casting then logger.info('Casting %s failed due to not memorized', state.casting.Name) end
 end
 
 function events.initClassBasedEvents()

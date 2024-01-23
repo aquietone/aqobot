@@ -375,11 +375,23 @@ local function drawHeader()
     ImGui.Text('Bot Status: ')
     ImGui.SameLine()
     ImGui.SetCursorPosX(buttonWidth+16)
+    local status = 'Running'
+    local statusColor = GREEN
     if state.paused then
-        ImGui.TextColored(RED, 'PAUSED')
-    else
-        ImGui.TextColored(GREEN, 'RUNNING')
+        status = 'Paused'
+        statusColor = RED
+    elseif (state.assistMobID or 0) > 0 then
+        status = 'Assisting'
+    elseif (state.tankMobID or 0) > 0 then
+        status = 'Tanking'
+    elseif (state.pullMobID or 0) > 0 then
+        status = 'Pulling'
+    elseif state.medding then
+        status = 'Medding'
+    elseif state.groupWatchWaiting then
+        status = 'GroupWatchWaiting'
     end
+    ImGui.TextColored(statusColor, status)
     local current_mode = config.get('MODE')
     ImGui.PushItemWidth(item_width)
     mid_x = buttonWidth+15
@@ -515,7 +527,7 @@ local function drawSpellRotationUI()
             if ImGui.BeginListBox('##AllSpells', ImVec2(200,-1)) then
                 for _,spellGroup in pairs(class.allDPSSpellGroups) do
                     local spell = class.spells[spellGroup]
-                    if ImGui.Selectable(spell.Name, selected_right == spellGroup) then
+                    if spell and ImGui.Selectable(spell.Name, selected_right == spellGroup) then
                         selected_right = spellGroup
                     end
                 end

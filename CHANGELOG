@@ -1,3 +1,7 @@
+# 2024/01/22
+- Some fixes around pulling and recover and rest routines related to medding
+- Some workarounds for bst not liking casting paragon on itself
+
 # 2024/01/21
 - Necromancer updates
 - UI lock button

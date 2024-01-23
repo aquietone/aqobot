@@ -95,7 +95,8 @@ function Ability:new(spellData, type)
     for key,value in pairs(spellData) do
         ability[key] = value
     end
-    ability:setSpellType()
+    -- Prefer the type which was passed in over detecting the type
+    if not ability.CastType then ability:setSpellType() end
     ability:setSpellData()
     ability.timer:reset(0)
     return ability
@@ -114,8 +115,9 @@ end
 ---Stacks, in range, above mana threshold settings, line of sight, not already (de)buffed
 ---@param spell MQSpell # The spell userdata of the spell to use
 ---@param skipSelfStack? boolean # Indicates whether to fail if the spell won't stack, primarily for /stopdisc to use a better disc
+---@param skipTargetCheck? boolean # Indicates whether to skip checking target on single target type spells (for self spells that will target self if they should cast)
 ---@return IsReady # Returns IsReady.SHOULD_CAST or IsReady.SHOULD_NOT_CAST
-function Ability.shouldUseSpell(spell, skipSelfStack)
+function Ability.shouldUseSpell(spell, skipSelfStack, skipTargetCheck)
     logger.debug(logger.flags.ability.validation, 'ENTER shouldUseSpell \ag%s\ax', spell.Name())
     local result = false
     local dist = mq.TLO.Target.Distance3D()
@@ -128,7 +130,7 @@ function Ability.shouldUseSpell(spell, skipSelfStack)
                 -- like war resolute stand should be able to replace primal defense
                 result = (skipSelfStack or spell.Stacks()) and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()
             elseif spell.TargetType() == 'Single' then
-                result = dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())()
+                result = skipTargetCheck or (dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())())
             else
                 -- no one to check stacking on, sure
                 result = true
@@ -233,7 +235,7 @@ function Ability.use(theAbility, class, doSwap, skipReadyCheck)
     local result = false
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
     if theAbility.swap ~= nil then doSwap = theAbility.swap end
-    local isReady = skipReadyCheck and IsReady.SHOULD_CAST or theAbility:isReady()
+    local isReady = (skipReadyCheck and IsReady.SHOULD_CAST) or theAbility:isReady()
     if (isReady == IsReady.SHOULD_CAST or (isReady == IsReady.NOT_MEMMED and doSwap)) and (not theAbility.condition or theAbility:condition()) and (not class or class:isAbilityEnabled(theAbility.opt)) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap and not mq.TLO.Me.Gem(theAbility.CastName)() then
             result = Ability.swapAndCast(theAbility, state.swapGem, class)
@@ -265,7 +267,7 @@ end
 function Spell:isReady()
     local spellData = mq.TLO.Spell(self.Name)
     local canUse = Ability.canUseSpell(spellData, self)
-    return canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spellData) or canUse
+    return (canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spellData)) or canUse
 end
 
 function Spell:execute()
@@ -365,7 +367,7 @@ function AA:isReady()
     if mq.TLO.Me.AltAbilityReady(self.Name)() then
         local spell = mq.TLO.AltAbility(self.Name).Spell
         local canUse = Ability.canUseSpell(spell, self)
-        return canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell) or canUse
+        return canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell, false, self.skipTargetCheck) or canUse
     else
         return IsReady.NOT_READY
     end
