@@ -27,6 +27,7 @@ function tank.findMobToTank()
     if state.tankMobID > 0 and mq.TLO.Target() and mq.TLO.Target.Type() ~= 'Corpse' and state.tankMobID == mq.TLO.Target.ID() then
         -- Already actively tanking a mob
         tank.stickToMob()
+        if not mq.TLO.Me.Combat() then mq.cmd('/attack on') end
         return false
     else
         state.tankMobID = 0
