@@ -270,7 +270,7 @@ end
 
 function ShadowKnight:initDPSAbilities()
     -- DPS
-    table.insert(self.DPSAbilities, common.getSkill('Bash'))
+    table.insert(self.DPSAbilities, common.getSkill('Bash', {condition=function() return mq.TLO.Me.Inventory('offhand').Type() == 'Shield' and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0) end}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Resentment'})) -- 3x 2hs attack + heal
     table.insert(self.DPSAbilities, common.getAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
     table.insert(self.DPSAbilities, common.getAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff

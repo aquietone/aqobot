@@ -110,8 +110,9 @@ function pull.checkPullConditions()
         end
     end
     if config.get('GROUPWATCHWHO') == 'none' then return true end
-    if config.get('GROUPWATCHWHO') == 'self' then
-        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) then
+    -- groupwatch self when self or healer is selected
+    if config.get('GROUPWATCHWHO') ~= 'none' then
+        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) and not state.medding then
             state.medding = true
             if not mq.TLO.Me.Sitting() and state.sitTimer:timerExpired() then
                 mq.cmd('/sit')
@@ -125,8 +126,6 @@ function pull.checkPullConditions()
                 state.sitTimer:reset()
             end
             return false
-        else
-            state.medding = false
         end
     end
     if mq.TLO.Group.Members() then
@@ -410,7 +409,8 @@ local pullEngageTimer = timer:new(3000)
 ---Sets common.tankMobID to the mob being pulled.
 function pull.pullMob()
     local pull_state = state.pullStatus
-    if anyoneDead() or mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or (mq.TLO.Group.Injured(config.get('MEDHPSTART'))() or 0) > 0 or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
+    -- or (mq.TLO.Group.Injured(config.get('MEDHPSTART'))() or 0) > 0
+    if anyoneDead() or mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
         if pull_state == constants.pullStates.APPROACHING or pull_state == constants.pullStates.ENGAGING then
             pull.clearPullVars('pullMob-deadOrInjured')
             movement.stop()

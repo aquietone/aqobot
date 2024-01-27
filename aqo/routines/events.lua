@@ -17,6 +17,7 @@ local events = {}
 function events.init(_class)
     class = _class
 
+    mq.event('eventCantHit', 'You can\'t hit them from here.', events.cantHit)
     mq.event('eventNewLevel', 'You have gained a level', events.eventNewLevel)
     mq.event('eventNewSpellMemmed', '#*#You have finished scribing #1#.', events.eventNewSpellMemmed)
     mq.event('zoned', 'You have entered #*#', events.zoned)
@@ -33,6 +34,14 @@ function events.init(_class)
     mq.event('eventInterrupt', 'Your spell is interrupted#*#', events.interrupted)
     mq.event('eventInterruptedB', 'Your casting has been interrupted#*#', events.interrupted)
     mq.event('eventNotMemmed', 'You do not seem to have that spell memorized.', events.notMemorized)
+end
+
+function events.cantHit(line)
+    if mq.TLO.Target() and (mq.TLO.Target.Distance3D() or 50) < 50 and not mq.TLO.Navigation.Active() then
+        mq.cmd('/nav target')
+        mq.delay(50)
+        mq.delay(1000)
+    end
 end
 
 function events.notMemorized(line)

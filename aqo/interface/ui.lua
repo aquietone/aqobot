@@ -292,6 +292,10 @@ local function drawConsole()
     ImGui.SameLine()
     config.TIMESTAMPS.value = widgets.CheckBox('Timestamps', config.TIMESTAMPS.value, 'Toggle timestamps on log messages', ImGui.GetCursorPosX(), ImGui.GetCursorPosY()-5)
     logger.timestamps = config.TIMESTAMPS.value
+    ImGui.SameLine()
+    if ImGui.Button('Clear') then
+        console:Clear()
+    end
     -- Reduce spacing so everything fits snugly together
     ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(0, 0))
     local contentSizeX, contentSizeY = ImGui.GetContentRegionAvail()

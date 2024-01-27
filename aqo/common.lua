@@ -373,10 +373,8 @@ function common.rest()
             state.sitTimer:reset()
         end
     end
-    if mq.TLO.Me.Class.CanCast() then
-        if mq.TLO.Me.PctMana() > config.get('MEDMANASTOP') then state.medding = false end
-    else
-        if mq.TLO.Me.PctEndurance() > config.get('MEDENDSTOP') then state.medding = false end
+    if mq.TLO.Me.PctHPs() > config.get('MEDHPSTOP') and mq.TLO.Me.PctEndurance() > config.get('MEDENDSTOP') and (not mq.TLO.Me.Class.CanCast()or mq.TLO.Me.PctMana() > config.get('MEDMANASTOP')) then
+        state.medding = false
     end
 end
 

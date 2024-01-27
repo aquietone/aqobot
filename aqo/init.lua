@@ -4,6 +4,7 @@ local mq = require('mq')
 require 'ImGui'
 ---@type ConsoleWidget
 local CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
+CONSOLE.maxBufferLines = 1000
 
 local logger = require('utils.logger')
 logger.setConsole(CONSOLE)

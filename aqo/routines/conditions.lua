@@ -136,7 +136,7 @@ end
 function conditions.withinMeleeDistance(ability)
     local targetDistance = mq.TLO.Target.Distance3D() or 300
     local targetMaxRange  = mq.TLO.Target.MaxRangeTo() or 0
-    return targetDistance <= targetMaxRange
+    return targetDistance <= targetMaxRange and mq.TLO.Target.LineOfSight()
 end
 
 function conditions.aboveMobThreshold(ability)
