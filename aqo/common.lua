@@ -5,7 +5,7 @@ local config = require('interface.configuration')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local constants = require('constants')
 local mode = require('mode')
@@ -193,7 +193,7 @@ end
 local checkChaseTimer = timer:new(1000)
 function common.checkChase()
     if mode.currentMode:getName() ~= 'chase' then return end
-    --if not checkChaseTimer:timerExpired() then return end
+    --if not checkChaseTimer:expired() then return end
     --checkChaseTimer:reset()
     if mq.TLO.Stick.Active() or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() or (state.class ~= 'BRD' and mq.TLO.Me.Casting()) then
         if logger.flags.common.chase then
@@ -230,7 +230,7 @@ end
 ---@return boolean @Returns true if any burn condition is satisfied, otherwise false.
 function common.isBurnConditionMet(alwaysCondition)
     -- activating a burn condition is good for 60 seconds, don't do check again if 60 seconds hasn't passed yet and burn is active.
-    if not state.burnActiveTimer:timerExpired() and state.burnActive then
+    if not state.burnActiveTimer:expired() and state.burnActive then
         return true
     else
         state.burnActive = false
@@ -345,7 +345,7 @@ function common.checkMana()
         local manastone = mq.TLO.FindItem('Manastone')
         if manastone() and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then
             local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000, true)
-            while mq.TLO.Me.PctHPs() > config.get('MANASTONESTOPHP') and not manastoneTimer:timerExpired() do
+            while mq.TLO.Me.PctHPs() > config.get('MANASTONESTOPHP') and not manastoneTimer:expired() do
                 mq.cmd('/useitem manastone')
             end
         end
@@ -357,7 +357,7 @@ function common.rest()
     if not config.get('MEDCOMBAT') and (mq.TLO.Me.CombatState() == 'COMBAT' or state.assistMobID ~= 0) then return end
     if state.mobCount > 0 and (mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
-    if state.sitTimer:timerExpired() then
+    if state.sitTimer:expired() then
         if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') then
             state.medding = true
             if not mq.TLO.Target() then mq.TLO.Me.DoTarget() end
@@ -388,7 +388,7 @@ function common.checkCursor()
         elseif autoInventoryTimer.start_time == 0 then
             autoInventoryTimer:reset()
             logger.info('Dropping cursor item into inventory in 15 seconds')
-        elseif autoInventoryTimer:timerExpired() then
+        elseif autoInventoryTimer:expired() then
             mq.cmd('/autoinventory')
             autoInventoryTimer:reset(0)
         end

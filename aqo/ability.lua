@@ -2,7 +2,7 @@
 local mq = require('mq')
 local config = require('interface.configuration')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local state = require('state')
 
 ---@enum AbilityTypes
@@ -181,7 +181,7 @@ end
 function Ability.canUseSpell(spell, spellTable, skipReagentCheck)
     logger.debug(logger.flags.ability.validation, 'ENTER canUseSpell \ag%s\ax', spell.Name())
     local abilityType = spellTable.CastType
-    if not spellTable.timer:timerExpired() then return IsReady.NOT_READY end
+    if not spellTable.timer:expired() then return IsReady.NOT_READY end
     if abilityType == AbilityTypes.Spell then
         if not mq.TLO.Me.Gem(spell.Name())() then
             logger.debug(logger.flags.ability.validation, 'Spell not memorized (id=%s, name=%s, type=%s)', spell.ID(), spell.Name(), abilityType)
@@ -282,7 +282,7 @@ end
 
 function Spell:use(skipReadyCheck)
     logger.debug(logger.flags.ability.spell, 'ENTER spell:use \ag%s\ax', self.Name)
-    if not self.timer:timerExpired() or (not skipReadyCheck and self:isReady() ~= IsReady.SHOULD_CAST) then return false end
+    if not self.timer:expired() or (not skipReadyCheck and self:isReady() ~= IsReady.SHOULD_CAST) then return false end
     return self:execute()
 end
 
@@ -343,7 +343,7 @@ end
 ---Use the disc specified in the passed in table disc.
 function Disc:use()
     logger.debug(logger.flags.ability.disc, 'ENTER disc:use \ag%s\ax', self.Name)
-    if not self.timer:timerExpired() or self:isReady() ~= IsReady.SHOULD_CAST then return false end
+    if not self.timer:expired() or self:isReady() ~= IsReady.SHOULD_CAST then return false end
     return self:execute()
 end
 
@@ -387,7 +387,7 @@ end
 ---@return boolean # Returns true if the ability was fired, otherwise false.
 function AA:use()
     logger.debug(logger.flags.ability.aa, 'ENTER AA:use \ag%s\ax', self.Name)
-    if not self.timer:timerExpired() or self:isReady() ~= IsReady.SHOULD_CAST then return false end
+    if not self.timer:expired() or self:isReady() ~= IsReady.SHOULD_CAST then return false end
     return self:execute()
 end
 
@@ -434,7 +434,7 @@ end
 ---@return boolean # Returns true if the item was fired, otherwise false.
 function Item:use()
     logger.debug(logger.flags.ability.item, 'ENTER item:use \ag%s\ax', self.Name)
-    if not self.timer:timerExpired() or self:isReady() ~= IsReady.SHOULD_CAST then return false end
+    if not self.timer:expired() or self:isReady() ~= IsReady.SHOULD_CAST then return false end
     return self:execute()
 end
 
@@ -467,7 +467,7 @@ end
 ---Use the ability specified by name. These are basic abilities like taunt or kick.
 function Skill:use()
     logger.debug(logger.flags.ability.skill, 'ENTER skill:use \ag%s\ax', self.Name)
-    if self.timer:timerExpired() and self:isReady() == IsReady.SHOULD_CAST then
+    if self.timer:expired() and self:isReady() == IsReady.SHOULD_CAST then
         self:execute()
     end
 end

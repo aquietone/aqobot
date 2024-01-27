@@ -7,7 +7,7 @@ local camp = require('routines.camp')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
 local mode = require('mode')
@@ -288,7 +288,7 @@ function Ranger:resetClassTimers()
 end
 
 local function getRangedCombatPosition(radius)
-    if not rangedTimer:timerExpired() then return false end
+    if not rangedTimer:expired() then return false end
     rangedTimer:reset()
     local assistMobID = state.assistMobID
     local mob_x = mq.TLO.Spawn('id '..assistMobID).X()

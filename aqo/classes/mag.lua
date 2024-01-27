@@ -4,7 +4,7 @@ local class = require('classes.classbase')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local castUtils = require('cast')
 local common = require('common')
@@ -585,7 +585,7 @@ local armPetTimer = timer:new(60000)
 function Magician:autoArmPets()
     if common.hostileXTargets() then return end
     if not self:isEnabled('ARMPETS') or not self.spells.weapons then return end
-    if not armPetTimer:timerExpired() then return end
+    if not armPetTimer:expired() then return end
     armPetTimer:reset()
 
     self:armPets()

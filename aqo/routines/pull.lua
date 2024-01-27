@@ -5,7 +5,7 @@ local camp = require('routines.camp')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local constants = require('constants')
 local common = require('common')
@@ -114,14 +114,14 @@ function pull.checkPullConditions()
     if config.get('GROUPWATCHWHO') ~= 'none' then
         if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) and not state.medding then
             state.medding = true
-            if not mq.TLO.Me.Sitting() and state.sitTimer:timerExpired() then
+            if not mq.TLO.Me.Sitting() and state.sitTimer:expired() then
                 mq.cmd('/sit')
                 state.sitTimer:reset()
             end
             return false
         end
         if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTOP'))) and state.medding then
-            if not mq.TLO.Me.Sitting() and state.sitTimer:timerExpired() then
+            if not mq.TLO.Me.Sitting() and state.sitTimer:expired() then
                 mq.cmd('/sit')
                 state.sitTimer:reset()
             end
@@ -165,7 +165,7 @@ end
 
 local pullRadarTimer = timer:new(1000)
 function pull.pullRadarB()
-    if not pullRadarTimer:timerExpired() then return 0 end
+    if not pullRadarTimer:expired() then return 0 end
     pullRadarTimer:reset()
     local pull_radius = config.get('PULLRADIUS')
     if not pull_radius then return 0 end
@@ -198,7 +198,7 @@ local pc_near = 'pc radius 30 loc %d %d'
 ---Search for pullable mobs within the configured pull radius.
 ---Sets common.pullMobID to the mob ID of the first matching spawn.
 function pull.pullRadar()
-    if not pullRadarTimer:timerExpired() then return 0 end
+    if not pullRadarTimer:expired() then return 0 end
     pullRadarTimer:reset()
     local pull_radius_count
     local pull_radius = config.get('PULLRADIUS')
@@ -382,7 +382,7 @@ local pullReturnTimer = timer:new(120000)
 ---Return to camp and wait for the pull target to arrive in camp. Stops early if adds appear on xtarget.
 local function pullReturn(noMobs)
     --logger.info('Bringing pull target back to camp (%s)', common.pullMobID)
-    if noMobs and not pullReturnTimer:timerExpired() then return end
+    if noMobs and not pullReturnTimer:expired() then return end
     if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) < 225 then return end
     movement.navToLoc(camp.X, camp.Y, camp.Z)
     if noMobs then pullReturnTimer:reset() end
@@ -410,7 +410,7 @@ local pullEngageTimer = timer:new(3000)
 function pull.pullMob()
     local pull_state = state.pullStatus
     -- or (mq.TLO.Group.Injured(config.get('MEDHPSTART'))() or 0) > 0
-    if anyoneDead() or mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:timerExpired()) then
+    if anyoneDead() or mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or constants.DMZ[mq.TLO.Zone.ID()] then-- or (state.holdForBuffs and not state.holdForBuffs:expired()) then
         if pull_state == constants.pullStates.APPROACHING or pull_state == constants.pullStates.ENGAGING then
             pull.clearPullVars('pullMob-deadOrInjured')
             movement.stop()
@@ -447,7 +447,7 @@ function pull.pullMob()
         -- don't start a new pull if tanking or assisting or hostiles on xtarget or conditions aren't met
         if state.assistMobID ~= 0 or state.tankMobID ~= 0 or common.hostileXTargets() then return end
         if not pull.checkPullConditions() then
-            if holdPulls and holdPullTimer:timerExpired() then
+            if holdPulls and holdPullTimer:expired() then
                 local furthest = 0
                 local furthestID = 0
                 for i=1,mq.TLO.Group.Members() do
@@ -503,7 +503,7 @@ function pull.pullMob()
                 pullReturnTimer:reset()
                 state.pullStatus = constants.pullStates.PULLED
             end
-        elseif pullEngageTimer:timerExpired() then
+        elseif pullEngageTimer:expired() then
             pullEngageTimer:reset()
             pullReturnTimer:reset()
             pull.clearPullVars('pullMob-aggroTimerExpired')

@@ -3,7 +3,8 @@ local mq = require('mq')
 local class = require('classes.classbase')
 local config = require('interface.configuration')
 local conditions = require('routines.conditions')
-local timer = require('utils.timer')
+local sharedabilities = require('utils.sharedabilities')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local constants = require('constants')
 local common = require('common')
@@ -293,9 +294,9 @@ function BeastLord:initDPSAbilities()
     table.insert(self.combatBuffs, common.getBestDisc({'Bestial Savagery'})) -- (self buff)
     table.insert(self.DPSAbilities, common.getSkill('Eagle\'s Strike', {conditions=conditions.withinMeleeDistance})) -- (procs bite of the asp, /autoskill with round kick)
     if mq.TLO.Me.Skill('Round Kick')() > 0 then
-        table.insert(self.DPSAbilities, common.getSkill('Round Kick', {conditions=conditions.withinMeleeDistance}))
+        table.insert(self.DPSAbilities, sharedabilities.getRoundKick())
     elseif mq.TLO.Me.Skill('Kick')() > 0 then
-        table.insert(self.DPSAbilities, common.getSkill('Kick', {conditions=conditions.withinMeleeDistance}))
+        table.insert(self.DPSAbilities, sharedabilities.getKick())
     end
 
     --Raid

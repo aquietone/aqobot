@@ -2,7 +2,7 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local common = require('common')
 local config = require('interface.configuration')
 local abilities = require('ability')
@@ -556,7 +556,7 @@ function Necromancer:aggroOld()
     if state.emu then return end
     if mode.currentMode:isManualMode() then return end
     if self:isEnabled('USEFD') and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target() then
-        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or checkAggroTimer:timerExpired() then
+        if mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or checkAggroTimer:expired() then
             if self.deathseffigy and mq.TLO.Me.PctAggro() >= 90 then
                 if self.dyinggrasp and mq.TLO.Me.PctHPs() < 40 and mq.TLO.Me.AltAbilityReady('Dying Grasp')() then
                     self.dyinggrasp:use()
@@ -587,7 +587,7 @@ end
 
 local necCountTimer = timer:new(60000)
 
--- if Necromancer:isEnabled('USEALLIANCE') and necCountTimer:timerExpired() then
+-- if Necromancer:isEnabled('USEALLIANCE') and necCountTimer:expired() then
 --    countNecros()
 --    necCountTimer:reset()
 -- end

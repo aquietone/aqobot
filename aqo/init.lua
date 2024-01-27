@@ -16,7 +16,7 @@ local tlo = require('interface.tlo')
 
 local loot = require('utils.lootutils')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 
 local common = require('common')
 local constants = require('constants')
@@ -89,7 +89,7 @@ local function checkTarget()
             if clearTargetTimer.start_time == 0 then
                 -- clearing target in 3 seconds
                 clearTargetTimer:reset()
-            elseif clearTargetTimer:timerExpired() then
+            elseif clearTargetTimer:expired() then
                 mq.cmd('/squelch /mqtarget clear')
                 clearTargetTimer:reset(0)
             end
@@ -136,7 +136,7 @@ end
 local lootMyCorpseTimer = timer:new(5000)
 local function doLooting()
     local myCorpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
-    if myCorpse() and lootMyCorpseTimer:timerExpired() then
+    if myCorpse() and lootMyCorpseTimer:expired() then
         lootMyCorpseTimer:reset()
         myCorpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
@@ -180,7 +180,7 @@ local function main()
     -- Main Loop
     while true do
         local loopStart = mq.gettime()
-        if state.debug and debugTimer:timerExpired() then
+        if state.debug and debugTimer:expired() then
             logger.debug(logger.flags.aqo.main, 'Start Main Loop')
             debugTimer:reset()
         end
@@ -227,7 +227,7 @@ local function main()
             end
             delay = 500
         end
-        if statusTimer:timerExpired() then
+        if statusTimer:expired() then
             status.send(class)
             statusTimer:reset()
         end

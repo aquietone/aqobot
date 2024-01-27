@@ -2,7 +2,7 @@
 local mq = require('mq')
 local assist = require('routines.assist')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
 local constants = require('constants')
@@ -40,7 +40,7 @@ end
 
 local buffCombatTimer = timer:new(3000)
 local function buffCombat(base)
-    if not buffCombatTimer:timerExpired() then return end
+    if not buffCombatTimer:expired() then return end
     buffCombatTimer:reset()
     -- common clicky buffs like geomantra and ... just geomantra
     common.checkCombatBuffs()
@@ -109,7 +109,7 @@ local function buffSelf(base)
                         state.giveUpTimer = timer:new(5000)
                         state.queuedAction = function()
                             if mq.TLO.Me.Casting() or mq.TLO.Pet.ID() == 0 then
-                                if state.giveUpTimer:timerExpired() then state.giveUpTimer = nil return nil end
+                                if state.giveUpTimer:expired() then state.giveUpTimer = nil return nil end
                                 return state.queuedAction
                             else
                                 if mq.TLO.Pet.ID() > 0 and (mq.TLO.Pet.Level() == 1 or mq.TLO.Pet.CleanName():find('familiar')) then
@@ -203,7 +203,7 @@ end
 
 local checkClickiesLoadedTimer = timer:new(300000)
 local function checkClickiesLoaded(base)
-    if checkClickiesLoadedTimer:timerExpired() then
+    if checkClickiesLoadedTimer:expired() then
         for clickyName,clicky in pairs(base.clickies) do
             local t = base:getTableForClicky(clicky.clickyType)
             if t then
@@ -225,11 +225,11 @@ end
 
 local buffOOCTimer = timer:new(3000)
 function buff.buff(base)
-    if not state.justZonedTimer:timerExpired() then return false end
+    if not state.justZonedTimer:expired() then return false end
     checkClickiesLoaded(base)
     if buffCombat(base) then return true end
 
-    if not common.clearToBuff() or not buffOOCTimer:timerExpired() or mq.TLO.Me.Moving() then return end
+    if not common.clearToBuff() or not buffOOCTimer:expired() or mq.TLO.Me.Moving() then return end
     buffOOCTimer:reset()
     local originalTargetID = mq.TLO.Target.ID()
 

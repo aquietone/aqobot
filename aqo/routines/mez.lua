@@ -3,7 +3,7 @@ local mq = require 'mq'
 local assist = require('routines.assist')
 local camp = require('routines.camp')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local state = require('state')
 
@@ -46,8 +46,8 @@ end
 function mez.doSingle(mez_spell)
     if state.mobCount <= 1 or not mez_spell or not mq.TLO.Me.Gem(mez_spell.CastName)() then return end
     for id,mobdata in pairs(state.targets) do
-        logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, mq.gettime(), mobdata['meztimer']:timerExpired())
-        if id ~= state.assistMobID and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:timerExpired()) then
+        logger.debug(logger.flags.routines.mez, '[%s] meztimer: %s, currentTime: %s, timerExpired: %s', id, mobdata['meztimer'].start_time, mq.gettime(), mobdata['meztimer']:expired())
+        if id ~= state.assistMobID and (mobdata['meztimer'].start_time == 0 or mobdata['meztimer']:expired()) then
             local mob = mq.TLO.Spawn('id '..id)
             if mob() and not state.mezImmunes[mob.CleanName()] then
                 local spellData = mq.TLO.Spell(mez_spell.CastName)

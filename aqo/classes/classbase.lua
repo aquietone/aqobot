@@ -16,7 +16,7 @@ local tank      = require('routines.tank')
 local helpers   = require('utils.helpers')
 local logger    = require('utils.logger')
 local movement  = require('utils.movement')
-local timer     = require('utils.timer')
+local timer     = require('libaqo.timer')
 
 local abilities = require('ability')
 local common    = require('common')
@@ -624,7 +624,7 @@ function base:cast()
     if mq.TLO.Me.SpellInCooldown() or self:isEnabled('DONTCAST') or mq.TLO.Me.Invis() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
     if assist.isFighting() then
-        if state.nuketimer:timerExpired() then
+        if state.nuketimer:expired() then
             for _,clicky in ipairs(self.castClickies) do
                 if clicky.enabled and self:isAbilityEnabled(clicky.opt) and (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
                     if clicky:use() then return end
@@ -861,7 +861,7 @@ end
 function base:handleRequests()
     if #self.requests > 0 then
         local request = self.requests[1]
-        if request.expiration:timerExpired() then
+        if request.expiration:expired() then
             logger.info('Request timer expired for \ag%s\ax from \at%s\at', request.requested.Name, request.requester)
             table.remove(self.requests, 1)
         else
@@ -971,7 +971,7 @@ function base:getSpellRotation()
         return self.spellRotations[spellSet]
     end
     if spellSet == 'custom' and self.customRotation and #self.customRotation > 1 then return self.customRotation end
-    if self.allDPSSpellGroups and not state.rotationUpdated or state.rotationRefreshTimer:timerExpired() then
+    if self.allDPSSpellGroups and not state.rotationUpdated or state.rotationRefreshTimer:expired() then
         self.BYOSRotation = {}
         -- rebuild rotation based on mem'd spells and all available DPS spells in no particular order
         for _,spellGroup in ipairs(self.allDPSSpellGroups) do
@@ -987,7 +987,7 @@ base.checkSpellTimer = timer:new(30000)
 function base:checkMemmedSpells()
     if not mq.TLO.Me.Class.CanCast() or not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
     local spellSet = self:get('SPELLSET')
-    if state.spellSetLoaded ~= spellSet or self.checkSpellTimer:timerExpired() then
+    if state.spellSetLoaded ~= spellSet or self.checkSpellTimer:expired() then
         local numGems = mq.TLO.Me.NumGems() or 8
         for i=1,numGems do
             local spellToMem = findSpellForSlot(i)

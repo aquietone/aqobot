@@ -5,7 +5,7 @@ local camp = require('routines.camp')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local mode = require('mode')
 local state = require('state')
 
@@ -169,18 +169,18 @@ function tank.tankMob()
         state.resists = {}
         mq.cmd('/attack on')
         stickTimer:reset(0)
-    elseif state.dontAttack and state.enrageTimer:timerExpired() then
+    elseif state.dontAttack and state.enrageTimer:expired() then
         state.dontAttack = false
     end
     return true
-    --[[if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and mode.currentMode:getName() ~= 'manual' then
+    --[[if mq.TLO.Me.Combat() and stickTimer:expired() and not mq.TLO.Stick.Active() and mode.currentMode:getName() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')
         stickTimer:reset()
     end]]
 end
 
 function tank.stickToMob()
-    if mq.TLO.Me.Combat() and stickTimer:timerExpired() and not mq.TLO.Stick.Active() and mode.currentMode:getName() ~= 'manual' then
+    if mq.TLO.Me.Combat() and stickTimer:expired() and not mq.TLO.Stick.Active() and mode.currentMode:getName() ~= 'manual' then
         mq.cmd('/squelch /stick front loose moveback 10')
         stickTimer:reset()
     end

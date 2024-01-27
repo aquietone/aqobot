@@ -8,7 +8,7 @@ local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local loot = require('utils.lootutils')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
@@ -253,7 +253,7 @@ function commands.commandHandler(...)
         local manastoneTimer = timer:new(5000)
         while mq.TLO.Me.PctHPs() > 50 and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
-            if manastoneTimer:timerExpired() then break end
+            if manastoneTimer:expired() then break end
         end
     elseif opt == 'PAUSEFORBUFFS' then
         if mode.currentMode:getName() == 'huntertank' then

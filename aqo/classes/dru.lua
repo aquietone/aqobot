@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require 'mq'
 local class = require('classes.classbase')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local common = require('common')
 local state = require('state')
 
@@ -156,7 +156,7 @@ function Druid:initCures()
     else
         -- Cures
         table.insert(self.cureAbilities, self.spells.cure)
-        table.insert(self.cureAbilities, common.getAA('Radiant Cure')) -- poi,dis,cur, any detri
+        table.insert(self.cureAbilities, self.radiant) -- poi,dis,cur, any detri
     end
 end
 

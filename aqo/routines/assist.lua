@@ -5,7 +5,7 @@ local camp = require('routines.camp')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local mode = require('mode')
 local state = require('state')
 
@@ -153,7 +153,7 @@ function assist.getAssistSpawnIncludeManual()
     -- if the toon already has an npc on target (like something is hitting them), then that appears like the assist target too...
     if assistTarget == -1 then
         if mq.TLO.Me.XTarget() > 0 then
-            if manualAssistTimer:timerExpired() or not mq.TLO.Target() then
+            if manualAssistTimer:expired() or not mq.TLO.Target() then
                 local assistNames = helpers.split(config.get('ASSISTNAMES'), ',')
                 for _,assistName in ipairs(assistNames) do
                     if mq.TLO.Spawn('pc ='..assistName)() then
@@ -273,7 +273,7 @@ end
 
 function assist.engage()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
-    if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
+    if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:expired() then
         mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
         local maxRangeTo = mq.TLO.Target.MaxRangeTo() or 0
@@ -286,7 +286,7 @@ function assist.engage()
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
-    elseif state.dontAttack and state.enrageTimer:timerExpired() then
+    elseif state.dontAttack and state.enrageTimer:expired() then
         state.dontAttack = false
     end
 end
@@ -344,7 +344,7 @@ function assist.attack(skip_no_los)
     end
     --movement.stop()
     if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
-    if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:timerExpired() then
+    if mode.currentMode:getName() ~= 'manual' and not mq.TLO.Stick.Active() and stickTimer:expired() then
         mq.cmd('/squelch /face fast')
         -- pin, behindonce, behind, front, !front
         --mq.cmd('/stick snaproll uw')
@@ -360,7 +360,7 @@ function assist.attack(skip_no_los)
     end
     if not mq.TLO.Me.Combat() and mq.TLO.Target() and not state.dontAttack then
         mq.cmd('/attack on')
-    elseif state.dontAttack and state.enrageTimer:timerExpired() then
+    elseif state.dontAttack and state.enrageTimer:expired() then
         state.dontAttack = false
     end
 end
@@ -374,7 +374,7 @@ end
 ---Send pet and swarm pets against the assist target if assist conditions are met.
 function assist.sendPet()
     local targethp = mq.TLO.Target.PctHPs()
-    if sendPetTimer:timerExpired() and targethp and targethp <= config.get('AUTOASSISTAT') then
+    if sendPetTimer:expired() and targethp and targethp <= config.get('AUTOASSISTAT') then
         if assist.isFighting() then
             if mq.TLO.Pet.ID() > 0 and mq.TLO.Pet.Target.ID() ~= mq.TLO.Target.ID() and not state.petDontAttack then
                 if class.summonCompanion and helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), mq.TLO.Pet.X(), mq.TLO.Pet.Y()) > 625 then

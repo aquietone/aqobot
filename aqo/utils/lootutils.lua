@@ -108,7 +108,7 @@ There is also no flag for combat looting. It will only loot if no mobs are withi
 local mq = require 'mq'
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 
 -- Public default settings, also read in from Loot.ini [Settings] section
 local loot = {
@@ -442,7 +442,7 @@ loot.lootMobs = function(limit)
             loot.state.lootedCount = loot.state.lootedCount + 1
             openCorpseTimer:reset()
             return true
-        elseif goToCorpseTimer:timerExpired() then
+        elseif goToCorpseTimer:expired() then
             loot.state.corpseToLoot = nil
             loot.state.lootedCount = loot.state.lootedCount + 1
             return true
@@ -454,14 +454,14 @@ loot.lootMobs = function(limit)
             mq.cmd('/autoinv')
             loot.state.lootItem = nil
             return
-        elseif lootItemTimer:timerExpired() then
+        elseif lootItemTimer:expired() then
             loot.state.lootItem = nil
             return
         end
     elseif loot.state.lootingCorpse then
         if not mq.TLO.Window('LootWnd').Open() then
             return false
-        elseif openCorpseTimer:timerExpired() then
+        elseif openCorpseTimer:expired() then
             loot.state.lootingCorpse = false
             return true
         else

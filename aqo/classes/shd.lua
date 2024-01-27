@@ -2,7 +2,8 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local conditions = require('routines.conditions')
-local timer = require('utils.timer')
+local sharedabilities = require('utils.sharedabilities')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
 local mode = require('mode')
@@ -242,12 +243,6 @@ function ShadowKnight:initSpellRotations()
 end
 
 function ShadowKnight:initTankAbilities()
-    local lowAggroInMelee = function(ability)
-        local aggropct = mq.TLO.Target.PctAggro() or 100
-        local targetDistance = mq.TLO.Target.Distance3D() or 300
-        local targetMaxRange  = mq.TLO.Target.MaxRangeTo() or 0
-        return (ability.aggro == nil or aggropct < 100) and targetDistance <= targetMaxRange
-    end
     -- TANK
     -- defensives
     -- common.getBestDisc({'Gird'}) -- absorb melee/spell dmg, short cd mash ability
@@ -257,7 +252,7 @@ function ShadowKnight:initTankAbilities()
     self.guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
     self.deflection = common.getBestDisc({'Deflection Discipline'}, {opt='USEDEFLECTION'})
 
-    table.insert(self.tankAbilities, common.getSkill('Taunt', {aggro=true, condition=lowAggroInMelee}))
+    table.insert(self.tankAbilities, sharedabilities.getBash())
     table.insert(self.tankAbilities, self.spells.challenge)
     table.insert(self.tankAbilities, self.spells.terror)
     table.insert(self.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
@@ -272,14 +267,14 @@ function ShadowKnight:initTankAbilities()
     --table.insert(mashAEAggroAAs4, common.getAA('Stream of Hatred')) -- large frontal cone ae aggro
 
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Unconditional Acrimony', 'Unrelenting Acrimony'}, {condition=conditions.withinMeleeDistance})) -- instant aggro
-    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=lowAggroInMelee})) -- big taunt
+    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=conditions.lowAggroInMelee})) -- big taunt
     table.insert(self.tankBurnAbilities, common.getAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
     table.insert(self.tankBurnAbilities, common.getAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
 end
 
 function ShadowKnight:initDPSAbilities()
     -- DPS
-    table.insert(self.DPSAbilities, common.getSkill('Bash', {condition=function() return (mq.TLO.Me.AltAbility('Improved Bash')() or mq.TLO.Me.Inventory('offhand').Type() == 'Shield') and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0) end}))
+    table.insert(self.DPSAbilities, sharedabilities.getBash())
     table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Resentment'}, {condition=conditions.withinMaxDistance})) -- 3x 2hs attack + heal
     table.insert(self.DPSAbilities, common.getAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
     table.insert(self.DPSAbilities, common.getAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff

@@ -1,7 +1,7 @@
 local mq = require('mq')
 local state = require('state')
 local actor = require('interface.actor')
-local Timer = require('utils.timer')
+local Timer = require('libaqo.timer')
 
 local status = {}
 
@@ -44,7 +44,7 @@ end
 
 local statusTimer = Timer:new(1000)
 function status.send(class)
-    if not statusTimer:timerExpired() then return end
+    if not statusTimer:expired() then return end
     statusTimer:reset()
     local header = {script = 'aqo'}
     -- Send info on any debuffs

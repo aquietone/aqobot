@@ -2,6 +2,7 @@
 local mq = require('mq')
 local class = require('classes.classbase')
 local conditions = require('routines.conditions')
+local sharedabilities = require('utils.sharedabilities')
 local common = require('common')
 local state = require('state')
 
@@ -51,7 +52,13 @@ function Monk:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getBestDisc({'Curse of Sixteen Shadows', 'Curse of Fifteen Strikes', 'Curse of Fourteen Fists', 'Curse of the Thirteen Fingers'}, {condition=conditions.withinMeleeDistance})) -- inc dmg from DS
     table.insert(self.DPSAbilities, common.getBestDisc({'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang', 'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}, {condition=conditions.withinMeleeDistance})) -- a nuke?
     table.insert(self.DPSAbilities, common.getAA('Stunning Kick', {condition=conditions.withinMeleeDistance})) -- free flying kick + a stun, emu only?
-    table.insert(self.DPSAbilities, common.getSkill('Flying Kick', {condition=conditions.withinMeleeDistance}))
+    if mq.TLO.Me.Skill('Flying Kick')() > 0 then
+        table.insert(self.DPSAbilities, common.getSkill('Flying Kick', {condition=conditions.withinMeleeDistance}))
+    elseif mq.TLO.Me.Skill('Round Kick')() > 0 then
+        table.insert(self.DPSAbilities, sharedabilities.getRoundKick())
+    elseif mq.TLO.Me.Skill('Kick')() > 0 then
+        table.insert(self.DPSAbilities, sharedabilities.getKick())
+    end
     table.insert(self.DPSAbilities, common.getSkill('Tiger Claw', {condition=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Bloodwalker\'s Precision Strike', 'Icewalker\'s Precision Strike', 'Firewalker\'s Precision Strike', 'Doomwalker\'s Precision Strike'})) -- shuriken attack + buffs shuriken dmg
     table.insert(self.DPSAbilities, common.getBestDisc({'Bloodwalker\'s Conjunction', 'Icewalker\'s Coalition', 'Firewalker\'s Covenant', 'Doomwalker\'s Alliance'}))

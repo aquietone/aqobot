@@ -2,7 +2,7 @@
 local mq = require('mq')
 local config = require('interface.configuration')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local state = require('state')
 
@@ -132,7 +132,7 @@ local function getHurt(options)
         return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.get('PRIORITYTARGET')) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
     elseif mostHurtPct < config.get('HOTHEALPCT') and melees[mostHurtClass] and mostHurtDistance < 100 then
         local hotTimer = hottimers[mostHurtName]
-        if (not hotTimer or hotTimer:timerExpired()) then
+        if (not hotTimer or hotTimer:expired()) then
             return mostHurtID, HEAL_TYPES.HOT
         end
     end
@@ -161,7 +161,7 @@ local function getHurt(options)
             return mostHurtID, ((tankClasses[mostHurtClass] or mostHurtName==config.get('PRIORITYTARGET')) and HEAL_TYPES.TANK) or HEAL_TYPES.REGULAR
         elseif mostHurtPct < config.get('HOTHEALPCT') and melees[mostHurtClass] and mostHurtDistance < 100 then
             local hotTimer = hottimers[mostHurtName]
-            if (not hotTimer or hotTimer:timerExpired()) then
+            if (not hotTimer or hotTimer:expired()) then
                 return mostHurtID, HEAL_TYPES.HOT
             end
         end
@@ -175,7 +175,7 @@ local function getHeal(healAbilities, healType, whoToHeal, options)
         if heal[healType] and healEnabled(options, heal.opt) then
             if not heal.tot or (mq.TLO.Me.CombatState() == 'COMBAT' and whoToHeal ~= mq.TLO.Me.ID()) then
                 if healType == HEAL_TYPES.GROUPHOT then
-                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:timerExpired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() == abilities.IsReady.SHOULD_CAST then return heal end
+                    if mq.TLO.Me.CombatState() == 'COMBAT' and groupHOTTimer:expired() and not mq.TLO.Me.Song(heal.Name)() and heal:isReady() == abilities.IsReady.SHOULD_CAST then return heal end
                 elseif heal.CastType == abilities.Types.Spell then
                     local spell = mq.TLO.Spell(heal.Name)
                     if abilities.canUseSpell(spell, heal) == abilities.IsReady.CAN_CAST then
@@ -277,7 +277,7 @@ local function doRezFor(rezAbility)
                 return false
             end
             -- if corpse has been seen before but too fresh, don't rez yet
-            if newCorpses[corpseName] and not newCorpses[corpseName]:timerExpired() then return false end
+            if newCorpses[corpseName] and not newCorpses[corpseName]:expired() then return false end
         end
         corpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
@@ -305,7 +305,7 @@ end
 
 local rezCheckTimer = timer:new(5000)
 function healing.rez(rezAbility)
-    if (mq.TLO.Zone.ShortName() ~= 'poknowledge' and not rezCheckTimer:timerExpired()) or not rezAbility then return end
+    if (mq.TLO.Zone.ShortName() ~= 'poknowledge' and not rezCheckTimer:expired()) or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
     if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.CastName)() then
@@ -317,7 +317,7 @@ function healing.rez(rezAbility)
     end
     if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
     if rezAbility.CastName == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
-    if reztimer:timerExpired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') newCorpses = {} end
+    if reztimer:expired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') newCorpses = {} end
     return doRezFor(rezAbility)
 end
 

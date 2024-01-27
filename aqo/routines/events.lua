@@ -6,7 +6,7 @@ local mez = require('routines.mez')
 local camp = require('routines.camp')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local mode = require('mode')
 local state = require('state')
 

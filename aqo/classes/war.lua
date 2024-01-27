@@ -4,6 +4,7 @@ local class = require('classes.classbase')
 local common = require('common')
 local config = require('interface.configuration')
 local conditions = require('routines.conditions')
+local sharedabilities = require('utils.sharedabilities')
 local mode = require('mode')
 local state = require('state')
 
@@ -52,13 +53,7 @@ end
 -- berate 56
 -- bellow 52
 function Warrior:initTankAbilities()
-    local lowAggroInMelee = function(ability)
-        local aggropct = mq.TLO.Target.PctAggro() or 100
-        local targetDistance = mq.TLO.Target.Distance3D() or 300
-        local targetMaxRange  = mq.TLO.Target.MaxRangeTo() or 0
-        return (ability.aggro == nil or aggropct < 100) and targetDistance <= targetMaxRange
-    end
-    table.insert(self.tankAbilities, common.getSkill('Taunt', {aggro=true, condition=lowAggroInMelee}))
+    table.insert(self.tankAbilities, sharedabilities.getTaunt())
 
     self.mash_defensive = common.getBestDisc({'Vigorous Defense', 'Primal Defense'})
     table.insert(self.tankAbilities, self.mash_defensive)
@@ -114,7 +109,7 @@ end
 function Warrior:initDPSAbilities()
     table.insert(self.AEDPSAbilities, common.getBestDisc({'Spiraling Blades', 'Vortex Blade', 'Cyclone Blade'}, {threshold=3, condition=conditions.aboveMobThreshold}))
     table.insert(self.AEDPSAbilities, common.getAA('Rampage', {threshold=5, condition=conditions.aboveMobThreshold}))
-    table.insert(self.DPSAbilities, common.getSkill('Kick', {condition=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, sharedabilities.getKick())
 
     table.insert(self.DPSAbilities, common.getBestDisc({'Shield Splinter'}, {condition=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Throat Jab'}, {condition=conditions.withinMeleeDistance}))

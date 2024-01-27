@@ -1,6 +1,6 @@
 local mq = require('mq')
 local class = require('classes.classbase')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
 local state = require('state')

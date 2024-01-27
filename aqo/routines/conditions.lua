@@ -148,4 +148,11 @@ function conditions.aggroBelow(ability)
     return ability.aggro == nil or aggropct < 100
 end
 
+function conditions.lowAggroInMelee(ability)
+    local aggropct = mq.TLO.Target.PctAggro() or 100
+    local targetDistance = mq.TLO.Target.Distance3D() or 300
+    local targetMaxRange  = mq.TLO.Target.MaxRangeTo() or 0
+    return (ability.aggro == nil or aggropct < 100) and targetDistance <= targetMaxRange
+end
+
 return conditions

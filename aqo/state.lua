@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 
 local state = {
     class = mq.TLO.Me.Class.ShortName() or '',
@@ -60,7 +60,7 @@ state.positioningTimer = timer:new(5000)
 
 function state.handlePositioningState()
     if state.positioning then
-        if state.positioningTimer:timerExpired() or not mq.TLO.Navigation.Active() then
+        if state.positioningTimer:expired() or not mq.TLO.Navigation.Active() then
             mq.cmd('/squelch /nav stop')
             state.resetPositioningState()
             return true
@@ -107,7 +107,7 @@ function state.handleMemSpell()
             state.resetMemSpellState()
             if mq.TLO.Window('SpellBookWnd').Open() then mq.TLO.Window('SpellBookWnd').DoClose() end
             return true
-        elseif state.memSpellTimer:timerExpired() then
+        elseif state.memSpellTimer:expired() then
             -- timer expired, spell not memorized, reset state
             state.resetMemSpellState()
             return true

@@ -2,7 +2,8 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local logger = require('utils.logger')
-local timer = require('utils.timer')
+local sharedabilities = require('utils.sharedabilities')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
 local state = require('state')
@@ -269,7 +270,7 @@ end
 function Bard:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
     table.insert(self.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
-    table.insert(self.DPSAbilities, common.getSkill('Kick'))
+    table.insert(self.DPSAbilities, sharedabilities.getKick())
     table.insert(self.DPSAbilities, common.getAA('Selo\'s Kick'))
 
     table.insert(self.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=2}))
@@ -354,7 +355,7 @@ end
 local function castSynergy()
     -- don't nuke if i'm not attacking
     local synergy = Bard.spells.insult and Bard.spells.insult.Name
-    if Bard:isEnabled('USEINSULTS') and synergyTimer:timerExpired() and synergy and mq.TLO.Me.Combat() then
+    if Bard:isEnabled('USEINSULTS') and synergyTimer:expired() and synergy and mq.TLO.Me.Combat() then
         if not mq.TLO.Me.Song('Troubadour\'s Synergy')() and mq.TLO.Me.Gem(synergy)() and mq.TLO.Me.GemTimer(synergy)() == 0 then
             if mq.TLO.Spell(synergy).Mana() > mq.TLO.Me.CurrentMana() then
                 return false
@@ -410,7 +411,7 @@ local function isSongReady(spellId, spellName)
     if not mq.TLO.Me.Gem(spellName)() or mq.TLO.Me.GemTimer(spellName)() > 0 then
         return false
     end
-    if spellName == (Bard.spells.crescendo and Bard.spells.crescendo.name) and (mq.TLO.Me.Buff(actualSpellName)() or not crescendoTimer:timerExpired()) then
+    if spellName == (Bard.spells.crescendo and Bard.spells.crescendo.name) and (mq.TLO.Me.Buff(actualSpellName)() or not crescendoTimer:expired()) then
         -- buggy song that doesn't like to go on CD
         return false
     end
@@ -515,7 +516,7 @@ end
 function Bard:burnClass() Bard:useEpic() end
 
 function Bard:mashClass()
-    if self:isEnabled('USEBELLOW') and self.bellow and bellowTimer:timerExpired() and self.bellow:use() then
+    if self:isEnabled('USEBELLOW') and self.bellow and bellowTimer:expired() and self.bellow:use() then
         bellowTimer:reset()
     end
 end
@@ -557,7 +558,7 @@ function Bard:doneSinging()
         mq.delay(1)
     end
     if not mq.TLO.Me.Casting() then
-        if not self.spells.selos and self.selos and selosTimer:timerExpired() then
+        if not self.spells.selos and self.selos and selosTimer:expired() then
             self.selos:use()
             selosTimer:reset()
         end

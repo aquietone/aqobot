@@ -2,7 +2,7 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local mez = require('routines.mez')
-local timer = require('utils.timer')
+local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
 local config = require('interface.configuration')
@@ -389,7 +389,7 @@ function Enchanter:recover()
         local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000)
         while mq.TLO.Me.PctHPs() > config.get('MANASTONESTOPHP') and mq.TLO.Me.PctMana() < 90 do
             mq.cmd('/useitem Manastone')
-            if manastoneTimer:timerExpired() then break end
+            if manastoneTimer:expired() then break end
         end
     end
 end
