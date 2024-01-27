@@ -98,6 +98,12 @@ function camp.cleanTargets()
     end
 end
 
+function camp.returnToCamp()
+    if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
+        movement.navToLoc(camp.X, camp.Y, camp.Z)
+    end
+end
+
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 local checkCampTimer = timer:new(2000)
 function camp.checkCamp()
@@ -110,9 +116,7 @@ function camp.checkCamp()
         camp.Active = false
         return
     end
-    if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > 15^2 then
-        movement.navToLoc(camp.X, camp.Y, camp.Z)
-    end
+    camp.returnToCamp()
 end
 
 ---Draw a maploc at the given heading on the pull radius circle.

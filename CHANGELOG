@@ -1,5 +1,6 @@
 # 2024/01/27
 - Fix stopping medding early as puller
+- Use common list processing on sk
 
 # 2024/01/22
 - Some fixes around pulling and recover and rest routines related to medding

@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
 local class = require('classes.classbase')
+local conditions = require('routines.conditions')
 local timer = require('utils.timer')
 local abilities = require('ability')
 local common = require('common')
@@ -48,6 +49,8 @@ function ShadowKnight:init()
     self.epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
     self.summonCompanion = common.getAA('Summon Companion')
     self.pullSpell = self.spells.terror
+
+    self.useCommonListProcessor = true
 end
 
 function ShadowKnight:initClassOptions()
@@ -239,6 +242,12 @@ function ShadowKnight:initSpellRotations()
 end
 
 function ShadowKnight:initTankAbilities()
+    local lowAggroInMelee = function(ability)
+        local aggropct = mq.TLO.Target.PctAggro() or 100
+        local targetDistance = mq.TLO.Target.Distance3D() or 300
+        local targetMaxRange  = mq.TLO.Target.MaxRangeTo() or 0
+        return (ability.aggro == nil or aggropct < 100) and targetDistance <= targetMaxRange
+    end
     -- TANK
     -- defensives
     -- common.getBestDisc({'Gird'}) -- absorb melee/spell dmg, short cd mash ability
@@ -248,7 +257,7 @@ function ShadowKnight:initTankAbilities()
     self.guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
     self.deflection = common.getBestDisc({'Deflection Discipline'}, {opt='USEDEFLECTION'})
 
-    table.insert(self.tankAbilities, common.getSkill('Taunt', {aggro=true}))
+    table.insert(self.tankAbilities, common.getSkill('Taunt', {aggro=true, condition=lowAggroInMelee}))
     table.insert(self.tankAbilities, self.spells.challenge)
     table.insert(self.tankAbilities, self.spells.terror)
     table.insert(self.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
@@ -258,27 +267,27 @@ function ShadowKnight:initTankAbilities()
 
     -- mash AE aggro
     table.insert(self.AETankAbilities, self.spells.aeterror)
-    table.insert(self.AETankAbilities, common.getAA('Explosion of Spite', {threshold=2})) -- 45sec CD
-    table.insert(self.AETankAbilities, common.getAA('Explosion of Hatred', {threshold=4})) -- 45sec CD
+    table.insert(self.AETankAbilities, common.getAA('Explosion of Spite', {threshold=2, condition=conditions.aboveMobThreshold})) -- 45sec CD
+    table.insert(self.AETankAbilities, common.getAA('Explosion of Hatred', {threshold=4, condition=conditions.aboveMobThreshold})) -- 45sec CD
     --table.insert(mashAEAggroAAs4, common.getAA('Stream of Hatred')) -- large frontal cone ae aggro
 
-    table.insert(self.tankBurnAbilities, common.getBestDisc({'Unconditional Acrimony', 'Unrelenting Acrimony'})) -- instant aggro
-    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity')) -- big taunt
+    table.insert(self.tankBurnAbilities, common.getBestDisc({'Unconditional Acrimony', 'Unrelenting Acrimony'}, {condition=conditions.withinMeleeDistance})) -- instant aggro
+    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=lowAggroInMelee})) -- big taunt
     table.insert(self.tankBurnAbilities, common.getAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
     table.insert(self.tankBurnAbilities, common.getAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
 end
 
 function ShadowKnight:initDPSAbilities()
     -- DPS
-    table.insert(self.DPSAbilities, common.getSkill('Bash', {condition=function() return mq.TLO.Me.Inventory('offhand').Type() == 'Shield' and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0) end}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Resentment'})) -- 3x 2hs attack + heal
+    table.insert(self.DPSAbilities, common.getSkill('Bash', {condition=function() return (mq.TLO.Me.AltAbility('Improved Bash')() or mq.TLO.Me.Inventory('offhand').Type() == 'Shield') and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0) end}))
+    table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Resentment'}, {condition=conditions.withinMaxDistance})) -- 3x 2hs attack + heal
     table.insert(self.DPSAbilities, common.getAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
     table.insert(self.DPSAbilities, common.getAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
 end
 
 function ShadowKnight:initBurns()
-    table.insert(self.burnAbilities, common.getBestDisc({'Incapacitating Blade', 'Grisly Blade'})) -- 2hs attack
-    table.insert(self.burnAbilities, common.getBestDisc({'ncarnadine Blade', 'Sanguine Blade'})) -- 3 strikes
+    table.insert(self.burnAbilities, common.getBestDisc({'Incapacitating Blade', 'Grisly Blade'}, {condition=conditions.withinMaxDistance})) -- 2hs attack
+    table.insert(self.burnAbilities, common.getBestDisc({'ncarnadine Blade', 'Sanguine Blade'}, {condition=conditions.withinMaxDistance})) -- 3 strikes
     table.insert(self.burnAbilities, common.getAA('Gift of the Quick Spear')) -- 10min CD, twincast
     table.insert(self.burnAbilities, common.getAA('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
     --table.insert(self.burnAbilities, common.getAA('Harm Touch')) -- 20min CD, giant nuke + dot

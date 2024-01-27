@@ -107,9 +107,13 @@ local assistTabConfigs = {
     'NUKEMANAMIN','DOTMANAMIN','MAINTANK','LOOTMOBS','LOOTCOMBAT',
 }
 local function drawAssistTab()
-    local x,_ = ImGui.GetContentRegionAvail()
-    if ImGui.Button('Reset Camp', x, BUTTON_HEIGHT) then
+    local x,_ = ImGui.GetContentRegionAvail() - 10
+    if ImGui.Button('Reset Camp', x/2, BUTTON_HEIGHT) then
         camp.setCamp(true)
+    end
+    ImGui.SameLine()
+    if ImGui.Button('Return to Camp', x/2, BUTTON_HEIGHT) then
+        camp.returnToCamp()
     end
     local current_camp_radius = config.get('CAMPRADIUS')
 
