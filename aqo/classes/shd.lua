@@ -55,7 +55,7 @@ function ShadowKnight:init()
 end
 
 function ShadowKnight:initClassOptions()
-    self:addOption('USEHATESATTRACTION', 'Use Hate\'s Attraction', true, nil, 'Toggle use of Hates Attraction AA', 'checkbox', nil, 'UseHatesAttraction', 'bool')
+    self:addOption('USEATTRACTION', 'Use Hate\'s Attraction', true, nil, 'Toggle use of Hates Attraction AA', 'checkbox', nil, 'UseAttraction', 'bool')
     self:addOption('USEPROJECTION', 'Use Projection', true, nil, 'Toggle use of Projection AA', 'checkbox', nil, 'UseProjection', 'bool')
     self:addOption('USEAZIA', 'Use Unity Azia', true, nil, 'Toggle use of Unity (Azia) AA', 'checkbox', 'USEBEZA', 'UseAzia', 'bool')
     self:addOption('USEBEZA', 'Use Unity Beza', false, nil, 'Toggle use of Unity (Beza) AA', 'checkbox', 'USEAZIA', 'UseBeza', 'bool')
@@ -258,7 +258,7 @@ function ShadowKnight:initTankAbilities()
     table.insert(self.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
     table.insert(self.tankAbilities, common.getAA('Projection of Doom', {opt='USEPROJECTION'})) -- aggro swarm pet
 
-    self.attraction = common.getAA('Hate\'s Attraction', {opt='USEHATESATTRACTION'}) -- aggro swarm pet
+    self.attraction = common.getAA('Hate\'s Attraction', {opt='USEATTRACTION'}) -- aggro swarm pet
 
     -- mash AE aggro
     table.insert(self.AETankAbilities, self.spells.aeterror)

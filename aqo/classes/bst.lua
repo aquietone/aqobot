@@ -131,53 +131,53 @@ common.getAA('Tranquil Blessings')]]
 BeastLord.SpellLines = {
     {-- DD. Slot 1
         Group='nuke1',
-        Spells={'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', --[[emu cutoff]] 'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'},
+        Spells={'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', 'Nak\'s Maelstrom', 'Bale\'s Maelstrom', 'Kron\'s Maelstrom', --[[emu cutoff]] 'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost'},
         Options={opt='USENUKES', Gem=1}
     },
     {-- DD. Slot 2
         Group='nuke2',
-        Spells={'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite', --[[emu cutoff]] },
+        Spells={'Mortimus\' Bite', 'Zelniak\'s Bite', 'Bloodmaw\'s Bite', 'Mawmun\'s Bite', 'Kreig\'s Bite', 'Poantaar\'s Bite', 'Rotsil\'s Bite', 'Sarsez\' Bite', --[[emu cutoff]] },
         Options={opt='USENUKES', Gem=2}
     },
     {-- DD. Slot 3
         Group='nuke3',
-        Spells={'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma', --[[emu cutoff]] },
+        Spells={'Frozen Creep', 'Frozen Blight', 'Frozen Malignance', 'Frozen Toxin', 'Frozen Miasma', 'Frozen Carbomate', 'Frozen Cyanin', 'Frozen Venin', --[[emu cutoff]] },
         Options={opt='USENUKES', Gem=3}
     },
     {-- DD. Slot 4,5
         Group='lance',
         NumToPick=2,
-        Spells={'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Glacier Spear', --[[emu cutoff]] },
+        Spells={'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Kromrif Lance', 'Frostrift Lance', 'Glacial Lance', 'Glacier Spear', --[[emu cutoff]] },
         Options={opt='USENUKES', Gems={4,5}}
     },
     {-- AOE DD
         Group='roar',
-        Spells={'Hoarfrost Roar', 'Polar Roar', 'Restless Roar', 'Frostbite Roar', 'Kromtus Roar', --[[emu cutoff]] },
+        Spells={'Hoarfrost Roar', 'Polar Roar', 'Restless Roar', 'Frostbite Roar', 'Kromtus Roar', 'Kromrif Roar', 'Frostrift Roar', 'Glacial Roar', --[[emu cutoff]] },
         Options={opt='USEAOE', Gem=5}
     },
     {-- DD DoT. Slot 6
         Group='dddot1',
-        Spells={'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill', --[[emu cutoff]] },
+        Spells={'Lazam\'s Chill', 'Sylra Fris\' Chill', 'Endaroky\'s Chill', 'Ekron\'s Chill', 'Kirchen\'s Chill', 'Edoth\'s Chill', --[[emu cutoff]] },
         Options={opt='USEDOTS', Gem=6}
     },
     {-- DoT. Slot 7
         Group='dot1',
-        Spells={'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', --[[emu cutoff]] 'Chimera Blood'},
+        Spells={'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', 'Natigo\'s Endemic', 'Silbar\'s Endemic', 'Shiverback Endemic', --[[emu cutoff]] 'Chimera Blood'},
         Options={opt='USEDOTS', Gem=function() return (not BeastLord:isEnabled('USEMENDING') and 7) or (not BeastLord:isEnabled('USEALLIANCE') and 7) or nil end, condition=function() return state.burnActive end}
     },
     {-- DD DoT. Slot 8
         Group='dddot2',
-        Spells={'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood', --[[emu cutoff]] },
+        Spells={'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood', 'Asp Blood', 'Binaesa Blood', 'Spinechiller Blood', --[[emu cutoff]] },
         Options={opt='USEDOTS', Gem=8}
     },
     {-- self buff. Slot 9
         Group='combatbuff',
-        Spells={'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard', --[[emu cutoff]] 'Growl of the Panther'},
+        Spells={'Growl of Yasil', 'Growl of the Clouded Leopard', 'Growl of the Lioness', 'Growl of the Sabertooth', 'Growl of the Leopard', 'Growl of the Snow Leopard', 'Growl of the Lion', 'Growl of the Tiger', --[[emu cutoff]] 'Growl of the Panther'},
         Options={Gem=9, skipifbuff='Wild Spirit Infusion'}
     },
     {-- Swarm pets. Slot 9
         Group='swarmpet',
-        Spells={'SingleMalt\'s Feralgia', 'Ander\'s Feralgia', 'Griklor\'s Feralgia', 'Akalit\'s Feralgia', 'Krenk\'s Feralgia', --[[emu cutoff]] 'Reptilian Venom'},
+        Spells={'SingleMalt\'s Feralgia', 'Ander\'s Feralgia', 'Griklor\'s Feralgia', 'Akalit\'s Feralgia', 'Krenk\'s Feralgia', 'Kesar\'s Feralgia', 'Yahnoa\'s Feralgia', 'Tuzil\'s Feralgia', --[[emu cutoff]] 'Reptilian Venom'},
         Options={opt='USESWARMPETS', Gem=9, delay=1500}
     },
     {-- inc pet flurry, ds miti, self flurry, hp/mana/end regen, dec weapon delay. Slot 10
@@ -187,7 +187,7 @@ BeastLord.SpellLines = {
     },
     {-- Pet proc heal target of target. Slot 11
         Group='pettothealproc',
-        Spells={'Vitalizing Warder', 'Protective Warder', 'Sympathetic Warder', 'Convivial Warder', 'Mending Warder', --[[emu cutoff]] },
+        Spells={'Vitalizing Warder', 'Protective Warder', 'Sympathetic Warder', 'Convivial Warder', 'Mending Warder', 'Invigorating Warder', 'Empowering Warder', 'Bolstering Warder', --[[emu cutoff]] },
         Options={Gem=11}
     },
     {-- lvl 100+. group avatar. Slot 12
@@ -197,12 +197,12 @@ BeastLord.SpellLines = {
     },
     {-- combined pet buffs, Unsurpassed Velocity, Spirit of Siver. Slot 13
         Group='petunity',
-        Spells={'Cohort\'s Unity', 'Comrade\'s Unity', 'Ally\'s Unity', 'Companion\'s Unity'},
+        Spells={'Cohort\'s Unity', 'Comrade\'s Unity', 'Ally\'s Unity', 'Companion\'s Unity', 'Warder\'s Unity', },
         Options={Gem=13, swap=true}
     },
     {-- Player heal / Salve of Artikla (Pet heal) Slot 13. Slot 7 if use alliance
         Group='heal',
-        Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending'},
+        Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending'},
         Options={opt='USEMENDING', Gem=function() return not BeastLord:isEnabled('USEALLIANCE') and 13 or 7 end, me=75, self=true}
     },
     {-- adds extra damage to bst dots + fulmination. Slot 13
@@ -213,16 +213,16 @@ BeastLord.SpellLines = {
 
     {Group='slow', Spells={'Sha\'s Legacy'}, Options={opt='USESLOW'}},
 
-    {Group='pet', Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, Options={opt='SUMMONPET'}},
-    {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
-    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha'}, Options={opt='HEALPET', pet=50}}, -- (Pet heal)
-    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity'}, Options={swap=true}}, -- pet haste
-    {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic'}, Options={swap=true}}, -- pet buff
-    {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression', --[[emu cutoff]] }, Options={swap=true}},
+    {Group='pet', Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Lachemit', 'Spirit of Kolos', 'Spirit of Averc', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha'}, Options={opt='SUMMONPET'}},
+    {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
+    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha'}, Options={opt='HEALPET', pet=50}}, -- (Pet heal)
+    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity'}, Options={swap=true}}, -- pet haste
+    {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic'}, Options={swap=true}}, -- pet buff
+    {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression', 'Plakt\'s Aggression', 'Mea\'s Aggression', 'Neivr\'s Aggression', --[[emu cutoff]] }, Options={swap=true}},
 
     {Group='regen', Spells={'Feral Vigor'}, Options={classes={WAR=true,SHD=true,PAL=true}}}, -- single regen
-    {Group='groupregen', Spells={'Spiritual Enduement', 'Spiritual Erudition', 'Spiritual Elaboration', 'Spiritual Empowerment', 'Spiritual Insight', --[[emu cutoff]] 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'}, Options={swap=true}}, -- group buff
-    {Group='grouphp', Spells={'Spiritual Valiancy', 'Spiritual Vigor', 'Spiritual Vehemence', 'Spiritual Vibrancy', 'Spiritual Vivification', --[[emu cutoff]] 'Spiritual Vitality', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'}, Options={swap=true}},
+    {Group='groupregen', Spells={'Spiritual Enduement', 'Spiritual Erudition', 'Spiritual Elaboration', 'Spiritual Empowerment', 'Spiritual Insight', 'Spiritual Evolution', 'Spiritual Enrichment', 'Spiritual Enhancement', --[[emu cutoff]] 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'}, Options={swap=true}}, -- group buff
+    {Group='grouphp', Spells={'Spiritual Valiancy', 'Spiritual Vigor', 'Spiritual Vehemence', 'Spiritual Vibrancy', 'Spiritual Vivification', 'Spiritual Vindication', 'Spiritual Valiance', 'Spiritual Valor', --[[emu cutoff]] 'Spiritual Vitality', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'}, Options={swap=true}},
     {Group='groupunity', Spells={'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'}, Options={swap=true}},
     -- below lvl 100
     {Group='fero', Spells={'Ferocity of Irionu', 'Ferocity'}, Options={classes={WAR=true,MNK=true,BER=true,ROG=true}}}, -- like shm avatar
@@ -288,10 +288,10 @@ function BeastLord:initDPSAbilities()
     --Melee Spam
     table.insert(self.DPSAbilities, common.getAA('Chameleon Strike', {conditions=conditions.withinMeleeDistance})) -- (aggro reducer)
     table.insert(self.DPSAbilities, common.getBestDisc({'Focused Clamor of Claws'}, {conditions=conditions.withinMeleeDistance}))
-    table.insert(self.AEDPSAbilities, common.getBestDisc({'Maelstrom of Claws'}, {conditions=conditions.withinMeleeDistance})) -- (AE)
+    table.insert(self.AEDPSAbilities, common.getBestDisc({'Barrage of Claws', 'Eruption of Claws', 'Maelstrom of Claws', 'Storm of Claws', 'Tempest of Claws', 'Clamor of Claws', 'Tumult of Claws', 'Flurry of Claws'}, {conditions=conditions.withinMeleeDistance})) -- (AE)
     table.insert(self.DPSAbilities, common.getAA('Roar of Thunder', {opt='USENUKES', conditions=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Clobber', 'Batter', 'Rake'}, {conditions=conditions.withinMeleeDistance})) -- (synergy proc ability)
-    table.insert(self.combatBuffs, common.getBestDisc({'Bestial Savagery'})) -- (self buff)
+    table.insert(self.DPSAbilities, common.getBestDisc({'Wallop', 'Clobber', 'Batter', 'Rake', 'Mangle', 'Maul', 'Pummel', 'Barrage', 'Rush',}, {conditions=conditions.withinMeleeDistance})) -- (synergy proc ability)
+    table.insert(self.combatBuffs, common.getBestDisc({'Bestial Fierceness', 'Bestial Savagery', 'Bestial Evulsing', 'Bestial Rending', 'Bestial Vivisection', })) -- (self buff)
     table.insert(self.DPSAbilities, common.getSkill('Eagle\'s Strike', {conditions=conditions.withinMeleeDistance})) -- (procs bite of the asp, /autoskill with round kick)
     if mq.TLO.Me.Skill('Round Kick')() > 0 then
         table.insert(self.DPSAbilities, sharedabilities.getRoundKick())
@@ -322,10 +322,10 @@ function BeastLord:initBurns()
         table.insert(self.burnAbilities, common.getAA('Frenzied Swipes', {first=true})) -- (AA)
 
         -- Second Burn
-        table.insert(self.burnAbilities, common.getBestDisc({'Savage Rancor'}, {second=true})) -- (disc)
+        table.insert(self.burnAbilities, common.getBestDisc({'Savage Rancor', 'Savage Rage', 'Savage Fury', }, {second=true})) -- (disc)
         table.insert(self.burnAbilities, common.getAA('Spire of the Savage Lord', {second=true})) -- (AA)
         -- Fury of the Beast (chest click)
-        table.insert(self.burnAbilities, common.getBestDisc({'Ruaabri\'s Fury'}, {second=true})) -- (disc)
+        table.insert(self.burnAbilities, common.getBestDisc({'Ruaabri\'s Fury', 'Kolos\' Fury', 'Nature\'s Fury'}, {second=true})) -- (disc)
 
         -- Third Burn
         --Bestial Bloodrage (Companion's Fury)
@@ -359,8 +359,9 @@ function BeastLord:initBuffs()
         table.insert(self.selfBuffs, self.spells.grouphp)
     end
 
-    if self.spells.combatbuff then self.spells.combatbuff.condition = buffCondition end
-    table.insert(self.selfBuffs, self.spells.combatbuff)
+    --if self.spells.combatbuff then self.spells.combatbuff.condition = buffCondition end
+    --table.insert(self.selfBuffs, self.spells.combatbuff)
+    table.insert(self.petBuffs, self.spells.combatbuff)
 
     if self.spells.groupfero then
         table.insert(self.selfBuffs, self.spells.groupfero)

@@ -66,7 +66,7 @@ local function buffAuras(base)
         local buffName = buff.Name
         if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
         if not mq.TLO.Me.Aura(buff.CheckFor)() and not mq.TLO.Me.Song(buffName)() then
-            if abilities.use(buff, base) then return true end
+            if abilities.use(buff, base, true) then return true end
         end
     end
 end

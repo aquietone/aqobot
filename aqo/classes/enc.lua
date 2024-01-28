@@ -38,8 +38,10 @@ function Enchanter:init()
     self.summonCompanion = common.getAA('Summon Companion')
     if self.spells.mezst then
         function Enchanter:beforeMez()
-            if not mq.TLO.Target.Tashed() and self:isEnabled('TASHTHENMEZ') and self.spells.tash then
-                self.spells.tash:use()
+            if not mq.TLO.Target.Tashed() and Enchanter:isEnabled('TASHTHENMEZ') and Enchanter.spells.tash then
+                Enchanter.spells.tash:use()
+                mq.delay(50)
+                mq.delay(2000, function() return not mq.TLO.Me.Casting() and not mq.TLO.Me.SpellInCooldown() end)
             end
             return true
         end
@@ -91,7 +93,7 @@ end
 Enchanter.SpellLines = {
     {-- Slot 1
         Group='tash',
-        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan'},
+        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', 'Enunciation of Tashan', 'Declaration of Tashan', 'Clamor of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan'},
         Options={opt='USEDEBUFF', Gem=1}
     },
     {-- Slot 2
@@ -101,48 +103,48 @@ Enchanter.SpellLines = {
     },
     {-- 6 tick mez + twincast on next spell. Slot 3
         Group='meznoblur',
-        Spells={'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception', 'Chaotic Delusion', 'Chaotic Bewildering', --[[emu cutoff]] },
+        Spells={'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception', 'Chaotic Delusion', 'Chaotic Bewildering', 'Chaotic Confounding', 'Chaotic Confusion', 'Chaotic Baffling', --[[emu cutoff]] },
         Options={opt='USECHAOTIC', Gem=3}
     },
     {-- 9 ticks. Slot 3
         Group='mezst',
-        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', --[[emu cutoff]] 'Euphoria'},
+        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria'},
         Options={Gem=3}
     },
     {-- targeted AE mez. Slot 4
         Group='mezaeprocblur',
-        Spells={'Entrancing Stare', 'Mesmeric Stare', 'Deceiving Stare', 'Transfixing Stare', 'Anodyne Stare', --[[emu cutoff]] },
+        Spells={'Entrancing Stare', 'Mesmeric Stare', 'Deceiving Stare', 'Transfixing Stare', 'Anodyne Stare', 'Mesmerizing Stare', 'Sedative Stare', 'Soporific Stare', --[[emu cutoff]] },
         Options={Gem=4}
     },
     {-- main dot. Slot 5
         Group='dot1',
-        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', --[[emu cutoff]] 'Arcane Noose'},
+        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', 'Stifle', 'Suffocation', 'Constrict', --[[emu cutoff]] 'Arcane Noose'},
         Options={opt='USEDOTS', Gem=5}
     },
     {-- 77k nuke, procs synery. Slot 6, 7
         Group='mindnuke',
         NumToPick=2,
-        Spells={'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash', 'Mindsunder', --[[emu cutoff]] 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'},
+        Spells={'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash', 'Mindsunder', 'Mindcleave', 'Mindscythe', 'Mindblade', --[[emu cutoff]] 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'},
         Options={opt='USENUKES', Gems={6,7}}
     },
     {-- 28k nuke. Slot 8
         Group='nuke2',
-        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', --[[emu cutoff]] 'Chromaburst'},
+        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst'},
         Options={opt='USENUKES', Gem=8}
     },
     {-- single target dmg proc buff. Slot 9
         Group='procbuff',
-        Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Replication', 'Mana Repetition', 'Mana Reciprocation', --[[emu cutoff]] 'Mana Recursion', 'Mana Flare'},
+        Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Replication', 'Mana Repetition', 'Mana Reciprocation', 'Mana Reverberation', 'Mana Repercussion', 'Mana Reiteration', --[[emu cutoff]] 'Mana Recursion', 'Mana Flare'},
         Options={swap=false, Gem=9}
     },
     {-- extra dot. Slot 10
         Group='dot2',
-        Spells={'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Tempest', 'Mind Storm', --[[emu cutoff]] 'Mind Shatter'},
+        Spells={'Mind Whirl', 'Mind Vortex', 'Mind Coil', 'Mind Tempest', 'Mind Storm', 'Mind Squall', 'Mind Spiral', 'Mind Helix', --[[emu cutoff]] 'Mind Shatter'},
         Options={opt='USEDOTS', Gem=10}
     },
     {-- 24k. when use dots off. Slot 10
         Group='nuke3',
-        Spells={'Cognitive Appropriation', 'Psychological Appropriation', 'Ideological Appropriation', 'Psychic Appropriation', 'Intellectual Appropriation', --[[emu cutoff]]},
+        Spells={'Cognitive Appropriation', 'Psychological Appropriation', 'Ideological Appropriation', 'Psychic Appropriation', 'Intellectual Appropriation', 'Mental Appropriation', --[[emu cutoff]]},
         Options={opt='USENUKES', Gem=function() return not Enchanter:isEnabled('USEDOTS') and 10 or nil end}
     },
     {-- restore mana, add dmg proc, inc dmg. Slot 11
@@ -152,7 +154,7 @@ Enchanter.SpellLines = {
     },
     {-- mez proc on being hit. Slot 12
         Group='unity',
-        Spells={'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity', 'Transfixer\'s Unity', 'Enticer\'s Unity', --[[emu cutoff]]},
+        Spells={'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity', 'Transfixer\'s Unity', 'Enticer\'s Unity', 'Phantasmal Unity', 'Arcane Unity', 'Spectral Unity', --[[emu cutoff]]},
         Options={Gem=12}
     },
     {-- melee attack proc. Slot 13 or 2
@@ -189,7 +191,7 @@ Enchanter.SpellLines = {
     {Group='groupspellrune', Spells={'Legion of Ogna', 'Legion of Liako', 'Legion of Kildrukaun'}},
     {Group='groupaggrorune', Spells={'Gloaming Rune', 'Eclipsed Rune'}}, -- group rune + big nuke/aggro reduction proc
 
-    {Group='debuffdot', Spells={'Dismaying Constriction', 'Perplexing Constriction'}}, -- debuff + nuke + dot
+    {Group='debuffdot', Spells={'Dismaying Constriction', 'Perplexing Constriction', 'Confounding Constriction', 'Confusing Constriction', 'Baffling Constriction'}}, -- debuff + nuke + dot
     {Group='manadot', Spells={'Tears of Kasha', 'Tears of Xenacious'}}, -- hp + mana DoT
     {Group='nukerune', Spells={'Chromatic Spike', 'Chromatic Flare'}}, -- 18k nuke + self rune
 
@@ -202,13 +204,13 @@ Enchanter.SpellLines = {
     {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration'}},
     {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}}, -- self rune, proc ae stun on fade
 
-    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Aeidorb\'s Animation'}},
+    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', }},
     {Group='pethaste', Spells={'Invigorated Minion'}},
     -- buffs
-    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Voice of Quellious'}},
-    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Clairvoyance', 'Voice of Quellious'}},
-    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar'}}, -- single target buff
-    {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar'}}, -- group haste
+    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Voice of Quellious'}},
+    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Voice of Clairvoyance', 'Voice of Quellious'}},
+    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak',}}, -- single target buff
+    {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar', 'Hastening of Milyex', 'Hastening of Prokev', 'Hastening of Sviir', 'Hastening of Aransir', 'Hastening of Novak'}}, -- group haste
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
     {Group='twincast', Spells={'Twincast Aura'}},
     {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}}, -- mana + end regen aura
@@ -233,9 +235,9 @@ function Enchanter:initSpellRotations()
     -- tash, command, chaotic, deceiving stare, pulmonary grip, mindrift, fortifying aura, mind coil, unity, dissident, mana replication, night's endless terror
     -- entries in the dots table are pairs of {spell id, spell name} in priority order
     table.insert(self.spellRotations.standard, self.spells.dotmiti)
-    table.insert(self.spellRotations.standard, self.spells.meznoblur)
-    table.insert(self.spellRotations.standard, self.spells.mezae)
-    table.insert(self.spellRotations.standard, self.spells.dot)
+    --table.insert(self.spellRotations.standard, self.spells.meznoblur)
+    --table.insert(self.spellRotations.standard, self.spells.mezae)
+    table.insert(self.spellRotations.standard, self.spells.dot1)
     table.insert(self.spellRotations.standard, self.spells.dot2)
     table.insert(self.spellRotations.standard, self.spells.mindnuke1)
     table.insert(self.spellRotations.standard, self.spells.mindnuke2)
@@ -295,9 +297,18 @@ function Enchanter:initBuffs()
         self:addRequestAlias(self.spells.unified, 'KEI')
         self:addRequestAlias(self.spells.unified, 'HASTE')
     else
-        table.insert(self.selfBuffs, self.spells.kei)
+        if self.spells.keigroup then
+            table.insert(self.selfBuffs, self.spells.keigroup)
+            self:addRequestAlias(self.spells.keigroup, 'KEI')
+        else
+            table.insert(self.selfBuffs, self.spells.kei)
         self:addRequestAlias(self.spells.kei, 'KEI')
-        self:addRequestAlias(self.spells.haste, 'HASTE')
+        end
+        if self.spells.grouphaste then
+            self:addRequestAlias(self.spells.grouphaste, 'HASTE')
+        else
+            self:addRequestAlias(self.spells.haste, 'HASTE')
+        end
     end
 
     table.insert(self.petBuffs, self.spells.pethaste)
@@ -310,6 +321,7 @@ function Enchanter:initBuffs()
         local epic = common.getItem('Staff of Eternal Eloquence', {classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}})
         table.insert(self.singleBuffs, epic)
     else
+        table.insert(self.auras, self.spells[self:get('AURA1')])
         table.insert(self.selfBuffs, common.getAA('Orator\'s Unity', {CheckFor='Ward of the Beguiler'}))
     end
 end
@@ -360,7 +372,7 @@ function Enchanter:findNextSpell()
     if castSynergy() then return nil end
     --if state.emu and self.spells.spasm and self.spells.spasm:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.spasm end
     if self.spells.nuke5 and self.spells.nuke5:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.nuke5 end
-    if self.spells.dot and self.spells.dot:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.dot end
+    if self.spells.dot1 and self.spells.dot1:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.dot1 end
     if self.spells.dot2 and self.spells.dot2:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.dot2 end
     if self.spells.nuke4 and self.spells.nuke4:isReady() == abilities.IsReady.SHOULD_CAST then return self.spells.nuke4 end
     return nil -- we found no missing dot that was ready to cast, so return nothing

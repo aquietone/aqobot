@@ -33,19 +33,19 @@ end
 
 function Berserker:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getAA('Braxi\'s Howl')) -- ae inc dmg taken, still useful for single target too, 1 min cd, timer 63
-    table.insert(self.DPSAbilities, common.getBestDisc({'Eviscerating Frenzy', 'Oppressing Frenzy', 'Vindicating Frenzy', 'Mangling Frenzy', 'Demolishing Frenzy', 'Overpowering Frenzy'})) -- Frenzy Attack for 196 with 10000% Accuracy Mod (3), Cast: Overpowering Frenzy Effect (Increase Frenzy Damage Taken by 25%, Increase Throwing Damage Taken by 25%)
-    table.insert(self.DPSAbilities, common.getBestDisc({'Rending Axe Throw', 'Maiming Axe Throw', 'Vindicating Axe Throw', 'Mangling Axe Throw', 'Demolishing Axe Throw'})) -- Throwing Attack for 592 with 10000% Accuracy Mod
-    table.insert(self.DPSAbilities, common.getBestDisc({'Axe of Orrak', 'Axe of Xin Diabo', 'Axe of Derakor', 'Axe of Empyr', 'Axe of the Aeons'})) -- 2H Slash Attack for 669 with 1000% Accuracy Mod, 2H Slash Attack for 920 with 1000% Accuracy Mod, 2H Slash Attack for 1171 with 1000% Accuracy Mod
-    table.insert(self.DPSAbilities, common.getBestDisc({'Eviscerating Volley', 'Pulverizing Volley', 'Vindicating Volley', 'Mangling Volley', 'Demolishing Volley', 'Destroyer\'s Volley', 'Rage Volley'})) -- Throwing Attack for 218 with 10000% Accuracy Mod (4)
+    table.insert(self.DPSAbilities, common.getBestDisc({'Eviscerating Frenzy', 'Oppressing Frenzy', 'Vindicating Frenzy', 'Mangling Frenzy', 'Vanquishing Frenzy', 'Demolishing Frenzy', 'Conquering Frenzy', 'Overwhelming Frenzy', --[[emu begin]] 'Overpowering Frenzy'})) -- Frenzy Attack for 196 with 10000% Accuracy Mod (3), Cast: Overpowering Frenzy Effect (Increase Frenzy Damage Taken by 25%, Increase Throwing Damage Taken by 25%)
+    table.insert(self.DPSAbilities, common.getBestDisc({'Rending Axe Throw', 'Maiming Axe Throw', 'Vindicating Axe Throw', 'Mangling Axe Throw', 'Demolishing Axe Throw', 'Brutal Axe Throw', 'Spirited Axe Throw', 'Energetic Axe Throw'})) -- Throwing Attack for 592 with 10000% Accuracy Mod
+    table.insert(self.DPSAbilities, common.getBestDisc({'Axe of Orrak', 'Axe of Xin Diabo', 'Axe of Derakor', 'Axe of Empyr', 'Axe of the Aeons', 'Axe of Zurel', 'Axe of Illdaera', 'Axe of Graster'})) -- 2H Slash Attack for 669 with 1000% Accuracy Mod, 2H Slash Attack for 920 with 1000% Accuracy Mod, 2H Slash Attack for 1171 with 1000% Accuracy Mod
+    table.insert(self.DPSAbilities, common.getBestDisc({'Eviscerating Volley', 'Pulverizing Volley', 'Vindicating Volley', 'Mangling Volley', 'Demolishing Volley', 'Brutal Volley', 'Sundering Volley', 'Savage Volley', --[[emu begin]] 'Destroyer\'s Volley', 'Rage Volley'})) -- Throwing Attack for 218 with 10000% Accuracy Mod (4)
     table.insert(self.DPSAbilities, common.getAA('Binding Axe')) -- Throwing Attack for 500 with 10000% Accuracy Mod
     table.insert(self.DPSAbilities, common.getBestDisc({'Ecliptic Rage', 'Composite Rage', 'Dissident Rage', 'Dichotomic Rage'}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Conqueror\'s Conjunction', 'Vindicator\'s Coalition', 'Mangler\'s Covenant', 'Demolisher\'s Alliance'}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Phantom Assailant'})) -- temp pet
-    table.insert(self.DPSAbilities, common.getBestDisc({'Jarring Impact', 'Jarring Shock', 'Jarring Jolt', 'Confusing Strike'})) -- aggro reducer, timer 2
+    table.insert(self.DPSAbilities, common.getBestDisc({'Jarring Impact', 'Jarring Shock', 'Jarring Jolt', 'Jarring Crush', 'Jarring Blow', 'Jarring Slam', --[[emu begin]] 'Confusing Strike'})) -- aggro reducer, timer 2
 
     table.insert(self.AEDPSAbilities, common.getAA('Rampage', {threshold=3})) -- AE Attack, 3 min cd, timer 1
-    table.insert(self.AEDPSAbilities, common.getBestDisc({'Arcshear', 'Arcslash', 'Arcsteel', 'Arcslice'}, {threshold=3})) -- Frontal AE Attack (4 Targets) 2H Slash Attack for 250 with 1000% Accuracy Mod (2)
-    table.insert(self.AEDPSAbilities, common.getBestDisc({'Vicious Vortex', 'Vicious Whirl', 'Vicious Revolution', 'Vicious Cycle', 'Vicious Cyclone'}, {threshold=3})) -- AE Attack (12 Targets) Decrease Current HP by 4083 (Shares timer with Arcslice)
+    table.insert(self.AEDPSAbilities, common.getBestDisc({'Arcshear', 'Arcslash', 'Arcsteel', 'Arcslice', 'Arcblade'}, {threshold=3})) -- Frontal AE Attack (4 Targets) 2H Slash Attack for 250 with 1000% Accuracy Mod (2)
+    table.insert(self.AEDPSAbilities, common.getBestDisc({'Vicious Vortex', 'Vicious Whirl', 'Vicious Revolution', 'Vicious Cycle', 'Vicious Cyclone', 'Vicious Spiral'}, {threshold=3})) -- AE Attack (12 Targets) Decrease Current HP by 4083 (Shares timer with Arcslice)
     table.insert(self.AEDPSAbilities, common.getAA('Devastating Assault', {threshold=3})) -- 2min of melee aoe dmg, 5 min cd, timer 30
 
     -- emu leftovers
@@ -63,7 +63,7 @@ common.getAA('Tireless Sprint') -- short runspeed buff, 5 min cd
 common.getAA('Furious Leap') -- leap
 common.getBestDisc({'Blinding Frenzy'}) -- proc additional dmg, requires below 90% hp, 10 min cd, timer 11
 common.getBestDisc({'Temple Shatter'}) -- stun, timer 10
-common.getBestDisc({'Swift Punch', 'Rabbit Punch', 'Sucker Punch'}) -- h2h only ooc punch, use to enter combat maybe? 2min cd, timer 9
+common.getBestDisc({'Swift Punch', 'Rabbit Punch', 'Sucker Punch', 'Punch in the Throat', 'Kick in the Teeth', 'Slap in the Face'}) -- h2h only ooc punch, use to enter combat maybe? 2min cd, timer 9
 common.getBestDisc({'Stinging Incision'}) -- reduce hp to 89%
 common.getBestDisc({'Primed Retaliation'}) -- at or below 90% hp, 3 strikes + 300% dodge buff for 1 min, 10 min cd, timer 15
 ]]
@@ -103,12 +103,13 @@ function Berserker:initBurns()
     table.insert(self.burnAbilities, common.getBestDisc({'Frenzied Resolve Discipline'})) -- Timer 15, Increase Chance of Additional 2H Attack by 105%, Increase Min Hit Damage by 315%, Increase Chance to Hit by 32%, Self Root
 end
 
+--common.getBestDisc({'Preemptive Retaliation', 'Primed Retaliation', 'Premature Retaliation', 'Proactive Retaliation', 'Prior Retaliation', 'Advanced Retaliation', 'Early Retaliation'})
 function Berserker:initBuffs()
-    table.insert(self.combatBuffs, common.getBestDisc({'Roiling Rage', 'Frothing Rage', 'Seething Rage', 'Smoldering Rage', 'Bubbling Rage'})) -- Add Melee Proc: Bubbling Rage Strike II, 2H Slash Attack for 254 with 53% Accuracy Mod (2 Strikes)
-    table.insert(self.combatBuffs, common.getBestDisc({'Heightened Frenzy', 'Buttressed Frenzy', 'Magnified Frenzy', 'Bolstered Frenzy', 'Amplified Frenzy'})) -- Decrease Frenzy Timer by 3s, Add Skill Proc: Amplified Frenzy Strike II (4.6k)
+    table.insert(self.combatBuffs, common.getBestDisc({'Roiling Rage', 'Frothing Rage', 'Seething Rage', 'Smoldering Rage', 'Bubbling Rage', 'Festering Rage', })) -- Add Melee Proc: Bubbling Rage Strike II, 2H Slash Attack for 254 with 53% Accuracy Mod (2 Strikes)
+    table.insert(self.combatBuffs, common.getBestDisc({'Heightened Frenzy', 'Buttressed Frenzy', 'Magnified Frenzy', 'Bolstered Frenzy', 'Amplified Frenzy', 'Augmented Frenzy', 'Steel Frenzy', 'Fighting Frenzy'})) -- Decrease Frenzy Timer by 3s, Add Skill Proc: Amplified Frenzy Strike II (4.6k)
     table.insert(self.combatBuffs, common.getBestDisc({'Shriveling Strikes', 'Sapping Strikes'})) -- Add Melee Proc: Sapping Strike II (4 Procs), Decrease Current HP by 9027, Returns 40% of Damage as Endurance, Max Per Hit: 4333
-    table.insert(self.combatBuffs, common.getBestDisc({'Shared Barbarism', 'Shared Violence', 'Shared Atavism', 'Shared Cruelty', 'Shared Bloodlust'})) -- Increase all weapon skills Damage Bonus by 457, requires target of target
-    table.insert(self.combatBuffs, common.getBestDisc({'Unthinking Retaliation', 'Instintive Retaliation', 'Reflexive Retaliation'})) -- proc stun when hit over 18k, lasts 1 hr, timer 18
+    table.insert(self.combatBuffs, common.getBestDisc({'Shared Barbarism', 'Shared Violence', 'Shared Atavism', 'Shared Cruelty', 'Shared Bloodlust', 'Shared Viciousness', 'Shared Savagery', 'Shared Brutality'})) -- Increase all weapon skills Damage Bonus by 457, requires target of target
+    table.insert(self.combatBuffs, common.getBestDisc({'Unthinking Retaliation', 'Instintive Retaliation', 'Reflexive Retaliation', 'Conditioned Retaliation'})) -- proc stun when hit over 18k, lasts 1 hr, timer 18
     table.insert(self.combatBuffs, common.getAA('Distraction Attack')) -- Add Melee Proc: Distraction Attack Strike XVIII (Decrease Hate by 2500, Decrease Current Hate by 1%) (Can hit with burns if you want, honestly doesn't help too much)
 
     --table.insert(self.combatBuffs, common.getAA('Desperation', {combat=true})) -- Increase Melee Haste v3 by 25% (Just regular haste, already will be max on raid) 20min cd, not combat buff
@@ -119,7 +120,7 @@ function Berserker:initBuffs()
 
     table.insert(self.auras, common.getBestDisc({'Bloodlust Aura', 'Aura of Rage'}, {combat=false}))
 
-    table.insert(self.selfBuffs, common.getBestDisc({'Axe of the Eviscerator', 'Axe of the Conqueror', 'Axe of the Vindicator', 'Axe of the Mangler', 'Axe of the Demolisher', 'Bonesplicer Axe'}, {summonMinimum=101}))
+    table.insert(self.selfBuffs, common.getBestDisc({'Axe of the Eviscerator', 'Axe of the Conqueror', 'Axe of the Vindicator', 'Axe of the Mangler', 'Axe of the Demolisher', 'Axe of the Brute', 'Axe of the Sunderer', 'Axe of the Savage', --[[emu begin]] 'Bonesplicer Axe'}, {summonMinimum=101}))
 end
 
 function Berserker:initDefensiveAbilities()
