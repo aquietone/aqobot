@@ -20,6 +20,7 @@ function events.init(_class)
     mq.event('eventCantHit', 'You can\'t hit them from here.', events.cantHit)
     mq.event('eventNewLevel', 'You have gained a level', events.eventNewLevel)
     mq.event('eventNewSpellMemmed', '#*#You have finished scribing #1#.', events.eventNewSpellMemmed)
+    mq.event('eventNewDiscipline', 'You have learned a new combat ability!', events.eventNewDiscipline)
     mq.event('zoned', 'You have entered #*#', events.zoned)
     mq.event('cannotSee', '#*#cannot see your target#*#', events.movecloser)
     mq.event('tooFar', '#*#Your target is too far away#*#', events.movecloser)
@@ -46,6 +47,10 @@ end
 
 function events.notMemorized(line)
     if state.casting then logger.info('Casting %s failed due to not memorized', state.casting.Name) end
+end
+
+function events.eventNewDiscipline()
+
 end
 
 function events.initClassBasedEvents()

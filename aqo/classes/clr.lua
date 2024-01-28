@@ -151,58 +151,58 @@ Cleric.SpellLines = {
     {-- multiple remedies main heals lvl 101+ or just 1 remedy below lvl 100. Slot 1, 2, 5
         Group='remedy',
         NumToPick=mq.TLO.Me.Level() < 101 and 1 or 2,
-        Spells={'Avowed Remedy', 'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy', --[[emu cutoff]] 'Sacred Remedy', 'Pious Remedy', 'Supernal Remedy', 'Remedy'},
+        Spells={'Avowed Remedy', 'Guileless Remedy', 'Sincere Remedy', 'Merciful Remedy', 'Spiritual Remedy', 'Graceful Remedy', 'Faithful Remedy', 'Earnest Remedy', --[[emu cutoff]] 'Sacred Remedy', 'Pious Remedy', 'Supernal Remedy', 'Remedy'},
         Options={Gems={1,2}, tank=true, panic=true, regular=true}
     },
     {-- emu or before remedies standard heal. Slot 2, otherwise slot 11
         Group='lightheal',
-        Spells={'Avowed Light', 'Fervent Light', 'Sincere Light', 'Merciful Light', 'Ardent Light', 'Reverent Light', 'Earnest Light', 'Devout Light', --[[emu cutoff]] 'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'},
+        Spells={'Avowed Light', 'Fervent Light', 'Sincere Light', 'Merciful Light', 'Ardent Light', 'Reverent Light', 'Zealoud Light', 'Earnest Light', 'Devout Light', --[[emu cutoff]] 'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'},
         Options={Gem=function() return mq.TLO.Me.Level() < 101 and 2 or 11 end, tank=true, panic=true, regular=true}
     },
     {-- Heal target + nuke targets target. Slot 3, 4
         Group='intervention',
         NumToPick=2,
-        Spells={'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention', --[[emu cutoff]] },
+        Spells={'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention', 'Virtuous Intervention', 'Elysian Intervention', 'Celestial Intervention', --[[emu cutoff]] },
         Options={Gems={3,4}, tank=true, panic=true, regular=true}
     },
     {-- Large heal after 18 seconds. Slot 5
         Group='promised',
-        Spells={'Promised Redediation', 'Promised Reclamation', 'Promised Redemption', 'Promised Remedy', 'Promised Rehabilitation', --[[emu cutoff]] },
+        Spells={'Promised Redediation', 'Promised Reclamation', 'Promised Redemption', 'Promised Remedy', 'Promised Rehabilitation', 'Promised Reformation',  'Promised Restitution', 'Promised Resurgence', --[[emu cutoff]] },
         Options={Gem=5, tank=true}
     },
     {-- large proc heal on near death. Slot 6
         Group='di',
-        Spells={'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', --[[emu cutoff]] 'Divine Intervention'},
+        Spells={'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', 'Divine Interposition', 'Divine Invocation', 'Divine Intercession', --[[emu cutoff]] 'Divine Intervention'},
         Options={Gem=6}
     },
     {-- Large quick heal, heals more the lower the targets hp. Slot 7
         Group='seventeenth',
-        Spells={'Eighteenth Rejuvenation', 'Seventeenth Rejuvenation', 'Sixteenth Serenity', --[[emu cutoff]] },
+        Spells={'Eighteenth Rejuvenation', 'Seventeenth Rejuvenation', 'Sixteenth Serenity', 'Fifteenth Emblem', 'Fourteenth Catalyst', 'Thirteenth Salve', --[[emu cutoff]] },
         Options={Gem=7,tank=true,}
     },
     {-- targeted aoe heal. Slot 7
         Group='splash',
-        Spells={'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash', --[[emu cutoff]] },
+        Spells={'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash', 'Reforming Splash', 'Rejuvenating Splash', 'Healing Splash', --[[emu cutoff]] },
         Options={opt='USESPLASH', Gem=7, tank=true, group=true, threshold=3, --[[condition=function() check for twincast end]]}
     },
     {-- Single target cure all. Slot 7
         Group='cureall',
-        Spells={'Sanctified Blood', 'Expurgated Blood', 'Unblemished Blood', --[[emu cutoff]] },
+        Spells={'Sanctified Blood', 'Expurgated Blood', 'Unblemished Blood', 'Cleansed Blood', 'Perfected Blood', 'Purged Blood', --[[emu cutoff]] },
         Options={opt='USECURES',Gem=function() return not Cleric:isEnabled('USESPLASH') and 7 or nil end,curse=true,poison=true,disease=true,corruption=true},
     },
     {-- Regular group heal, slower than syllable. Slot 8
         Group='groupheal',
-        Spells={'Word of Acceptance', 'Word of Redress', 'Word of Soothing', 'Word of Mending', 'Word of Convalescence', --[[emu cutoff]] },
+        Spells={'Word of Acceptance', 'Word of Redress', 'Word of Soothing', 'Word of Mending', 'Word of Convalescence', 'Word of Renewal', 'Word of Recuperation', 'Word of Awakening', --[[emu cutoff]] },
         Options={Gem=8, threshold=3, group=true},
     },
     {-- Group heal with cure component. Slot 8
         Group='grouphealcure',
-        Spells={'Word of Greater Vivification', 'Word of Greater Rejuvenation', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation', --[[emu cutoff]] },
+        Spells={'Word of Greater Vivification', 'Word of Greater Rejuvenation', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation', 'Word of Reformation', 'Word of Rehabilitation', 'Word of Resurgence', --[[emu cutoff]] },
         Options={opt='USECURES', Gem=function() return Cleric:isEnabled('USESPLASH') and 8 or nil end, threshold=3, regular=true, single=true, group=true, pct=70}
     },
     {-- Regular group heal. Slot 9
         Group='grouphealquick',
-        Spells={'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', --[[emu cutoff]] 'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'},
+        Spells={'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', 'Syllable of Renewal', --[[emu cutoff]] 'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'},
         Options={Gem=9, threshold=3, regular=true, single=true, group=true, pct=70}
     },
     {-- Slot 10
@@ -217,12 +217,12 @@ Cleric.SpellLines = {
     -- },
     {-- Heal proc on target + reverse DS on targets target. Slot 11
         Group='retort',
-        Spells={'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort', --[[emu cutoff]] },
+        Spells={'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort', 'Olsif\'s Retort', 'Galvos\' Retort', 'Fintar\'s Retort', --[[emu cutoff]] },
         Options={Gem=function() return not Cleric:isEnabled('USESPLASH') and 11 or nil end, opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}}
     },
     {-- twincast nuke, only use with splash. Slot 11
         Group='rebuke',
-        Spells={'Unyielding Admonition', 'Unyielding Rebuke', 'Unyielding Censure', 'Unyielding Judgement', --[[emu cutoff]] },
+        Spells={'Unyielding Admonition', 'Unyielding Rebuke', 'Unyielding Censure', 'Unyielding Judgement', 'Glorious Rebuke', 'Rebuke', --[[emu cutoff]] },
         Options={opt='USESPLASH', Gem=11, condition=function() mq.TLO.Me.SpellReady(Cleric.spells.splash.Name)() end}
     },
     {-- heals on break, Slot 12
@@ -253,7 +253,7 @@ Cleric.SpellLines = {
 
     -- Buffs
     {Group='aura', Spells={'Bastion of Divinity', 'Aura of Divinity'}, Options={aura=true}},
-    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', --[[emu cutoff]] 'Aura of Devotion'}, Options={classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}}},
+    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Hand of Will', --[[emu cutoff]] 'Aura of Devotion'}, Options={classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}}},
     {Group='groupaego', Spells={'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', --[[emu cutoff]] 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}}},
     {Group='singleaego', Spells={--[[emu cutoff]] 'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}}},
     {Group='groupsymbol', Spells={'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', --[[emu cutoff]] 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end}},
