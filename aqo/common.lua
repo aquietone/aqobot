@@ -318,7 +318,7 @@ function common.checkMana()
     local pct_end = mq.TLO.Me.PctEndurance()
     local group_mana = mq.TLO.Group.LowMana(70)()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
-    if pct_mana < 75 and mq.TLO.Me.Class.CanCast() then
+    if pct_mana < 75 and mq.TLO.Me.MaxMana() > 0 then
         local cursor = mq.TLO.Cursor.Name()
         if cursor and (cursor == 'Summoned: Dazzling Modulation Shard' or cursor == 'Sickle of Umbral Modulation' or cursor == 'Wand of Restless Modulation') then
             mq.cmd('/autoinventory')
@@ -341,7 +341,7 @@ function common.checkMana()
         abilities.use(abilities.Item:new({Name=feather(), ID=feather.ID()}))
     end
 
-    if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.Class.CanCast() then
+    if mq.TLO.Zone.ShortName() ~= 'poknowledge' and mq.TLO.Me.MaxMana() > 0 then
         local manastone = mq.TLO.FindItem('Manastone')
         if manastone() and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then
             local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000, true)
@@ -362,7 +362,7 @@ function common.rest()
             state.medding = true
             if not mq.TLO.Target() then mq.TLO.Me.DoTarget() end
         end
-        if (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') then
+        if (mq.TLO.Me.MaxMana() > 0 and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') then
             state.medding = true
             if not mq.TLO.Target() then mq.TLO.Me.DoTarget() end
         end
@@ -373,7 +373,7 @@ function common.rest()
             state.sitTimer:reset()
         end
     end
-    if mq.TLO.Me.PctHPs() > config.get('MEDHPSTOP') and mq.TLO.Me.PctEndurance() > config.get('MEDENDSTOP') and (not mq.TLO.Me.Class.CanCast()or mq.TLO.Me.PctMana() > config.get('MEDMANASTOP')) then
+    if mq.TLO.Me.PctHPs() > config.get('MEDHPSTOP') and mq.TLO.Me.PctEndurance() > config.get('MEDENDSTOP') and (mq.TLO.Me.MaxMana() == 0 or mq.TLO.Me.PctMana() > config.get('MEDMANASTOP')) then
         state.medding = false
     end
 end

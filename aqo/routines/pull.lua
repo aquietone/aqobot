@@ -112,7 +112,7 @@ function pull.checkPullConditions()
     if config.get('GROUPWATCHWHO') == 'none' then return true end
     -- groupwatch self when self or healer is selected
     if config.get('GROUPWATCHWHO') ~= 'none' then
-        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) and not state.medding then
+        if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTART') or (mq.TLO.Me.MaxMana() > 0 and mq.TLO.Me.PctMana() < config.get('MEDMANASTART')) and not state.medding then
             state.medding = true
             if not mq.TLO.Me.Sitting() and state.sitTimer:expired() then
                 mq.cmd('/sit')
@@ -120,7 +120,7 @@ function pull.checkPullConditions()
             end
             return false
         end
-        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or (mq.TLO.Me.Class.CanCast() and mq.TLO.Me.PctMana() < config.get('MEDMANASTOP'))) and state.medding then
+        if (mq.TLO.Me.PctHPs() < config.get('MEDHPSTOP') or mq.TLO.Me.PctEndurance() < config.get('MEDENDSTOP') or (mq.TLO.Me.MaxMana() > 0 and mq.TLO.Me.PctMana() < config.get('MEDMANASTOP'))) and state.medding then
             if not mq.TLO.Me.Sitting() and state.sitTimer:expired() then
                 mq.cmd('/sit')
                 state.sitTimer:reset()
@@ -422,6 +422,7 @@ function pull.pullMob()
     end
     if state.emu and config.get('LOOTMOBS') and mq.TLO.SpawnCount('npccorpse radius '..config.get('CAMPRADIUS')..' zradius 10')() > 0 then
         logger.debug(logger.flags.routines.pull, 'Not pulling due to lootable corpses nearby')
+        pull.clearPullVars('pullMob-lootablecorpses')
         return
     end
     -- if currently assisting or tanking something, or stuff is on xtarget, then don't start new pulling things
