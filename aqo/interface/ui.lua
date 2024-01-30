@@ -686,43 +686,103 @@ local function drawClickyManager()
     end
 end
 
+local helpSelected = 'Commands'
 local function drawHelpWindow()
     if helpGUIOpen then
-        helpGUIOpen, shouldDrawHelpGUI = ImGui.Begin(('AQO Help##AQOBOTUI%s'):format(state.class), helpGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
+        ImGui.SetNextWindowSize(1240, 400)
+        helpGUIOpen, shouldDrawHelpGUI = ImGui.Begin(('AQO Help##AQOBOTUI%s'):format(state.class), helpGUIOpen, ImGuiWindowFlags.NoResize)
         if shouldDrawHelpGUI then
-            ImGui.PushTextWrapPos(750)
-            if ImGui.TreeNode('General Commands') then
-                for _,command in ipairs(constants.commandHelp) do
-                    ImGui.TextColored(YELLOW, '/aqo '..command.command) ImGui.SameLine() ImGui.Text(command.tip)
+            if ImGui.BeginListBox('##Category', ImVec2(130, -1)) then
+                if ImGui.Selectable('Commands', helpSelected == 'Commands') then
+                    helpSelected = 'Commands'
                 end
-                ImGui.TextColored(YELLOW, '/nowcast [name] alias <targetID>') ImGui.SameLine() ImGui.Text('Tells the named character or yourself to cast a spell on the specified target ID.')
-                ImGui.TreePop()
+                if ImGui.Selectable('Class', helpSelected == 'Class') then
+                    helpSelected = 'Class'
+                end
+                for _,category in ipairs(config.categories()) do
+                    if ImGui.Selectable(category, helpSelected == category) then
+                        helpSelected = category
+                    end
+                end
+                ImGui.EndListBox()
             end
-            for _,category in ipairs(config.categories()) do
-                local categoryConfigs = config.getByCategory(category)
-                if ImGui.TreeNode(category..' Configuration') then
-                    for _,key in ipairs(categoryConfigs) do
-                        local cfg = config[key]
-                        if type(cfg) == 'table' then
-                            ImGui.TextColored(YELLOW, '/aqo %s <%s>', key, type(cfg.value))
-                            ImGui.SameLine()
-                            ImGui.Text(cfg.tip)
+            ImGui.SameLine()
+            if helpSelected == 'Commands' then
+                if ImGui.BeginTable('commands', 3, bit32.bor(ImGuiTableFlags.RowBg, ImGuiTableFlags.Borders, ImGuiTableFlags.ScrollY)) then
+                    ImGui.TableSetupColumn('Command', ImGuiTableColumnFlags.WidthFixed, 250)
+                    ImGui.TableSetupColumn('Description', ImGuiTableColumnFlags.WidthFixed, 450)
+                    ImGui.TableSetupColumn('Example', ImGuiTableColumnFlags.WidthFixed, 250)
+                    ImGui.TableSetupScrollFreeze(0,1)
+                    ImGui.TableHeadersRow()
+
+                    for _,command in ipairs(constants.commandHelp) do
+                        ImGui.TableNextRow()
+                        ImGui.TableNextColumn()
+                        ImGui.Text(command.command)
+                        ImGui.TableNextColumn()
+                        ImGui.PushTextWrapPos(0)
+                        ImGui.Text(command.tip)
+                        ImGui.PopTextWrapPos()
+                        ImGui.TableNextColumn()
+                        if command.example then ImGui.Text(command.example) else ImGui.Text('/aqo %s', command.command) end
+                    end
+                    ImGui.EndTable()
+                end
+            else
+                if ImGui.BeginTable('settings', 5, bit32.bor(ImGuiTableFlags.RowBg, ImGuiTableFlags.Borders, ImGuiTableFlags.ScrollY)) then
+                    ImGui.TableSetupColumn('Setting/Command', ImGuiTableColumnFlags.WidthFixed, 145)
+                    ImGui.TableSetupColumn('TLO Member', ImGuiTableColumnFlags.WidthFixed, 130)
+                    ImGui.TableSetupColumn('DataType', ImGuiTableColumnFlags.WidthFixed, 70)
+                    ImGui.TableSetupColumn('Description', ImGuiTableColumnFlags.WidthFixed, 450)
+                    ImGui.TableSetupColumn('Example', ImGuiTableColumnFlags.WidthFixed, 250)
+                    ImGui.TableSetupScrollFreeze(0,1)
+                    ImGui.TableHeadersRow()
+
+                    if helpSelected == 'Class' then
+                        for _,key in ipairs(class.options) do
+                            local value = class.options[key]
+                            local valueType = type(value.value)
+                            if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
+                                ImGui.TableNextRow()
+                                ImGui.TableNextColumn()
+                                ImGui.Text(key)
+                                ImGui.TableNextColumn()
+                                ImGui.Text('%s', value.tlo)
+                                ImGui.TableNextColumn()
+                                ImGui.Text('%s', value.tlotype)
+                                ImGui.TableNextColumn()
+                                ImGui.PushTextWrapPos(0)
+                                ImGui.Text('%s', value.tip)
+                                ImGui.PopTextWrapPos()
+                                ImGui.TableNextColumn()
+                                ImGui.Text('/aqo %s <%s>', key, valueType)
+                            end
+                        end
+                    else
+                        local categoryConfigs = config.getByCategory(helpSelected)
+                        for _,key in ipairs(categoryConfigs) do
+                            local cfg = config[key]
+                            if cfg and type(cfg) == 'table' then
+                                ImGui.TableNextRow()
+                                ImGui.TableNextColumn()
+                                ImGui.Text(key)
+                                ImGui.TableNextColumn()
+                                ImGui.Text('%s', cfg.tlo)
+                                ImGui.TableNextColumn()
+                                ImGui.Text('%s', cfg.tlotype)
+                                ImGui.TableNextColumn()
+                                ImGui.PushTextWrapPos(0)
+                                ImGui.Text('%s', cfg.tip)
+                                ImGui.PopTextWrapPos()
+                                ImGui.TableNextColumn()
+                                ImGui.Text('/aqo %s <%s>', key, type(cfg.value))
+                            end
                         end
                     end
-                    ImGui.TreePop()
+                    ImGui.EndTable()
                 end
             end
-            if ImGui.TreeNode('Class Configuration') then
-                for key,value in pairs(class.options) do
-                    local valueType = type(value.value)
-                    if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
-                        ImGui.TextColored(YELLOW, '/aqo %s <%s>', key, valueType)
-                        ImGui.SameLine()
-                        ImGui.Text('%s', value.tip)
-                    end
-                end
-                ImGui.TreePop()
-            end
+            --[[
             if ImGui.TreeNode('Gear Check (WARNING*: Characters announce their gear to guild chat!') then
                 ImGui.TextColored(YELLOW, '/tell <name> gear <slotname>')
                 ImGui.TextColored(YELLOW, 'Slot Names')
@@ -738,7 +798,7 @@ local function drawHelpWindow()
                 end
                 ImGui.TreePop()
             end
-            ImGui.PopTextWrapPos()
+            ]]
         end
         ImGui.End()
     end

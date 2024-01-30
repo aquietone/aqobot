@@ -28,6 +28,7 @@ constants.commandHelp = {
     {command='update', tip='Downloads the latest source zip'},
     {command='docs', tip='Launches the documentation site in a browser window'},
     {command='wiki', tip='Launches the Lazarus wiki in a browser window'},
+    {command='nowcast', tip='Tells the named character or yourself to cast a spell on the specified target ID.', example='/nowcast [name] alias <targetID>'},
     {command='baz', tip='Launches the Lazarus Bazaar in a browser window'},
 }
 
