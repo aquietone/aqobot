@@ -146,7 +146,7 @@ constants.routines = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,
 constants.classLists = {
     'DPSAbilities', 'AEDPSAbilities', 'burnAbilities', 'tankAbilities', 'tankBurnAbilities', 'AETankAbilities', 'healAbilities',
     'fadeAbilities', 'defensiveAbilities', 'aggroReducers', 'recoverAbilities', 'combatBuffs', 'auras', 'selfBuffs',
-    'singleBuffs', 'petBuffs', 'cures', 'clickies', 'castClickies', 'pullClickies', 'debuffs'
+    'singleBuffs', 'petBuffs', 'cures', 'debuffs', 'clickies', 'castClickies', 'pullClickies',
 }
 
 constants.uiThemes = {

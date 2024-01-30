@@ -3,6 +3,7 @@ local mq = require 'mq'
 local class = require('classes.classbase')
 local mez = require('routines.mez')
 local timer = require('libaqo.timer')
+local logger = require('utils.logger')
 local abilities = require('ability')
 local common = require('common')
 local config = require('interface.configuration')

@@ -19,7 +19,7 @@ end
 function SharedAbilities.getBash()
     local condition = function()
         return (mq.TLO.Me.AltAbility('Improved Bash')() or mq.TLO.Me.Inventory('offhand').Type() == 'Shield')
-            and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0)
+            and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0) and mq.TLO.Me.Heading() == mq.TLO.Target.HeadingTo()
     end
     return common.getSkill('Bash', {condition=condition})
 end

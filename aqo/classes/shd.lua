@@ -252,7 +252,6 @@ function ShadowKnight:initTankAbilities()
     self.guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
     self.deflection = common.getBestDisc({'Deflection Discipline'}, {opt='USEDEFLECTION'})
 
-    table.insert(self.tankAbilities, sharedabilities.getBash())
     table.insert(self.tankAbilities, self.spells.challenge)
     table.insert(self.tankAbilities, self.spells.terror)
     table.insert(self.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg

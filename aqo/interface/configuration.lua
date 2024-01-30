@@ -560,7 +560,7 @@ local configByCategory = {
     Tank={'MAINTANK'},
     Rest={'MEDCOMBAT','RECOVERPCT','MEDHPSTART','MEDHPSTOP','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','MANASTONESTART','MANASTONESTARTHP','MANASTONESTOPHP','MANASTONETIME'},
     Loot={'LOOTMOBS','LOOTCOMBAT'},
-    Debug={'TIMESTAMPS'},
+    Debug={'TIMESTAMPS','OPACITY'},
 }
 function config.getByCategory(category)
     return configByCategory[category]

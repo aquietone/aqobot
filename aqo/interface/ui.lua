@@ -546,6 +546,15 @@ local function drawSpellRotationUI()
     end
 end
 
+local function drawSpellSetTree(name, spells)
+    if ImGui.TreeNode(name..'##spellset') then
+        for _,spell in ipairs(spells) do
+            ImGui.Text(spell.Name)
+        end
+        ImGui.TreePop()
+    end
+end
+
 local function drawAbilityInspector()
     if abilityGUIOpen then
         abilityGUIOpen, shouldDrawAbilityGUI = ImGui.Begin(('Ability Inspector##AQOBOTUI%s'):format(state.class), abilityGUIOpen, ImGuiWindowFlags.AlwaysAutoResize)
@@ -574,29 +583,14 @@ local function drawAbilityInspector()
                 if ImGui.TreeNode('DPS Spell Rotations') then
                     for spellSetName,spellSet in pairs(class.spellRotations) do
                         if spellSetName ~= 'custom' then
-                            if ImGui.TreeNode(spellSetName..'##spellset') then
-                                for _,spell in ipairs(spellSet) do
-                                    ImGui.Text(spell.Name)
-                                end
-                                ImGui.TreePop()
-                            end
+                            drawSpellSetTree(spellSetName, spellSet)
                         end
                     end
                     if class.BYOSRotation and #class.BYOSRotation > 0 then
-                        if ImGui.TreeNode('BYOS##spellset') then
-                            for _,spell in ipairs(class.BYOSRotation) do
-                                ImGui.Text(spell.Name)
-                            end
-                            ImGui.TreePop()
-                        end
+                        drawSpellSetTree('BYOS', class.BYOSRotation)
                     end
                     if class.customRotation and #class.customRotation > 0 then
-                        if ImGui.TreeNode('BYOSCustom##spellset') then
-                            for _,spell in ipairs(class.customRotation) do
-                                ImGui.Text(spell.Name)
-                            end
-                            ImGui.TreePop()
-                        end
+                        drawSpellSetTree('BYOSCustom', class.customRotation)
                     end
                     ImGui.TreePop()
                 end

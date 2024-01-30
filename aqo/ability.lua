@@ -236,13 +236,41 @@ function Ability.use(theAbility, class, doSwap, skipReadyCheck)
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
     if theAbility.swap ~= nil then doSwap = theAbility.swap end
     local isReady = (skipReadyCheck and IsReady.SHOULD_CAST) or theAbility:isReady()
-    if (isReady == IsReady.SHOULD_CAST or (isReady == IsReady.NOT_MEMMED and doSwap)) and (not theAbility.condition or theAbility:condition()) and (not class or class:isAbilityEnabled(theAbility.opt)) then
+    -- ability is ready or needs to be mem'd and swapping is enabled
+    -- ability has no condition or condition is met
+    -- ability has no associated config option or the config option is enabled
+    -- ability is enabled (only applies to clickies)
+    if (isReady == IsReady.SHOULD_CAST or (isReady == IsReady.NOT_MEMMED and doSwap)) and (not theAbility.condition or theAbility:condition()) and (not class or class:isAbilityEnabled(theAbility.opt)) and (theAbility.enabled == nil or theAbility.enabled) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap and not mq.TLO.Me.Gem(theAbility.CastName)() then
+            -- swappings enabled for this spell so memorize it so it can be cast
             result = Ability.swapAndCast(theAbility, state.swapGem, class)
         else
-            if theAbility.precast then theAbility.precast() end
-            result = theAbility:execute()
-            if theAbility.postcast then theAbility.postcast() end
+            -- if precast defined, use that first and queue up the spell to be used
+            if theAbility.precast then
+                theAbility.precast()
+                state.queuedAction = function()
+                    -- may need to wait for GDC after precast before using the ability
+                    if mq.TLO.Me.SpellInCooldown() then return state.queuedAction end
+                    theAbility:execute()
+                    -- if postcast defined, queue that up after using the ability
+                    if theAbility.postcast then
+                        return function()
+                            -- may need to wait for GDC after the ability cast before running the postcast
+                            if mq.TLO.Me.SpellInCooldown() then return state.queuedAction end
+                            theAbility.postcast()
+                        end
+                    end
+                end
+                result = true
+            else
+                result = theAbility:execute()
+                if theAbility.postcast then
+                    state.queuedAction = function()
+                        if mq.TLO.Me.SpellInCooldown() then return state.queuedAction end
+                        theAbility.postcast()
+                    end
+                end
+            end
         end
     end
     return result
