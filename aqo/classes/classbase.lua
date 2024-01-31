@@ -224,10 +224,16 @@ function base:addNSpells(spellGroup, numToAdd, spellList, options)
     for i=1,numToAdd do
         if options.Gems then options.Gem = options.Gems[i] end
         local foundSpell = common.getBestSpell(spellList, options, spellGroup)
-        self.spells[spellGroup..i] = foundSpell
         if not foundSpell then
             logger.info('Could not find spell: \ag%s\ax', spellGroup..i)
             return
+        end
+        if not self.spells[spellGroup..i] then
+            self.spells[spellGroup..i] = foundSpell
+        else
+            for k,v in pairs(foundSpell) do
+                self.spells[spellGroup..i][k] = v
+            end
         end
         local j = 1
         while spellList[1] ~= foundSpell.BaseName or j > 25 do
@@ -254,9 +260,16 @@ end
 ---@param options table # Table of options to be applied to the spell
 function base:addSpell(spellGroup, spellList, options)
     local foundSpell = common.getBestSpell(spellList, options, spellGroup)
-    self.spells[spellGroup] = foundSpell
     if not foundSpell then
         logger.info('Could not find spell: \ag%s\ax', spellGroup)
+        return
+    end
+    if not self.spells[spellGroup] then
+        self.spells[spellGroup] = foundSpell
+    else
+        for k,v in pairs(foundSpell) do
+            self.spells[spellGroup][k] = v
+        end
     end
 end
 

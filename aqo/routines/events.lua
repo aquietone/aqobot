@@ -75,7 +75,9 @@ function events.eventNewLevel()
 end
 
 function events.eventNewSpellMemmed(line, spell)
-    -- TODO refresh abilities
+    logger.info('New spell scribed: %s. Reinitializing spell lines', spell)
+    class:initSpellLines()
+    -- TODO: several other init functions setup tables based on available spell lines, and should also be re-initialized.
 end
 
 function events.zoned()

@@ -231,9 +231,9 @@ end
 function healing.healSelf(healAbilities, options)
     if mq.TLO.Me.PctHPs() > config.get('HEALPCT') then return end
     for _,heal in ipairs(healAbilities) do
-        if heal.self then
+        if heal.self and healEnabled(options, heal.opt) then
             local originalTargetID = mq.TLO.Target.ID()
-            if heal.TargetType == 'Single' then
+            if heal.TargetType == 'Single' and abilities.canUseSpell(mq.TLO.Spell(heal.SpellName), heal) == abilities.IsReady.CAN_CAST then
                 mq.TLO.Me.DoTarget()
             end
             if abilities.use(heal) then

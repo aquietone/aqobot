@@ -1,5 +1,10 @@
+# 2024/01/31
+- Small self heal fix if heal spell isn't ready/enabled
+- Re-initialize spell lines when new spell is memmed
+
 # 2024/01/29
 - Questionable updates around precast/postcast to work with the not synchronous pattern of the script
+- Try fixing some spammy melee abilities
 
 # 2024/01/28
 - More 86-100 spells for ber bst clr enc pal
