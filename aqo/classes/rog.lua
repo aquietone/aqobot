@@ -17,24 +17,24 @@ local Rogue = class:new()
     common.getBestDisc({'Naive Mark'}) -- Use on CD, inc incoming piercing dmg
     common.getBestDisc({'Thief\'s Vision'}) -- Use on CD, inc accuracy
     common.getBestDisc({'Pinpoint Shortcomings'}) -- Use on CD, inc dmg taken from backstabs
-    common.getAA('Twisted Shank') -- Use on CD, dot, reduce healing effectiveness
-    common.getAA('Envenomed Blades') -- Use on CD, poison proc
-    common.getAA('Absorbing Agent') -- Use on CD, inc incoming spell dmg
+    self:addAA('Twisted Shank') -- Use on CD, dot, reduce healing effectiveness
+    self:addAA('Envenomed Blades') -- Use on CD, poison proc
+    self:addAA('Absorbing Agent') -- Use on CD, inc incoming spell dmg
 
     common.getBestDisc({'Blitzstrike'}) -- hit + inc dmg dealt
     common.getBestDisc({'Chelicerae Discipline'}) -- inc proc rate + inc poison dmg
     common.getBestDisc({'Vexatious Puncture'}) -- backstab, hate reduction
     common.getBestDisc({'Poisonous Alliance Effect'}) -- inc poison dmg taken
 
-    common.getAA('Rake\'s Rampage') -- ae attack
+    self:addAA('Rake\'s Rampage') -- ae attack
     
     -- Main Burn
-    common.getAA('Rogue\'s Fury') -- inc all skills dmg modifiers, min dmg, chance to hit
+    self:addAA('Rogue\'s Fury') -- inc all skills dmg modifiers, min dmg, chance to hit
     common.getBestDisc({'Frenzied Stabbing Discipline'}) -- more backstabs
-    common.getAA('Focused Rake\'s Rampage') -- single target rampage
+    self:addAA('Focused Rake\'s Rampage') -- single target rampage
     common.getBestDisc({'Ecliptic Weapons', 'Composite Weapons', 'Dissident Weapons', 'Dichotomic Weapons'}) -- inc dmg
-    common.getAA('Spire of the Rake') -- inc crit dmg, chance, dmg bonus
-    common.getAA('Shadow\'s Flanking') -- inc melee dmg from behind
+    self:addAA('Spire of the Rake') -- inc crit dmg, chance, dmg bonus
+    self:addAA('Shadow\'s Flanking') -- inc melee dmg from behind
 
     -- Second Burn
     common.getBestDisc({'Twisted Chance Discipline'}) -- inc chance to hit + crit
@@ -73,28 +73,28 @@ end
 function Rogue:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getSkill('Kick', {conditions=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getSkill('Backstab', {conditions=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getAA('Twisted Shank', {conditions=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, self:addAA('Twisted Shank', {conditions=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Assault', {conditions=conditions.withinMeleeDistance}}))
-    table.insert(self.DPSAbilities, common.getAA('Ligament Slice', {conditions=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, self:addAA('Ligament Slice', {conditions=conditions.withinMeleeDistance}))
 end
 
 function Rogue:initBurns()
-    table.insert(self.burnAbilities, common.getAA('Rogue\'s Fury'))
+    table.insert(self.burnAbilities, self:addAA('Rogue\'s Fury'))
     --table.insert(self.burnAbilities, common.getBestDisc({'Poison Spikes Trap'}))
     table.insert(self.burnAbilities, common.getBestDisc({'Duelist Discipline'}))
     table.insert(self.burnAbilities, common.getBestDisc({'Deadly Precision Discipline'}))
     table.insert(self.burnAbilities, common.getBestDisc({'Frenzied Stabbing Discipline'}))
     table.insert(self.burnAbilities, common.getBestDisc({'Twisted Chance Discipline'}))
-    table.insert(self.burnAbilities, common.getAA('Fundament: Third Spire of the Rake'))
-    table.insert(self.burnAbilities, common.getAA('Dirty Fighting'))
+    table.insert(self.burnAbilities, self:addAA('Fundament: Third Spire of the Rake'))
+    table.insert(self.burnAbilities, self:addAA('Dirty Fighting'))
 end
 
 function Rogue:initBuffs()
-    table.insert(self.combatBuffs, common.getAA('Envenomed Blades'))
-    table.insert(self.combatBuffs, common.getBestDisc({'Brigand\'s Gaze', 'Thief\'s Eyes'}))
-    table.insert(self.combatBuffs, common.getItem('Fatestealer', {CheckFor='Assassin\'s Taint'}))
-    table.insert(self.selfBuffs, common.getAA('Sleight of Hand'))
-    table.insert(self.selfBuffs, common.getItem('Faded Gloves of the Shadows', {CheckFor='Strike Poison'}))
+    table.insert(self.combatBuffs, self:addAA('Envenomed Blades', {combatbuff=true}))
+    table.insert(self.combatBuffs, common.getBestDisc({'Brigand\'s Gaze', 'Thief\'s Eyes'}, {combatbuff=true}))
+    table.insert(self.combatBuffs, common.getItem('Fatestealer', {CheckFor='Assassin\'s Taint', combatbuff=true}))
+    table.insert(self.selfBuffs, self:addAA('Sleight of Hand', {selfbuff=true}))
+    table.insert(self.selfBuffs, common.getItem('Faded Gloves of the Shadows', {CheckFor='Strike Poison', {selfbuff=true}}))
 end
 
 function Rogue:beforeEngage()

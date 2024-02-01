@@ -11,39 +11,39 @@ local Cleric = class:new()
     https://docs.google.com/document/d/1CmsduTMq79UzZdqrA2D_njt0IxD7RwwTVrj9_wkZukc/edit
     https://forums.daybreakgames.com/eq/index.php?threads/cleric-guide.288234/#post-4193435
 
-    table.insert(self.healAbilities, common.getAA('Burst of Life'))
-    table.insert(self.healAbilities, common.getAA('Blessing of Sanctuary'))
-    table.insert(self.healAbilities, common.getAA('Sanctuary'))
-    table.insert(self.healAbilities, common.getAA('Beacon of Life'))
+    table.insert(self.healAbilities, self:addAA('Burst of Life'))
+    table.insert(self.healAbilities, self:addAA('Blessing of Sanctuary'))
+    table.insert(self.healAbilities, self:addAA('Sanctuary'))
+    table.insert(self.healAbilities, self:addAA('Beacon of Life'))
 
-    table.insert(self.healAbilities, common.getAA('Focused Celestial Regeneration'))
-    table.insert(self.healAbilities, common.getAA('Exquisite Benediction'))
-    table.insert(self.healAbilities, common.getAA('Celestial Regeneration'))
+    table.insert(self.healAbilities, self:addAA('Focused Celestial Regeneration'))
+    table.insert(self.healAbilities, self:addAA('Exquisite Benediction'))
+    table.insert(self.healAbilities, self:addAA('Celestial Regeneration'))
 
-    table.insert(self.healAbilities, common.getAA('Divine Guardian')) -- like DI, stacks
+    table.insert(self.healAbilities, self:addAA('Divine Guardian')) -- like DI, stacks
 
-    table.insert(self.recover, common.getAA('Vetunka\'s Perseverance'))
-    table.insert(self.recover, common.getAA('Quiet Prayer'))
+    table.insert(self.recover, self:addAA('Vetunka\'s Perseverance'))
+    table.insert(self.recover, self:addAA('Quiet Prayer'))
 
-    common.getAA('Blessing of Resurrection')
-    common.getAA('Divine Resurrection')
-    common.getAA('Call of the Herald')
+    self:addAA('Blessing of Resurrection')
+    self:addAA('Divine Resurrection')
+    self:addAA('Call of the Herald')
 
-    table.insert(self.healAbilities, common.getAA('Divine Arbitration'))
+    table.insert(self.healAbilities, self:addAA('Divine Arbitration'))
     table.insert(self.healAbilities, common.getItem('Aegis of Superior Divinity'))
     table.insert(self.healAbilities, common.getItem('Harmony of the Soul'))
 
-    table.insert(self.burnAbilities, common.getAA('Divine Peace'))
+    table.insert(self.burnAbilities, self:addAA('Divine Peace'))
     
-    table.insert(self.cures, common.getAA('Radiant Cure'))
-    table.insert(self.cures, common.getAA('Group Purified Soul'))
-    table.insert(self.cures, common.getAA('Purified Spirits'))
-    table.insert(self.cures, common.getAA('Purify Soul'))
-    table.insert(self.cures, common.getAA('Ward of Purity'))
+    table.insert(self.cures, self:addAA('Radiant Cure'))
+    table.insert(self.cures, self:addAA('Group Purified Soul'))
+    table.insert(self.cures, self:addAA('Purified Spirits'))
+    table.insert(self.cures, self:addAA('Purify Soul'))
+    table.insert(self.cures, self:addAA('Ward of Purity'))
 
-    table.insert(self.defensiveAbilities, common.getAA('Bestow Divine Aura'))
-    table.insert(self.defensiveAbilities, common.getAA('Divine Aura'))
-    table.insert(self.defensiveAbilities, common.getAA('Divine Retribution'))
+    table.insert(self.defensiveAbilities, self:addAA('Bestow Divine Aura'))
+    table.insert(self.defensiveAbilities, self:addAA('Divine Aura'))
+    table.insert(self.defensiveAbilities, self:addAA('Divine Retribution'))
 
 ]]
 function Cleric:init()
@@ -64,7 +64,7 @@ function Cleric:init()
     self:initRecoverAbilities()
     self:addCommonAbilities()
 
-    self.rezAbility = common.getAA('Blessing of Resurrection')
+    self.rezAbility = self:addAA('Blessing of Resurrection')
 end
 
 function Cleric:initClassOptions()
@@ -83,69 +83,69 @@ function Cleric:initClassOptions()
 end
 --[[
 -- dps burns
-common.getAA('Celestial Hammer') -- hammer pet 60 seconds, 10 min cd, timer 12
+self:addAA('Celestial Hammer') -- hammer pet 60 seconds, 10 min cd, timer 12
 -- nuke burns
-common.getAA('Battle Frenzy') -- 100% nuke crit, inc crit dmg, 15 min cd, timer 74
-common.getAA('Turn Undead') -- large undead nuke + dot, 2:30 cd, timer 6
+self:addAA('Battle Frenzy') -- 100% nuke crit, inc crit dmg, 15 min cd, timer 74
+self:addAA('Turn Undead') -- large undead nuke + dot, 2:30 cd, timer 6
 -- melee burns
-common.getAA('Divine Avatar') -- melee burn, +4k hp regen for 3min, inc nuke crits, 9 min cd, timer 10
-common.getAA('Divine Retribution') -- melee burn, stun procs, 20 min cd, timer 13
+self:addAA('Divine Avatar') -- melee burn, +4k hp regen for 3min, inc nuke crits, 9 min cd, timer 10
+self:addAA('Divine Retribution') -- melee burn, stun procs, 20 min cd, timer 13
 
 -- heal burns
-common.getAA('Celestial Rapidity') -- 50% spell haste for 36 seconds, 10 min cd, timer 73
-common.getAA('Channeling of the Divine') -- twincast 19 spells, 10 min cd, timer 43
-common.getAA('Flurry of Life') -- inc instant heals 35%, 15 min cd, timer 32
-common.getAA('Spire of the Vicar') -- inc healing, reduce inc melee dmg, inc crit chance, inc crit dmg, 7:30 cd, timer 40
-common.getAA('Forceful Rejuvenation') -- 
-common.getAA('Healing Frenzy') -- 100% crit heals for 18 seconds, 15 min cd, timer 63
-common.getAA('Silent Casting') -- 
+self:addAA('Celestial Rapidity') -- 50% spell haste for 36 seconds, 10 min cd, timer 73
+self:addAA('Channeling of the Divine') -- twincast 19 spells, 10 min cd, timer 43
+self:addAA('Flurry of Life') -- inc instant heals 35%, 15 min cd, timer 32
+self:addAA('Spire of the Vicar') -- inc healing, reduce inc melee dmg, inc crit chance, inc crit dmg, 7:30 cd, timer 40
+self:addAA('Forceful Rejuvenation') -- 
+self:addAA('Healing Frenzy') -- 100% crit heals for 18 seconds, 15 min cd, timer 63
+self:addAA('Silent Casting') -- 
 
 -- group heals
-common.getAA('Beacon of Life') -- 39k group heal, 3 min cd, timer 17
-common.getAA('Celestial Regeneration') -- large group HoT, 7:30 cd, timer 3
-common.getAA('Divine Arbitration') -- balances group hp then heals 135k across group, 3 min, timer 9
-common.getAA('Exquisite Benediction') -- 13k heal per tick,300 seconds, stationary ward, 20 min cd, timer 11
+self:addAA('Beacon of Life') -- 39k group heal, 3 min cd, timer 17
+self:addAA('Celestial Regeneration') -- large group HoT, 7:30 cd, timer 3
+self:addAA('Divine Arbitration') -- balances group hp then heals 135k across group, 3 min, timer 9
+self:addAA('Exquisite Benediction') -- 13k heal per tick,300 seconds, stationary ward, 20 min cd, timer 11
 
 -- utilities
-common.getAA('Bestow Divine Aura') -- targeted DA, 5 min cd, timer 60
-common.getAA('Blessing of Resurrection') -- normal rez
-common.getAA('Divine Aura') -- self DA, 5 min cd, timer 4
-common.getAA('Divine Resurrection') -- 100% rez
-common.getAA('Repel the Wicked') -- knockback+memblur, 1 min cd, timer 39
-common.getAA('Call of the Herald') -- call to corpse
-common.getAA('Divine Peace') -- fade
-common.getAA('Holy Step') -- leap
-common.getAA('Group Perfected Invisibility to Undead') -- 
-common.getAA('Improved Twincast') -- twincast 21 damage spells, 15 min cd, timer 76
-common.getAA('Innate Invis to Undead') -- 
-common.getAA('Mass Group Buff') -- 
-common.getAA('Tranquil Blessings') -- 
+self:addAA('Bestow Divine Aura') -- targeted DA, 5 min cd, timer 60
+self:addAA('Blessing of Resurrection') -- normal rez
+self:addAA('Divine Aura') -- self DA, 5 min cd, timer 4
+self:addAA('Divine Resurrection') -- 100% rez
+self:addAA('Repel the Wicked') -- knockback+memblur, 1 min cd, timer 39
+self:addAA('Call of the Herald') -- call to corpse
+self:addAA('Divine Peace') -- fade
+self:addAA('Holy Step') -- leap
+self:addAA('Group Perfected Invisibility to Undead') -- 
+self:addAA('Improved Twincast') -- twincast 21 damage spells, 15 min cd, timer 76
+self:addAA('Innate Invis to Undead') -- 
+self:addAA('Mass Group Buff') -- 
+self:addAA('Tranquil Blessings') -- 
 
 -- non-tank oh shit heals
-common.getAA('Blessing of Sanctuary') -- 82k heal + drops target to bottom of agro, 15 min cd, timer 16
+self:addAA('Blessing of Sanctuary') -- 82k heal + drops target to bottom of agro, 15 min cd, timer 16
 
 -- single heals
-common.getAA('Burst of Life') -- 53k heal, 3 min cd, timer 44
-common.getAA('Divine Guardian') -- large heal if target drops below 30% hp, cant recast for 1 min after it procs, 5 min cd, timer 75
-common.getAA('Focused Celestial Regeneration') -- large single target HoT, 5 min cd, timer 61
+self:addAA('Burst of Life') -- 53k heal, 3 min cd, timer 44
+self:addAA('Divine Guardian') -- large heal if target drops below 30% hp, cant recast for 1 min after it procs, 5 min cd, timer 75
+self:addAA('Focused Celestial Regeneration') -- large single target HoT, 5 min cd, timer 61
 
 -- self heals
-common.getAA('Sanctuary') -- 165k self heal + drops self to lowest agro, 15 min cd, timer 14
+self:addAA('Sanctuary') -- 165k self heal + drops self to lowest agro, 15 min cd, timer 14
 
 -- cures
-common.getAA('Group Purify Soul') -- group cure all, 15 min cd, timer 34
-common.getAA('Purify Soul') -- single target cure all, 5 min cd, timer 7
-common.getAA('Ward of Purity') -- stationary ward that cures for 300 seconds, 20 min cd, timer 11
-common.getAA('Purified Spirits') -- self cure all, 2 min cd, timer 36
-common.getAA('Radiant Cure') -- group cure poison, disease, curse, 1 min cd, timer 8
+self:addAA('Group Purify Soul') -- group cure all, 15 min cd, timer 34
+self:addAA('Purify Soul') -- single target cure all, 5 min cd, timer 7
+self:addAA('Ward of Purity') -- stationary ward that cures for 300 seconds, 20 min cd, timer 11
+self:addAA('Purified Spirits') -- self cure all, 2 min cd, timer 36
+self:addAA('Radiant Cure') -- group cure poison, disease, curse, 1 min cd, timer 8
 
 -- rest
-common.getAA('Quiet Prayer') -- consume 90k mana to heal 90k hp+mana to target, 20 min cd, timer 41
-common.getAA('Veturika\'s Presence') -- self only restore 90k hp+mana, 20 min cd, timer 41
-common.getAA('Yaulp') -- casts highest yaulp spell
+self:addAA('Quiet Prayer') -- consume 90k mana to heal 90k hp+mana to target, 20 min cd, timer 41
+self:addAA('Veturika\'s Presence') -- self only restore 90k hp+mana, 20 min cd, timer 41
+self:addAA('Yaulp') -- casts highest yaulp spell
 
 -- buffs
-common.getAA('Saint\'s Unity') -- self buff, casts self armor buff line
+self:addAA('Saint\'s Unity') -- self buff, casts self armor buff line
 ]]
 Cleric.SpellLines = {
     {-- multiple remedies main heals lvl 101+ or just 1 remedy below lvl 100. Slot 1, 2, 5
@@ -173,7 +173,7 @@ Cleric.SpellLines = {
     {-- large proc heal on near death. Slot 6
         Group='di',
         Spells={'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', 'Divine Interposition', 'Divine Invocation', 'Divine Intercession', --[[emu cutoff]] 'Divine Intervention'},
-        Options={Gem=6}
+        Options={Gem=6, alias='DI'}
     },
     {-- Large quick heal, heals more the lower the targets hp. Slot 7
         Group='seventeenth',
@@ -218,7 +218,7 @@ Cleric.SpellLines = {
     {-- Heal proc on target + reverse DS on targets target. Slot 11
         Group='retort',
         Spells={'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort', 'Olsif\'s Retort', 'Galvos\' Retort', 'Fintar\'s Retort', --[[emu cutoff]] },
-        Options={Gem=function() return not Cleric:isEnabled('USESPLASH') and 11 or nil end, opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}}
+        Options={Gem=function() return not Cleric:isEnabled('USESPLASH') and 11 or nil end, opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}, singlebuff=true}
     },
     {-- twincast nuke, only use with splash. Slot 11
         Group='rebuke',
@@ -238,27 +238,27 @@ Cleric.SpellLines = {
     {-- dmg absorb, proc heal on wearer and stun on wearers target. 72 charges. Slot 13
         Group='shining',
         Spells={'Shining Steel', 'Shining Fortitude', 'Shining Aegis', 'Shining Fortress', 'Shining Bulwark', --[[emu cutoff]] },
-        Options={Gem=13, classes={CLR=true,WAR=true,SHD=true,PAL=true}},
+        Options={Gem=13, classes={CLR=true,WAR=true,SHD=true,PAL=true}, singlebuff=true},
     },
     {-- Don't keep mem'd, 12 charges. Group heal proc on big aoe. Same as consequence but not part of the stacking group. Swap gem
         Group='response',
         Spells={'Divine Response', --[[emu cutoff]] },
-        Options={swap=true}
+        Options={swap=true, selfbuff=true}
     },
     {-- Don't keep mem'd, 12 charges. Group heal proc on big aoe. Swap gem
         Group='consequence',
         Spells={'Divine Contingency', 'Divine Consequence', 'Divine Reaction', --[[emu cutoff]] },
-        Options={opt='USERESPONSE', swap=true}
+        Options={opt='USERESPONSE', swap=true, selfbuff=true}
     },
 
     -- Buffs
-    {Group='aura', Spells={'Bastion of Divinity', 'Aura of Divinity'}, Options={aura=true}},
-    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Hand of Will', --[[emu cutoff]] 'Aura of Devotion'}, Options={classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}}},
-    {Group='groupaego', Spells={'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Reliance', --[[emu cutoff]] 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}}},
-    {Group='singleaego', Spells={'Reliance', --[[emu cutoff]] 'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}}},
-    {Group='groupsymbol', Spells={'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Ealdun\'s Mark', --[[emu cutoff]] 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end}},
-    {Group='singlesymbol', Spells={'Symbol of Ealdun', --[[emu cutoff]] 'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end}},
-    {Group='armor', Spells={'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'}},
+    {Group='aura', Spells={'Bastion of Divinity', 'Aura of Divinity'}, Options={aura=true, aurabuff=true}},
+    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Hand of Will', --[[emu cutoff]] 'Aura of Devotion'}, Options={selfbuff=true, classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, alias='SPELLHASTE'}},
+    {Group='groupaego', Spells={'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Reliance', --[[emu cutoff]] 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}, alias='AEGO', singlebuff=true, selfbuff=true}},
+    {Group='singleaego', Spells={'Reliance', --[[emu cutoff]] 'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'}, Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}, alias='SINGLEAEGO', singlebuff=true}},
+    {Group='groupsymbol', Spells={'Unified Hand of Helmsbane', 'Unified Hand of the Diabo', 'Unified Hand of Jorlleag', 'Unified Hand of Emra', 'Unified Hand of Nonia', 'Ealdun\'s Mark', --[[emu cutoff]] 'Balikor\'s Mark', 'Kazad\'s Mark', 'Marzin\'s Mark', 'Naltron\'s Mark'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, singlebuff=true, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end, alias='SYMBOL', selfbuff=true}},
+    {Group='singlesymbol', Spells={'Symbol of Ealdun', --[[emu cutoff]] 'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'}, Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, singlebuff=true, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end, alias='SINGLESYMBOL'}},
+    {Group='armor', Spells={'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'}, Options={selfbuff=true}},
     -- Group buff, cast on self when down, damage absorb then heal proc on fade. absorbs 4x non-greater version. Swap gem
     {Group='bigvie', Spells={'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie', --[[emu cutoff]] }, Options={opt='USEVIE'}},
     -- Just use greater line instead
@@ -277,7 +277,7 @@ Cleric.SpellLines = {
     {Group='hotdps', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTDPS', hot=true}},
     {Group='issuance', Spells={'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit', --[[emu cutoff]] }}, -- stationary ward heal, requires enemy on target
     {Group='mark', Spells={'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, Options={opt='USEDEBUFF'}},
-    {Group='yaulp', Spells={'Yaulp VI'}, Options={combat=true, ooc=false, opt='USEYAULP'}},
+    {Group='yaulp', Spells={'Yaulp VI'}, Options={combat=true, ooc=false, opt='USEYAULP', selfbuff=true}},
     {Group='hammerpet', Spells={'Unswerving Hammer of Justice'}, Options={Gem=11, opt='USEHAMMER'}},
     {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
     {Group='stun', Spells={'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Holy Might', 'Stun'}, Options={opt='USESTUN'}},
@@ -294,9 +294,9 @@ function Cleric:initSpellRotations()
 end
 
 function Cleric:initHeals()
-    table.insert(self.healAbilities, common.getAA('Burst of Life', {panic=true}))
+    table.insert(self.healAbilities, self:addAA('Burst of Life', {panic=true}))
     table.insert(self.healAbilities, common.getItem('Harmony of the Soul', {panic=true}))
-    table.insert(self.healAbilities, common.getAA('Divine Arbitration', {panic=true}))
+    table.insert(self.healAbilities, self:addAA('Divine Arbitration', {panic=true}))
     if mq.TLO.Me.Level() >= 101 then
         table.insert(self.healAbilities, self.spells.remedy1)
         table.insert(self.healAbilities, self.spells.remedy2)
@@ -330,7 +330,7 @@ end
 
 function Cleric:initBuffs()
     -- Project Lazarus only
-    local aaAura = common.getAA('Spirit Mastery', {CheckFor='Aura of Pious Divinity'})
+    local aaAura = self:addAA('Spirit Mastery', {CheckFor='Aura of Pious Divinity', aurabuff=true})
     if aaAura then
         table.insert(self.auras, aaAura)
     else
@@ -345,8 +345,8 @@ function Cleric:initBuffs()
     table.insert(self.selfBuffs, self.spells.spellhaste)
     table.insert(self.selfBuffs, self.spells.groupsymbol)
     table.insert(self.selfBuffs, self.spells.groupaego)
-    table.insert(self.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
-    table.insert(self.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
+    -- table.insert(self.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
+    -- table.insert(self.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
 
     table.insert(self.singleBuffs, self.spells.retort)
     table.insert(self.singleBuffs, self.spells.shining)
@@ -362,48 +362,39 @@ function Cleric:initBuffs()
         table.insert(self.singleBuffs, self.spells.singlesymbol)
     end
 
-    self:addRequestAlias(self.spells.singleaego, 'SINGLEAEGO')
-    self:addRequestAlias(self.spells.groupaego, 'AEGO')
-    self:addRequestAlias(self.spells.singlesymbol, 'SINGLESYMBOL')
-    self:addRequestAlias(self.spells.groupsymbol, 'SYMBOL')
-    self:addRequestAlias(self.spells.spellhaste, 'SPELLHASTE')
-    self:addRequestAlias(self.spells.di, 'DI')
-    self:addRequestAlias(self.radiant, 'RC')
-    self.cr = common.getAA('Celestial Regeneration')
-    self:addRequestAlias(self.cr, 'CR')
-    self.focusedcr = common.getAA('Focused Celestial Regeneration')
-    self:addRequestAlias(self.focusedcr, 'FCR')
+    self.cr = self:addAA('Celestial Regeneration', {alias='CR'})
+    self.focusedcr = self:addAA('Focused Celestial Regeneration', {alias='FCR'})
 end
 
 function Cleric:initBurns()
     if state.emu then
-        table.insert(self.burnAbilities, common.getAA('Celestial Rapidity'))
-        --table.insert(self.burnAbilities, common.getAA('Celestial Regeneration'))
-        table.insert(self.burnAbilities, common.getAA('Exquisite Benediction'))
-        table.insert(self.burnAbilities, common.getAA('Flurry of Life'))
+        table.insert(self.burnAbilities, self:addAA('Celestial Rapidity'))
+        --table.insert(self.burnAbilities, self:addAA('Celestial Regeneration'))
+        table.insert(self.burnAbilities, self:addAA('Exquisite Benediction'))
+        table.insert(self.burnAbilities, self:addAA('Flurry of Life'))
         if state.emu then
-            table.insert(self.burnAbilities, common.getAA('Fundament: Second Spire of Divinity'))
+            table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of Divinity'))
         else
-            table.insert(self.burnAbilities, common.getAA('Spire of the Vicar'))
+            table.insert(self.burnAbilities, self:addAA('Spire of the Vicar'))
         end
-        --table.insert(self.burnAbilities, common.getAA('Healing Frenzy'))
-        table.insert(self.burnAbilities, common.getAA('Improved Twincast'))
+        --table.insert(self.burnAbilities, self:addAA('Healing Frenzy'))
+        table.insert(self.burnAbilities, self:addAA('Improved Twincast'))
 
-        --table.insert(self.burnAbilities, common.getAA('Focused Celestial Regeneration'))
+        --table.insert(self.burnAbilities, self:addAA('Focused Celestial Regeneration'))
     else
-        table.insert(self.burnAbilities, common.getAA('Silent Casting'))
-        table.insert(self.burnAbilities, common.getAA('Channeling the Divine')) -- twincast heals
-        table.insert(self.burnAbilities, common.getAA('Healing Frenzy')) -- 100% chance to crit heal, doesn't stack with fierce eye crit mod or auspice or intensity
-        table.insert(self.burnAbilities, common.getAA('Flurry of Life')) -- increases base heals by 35%
-        table.insert(self.burnAbilities, common.getAA('Celestial Rapidity')) -- healing spell haste, pair with war Imperator's Command and Healing Frenzy
-        table.insert(self.burnAbilities, common.getAA('Spire of the Vicar'))
+        table.insert(self.burnAbilities, self:addAA('Silent Casting'))
+        table.insert(self.burnAbilities, self:addAA('Channeling the Divine')) -- twincast heals
+        table.insert(self.burnAbilities, self:addAA('Healing Frenzy')) -- 100% chance to crit heal, doesn't stack with fierce eye crit mod or auspice or intensity
+        table.insert(self.burnAbilities, self:addAA('Flurry of Life')) -- increases base heals by 35%
+        table.insert(self.burnAbilities, self:addAA('Celestial Rapidity')) -- healing spell haste, pair with war Imperator's Command and Healing Frenzy
+        table.insert(self.burnAbilities, self:addAA('Spire of the Vicar'))
 
         -- DPS burns
-        -- table.insert(self.burnAbilities, common.getAA('Improved Twincast'))
-        -- table.insert(self.burnAbilities, common.getAA('Divine Avatar'))
-        -- table.insert(self.burnAbilities, common.getAA('Battle Frenzy'))
-        -- table.insert(self.burnAbilities, common.getAA('Turn Undead'))
-        -- table.insert(self.burnAbilities, common.getAA('Celestial Hammer'))
+        -- table.insert(self.burnAbilities, self:addAA('Improved Twincast'))
+        -- table.insert(self.burnAbilities, self:addAA('Divine Avatar'))
+        -- table.insert(self.burnAbilities, self:addAA('Battle Frenzy'))
+        -- table.insert(self.burnAbilities, self:addAA('Turn Undead'))
+        -- table.insert(self.burnAbilities, self:addAA('Celestial Hammer'))
     end
 end
 
@@ -417,9 +408,8 @@ function Cleric:initDebuffs()
 end
 
 function Cleric:initRecoverAbilities()
-    self.qm = common.getAA('Quiet Miracle', {mana=true, threshold=15, combat=true})
+    self.qm = self:addAA('Quiet Miracle', {mana=true, threshold=15, combat=true, alias='QM'})
     table.insert(self.recoverAbilities, self.qm)
-    self:addRequestAlias(self.qm, 'QM')
 end
 
 return Cleric

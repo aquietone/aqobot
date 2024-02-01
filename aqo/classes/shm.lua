@@ -12,9 +12,9 @@ local Shaman = class:new()
     
     -- Self buffs
     self:addSpell('selfprocheal', {'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}) -- self buff, proc heal when hit
-    table.insert(self.selfBuffs, common.getAA('Pact of the Wolf'))
+    table.insert(self.selfBuffs, self:addAA('Pact of the Wolf'))
     table.insert(self.selfBuffs, self.spells.selfprocheal)
-    table.insert(self.selfBuffs, common.getAA('Preincarnation'))
+    table.insert(self.selfBuffs, self:addAA('Preincarnation'))
 
     -- Keep up on group
     self:addSpell('grouphot', {'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal'}) -- group HoT
@@ -50,25 +50,25 @@ local Shaman = class:new()
     table.insert(self.healAbilities, self.spells.recourse) -- group heal, several stages of healing
     table.insert(self.healAbilities, self.spells.intervention) -- longer refresh quick group heal
     table.insert(self.healAbilities, self.spells.grouphot)
-    table.insert(self.healAbilities, common.getAA('Soothsayer\'s Intervention')) -- AA instant version of intervention spell
-    table.insert(self.healAbilities, common.getAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
+    table.insert(self.healAbilities, self:addAA('Soothsayer\'s Intervention')) -- AA instant version of intervention spell
+    table.insert(self.healAbilities, self:addAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
     
-    common.getAA('Forceful Rejuvenation') -- use to refresh group heals
+    self:addAA('Forceful Rejuvenation') -- use to refresh group heals
     Chest clicky -- clicky group heal
     Small Manisi Branch -- direct heal clicky
     Apothic Dragon Spine Hammer -- clicky heal like manisi branch
 
-    self.callAbility = common.getAA('Call of the Wild')
+    self.callAbility = self:addAA('Call of the Wild')
     self.rezStick = common.getItem('Staff of Forbidden Rites')
-    self.rezAbility = common.getAA('Rejuvenation of Spirit') -- 96% rez, ooc only
+    self.rezAbility = self:addAA('Rejuvenation of Spirit') -- 96% rez, ooc only
 
     -- Burns
     table.insert(self.burnAbilities, common.getItem('Blessed Spiritstaff of the Heyokah'), {first=true}) -- 2.0 click
-    table.insert(self.burnAbilities, common.getAA('Spire of Ancestors'), {first=true}) -- inc total healing, dot crit
-    table.insert(self.burnAbilities, common.getAA('Apex of Ancestors'), {first=true}) -- inc proc mod, accuracy, min dmg
-    --table.insert(self.burnAbilities, common.getAA('Ancestral Aid'), {first=true}) -- large HoT, stacks, use with tranquil blessings
-    table.insert(self.burnAbilities, common.getAA('Union of Spirits'), {first=true}) -- instant cast, use on monks/rogues
-    table.insert(self.selfBuffs, common.getAA('Group Pact of the Wolf')) -- aura, cast before self wolf, they stack
+    table.insert(self.burnAbilities, self:addAA('Spire of Ancestors'), {first=true}) -- inc total healing, dot crit
+    table.insert(self.burnAbilities, self:addAA('Apex of Ancestors'), {first=true}) -- inc proc mod, accuracy, min dmg
+    --table.insert(self.burnAbilities, self:addAA('Ancestral Aid'), {first=true}) -- large HoT, stacks, use with tranquil blessings
+    table.insert(self.burnAbilities, self:addAA('Union of Spirits'), {first=true}) -- instant cast, use on monks/rogues
+    table.insert(self.selfBuffs, self:addAA('Group Pact of the Wolf')) -- aura, cast before self wolf, they stack
 
     -- DPS
     Fleeting Spirit -- twin cast dots
@@ -88,7 +88,6 @@ function Shaman:init()
     self:initClassOptions()
     self:loadSettings()
     self:initSpellLines()
-    self:initSpellConditions()
     self:initSpellRotations()
     self:initHeals()
     self:initCures()
@@ -100,8 +99,8 @@ function Shaman:init()
     self:initRecoverAbilities()
     self:addCommonAbilities()
 
-    self.rezAbility = common.getAA('Call of the Wild')
-    self.summonCompanion = common.getAA('Summon Companion')
+    self.rezAbility = self:addAA('Call of the Wild')
+    self.summonCompanion = self:addAA('Summon Companion')
     state.nuketimer = timer:new(3000)
 end
 
@@ -123,7 +122,7 @@ Shaman.SpellLines = {
     {-- proc buff slow + heal, 240 charges. Slot 1
         Group='slowproc',
         Spells={'Moroseness', 'Melancholy', 'Ennui', 'Incapacity', 'Sluggishness', 'Lingering Sloth'},
-        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 1 or nil end, classes={WAR=true,PAL=true,SHD=true}}
+        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 1 or nil end, singlebuff=true, classes={WAR=true,PAL=true,SHD=true}}
     },
     {-- DPS spellset. Disease DoT. Slot 1
         Group='maladydot',
@@ -144,7 +143,11 @@ Shaman.SpellLines = {
         Group='tcnuke',
         NumToPick=2,
         Spells={'Gelid Gift', 'Polar Gift', 'Wintry Gift', 'Frostbitten Gift', 'Glacial Gift', 'Frostfall Boon'},
-        Options={opt='USENUKES', Gems={4,function() return Shaman:get('SPELLSET') ~= 'dps' and not Shaman:isEnabled('USEGROWTH') and 6 or nil end}}
+        Options={
+            opt='USENUKES',
+            Gems={4,function() return Shaman:get('SPELLSET') ~= 'dps' and not Shaman:isEnabled('USEGROWTH') and 6 or nil end},
+            precast = function() mq.cmdf('/mqtar id %s', mq.TLO.Group.MainTank.ID() or config.get('CHASETARGET')) end
+        },
     },
     {-- group heal, lower hp == stronger heal. Slot 5
         Group='intervention',
@@ -245,14 +248,14 @@ Shaman.SpellLines = {
 
     -- TODO: Need to work these spells into places they can be used
     -- self buff, proc heal when hit
-    {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}},
+    {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}, Options={selfbuff=true}},
     -- Cures
     {Group='cure', Spells={'Blood of Nadox'}},
     {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
-    {Group='torpor', Spells={'Transcendent Torpor'}},
-    {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF'}},
+    {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT'}},
+    {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment'}, Options={opt='USEDISPEL'}},
     {Group='debuff', Spells={'Crippling Spasm'}, Options={opt='USEDEBUFF'}},
     -- EMU special: Ice Age nuke has 25% chance to proc slow
@@ -280,15 +283,15 @@ Shaman.SpellLines = {
     },
 
     -- Buffs
-    {Group='proc', Spells={'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}}},
+    {Group='proc', Spells={'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}, singlebuff=true}},
     {Group='champion', Spells={'Champion', 'Ferine Avatar'}},
-    {Group='panther', Spells={'Talisman of the Panther'}},
+    {Group='panther', Spells={'Talisman of the Panther'}, Options={selfbuff=true}},
     -- {Group='talisman', Spells={'Talisman of Unification'}, Options={group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
     -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
     {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
     {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
-    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'}},
-    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}}},
+    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'}, Options={alias='SINGLEFOCUS'}},
+    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}, singlebuff=true, alias='FOCUS'}},
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
@@ -300,19 +303,6 @@ Shaman.SpellLines = {
 Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Roar of the Lion']=true}
 Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
     'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot'}
-
-function Shaman:initSpellConditions()
-    if self.spells.tcnuke then
-        self.spells.tcnuke.precast = function()
-            mq.cmdf('/mqtar id %s', mq.TLO.Group.MainTank.ID() or config.get('CHASETARGET'))
-        end
-    end
-    if self.spells.idol then
-        self.spells.idol.condition = function()
-            return mq.TLO.Spawn('Spirit Idol')() ~= nil
-        end
-    end
-end
 
 function Shaman:initSpellRotations()
     self:initBYOSCustom()
@@ -352,16 +342,16 @@ end
 function Shaman:initBurns()
     local epic = common.getItem('Blessed Spiritstaff of the Heyokah', {opt='USEEPIC'}) or common.getItem('Crafted Talisman of Fates', {opt='USEEPIC'})
 
-    table.insert(self.burnAbilities, common.getAA('Ancestral Aid'))
+    table.insert(self.burnAbilities, self:addAA('Ancestral Aid'))
     table.insert(self.burnAbilities, epic)
-    table.insert(self.burnAbilities, common.getAA('Rabid Bear'))
-    table.insert(self.burnAbilities, common.getAA('Fundament: First spire of Ancestors'))
+    table.insert(self.burnAbilities, self:addAA('Rabid Bear'))
+    table.insert(self.burnAbilities, self:addAA('Fundament: First spire of Ancestors'))
     -- table.insert(self.burnAbilities, common.getItem('Blessed Spiritstaff of the Heyokah'), {first=true}) -- 2.0 click
-    -- table.insert(self.burnAbilities, common.getAA('Spire of Ancestors'), {first=true}) -- inc total healing, dot crit
-    -- table.insert(self.burnAbilities, common.getAA('Apex of Ancestors'), {first=true}) -- inc proc mod, accuracy, min dmg
-    -- --table.insert(self.burnAbilities, common.getAA('Ancestral Aid'), {first=true}) -- large HoT, stacks, use with tranquil blessings
-    -- table.insert(self.burnAbilities, common.getAA('Union of Spirits'), {first=true}) -- instant cast, use on monks/rogues
-    -- table.insert(self.selfBuffs, common.getAA('Group Pact of the Wolf')) -- aura, cast before self wolf, they stack
+    -- table.insert(self.burnAbilities, self:addAA('Spire of Ancestors'), {first=true}) -- inc total healing, dot crit
+    -- table.insert(self.burnAbilities, self:addAA('Apex of Ancestors'), {first=true}) -- inc proc mod, accuracy, min dmg
+    -- --table.insert(self.burnAbilities, self:addAA('Ancestral Aid'), {first=true}) -- large HoT, stacks, use with tranquil blessings
+    -- table.insert(self.burnAbilities, self:addAA('Union of Spirits'), {first=true}) -- instant cast, use on monks/rogues
+    -- table.insert(self.selfBuffs, self:addAA('Group Pact of the Wolf')) -- aura, cast before self wolf, they stack
 end
 
 function Shaman:initHeals()
@@ -377,9 +367,9 @@ function Shaman:initHeals()
     table.insert(self.healAbilities, self.spells.recourse) -- group heal, several stages of healing
     table.insert(self.healAbilities, self.spells.intervention) -- longer refresh quick group heal
     table.insert(self.healAbilities, self.spells.grouphot)
-    table.insert(self.healAbilities, common.getAA('Soothsayer\'s Intervention', {group=true, threshold=3})) -- AA instant version of intervention spell
-    table.insert(self.healAbilities, common.getAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
-    table.insert(self.healAbilities, common.getAA('Union of Spirits', {panic=true, tank=true, pet=30}))
+    table.insert(self.healAbilities, self:addAA('Soothsayer\'s Intervention', {group=true, threshold=3})) -- AA instant version of intervention spell
+    table.insert(self.healAbilities, self:addAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
+    table.insert(self.healAbilities, self:addAA('Union of Spirits', {panic=true, tank=true, pet=30}))
     table.insert(self.healAbilities, self.spells.hottank)
     table.insert(self.healAbilities, self.spells.hotdps)
 end
@@ -393,45 +383,41 @@ end
 
 function Shaman:initBuffs()
     -- Self buffs
-    table.insert(self.selfBuffs, common.getAA('Pact of the Wolf'))
+    table.insert(self.selfBuffs, self:addAA('Pact of the Wolf', {selfbuff=true}))
     table.insert(self.selfBuffs, self.spells.selfprocheal)
-    table.insert(self.selfBuffs, common.getAA('Preincarnation'))
+    table.insert(self.selfBuffs, self:addAA('Preincarnation', {selfbuff=true}))
 --
     --table.insert(self.combatBuffs, self.spells.champion)
-    table.insert(self.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
-    table.insert(self.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
+    -- table.insert(self.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
+    -- table.insert(self.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
     local pantherTablet = mq.TLO.FindItem('Imbued Rune of the Panther')()
     if not pantherTablet then
         table.insert(self.selfBuffs, self.spells.panther)
     end
     table.insert(self.singleBuffs, self.spells.slowproc)
     table.insert(self.singleBuffs, self.spells.proc)
-    table.insert(self.selfBuffs, common.getAA('Pact of the Wolf', {RemoveBuff='Pact of the Wolf Effect'}))
+    table.insert(self.selfBuffs, self:addAA('Pact of the Wolf', {RemoveBuff='Pact of the Wolf Effect', selfbuff=true}))
     --table.insert(self.selfBuffs, self.spells.champion)
-    table.insert(self.selfBuffs, common.getAA('Languid Bite'))
+    table.insert(self.selfBuffs, self:addAA('Languid Bite', {selfbuff=true}))
     table.insert(self.singleBuffs, self.spells.groupunity)
-    table.insert(self.singleBuffs, common.getAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}}))
+    table.insert(self.singleBuffs, self:addAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}, singlebuff=true}))
     -- pact of the wolf, remove pact of the wolf effect
-
-    self:addRequestAlias(self.radiant, 'RC')
-    self:addRequestAlias(self.spells.torpor, 'HOT')
-    self:addRequestAlias(self.spells.groupunity, 'FOCUS')
 end
 
 function Shaman:initDebuffs()
     table.insert(self.debuffs, self.spells.dispel)
     table.insert(self.debuffs, self.spells.idol)
-    table.insert(self.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
-    table.insert(self.debuffs, common.getAA('Turgur\'s Swarm', {opt='USESLOW'}) or self.spells.slow)
+    table.insert(self.debuffs, self:addAA('Malosinete', {opt='USEDEBUFF'}))
+    table.insert(self.debuffs, self:addAA('Turgur\'s Swarm', {opt='USESLOW'}) or self.spells.slow)
     table.insert(self.debuffs, self.spells.debuff)
 end
 
 function Shaman:initDefensiveAbilities()
-    table.insert(self.defensiveAbilities, common.getAA('Ancestral Guard'))
+    table.insert(self.defensiveAbilities, self:addAA('Ancestral Guard'))
 end
 
 function Shaman:initRecoverAbilities()
-    self.canni = common.getAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
+    self.canni = self:addAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
     table.insert(self.recoverAbilities, self.canni)
     table.insert(self.recoverAbilities, self.spells.canni)
 end

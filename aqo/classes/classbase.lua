@@ -176,21 +176,21 @@ function base:addCommonOptions()
 end
 
 function base:addCommonAbilities()
-    self.tranquil = common.getAA('Tranquil Blessings')
-    self.radiant = common.getAA('Radiant Cure', {all=true})
-    self.silent = common.getAA('Silent Casting')
-    self.mgb = common.getAA('Mass Group Buff')
+    self.tranquil = self:addAA('Tranquil Blessings')
+    self.radiant = self:addAA('Radiant Cure', {all=true, alias='RC'})
+    self.silent = self:addAA('Silent Casting')
+    self.mgb = self:addAA('Mass Group Buff')
     self.rezAbility = common.getItem('Token of Resurrection')
     if not state.emu then
-        self.glyph = common.getAA('Mythic Glyph of Ultimate Power V')
-        self.intensity = common.getAA('Intensity of the Resolute')
+        self.glyph = self:addAA('Mythic Glyph of Ultimate Power V')
+        self.intensity = self:addAA('Intensity of the Resolute')
     else
-        self.glyph = common.getAA('Glyph of Courage')
+        self.glyph = self:addAA('Glyph of Courage')
     end
-    table.insert(self.burnAbilities, common.getAA('Focus of Arcanum'))
-    table.insert(self.burnAbilities, common.getAA('Empowered Focus of Arcanum'))
-    table.insert(self.combatBuffs, common.getAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum'}))
-    table.insert(self.combatBuffs, common.getAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum'}))
+    table.insert(self.burnAbilities, self:addAA('Focus of Arcanum'))
+    table.insert(self.burnAbilities, self:addAA('Empowered Focus of Arcanum'))
+    table.insert(self.combatBuffs, self:addAA('Acute Focus of Arcanum', {skipifbuff='Enlightened Focus of Arcanum', combatbuff=true}))
+    table.insert(self.combatBuffs, self:addAA('Enlightened Focus of Arcanum', {skipifbuff='Acute Focus of Arcanum', combatbuff=true}))
 end
 
 -- Return true only if the option is both defined and true
@@ -235,6 +235,7 @@ function base:addNSpells(spellGroup, numToAdd, spellList, options)
                 self.spells[spellGroup..i][k] = v
             end
         end
+        if self.spells[spellGroup..i].alias then self.requestAliases[options.alias] = self.spells[spellGroup..i] end
         local j = 1
         while spellList[1] ~= foundSpell.BaseName or j > 25 do
             j = j + 1 -- prevent infinite loop in case of some strange edge case maybe
@@ -271,6 +272,13 @@ function base:addSpell(spellGroup, spellList, options)
             self.spells[spellGroup][k] = v
         end
     end
+    if self.spells[spellGroup].alias then self.requestAliases[options.alias] = self.spells[spellGroup] end
+end
+
+function base:addAA(name, options)
+    local aa = common.getAA(name, options)
+    if aa and aa.alias then self.requestAliases[options.alias] = aa end
+    return aa
 end
 
 function base:getTableForClicky(clickyType)
@@ -371,10 +379,6 @@ function base:getRequestAliases()
         aliases[name] = ability.CastName
     end
     return aliases
-end
-
-function base:addRequestAlias(ability, alias)
-    self.requestAliases[alias] = ability
 end
 
 function base:getAbilityForAlias(alias)
@@ -534,8 +538,7 @@ end
 function base:mash()
     if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
-    local cur_mode = mode.currentMode
-    if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
+    if assist.isFighting() then
         if self.mashClass then self:mashClass() end
         if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if self.useCommonListProcessor then
@@ -557,8 +560,7 @@ function base:ae()
     if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
     if not self:isEnabled('USEAOE') then return end
-    local cur_mode = mode.currentMode
-    if (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.Combat()) then
+    if assist.isFighting() then
         if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if self.aeClass then self.aeClass() end
             if self.useCommonListProcessor then
@@ -636,7 +638,7 @@ end
 function base:cast()
     if mq.TLO.Me.SpellInCooldown() or self:isEnabled('DONTCAST') or mq.TLO.Me.Invis() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
-    if assist.isFighting() then
+    if assist.isFighting() and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
         if state.nuketimer:expired() then
             for _,clicky in ipairs(self.castClickies) do
                 if clicky.enabled and self:isAbilityEnabled(clicky.opt) and (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then

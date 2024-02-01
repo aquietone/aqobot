@@ -20,7 +20,6 @@ function Necromancer:init()
     self:initClassOptions()
     self:loadSettings()
     self:initSpellLines()
-    self:initSpellConditions()
     self:initSpellRotations()
     self:initBurns()
     self:initBuffs()
@@ -31,16 +30,16 @@ function Necromancer:init()
     self.tcclick = common.getItem('Bifold Focus of the Evil Eye')
 
     -- lifeburn/dying grasp combo
-    self.lifeburn = common.getAA('Life Burn')
-    self.dyinggrasp = common.getAA('Dying Grasp')
+    self.lifeburn = self:addAA('Life Burn')
+    self.dyinggrasp = self:addAA('Dying Grasp')
 
     -- Mana Recovery AAs
-    self.deathbloom = common.getAA('Death Bloom', {nodmz=true})
-    self.bloodmagic = common.getAA('Blood Magic', {nodmz=true})
+    self.deathbloom = self:addAA('Death Bloom', {nodmz=true})
+    self.bloodmagic = self:addAA('Blood Magic', {nodmz=true})
 
-    self.convergence = common.getAA('Convergence')
+    self.convergence = self:addAA('Convergence')
     self.rezAbility = self.convergence
-    self.summonCompanion = common.getAA('Summon Companion')
+    self.summonCompanion = self:addAA('Summon Companion')
     self.neccount = 1
 end
 
@@ -67,7 +66,7 @@ Necromancer.SpellLines = {
     {-- strongest fire dot. Slot 1
         Group='pyreshort',
         Spells={'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador'},
-        Options={opt='USEDOTS', Gem=1}
+        Options={opt='USEDOTS', Gem=1, precast=function() if Necromancer.tcclick and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then Necromancer.tcclick:use() end end}
     },
     {-- main magic dot. Slot 2
         Group='magic',
@@ -97,17 +96,17 @@ Necromancer.SpellLines = {
     {-- Mana Drain. Slot 7
         Group='manatap',
         Spells={'Mind Disintegrate', 'Mind Atrophy', 'Mind Erosion', 'Mind Excoriation', 'Mind Extraction', 'Mind Strip', 'Mind Abrasion', 'Thought Flay', 'Mind Decomposition', 'Mind Flay'},
-        Options={opt='USEMANATAP', Gem=7}
+        Options={opt='USEMANATAP', Gem=7, condition=function() return (mq.TLO.Group.LowMana(70)() or 0) > 2 end}
     },
     {-- Damage absorb shield. Slot 8
         Group='shield',
         Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'},
-        Options={opt='USESHIELD', Gem=8}
+        Options={opt='USESHIELD', Gem=8, selfbuff=true}
     },
     {-- Alliance. Slot 9
         Group='alliance',
         Spells={'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'},
-        Options={opt='USEALLIANCE', Gem=9}
+        Options={opt='USEALLIANCE', Gem=9, condition = function() return Necromancer.neccount > 1 and not mq.TLO.Target.Buff(Necromancer.spells.alliance.Name)() and mq.TLO.Spell(Necromancer.spells.alliance.Name).StacksTarget() end}
     },
     {-- manadrain dot. Slot 7/8/9 if any of alliance or shield or manatap are disabled.
         Group='ignite',
@@ -132,7 +131,8 @@ Necromancer.SpellLines = {
     {-- Slot 11
         Group='combodisease',
         Spells={'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'},
-        Options={opt='USEDOTS', Gem=11}
+        Options={opt='USEDOTS', Gem=11, condition = function()
+            return (not common.isTargetDottedWith(Necromancer.spells.decay.ID, Necromancer.spells.decay.Name) or not common.isTargetDottedWith(Necromancer.spells.grip.ID, Necromancer.spells.grip.Name)) and mq.TLO.Me.SpellReady(Necromancer.spells.combodisease.Name)() end}
     },
     {-- Slot 12
         Group='wounds',
@@ -157,7 +157,14 @@ Necromancer.SpellLines = {
     {-- Slot 13
         Group='synergy',
         Spells={'Decree for Blood', 'Proclamation for Blood', 'Assert for Blood', 'Refute for Blood', 'Impose for Blood', 'Impel for Blood', 'Provocation of Blood', 'Compel for Blood', 'Exigency for Blood', 'Call for Blood'},
-        Options={opt='USENUKES', Gem=13}
+        Options={
+            opt='USENUKES',
+            Gem=13,
+            condition = function()
+                return not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Target.MyBuff(Necromancer.spells.pyreshort and Necromancer.spells.pyreshort.Name)() and
+                        mq.TLO.Target.MyBuff(Necromancer.spells.venom and Necromancer.spells.venom.Name)() and
+                        mq.TLO.Target.MyBuff(Necromancer.spells.magic and Necromancer.spells.magic.Name)() end
+        }
     },
 
     -- TODO: need to work these in when combo is an expansion behind
@@ -183,50 +190,27 @@ Necromancer.SpellLines = {
     {Group='snare', Spells={'Afflicted Darkness', 'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness'}, Options={opt='USESNARE'}}, -- unused
 
     -- Buffs
-    {Group='lich', Spells={'Realmside', 'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, Options={opt='USELICH', nodmz=true}},
+    {Group='lich', Spells={'Realmside', 'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos'}, Options={opt='USELICH', nodmz=true, selfbuff=true}},
     {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}},
     {Group='rune', Spells={'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}}, -- unused
     {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
-    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}}},
+    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}, singlebuff=true}},
     {Group='reflect', Spells={'Mirror'}},
-    {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}}, -- pre-unity
-    {Group='dmf', Spells={'Dead Men Floating'}},
+    {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}, Options={selfbuff=true}}, -- pre-unity
+    {Group='dmf', Spells={'Dead Men Floating'}, Options={alias='DMF', selfbuff=true}},
     -- Pet spells
     {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'}},
-    {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'}},
+    {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'}, Options={petbuff=true}},
     {Group='petheal', Spells={'Bracing Revival', 'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve'}}, -- unused
     {Group='petaegis', Spells={'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}}, -- unused
     {Group='petshield', Spells={'Cascading Runeshield', 'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}}, -- unused
     {Group='petillusion', Spells={'Form of Mottled Bone'}},
-    {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}},
+    {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}, Options={petbuff=true}},
 }
 
 Necromancer.compositeNames = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
 Necromancer.allDPSSpellGroups = {'pyreshort', 'magic', 'venom', 'haze', 'grasp', 'leech', 'manatap', 'alliance', 'ignite', 'scourge', 'corruption',
     'composite', 'combodisease', 'wounds', 'pyrelong', 'fireshadow', 'swarm', 'synergy', 'decay', 'grip', 'tapee', 'tap', 'tapsummon', 'chaotic', 'sphere', 'venin', 'snare'}
-
-function Necromancer:initSpellConditions()
-    if self.spells.manatap then self.spells.manatap.condition = function() return (mq.TLO.Group.LowMana(70)() or 0) > 2 end end
-    if self.spells.alliance then self.spells.alliance.condition = function() return self.neccount > 1 and not mq.TLO.Target.Buff(self.spells.alliance.Name)() and mq.TLO.Spell(self.spells.alliance.Name).StacksTarget() end end
-    if not state.emu and self.spells.synergy then
-        self.spells.synergy.condition = function()
-            return not mq.TLO.Me.Song('Defiler\'s Synergy')() and mq.TLO.Target.MyBuff(self.spells.pyreshort and self.spells.pyreshort.Name)() and
-                    mq.TLO.Target.MyBuff(self.spells.venom and self.spells.venom.Name)() and
-                    mq.TLO.Target.MyBuff(self.spells.magic and self.spells.magic.Name)() end
-    end
-    if self.spells.pyreshort and self.tcclick then
-        self.spells.pyreshort.precast = function()
-            if not mq.TLO.Me.Buff('Heretic\'s Twincast')() then
-                self.tcclick:use()
-            end
-        end
-    end
-    if self.spells.combodisease then
-        self.spells.combodisease.condition = function()
-            return (not common.isTargetDottedWith(self.spells.decay.ID, self.spells.decay.Name) or not common.isTargetDottedWith(self.spells.grip.ID, self.spells.grip.Name)) and mq.TLO.Me.SpellReady(self.spells.combodisease.Name)()
-        end
-    end
-end
 
 function Necromancer:initSpellRotations()
     self:initBYOSCustom()
@@ -283,66 +267,63 @@ function Necromancer:initBurns()
 
     -- entries in the AAs table are pairs of {aa name, aa id}
     table.insert(self.burnAbilities, self.silent) -- song, 12 minute CD
-    table.insert(self.burnAbilities, common.getAA('Mercurial Torment')) -- buff, 24 minute CD
-    table.insert(self.burnAbilities, common.getAA('Heretic\'s Twincast')) -- buff, 15 minute CD
+    table.insert(self.burnAbilities, self:addAA('Mercurial Torment')) -- buff, 24 minute CD
+    table.insert(self.burnAbilities, self:addAA('Heretic\'s Twincast')) -- buff, 15 minute CD
     if not state.emu then
-        table.insert(self.burnAbilities, common.getAA('Spire of Necromancy')) -- buff
+        table.insert(self.burnAbilities, self:addAA('Spire of Necromancy')) -- buff
     else
-        table.insert(self.burnAbilities, common.getAA('Fundament: Third Spire of Necromancy')) -- buff, 7:30 minute CD
-        table.insert(self.burnAbilities, common.getAA('Embalmer\'s Carapace'))
+        table.insert(self.burnAbilities, self:addAA('Fundament: Third Spire of Necromancy')) -- buff, 7:30 minute CD
+        table.insert(self.burnAbilities, self:addAA('Embalmer\'s Carapace'))
     end
-    table.insert(self.burnAbilities, common.getAA('Hand of Death')) -- song, 8:30 minute CD
-    table.insert(self.burnAbilities, common.getAA('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
-    table.insert(self.burnAbilities, common.getAA('Companion\'s Fury')) -- 10 minute CD
-    table.insert(self.burnAbilities, common.getAA('Companion\'s Fortification')) -- 15 minute CD
-    table.insert(self.burnAbilities, common.getAA('Rise of Bones', {delay=1500})) -- 10 minute CD
-    table.insert(self.burnAbilities, common.getAA('Swarm of Decay', {delay=1500})) -- 9 minute CD
+    table.insert(self.burnAbilities, self:addAA('Hand of Death')) -- song, 8:30 minute CD
+    table.insert(self.burnAbilities, self:addAA('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
+    table.insert(self.burnAbilities, self:addAA('Companion\'s Fury')) -- 10 minute CD
+    table.insert(self.burnAbilities, self:addAA('Companion\'s Fortification')) -- 15 minute CD
+    table.insert(self.burnAbilities, self:addAA('Rise of Bones', {delay=1500})) -- 10 minute CD
+    table.insert(self.burnAbilities, self:addAA('Swarm of Decay', {delay=1500})) -- 9 minute CD
 
-    self.glyph = common.getAA('Mythic Glyph of Ultimate Power V')
-    self.intensity = common.getAA('Intensity of the Resolute')
+    self.glyph = self:addAA('Mythic Glyph of Ultimate Power V')
+    self.intensity = self:addAA('Intensity of the Resolute')
 
-    self.wakethedead = common.getAA('Wake the Dead') -- 3 minute CD
+    self.wakethedead = self:addAA('Wake the Dead') -- 3 minute CD
 
-    self.funeralpyre = common.getAA('Funeral Pyre') -- song, 20 minute CD
+    self.funeralpyre = self:addAA('Funeral Pyre') -- song, 20 minute CD
 
     self.pre_burn_AAs = {}
-    table.insert(self.pre_burn_AAs, common.getAA('Mercurial Torment')) -- buff
-    table.insert(self.pre_burn_AAs, common.getAA('Heretic\'s Twincast')) -- buff
+    table.insert(self.pre_burn_AAs, self:addAA('Mercurial Torment')) -- buff
+    table.insert(self.pre_burn_AAs, self:addAA('Heretic\'s Twincast')) -- buff
     if not state.emu then
-        table.insert(self.pre_burn_AAs, common.getAA('Spire of Necromancy')) -- buff
+        table.insert(self.pre_burn_AAs, self:addAA('Spire of Necromancy')) -- buff
     else
-        table.insert(self.pre_burn_AAs, common.getAA('Fundament: Third Spire of Necromancy')) -- buff
+        table.insert(self.pre_burn_AAs, self:addAA('Fundament: Third Spire of Necromancy')) -- buff
     end
 end
 
 function Necromancer:initBuffs()
     -- Buffs
-    self.unity = common.getAA('Mortifier\'s Unity')
+    self.unity = self:addAA('Mortifier\'s Unity', {selfbuff=true})
 
     if state.emu then
         table.insert(self.selfBuffs, self.spells.lich)
         table.insert(self.selfBuffs, self.spells.hpbuff)
-        table.insert(self.selfBuffs, common.getAA('Gift of the Grave', {RemoveBuff='Gift of the Grave Effect'}))
+        table.insert(self.selfBuffs, self:addAA('Gift of the Grave', {RemoveBuff='Gift of the Grave Effect', selfbuff=true}))
         table.insert(self.singleBuffs, self.spells.defensiveproc)
-        table.insert(self.combatBuffs, common.getAA('Reluctant Benevolence'))
+        table.insert(self.combatBuffs, self:addAA('Reluctant Benevolence', {combatbuff=true}))
     else
         table.insert(self.selfBuffs, self.unity)
     end
     table.insert(self.selfBuffs, self.spells.shield)
     --table.insert(self.petBuffs, self.spells.inspire)
     table.insert(self.petBuffs, self.spells.pethaste)
-    table.insert(self.petBuffs, common.getAA('Fortify Companion'))
-    local dmf = common.getAA('Dead Man Floating', {skipifbuff='Perfected Dead Men Floating'})
+    table.insert(self.petBuffs, self:addAA('Fortify Companion', {petbuff=true}))
+    local dmf = self:addAA('Dead Man Floating', {skipifbuff='Perfected Dead Men Floating', alias='DMF', selfbuff=true})
     table.insert(self.selfBuffs, dmf or self.spells.dmf)
-
-    self:addRequestAlias(self.spells.defensiveproc, 'PUSTULES')
-    self:addRequestAlias(dmf or self.spells.dmf, 'DMF')
 end
 
 function Necromancer:initDebuffs()
-    self.dispel = common.getAA('Eradicate Magic', {opt='USEDISPEL'})
+    self.dispel = self:addAA('Eradicate Magic', {opt='USEDISPEL'})
 
-    self.scent = common.getAA('Scent of Thule', {opt='USEDEBUFF'}) or common.getAA('Scent of Terris', {opt='USEDEBUFF'})
+    self.scent = self:addAA('Scent of Thule', {opt='USEDEBUFF'}) or self:addAA('Scent of Terris', {opt='USEDEBUFF'})
     self.debuffTimer = timer:new(30000)
     table.insert(self.debuffs, self.dispel)
     table.insert(self.debuffs, self.scent)
@@ -355,8 +336,8 @@ function Necromancer:initDefensiveAbilities()
         mq.cmd('/stand')
         mq.cmd('/makemevis')
     end
-    table.insert(self.fadeAbilities, common.getAA('Death\'s Effigy', {opt='USEFD', postcast=postFD}))
-    table.insert(self.aggroReducers, common.getAA('Death Peace', {opt='USEFD', postcast=postFD}))
+    table.insert(self.fadeAbilities, self:addAA('Death\'s Effigy', {opt='USEFD', postcast=postFD}))
+    table.insert(self.aggroReducers, self:addAA('Death Peace', {opt='USEFD', postcast=postFD}))
 end
 
 --[[

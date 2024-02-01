@@ -33,6 +33,7 @@ local IsReady = {
 ---@field Name string # the name of this ability
 ---@field CastName string # the name of the spell/item/disc/aa/skill to use
 ---@field SpellName string # the name of the spell which is cast by the spell/item/disc/aa/skill
+---@field alias? string # the alias for requesting the buff via actor or tells
 ---@field CastType AbilityTypes # spell, aa, disc, item, skill
 ---@field TargetType? string # The target type for the ability
 ---@field MyCastTime? number # The cast time of the spell or clicky
@@ -74,6 +75,11 @@ local IsReady = {
 ---@field swap? boolean # flag to indicate whether this spell should be swapped in when needed
 ---@field condition? function # function to evaluate to determine whether to use the ability
 ---@field timer Timer # reuse timer for the ability
+---@field selfbuff? boolean # TODO: move conditions into the options and make use of these keys
+---@field singlebuff? boolean # TODO: move conditions into the options and make use of these keys
+---@field combatbuff? boolean # TODO: move conditions into the options and make use of these keys
+---@field aurabuff? boolean # TODO: move conditions into the options and make use of these keys
+---@field petbuff? boolean # TODO: move conditions into the options and make use of these keys
 local Ability = {
     ID = 0,
     Name = '',
@@ -131,6 +137,8 @@ function Ability.shouldUseSpell(spell, skipSelfStack, skipTargetCheck)
                 result = (skipSelfStack or spell.Stacks()) and not mq.TLO.Me.Buff(spell.Name())() and not mq.TLO.Me.Song(spell.Name())()
             elseif spell.TargetType() == 'Single' then
                 result = skipTargetCheck or (dist and dist <= spell.MyRange() and spell.StacksTarget() and not mq.TLO.Target.Buff(spell.Name())())
+            elseif spell.TargetType() == 'Pet' then
+                result = (mq.TLO.Pet.Distance3D() or 300) <= spell.MyRange() and spell.StacksPet() and not mq.TLO.Pet.Buff(spell.Name())()
             else
                 -- no one to check stacking on, sure
                 result = true

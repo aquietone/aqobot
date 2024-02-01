@@ -36,7 +36,7 @@ local Magician = class:new()
     4. Spear of Molten Komatiite
 
     Sustained additional
-    table.insert(self.DPSAbilities, common.getAA('Force of Elements'))
+    table.insert(self.DPSAbilities, self:addAA('Force of Elements'))
     table.insert(self.DPSAbilities, common.getItem('Molten Komatiite Orb'))
     self:addSpell('twincast', {'Twincast'})
     self:addSpell('alliance', {'Firebound Conjunction', 'Firebound Coalition', 'Firebound Covenant', 'Firebound Alliance'})
@@ -45,17 +45,17 @@ local Magician = class:new()
     self:addSpell('malo', {'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosinete'})
 
     Burns
-    table.insert(self.burnAbilities, common.getAA('Heart of Skyfire')) --Glyph of Destruction
-    table.insert(self.burnAbilities, common.getAA('Focus of Arcanum'))
+    table.insert(self.burnAbilities, self:addAA('Heart of Skyfire')) --Glyph of Destruction
+    table.insert(self.burnAbilities, self:addAA('Focus of Arcanum'))
     
-    table.insert(self.burnAbilities, common.getAA('Host of the Elements'))
-    table.insert(self.burnAbilities, common.getAA('Servant of Ro'))
+    table.insert(self.burnAbilities, self:addAA('Host of the Elements'))
+    table.insert(self.burnAbilities, self:addAA('Servant of Ro'))
 
     Host of the Elements, Servant of Ro -- cast after RS
     Imperative Minion, Imperative Servant -- clicky pets
     self:addSpell('servantclicky', {'Summon Valorous Servant', 'Summon Forbearing Servant', 'Summon Imperative Servant', 'Summon Insurgent Servant', 'Summon Mutinous Servant'})
 
-    table.insert(self.burnAbilities, common.getAA('Spire of the Elements')) -- if no crit buff
+    table.insert(self.burnAbilities, self:addAA('Spire of the Elements')) -- if no crit buff
     Thaumaturge\'s Focus -- if casting any magic spells'
 
     Burn AE
@@ -66,7 +66,7 @@ local Magician = class:new()
     Forceful Rejuv during ITC
 
     Pet
-    table.insert(self.burnAbilities, common.getAA('Frenzied Burnout'))
+    table.insert(self.burnAbilities, self:addAA('Frenzied Burnout'))
     Zeal of the Elements
     Thaumaturgist\'s Infusion after burnout fades
 
@@ -130,73 +130,73 @@ function Magician:initClassOptions()
 end
 --[[
 -- Utility
-common.getAA('Call of the Hero')
-common.getAA('Perfected Invisibility')
-common.getAA('Perfected Invisibility to Undead')
-common.getAA('Perfected Levitation')
-common.getAA('Group Perfected Invisibility')
-common.getAA('Group Perfected Invisibility to Undead')
-common.getAA('Mass Group Buff')
-common.getAA('Tranquil Blessings')
-common.getAA('Summon Companion')
-common.getAA('Diminutive Companion')
-common.getAA('Summon Modulation Shard') -- MGB mod rods
+self:addAA('Call of the Hero')
+self:addAA('Perfected Invisibility')
+self:addAA('Perfected Invisibility to Undead')
+self:addAA('Perfected Levitation')
+self:addAA('Group Perfected Invisibility')
+self:addAA('Group Perfected Invisibility to Undead')
+self:addAA('Mass Group Buff')
+self:addAA('Tranquil Blessings')
+self:addAA('Summon Companion')
+self:addAA('Diminutive Companion')
+self:addAA('Summon Modulation Shard') -- MGB mod rods
 
 -- Burns
-common.getAA('Heart of Skyfire') -- inc spell / crit dmg, reduce agro, 15 min cd, timer 9
-common.getAA('Thaumaturge\'s Focus') -- inc dmg and crit dmg for magic spells, 15 min cd, timer 78
-common.getAA('Host of the Elements') -- swarm pets, 10 min cd, timer 7
-common.getAA('Servant of Ro') -- summons strong temp pet to nuke, 9 min cd, timer 6
-common.getAA('Spire of Elements') -- inc crit chance + melee proc for group, 7:30 cd, timer 40
-common.getAA('Silent Casting')
-common.getAA('Improved Twincast') -- 15 min cd, timer 76
-common.getAA('Focus of Arcanum')
-common.getAA('Forceful Rejuvenation')
+self:addAA('Heart of Skyfire') -- inc spell / crit dmg, reduce agro, 15 min cd, timer 9
+self:addAA('Thaumaturge\'s Focus') -- inc dmg and crit dmg for magic spells, 15 min cd, timer 78
+self:addAA('Host of the Elements') -- swarm pets, 10 min cd, timer 7
+self:addAA('Servant of Ro') -- summons strong temp pet to nuke, 9 min cd, timer 6
+self:addAA('Spire of Elements') -- inc crit chance + melee proc for group, 7:30 cd, timer 40
+self:addAA('Silent Casting')
+self:addAA('Improved Twincast') -- 15 min cd, timer 76
+self:addAA('Focus of Arcanum')
+self:addAA('Forceful Rejuvenation')
 
 -- Defensives
-common.getAA('Companion\'s Shielding') -- large pet heal + 72 seconds of 50% dmg absorb for self, 15 min cd, timer 8
-common.getAA('Heart of Froststone') -- absorb 70% inc spell/melee, 15 min cd, timer 16
-common.getAA('Shield of the Elements') -- 40k heal + hot, absorbs 100% of dmg up to 125k, 15 min cd, timer 11
-common.getAA('Host in the Shell') -- pet rune, 25% dmg absorb, 4 min cd, timer 10
-common.getAA('Dimensional Shield') -- absorb 50% melee dmg, 20 min, timer 17
+self:addAA('Companion\'s Shielding') -- large pet heal + 72 seconds of 50% dmg absorb for self, 15 min cd, timer 8
+self:addAA('Heart of Froststone') -- absorb 70% inc spell/melee, 15 min cd, timer 16
+self:addAA('Shield of the Elements') -- 40k heal + hot, absorbs 100% of dmg up to 125k, 15 min cd, timer 11
+self:addAA('Host in the Shell') -- pet rune, 25% dmg absorb, 4 min cd, timer 10
+self:addAA('Dimensional Shield') -- absorb 50% melee dmg, 20 min, timer 17
 
 -- Heals
-common.getAA('Mend Companion')
-common.getAA('Second Wind Ward') -- DI for pet, procs big heal below 20% hp, 20 min cd, timer 43
+self:addAA('Mend Companion')
+self:addAA('Second Wind Ward') -- DI for pet, procs big heal below 20% hp, 20 min cd, timer 43
 
 -- Pet Buffs
-common.getAA('Velocity') -- pet sow
+self:addAA('Velocity') -- pet sow
 
 -- Buffs
-common.getAA('Elemental Form') -- self buff, adds some procs, mana, hp
-common.getAA('Thaumaturge\'s Unity') -- self buffs, chaotic largesse, ophiolite bodyguard, shield of shadow, relentless guardian
+self:addAA('Elemental Form') -- self buff, adds some procs, mana, hp
+self:addAA('Thaumaturge\'s Unity') -- self buffs, chaotic largesse, ophiolite bodyguard, shield of shadow, relentless guardian
 
 -- Leap
-common.getAA('Summoner\'s Step')
+self:addAA('Summoner\'s Step')
 
 -- Fades
-common.getAA('Companion of Necessity') -- Fade pet, 10 min cd, timer 3
-common.getAA('Drape of Shadows') -- fade
-common.getAA('Arcane Whisper') -- large agro reducer, 10 min cd, timer 35
+self:addAA('Companion of Necessity') -- Fade pet, 10 min cd, timer 3
+self:addAA('Drape of Shadows') -- fade
+self:addAA('Arcane Whisper') -- large agro reducer, 10 min cd, timer 35
 
 -- Rest
-common.getAA('Elemental Conversion') -- 148k pet hp for 35k mana, 15 min cd, timer 42
+self:addAA('Elemental Conversion') -- 148k pet hp for 35k mana, 15 min cd, timer 42
 
 -- Mash
-common.getAA('Force of Elements') -- 40k nuke, 20 sec cd, timer 73
-common.getAA('Turn Summoned') -- large summoned nuke, 5 min cd, timer 5
+self:addAA('Force of Elements') -- 40k nuke, 20 sec cd, timer 73
+self:addAA('Turn Summoned') -- large summoned nuke, 5 min cd, timer 5
 
-common.getAA('Companion\'s Aegis')
-common.getAA('Companion\'s Discipline')
-common.getAA('Companion\'s Fortification')
-common.getAA('Companion\'s Fury')
-common.getAA('Companion\'s Intervening Divine Aura')
-common.getAA('Companion\'s Suspension')
+self:addAA('Companion\'s Aegis')
+self:addAA('Companion\'s Discipline')
+self:addAA('Companion\'s Fortification')
+self:addAA('Companion\'s Fury')
+self:addAA('Companion\'s Intervening Divine Aura')
+self:addAA('Companion\'s Suspension')
 
 -- Debuff spell replacers
-common.getAA('Malaise') -- aa malo
-common.getAA('Wind of Malaise') -- aa aoe malo
-common.getAA('Eradicate Magic') -- dispel
+self:addAA('Malaise') -- aa malo
+self:addAA('Wind of Malaise') -- aa aoe malo
+self:addAA('Eradicate Magic') -- dispel
 ]]
 Magician.SpellLines = {
     {-- Main fire nuke. Slot 1/2
@@ -233,7 +233,7 @@ Magician.SpellLines = {
     {-- Summons clicky nuke orb with 10 charges. Slot 7
         Group='orb',
         Spells={'Summon Molten Komatiite Orb', 'Summon Firebound Orb', --[[emu cutoff]] 'Summon: Molten Orb', 'Summon: Lava Orb'},
-        Options={Gem=7, summonMinimum=1, nodmz=true, pause=true}
+        Options={Gem=7, summonMinimum=1, nodmz=true, pause=true, alias='NUKEORB', selfbuff=true}
     },
     {-- Large DS 10 minutes. Slot 8
         Group='veilds',
@@ -243,7 +243,7 @@ Magician.SpellLines = {
     {-- Regular group DS. Slot 9
         Group='groupds',
         Spells={'Circle of Forgefire Coat', 'Circle of Emberweave Coat', 'Circle of Igneous Skin', 'Circle of the Inferno', 'Circle of Flameweaving', --[[emu cutoff]] 'Circle of Brimstoneskin', 'Circle of Fireskin'},
-        Options={opt='USEDS', Gem=function() return not Magician:isEnabled('USESKINDS') and 9 or nil end}
+        Options={opt='USEDS', Gem=function() return not Magician:isEnabled('USESKINDS') and 9 or nil end, alias='DS'}
     },
     {-- 30 seconds, 4 charges large DS. Slot 9
         Group='skinds',
@@ -278,7 +278,8 @@ Magician.SpellLines = {
 
     {
         Group='shield',
-        Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', --[[emu cutoff]] 'Elemental Aura'}
+        Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', --[[emu cutoff]] 'Elemental Aura'},
+        Options={selfbuff=true}
     },
     {
         Group='minion',
@@ -315,11 +316,13 @@ Magician.SpellLines = {
     },
     {
         Group='petbuff',
-        Spells={'Burnout XVI', 'Burnout XV', 'Burnout XIV', 'Burnout XIII', 'Burnout XII', --[[emu cutoff]] 'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'}
+        Spells={'Burnout XVI', 'Burnout XV', 'Burnout XIV', 'Burnout XIII', 'Burnout XII', --[[emu cutoff]] 'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'},
+        Options={petbuff=true}
     },
     {
         Group='petds',
-        Spells={'Iceflame Pallisade', 'Iceflame Barricade', 'Iceflame Rampart', 'Iceflame Keep', 'Iceflame Armaments', --[[emu cutoff]] 'Iceflame Guard'}
+        Spells={'Iceflame Pallisade', 'Iceflame Barricade', 'Iceflame Rampart', 'Iceflame Keep', 'Iceflame Armaments', --[[emu cutoff]] 'Iceflame Guard'},
+        Options={petbuff=true}
     },
     {
         Group='petheal',
@@ -344,21 +347,21 @@ Magician.SpellLines = {
 
     -- self hp buff, blocks shm
     {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus'--[[emu cutoff]] }, Options={}},
-    {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}}, -- self regen/ac buff
+    {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}, Options={selfbuff=true}}, -- self regen/ac buff
     {Group='manaregen', Spells={'Valiant Symbiosis', 'Relentless Symbiosis', 'Restless Symbiosis', 'Burning Symbiosis', 'Dark Symbiosis', --[[emu cutoff]] 'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
     {Group='bodyguard', Spells={'Valorforged Bodyguard', 'Ophiolite Bodyguard', 'Pyroxenite Bodyguard', 'Rhylitic Bodyguard', 'Shieldstone Bodyguard'}, Options={}}, -- proc pet when hit
 
     -- old emu stuff
-    {Group='petstrbuff', Spells={'Rathe\'s Strength', 'Earthen Strength'}, Options={skipifbuff='Champion'}},
-    {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', classes={WAR=true,SHD=true,PAL=true}}},
+    {Group='petstrbuff', Spells={'Rathe\'s Strength', 'Earthen Strength'}, Options={skipifbuff='Champion', petbuff=true}},
+    {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', singlebuff=true, classes={WAR=true,SHD=true,PAL=true}}},
     -- Chance to increase spell power of next nuke
     {Group='prenuke', Spells={'Fickle Conflagration', --[[emu cutoff]] 'Fickle Fire'}, Options={opt='USEFIRENUKES'}},
 
     {Group='modrod', Spells={'Rod of Courageous Modulation', 'Sickle of Umbral Modulation', 'Wand of Frozen Modulation', 'Wand of Burning Modulation', 'Wand of Dark Modulation'}, Options={opt='USEMODRODS', summonMinimum=1, nodmz=true, pause=true}},
     {Group='massmodrod', Spells={'Mass Dark Transvergence'}, Options={opt='USEMODRODS', summonMinimum=1, nodmz=true, pause=true}},
-    {Group='armor', Spells={'Grant Alloy\'s Plate', 'Grant the Centien\'s Plate', 'Grant Ocoenydd\'s Plate', 'Grant Wirn\'s Plate', 'Grant Thassis\' Plate', --[[emu cutoff]] 'Grant Spectral Plate'}}, -- targeted, Summon Folded Pack of Spectral Plate
-    {Group='weapons', Spells={'Grant Goliath\'s Armaments', 'Grant Shak Dathor\'s Armaments', 'Grant Yalrek\'s Armaments', 'Grant Wirn\'s Armaments', 'Grant Thassis\' Armaments', --[[emu cutoff]] 'Grant Spectral Armaments'}}, -- targeted, Summons Folded Pack of Spectral Armaments
-    {Group='jewelry', Spells={'Grant Ankexfen\'s Heirlooms', 'Grant the Diabo\'s Heirlooms', 'Grant Crystasia\'s Heirlooms', 'Grant Ioulin\'s Heirlooms', 'Grant Calix\'s Heirlooms', --[[emu cutoff]] 'Grant Enibik\'s Heirlooms'}}, -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
+    {Group='armor', Spells={'Grant Alloy\'s Plate', 'Grant the Centien\'s Plate', 'Grant Ocoenydd\'s Plate', 'Grant Wirn\'s Plate', 'Grant Thassis\' Plate', --[[emu cutoff]] 'Grant Spectral Plate'}, Options={alias='ARMOR'}}, -- targeted, Summon Folded Pack of Spectral Plate
+    {Group='weapons', Spells={'Grant Goliath\'s Armaments', 'Grant Shak Dathor\'s Armaments', 'Grant Yalrek\'s Armaments', 'Grant Wirn\'s Armaments', 'Grant Thassis\' Armaments', --[[emu cutoff]] 'Grant Spectral Armaments'}, Options={alias='ARM'}}, -- targeted, Summons Folded Pack of Spectral Armaments
+    {Group='jewelry', Spells={'Grant Ankexfen\'s Heirlooms', 'Grant the Diabo\'s Heirlooms', 'Grant Crystasia\'s Heirlooms', 'Grant Ioulin\'s Heirlooms', 'Grant Calix\'s Heirlooms', --[[emu cutoff]] 'Grant Enibik\'s Heirlooms'}, Options={alias='JEWELRY'}}, -- targeted, Summons Folded Pack of Enibik's Heirlooms, includes muzzle
     {Group='belt', Spells={'Summon Crystal Belt'}}, -- Summoned: Crystal Belt
     {Group='mask', Spells={'Grant Visor of Shoen'}, Options={}},
     {Group='bundle', Spells={'Grant Bristlebane\'s Festivity Bundle'}, Options={}},
@@ -404,17 +407,17 @@ function Magician:initSpellRotations()
 end
 
 function Magician:initDPSAbilities()
-    table.insert(self.DPSAbilities, common.getAA('Force of Elements'))
+    table.insert(self.DPSAbilities, self:addAA('Force of Elements'))
 
-    self.summonCompanion = common.getAA('Summon Companion')
+    self.summonCompanion = self:addAA('Summon Companion')
 end
 
 function Magician:initBurns()
-    table.insert(self.burnAbilities, common.getAA('Fundament: First Spire of the Elements'))
-    table.insert(self.burnAbilities, common.getAA('Host of the Elements', {delay=1500}))
-    table.insert(self.burnAbilities, common.getAA('Servant of Ro', {delay=500}))
-    table.insert(self.burnAbilities, common.getAA('Frenzied Burnout'))
-    table.insert(self.burnAbilities, common.getAA('Improved Twincast'))
+    table.insert(self.burnAbilities, self:addAA('Fundament: First Spire of the Elements'))
+    table.insert(self.burnAbilities, self:addAA('Host of the Elements', {delay=1500}))
+    table.insert(self.burnAbilities, self:addAA('Servant of Ro', {delay=500}))
+    table.insert(self.burnAbilities, self:addAA('Frenzied Burnout'))
+    table.insert(self.burnAbilities, self:addAA('Improved Twincast'))
 end
 
 function Magician:initHeals()
@@ -422,8 +425,8 @@ function Magician:initHeals()
 end
 
 function Magician:initBuffs()
-    table.insert(self.selfBuffs, common.getAA('Elemental Form: Earth', {opt='EARTHFORM'}))
-    table.insert(self.selfBuffs, common.getAA('Elemental Form: Fire', {opt='FIREFORM'}))
+    table.insert(self.selfBuffs, self:addAA('Elemental Form: Earth', {opt='EARTHFORM', selfbuff=true}))
+    table.insert(self.selfBuffs, self:addAA('Elemental Form: Fire', {opt='FIREFORM', selfbuff=true}))
     --table.insert(self.selfBuffs, self.spells.manaregen)
     if state.emu and not mq.TLO.FindItem('Glyphwielder\'s Sleeves of the Summoner')() then
         table.insert(self.selfBuffs, self.spells.shield)
@@ -431,30 +434,24 @@ function Magician:initBuffs()
     table.insert(self.selfBuffs, self.spells.acregen)
     table.insert(self.selfBuffs, self.spells.orb)
     -- table.insert(self.selfBuffs, self.spells.groupds)
-    table.insert(self.selfBuffs, common.getAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true}))
-    table.insert(self.combatBuffs, common.getAA('Fire Core'))
+    table.insert(self.selfBuffs, self:addAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true, selfbuff=true}))
+    table.insert(self.combatBuffs, self:addAA('Fire Core', {combatbuff=true}))
     -- table.insert(self.singleBuffs, self.spells.bigds)
 
-    table.insert(self.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction'}))
+    table.insert(self.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction', petbuff=true}))
     table.insert(self.petBuffs, self.spells.petbuff)
     table.insert(self.petBuffs, self.spells.petstrbuff)
     table.insert(self.petBuffs, self.spells.petds)
-    table.insert(self.petBuffs, common.getAA('Aegis of Kildrukaun'))
-    table.insert(self.petBuffs, common.getAA('Fortify Companion'))
-
-    self:addRequestAlias(self.spells.orb, 'NUKEORB')
-    self:addRequestAlias(self.spells.ds, 'DS')
-    self:addRequestAlias(self.spells.weapons, 'ARM')
-    self:addRequestAlias(self.spells.jewelry, 'JEWELRY')
-    self:addRequestAlias(self.spells.armor, 'ARMOR')
+    table.insert(self.petBuffs, self:addAA('Aegis of Kildrukaun', {petbuff=true}))
+    table.insert(self.petBuffs, self:addAA('Fortify Companion', {petbuff=true}))
 end
 
 function Magician:initDebuffs()
-    table.insert(self.debuffs, common.getAA('Malosinete', {opt='USEDEBUFF'}))
+    table.insert(self.debuffs, self:addAA('Malosinete', {opt='USEDEBUFF'}))
 end
 
 function Magician:initDefensiveAbilities()
-    table.insert(self.fadeAbilities, common.getAA('Companion of Necessity'))
+    table.insert(self.fadeAbilities, self:addAA('Companion of Necessity'))
 end
 
 function Magician:getPetSpell()

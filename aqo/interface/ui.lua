@@ -274,10 +274,12 @@ local function drawDebugTab()
     if not state.forceEngage then
         if ImGui.Button('Force Engage') then
             state.forceEngage = {ID=mq.TLO.Target.ID(), Name=mq.TLO.Target.CleanName()}
+            state.assistMobID = mq.TLO.Target.ID()
         end
     else
         if ImGui.Button('Stop Force Engage') then
             state.forceEngage = nil
+            state.assistMobID = 0
         end
         if state.forceEngage then
             ImGui.TextColored(RED, 'Fighting %s (%s)', state.forceEngage.Name, state.forceEngage.ID)

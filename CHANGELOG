@@ -1,3 +1,7 @@
+# 2024/02/01
+- Prep work for removing initBuffs methods
+- Consolidate initSpellConditions into ability definitions
+
 # 2024/01/31
 - Small self heal fix if heal spell isn't ready/enabled
 - Re-initialize spell lines when new spell is memmed

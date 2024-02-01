@@ -37,7 +37,6 @@ function ShadowKnight:init()
     self:initClassOptions()
     self:loadSettings()
     self:initSpellLines()
-    self:initSpellConditions()
     self:initSpellRotations()
     self:initTankAbilities()
     self:initDPSAbilities()
@@ -45,10 +44,10 @@ function ShadowKnight:init()
     self:initBuffs()
     self:addCommonAbilities()
 
-    self.leechtouch = common.getAA('Leech Touch') -- 9min CD, giant lifetap
+    self.leechtouch = self:addAA('Leech Touch') -- 9min CD, giant lifetap
 
     self.epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
-    self.summonCompanion = common.getAA('Summon Companion')
+    self.summonCompanion = self:addAA('Summon Companion')
     self.pullSpell = self.spells.terror
 
     self.useCommonListProcessor = true
@@ -74,7 +73,7 @@ ShadowKnight.SpellLines = {
     {-- Regular lifetap. Slot 1
         Group='tap1',
         Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'},
-        Options={Gem=1}
+        Options={Gem=1, condition=function() return mq.TLO.Me.PctHPs() < 85 end}
     },--, 'Drain Soul', 'Lifedraw'})
     {-- Temp buff (Gift of) lifetap. Slot 2
         Group='tap2',
@@ -84,7 +83,7 @@ ShadowKnight.SpellLines = {
     {-- large lifetap. Slot 3
         Group='largetap',
         Spells={'Dire Rebuke', 'Dire Censure'},
-        Options={Gem=3}
+        Options={Gem=3, condition=function() return mq.TLO.Me.PctHPs() < 85 end}
     },
     {-- big lifetap. Slot 4
         Group='composite',
@@ -110,7 +109,7 @@ ShadowKnight.SpellLines = {
     {-- ST increase hate by 1. Slot 7
         Group='aeterror',
         Spells={'Animus', 'Antipathy', 'Dread Gaze'},
-        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 7 or nil end, threshold=2}
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 7 or nil end, threshold=2, condition=function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 and conditions.mobsMissingAggro() end}
     },
     {-- AE lifetap + aggro. Slot 7
         Group='aetap',
@@ -130,7 +129,7 @@ ShadowKnight.SpellLines = {
     {-- main hate spell. Slot 9
         Group='challenge',
         Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate'},
-        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 9 or nil end}
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 9 or nil end, condition=function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 end}
     },
     {-- DPS spellset. corruption dot. Slot 9
         Group='corruption',
@@ -150,7 +149,7 @@ ShadowKnight.SpellLines = {
     {-- Xenacious' Skin proc, 5min buff. Slot 12
         Group='skin',
         Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'},
-        Options={Gem=12}
+        Options={Gem=12, selfbuff=true}
     },
     {-- lifetap with hp/mana recourse. Slot 13
         Group='bitetap',
@@ -173,45 +172,22 @@ ShadowKnight.SpellLines = {
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
     {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}}, -- pet
-    {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}}, -- pet haste
+    {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
-    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false}}, -- Shroud of Zelinstein Strike proc
-    {Group='bezaproc', Spells={'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, Options={opt='USEBEZA'}}, -- Mental Anguish Strike proc
+    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
+    {Group='bezaproc', Spells={'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, Options={opt='USEBEZA', selfbuff=true}}, -- Mental Anguish Strike proc
     {Group='aziaproc', Spells={'Mortimus\' Horror', 'Brightfield\'s Horror'}, Options={opt='USEAZIA'}}, -- Brightfield's Horror Strike proc
     {Group='ds', Spells={'Goblin Skin', 'Tekuel Skin'}}, -- large damage shield self buff
-    {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}}, -- lich mana regen
-    {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}}, -- self buff hp, ac, ds
+    {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}, Options={selfbuff=true}}, -- lich mana regen
+    {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}, Options={selfbuff=true}}, -- self buff hp, ac, ds
     {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call'}}, -- atk buff, hp drain on self
-    {Group='voice', Spells={'Voice of Innoruuk'}, Options={opt='USEVOICEOFTHULE'}},
+    {Group='voice', Spells={'Voice of Innoruuk'}, Options={opt='USEVOICEOFTHULE', selfbuff=true}},
     --['']=common.get_best_spell({'Remorseless Demeanor'})
 }
 
 ShadowKnight.compositeNames = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}
 ShadowKnight.allDPSSpellGroups = {'tap1', 'tap2', 'largetap', 'composite', 'spear', 'terror', 'poison', 'aeterror', 'aetap', 'disease', 'dottap', 'challenge',
     'corruption', 'acdebuff', 'bitetap', 'tap3', 'alliance', 'acdis'}
-
-function ShadowKnight:initSpellConditions()
-    local function mobsMissingAggro()
-        if state.mobCount >= 2 then
-            local xtar_aggro_count = 0
-            for i=1,13 do
-                local xtar = mq.TLO.Me.XTarget(i)
-                if xtar.ID() ~= mq.TLO.Target.ID() and xtar.TargetType() == 'Auto Hater' and xtar.PctAggro() < 100 then
-                    xtar_aggro_count = xtar_aggro_count + 1
-                end
-            end
-            return xtar_aggro_count > 0
-        end
-    end
-
-    if self.spells.aeterror then self.spells.aeterror.condition = function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 and mobsMissingAggro() end end
-    local aggroCondition = function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 end
-    if self.spells.challenge then self.spells.challenge.condition = aggroCondition end
-    --if self.spells.terror then self.spells.terror.condition = aggroCondition end
-    local lifetapCondition = function() return mq.TLO.Me.PctHPs() < 85 end
-    if self.spells.largetap then self.spells.largetap.condition = lifetapCondition end
-    if self.spells.tap1 then self.spells.tap1.condition = lifetapCondition end
-end
 
 function ShadowKnight:initSpellRotations()
     self:initBYOSCustom()
@@ -246,7 +222,7 @@ function ShadowKnight:initTankAbilities()
     -- TANK
     -- defensives
     -- common.getBestDisc({'Gird'}) -- absorb melee/spell dmg, short cd mash ability
-    self.flash = common.getAA('Shield Flash') -- 4min CD, short deflection
+    self.flash = self:addAA('Shield Flash') -- 4min CD, short deflection
     self.mantle = common.getBestDisc({'Geomimus Mantle', 'Fyrthek Mantle'}) -- 15min CD, 35% melee dmg mitigation, heal on fade
     self.carapace = common.getBestDisc({'Kanghammer\'s Carapace', 'Xetheg\'s Carapace'}) -- 7m30s CD, ac buff, 20% dmg mitigation, lifetap proc
     self.guardian = common.getBestDisc({'Corrupted Guardian Discipline'}) -- 12min CD, 36% mitigation, large damage debuff to self, lifetap proc
@@ -255,42 +231,42 @@ function ShadowKnight:initTankAbilities()
     table.insert(self.tankAbilities, self.spells.challenge)
     table.insert(self.tankAbilities, self.spells.terror)
     table.insert(self.tankAbilities, common.getBestDisc({'Repudiate'})) -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
-    table.insert(self.tankAbilities, common.getAA('Projection of Doom', {opt='USEPROJECTION'})) -- aggro swarm pet
+    table.insert(self.tankAbilities, self:addAA('Projection of Doom', {opt='USEPROJECTION'})) -- aggro swarm pet
 
-    self.attraction = common.getAA('Hate\'s Attraction', {opt='USEATTRACTION'}) -- aggro swarm pet
+    self.attraction = self:addAA('Hate\'s Attraction', {opt='USEATTRACTION'}) -- aggro swarm pet
 
     -- mash AE aggro
     table.insert(self.AETankAbilities, self.spells.aeterror)
-    table.insert(self.AETankAbilities, common.getAA('Explosion of Spite', {threshold=2, condition=conditions.aboveMobThreshold})) -- 45sec CD
-    table.insert(self.AETankAbilities, common.getAA('Explosion of Hatred', {threshold=4, condition=conditions.aboveMobThreshold})) -- 45sec CD
-    --table.insert(mashAEAggroAAs4, common.getAA('Stream of Hatred')) -- large frontal cone ae aggro
+    table.insert(self.AETankAbilities, self:addAA('Explosion of Spite', {threshold=2, condition=conditions.aboveMobThreshold})) -- 45sec CD
+    table.insert(self.AETankAbilities, self:addAA('Explosion of Hatred', {threshold=4, condition=conditions.aboveMobThreshold})) -- 45sec CD
+    --table.insert(mashAEAggroAAs4, self:addAA('Stream of Hatred')) -- large frontal cone ae aggro
 
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Unconditional Acrimony', 'Unrelenting Acrimony'}, {condition=conditions.withinMeleeDistance})) -- instant aggro
-    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=conditions.lowAggroInMelee})) -- big taunt
-    table.insert(self.tankBurnAbilities, common.getAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
-    table.insert(self.tankBurnAbilities, common.getAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
+    table.insert(self.tankBurnAbilities, self:addAA('Ageless Enmity', {aggro=true, condition=conditions.lowAggroInMelee})) -- big taunt
+    table.insert(self.tankBurnAbilities, self:addAA('Veil of Darkness')) -- large agro, lifetap, blind, mana/end tap
+    table.insert(self.tankBurnAbilities, self:addAA('Reaver\'s Bargain')) -- 20min CD, 75% melee dmg absorb
 end
 
 function ShadowKnight:initDPSAbilities()
     -- DPS
     table.insert(self.DPSAbilities, sharedabilities.getBash())
     table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Resentment'}, {condition=conditions.withinMaxDistance})) -- 3x 2hs attack + heal
-    table.insert(self.DPSAbilities, common.getAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
-    table.insert(self.DPSAbilities, common.getAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
+    table.insert(self.DPSAbilities, self:addAA('Vicious Bite of Chaos')) -- 1min CD, nuke + group heal
+    table.insert(self.DPSAbilities, self:addAA('Spire of the Reavers')) -- 7m30s CD, dmg,crit,parry,avoidance buff
 end
 
 function ShadowKnight:initBurns()
     table.insert(self.burnAbilities, common.getBestDisc({'Incapacitating Blade', 'Grisly Blade'}, {condition=conditions.withinMaxDistance})) -- 2hs attack
     table.insert(self.burnAbilities, common.getBestDisc({'ncarnadine Blade', 'Sanguine Blade'}, {condition=conditions.withinMaxDistance})) -- 3 strikes
-    table.insert(self.burnAbilities, common.getAA('Gift of the Quick Spear')) -- 10min CD, twincast
-    table.insert(self.burnAbilities, common.getAA('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
-    --table.insert(self.burnAbilities, common.getAA('Harm Touch')) -- 20min CD, giant nuke + dot
-    --table.insert(self.burnAbilities, common.getAA('Leech Touch')) -- 9min CD, giant lifetap
-    table.insert(self.burnAbilities, common.getAA('Thought Leech')) -- 18min CD, nuke + mana/end tap
-    table.insert(self.burnAbilities, common.getAA('Scourge Skin')) -- 15min CD, large DS
-    table.insert(self.burnAbilities, common.getAA('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
-    --table.insert(self.burnAbilities, common.getAA('Visage of Death')) -- 12min CD, melee dmg burn
-    table.insert(self.burnAbilities, common.getAA('Visage of Decay')) -- 12min CD, dot dmg burn
+    table.insert(self.burnAbilities, self:addAA('Gift of the Quick Spear')) -- 10min CD, twincast
+    table.insert(self.burnAbilities, self:addAA('T`Vyl\'s Resolve')) -- 10min CD, dmg buff on 1 target
+    --table.insert(self.burnAbilities, self:addAA('Harm Touch')) -- 20min CD, giant nuke + dot
+    --table.insert(self.burnAbilities, self:addAA('Leech Touch')) -- 9min CD, giant lifetap
+    table.insert(self.burnAbilities, self:addAA('Thought Leech')) -- 18min CD, nuke + mana/end tap
+    table.insert(self.burnAbilities, self:addAA('Scourge Skin')) -- 15min CD, large DS
+    table.insert(self.burnAbilities, self:addAA('Chattering Bones', {opt='USESWARM'})) -- 10min CD, swarm pet
+    --table.insert(self.burnAbilities, self:addAA('Visage of Death')) -- 12min CD, melee dmg burn
+    table.insert(self.burnAbilities, self:addAA('Visage of Decay')) -- 12min CD, dot dmg burn
 end
 
 function ShadowKnight:initHeals()
@@ -300,17 +276,17 @@ end
 function ShadowKnight:initBuffs()
 -- Buffs
     -- dark lord's unity azia X -- shroud of zelinstein, brightfield's horror, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
-    local buffazia = common.getAA('Dark Lord\'s Unity (Azia)')
+    local buffazia = self:addAA('Dark Lord\'s Unity (Azia)', {selfbuff=true})
     -- dark lord's unity beza X -- shroud of zelinstein, mental anguish, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
-    local buffbeza = common.getAA('Dark Lord\'s Unity (Beza)', {opt='USEBEZA'})
-    local voice = common.getAA('Voice of Thule', {opt='USEVOICEOFTHULE'}) -- aggro mod buff
+    local buffbeza = self:addAA('Dark Lord\'s Unity (Beza)', {opt='USEBEZA', selfbuff=true})
+    local voice = self:addAA('Voice of Thule', {opt='USEVOICEOFTHULE', selfbuff=true}) -- aggro mod buff
 
     if state.emu then
         table.insert(self.selfBuffs, self.spells.drape)
         table.insert(self.selfBuffs, self.spells.bezaproc)
         table.insert(self.selfBuffs, self.spells.skin)
         table.insert(self.selfBuffs, self.spells.shroud)
-        table.insert(self.selfBuffs, common.getAA('Touch of the Cursed'))
+        table.insert(self.selfBuffs, self:addAA('Touch of the Cursed', {selfbuff=true}))
         table.insert(self.selfBuffs, self.spells.voice)
     else
         table.insert(self.selfBuffs, buffazia)

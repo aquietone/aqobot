@@ -1,6 +1,7 @@
 --- @type Mq
 local mq = require 'mq'
 local class = require('classes.classbase')
+local assist = require('routines.assist')
 local logger = require('utils.logger')
 local sharedabilities = require('utils.sharedabilities')
 local timer = require('libaqo.timer')
@@ -28,7 +29,6 @@ function Bard:init()
     self:initClassOptions()
     self:loadSettings()
     self:initSpellLines()
-    self:initSpellConditions()
     self:initSpellRotations()
     self:initDPSAbilities()
     self:initBurns()
@@ -37,18 +37,18 @@ function Bard:init()
     self:initRecoverAbilities()
     self:addCommonAbilities()
 
-    self.fierceeye = common.getAA('Fierce Eye')
+    self.fierceeye = self:addAA('Fierce Eye')
     self.epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')
 
     -- Bellow handled separately as we want it to run its course and not be refreshed early
-    self.bellow = common.getAA('Boastful Bellow')
+    self.bellow = self:addAA('Boastful Bellow')
 
     -- aa mez
-    self.dirge = common.getAA('Dirge of the Sleepwalker')
-    self.sonic = common.getAA('Sonic Disturbance')
+    self.dirge = self:addAA('Dirge of the Sleepwalker')
+    self.sonic = self:addAA('Sonic Disturbance')
     self.fluxstaff = common.getItem('Staff of Viral Flux')
 
-    self.selos = common.getAA('Selo\'s Sonata')
+    self.selos = self:addAA('Selo\'s Sonata')
 end
 
 function Bard:initClassOptions()
@@ -72,7 +72,6 @@ function Bard:initClassOptions()
     self:addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox', nil, 'UseRegenSong', 'bool')
 end
 
-
 Bard.SpellLines = {
     {-- spell dmg, overhaste, flurry, triple atk. Slot 1
         Group='aria',
@@ -87,7 +86,7 @@ Bard.SpellLines = {
     {-- frost dot. Slot 2
         Group='chantfrost',
         Spells={'Swarn\'s Chant of Frost', 'Sylra Fris\' Chant of Frost', 'Yelinak\'s Chant of Frost', 'Ekron\'s Chant of Frost', 'Kirchen\'s Chant of Frost', --[[emu cutoff]] 'Vulka\'s Chant of Frost', 'Tuyen\'s Chant of Ice', 'Tuyen\'s Chant of Frost'},
-        Options={opt='USEFROSTDOTS', Gem=2}
+        Options={opt='USEFROSTDOTS', Gem=2, CheckFor=state.emu and 'Chant of Frost'}
     },
     {-- AC. Slot 3
         Group='spiteful',
@@ -102,7 +101,7 @@ Bard.SpellLines = {
     {-- fire dot. Slot 3
         Group='chantflame',
         Spells={'Kindleheart\'s Chant of Flame', 'Shak Dathor\'s Chant of Flame', 'Sontalak\'s Chant of Flame', 'Quinard\'s Chant of Flame', 'Nilsara\'s Chant of Flame', --[[emu cutoff]] 'Vulka\'s Chant of Flame', 'Tuyen\'s Chant of Fire', 'Tuyen\'s Chant of Flame'},
-        Options={opt='USEFIREDOTS', Gem=3}
+        Options={opt='USEFIREDOTS', Gem=3, CheckFor=state.emu and 'Chant of Flame'}
     },
     {-- melee dmg proc. Slot 4
         Group='suffering',
@@ -132,7 +131,7 @@ Bard.SpellLines = {
     {-- disease dot. Slot 7
         Group='chantdisease',
         Spells={'Goremand\'s Chant of Disease', 'Coagulus\' Chant of Disease', 'Zlexak\'s Chant of Disease', 'Hoshkar\'s Chant of Disease', 'Horthin\'s Chant of Disease', --[[emu cutoff]] 'Vulka\'s Chant of Disease', 'Tuyen\'s Chant of the Plague', 'Tuyen\'s Chant of Disease'},
-        Options={opt='USEDISEASEDOTS', Gem=7}
+        Options={opt='USEDISEASEDOTS', Gem=7, CheckFor=state.emu and 'Chant of Plague'}
     },
     {-- single target mez. Slot 8
         Group='mezst',
@@ -165,9 +164,9 @@ Bard.SpellLines = {
         Options={Gem=13}
     },
 
-    {Group='aura', Spells={'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of Maetanrus', --[[emu cutoff]] 'Aura of the Muse', 'Aura of Insight'}}, -- spell dmg, overhaste, flurry, triple atk
+    {Group='aura', Spells={'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of Maetanrus', --[[emu cutoff]] 'Aura of the Muse', 'Aura of Insight'}, Options={aurabuff=true}}, -- spell dmg, overhaste, flurry, triple atk
     {Group='insultpushback', Spells={'Eoreg\'s Insult', 'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult', 'Fjilnauk\'s Insult', --[[emu cutoff]] }, Options={opt='USEINSULTS'}}, -- synergy DD 2
-    {Group='chantpoison', Spells={'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Serisaria\'s Chant of Poison', --[[emu cutoff]] 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, Options={opt='USEPOISONDOTS'}},
+    {Group='chantpoison', Spells={'Marsin\'s Chant of Poison', 'Cruor\'s Chant of Poison', 'Malvus\'s Chant of Poison', 'Nexona\'s Chant of Poison', 'Serisaria\'s Chant of Poison', --[[emu cutoff]] 'Vulka\'s Chant of Poison', 'Tuyen\'s Chant of Venom', 'Tuyen\'s Chant of Poison'}, Options={opt='USEPOISONDOTS', CheckFor=state.emu and 'Chant of Venom'}},
     {Group='alliance', Spells={'Conjunction of Sticks and Stones', 'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}},
 
     -- resonating barrier, new defensive stun proc?
@@ -191,15 +190,6 @@ Bard.SpellLines = {
 Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
 Bard.allDPSSpellGroups = {'aria', 'arcane', 'chantfrost', 'spiteful', 'firenukebuff', 'chantflame', 'suffering', 'insult', 'warmarch', 'sonata', 'firemagicdotbuff', 'chantdisease',
     'crescendo', 'pulse', 'composite', 'dirge', 'insultpushback', 'chantpoison', 'alliance', 'overhaste', 'bardhaste', 'emuhaste', 'snare', 'debuff'}
-
-function Bard:initSpellConditions()
-    if state.emu then
-        if self.spells.chantflame then self.spells.chantflame.CheckFor = 'Chant of Flame' end
-        if self.spells.chantfrost then self.spells.chantfrost.CheckFor = 'Chant of Frost' end
-        if self.spells.chantdisease then self.spells.chantdisease.CheckFor = 'Chant of Plague' end
-        if self.spells.chantpoison then self.spells.chantpoison.CheckFor = 'Chant of Venom' end
-    end
-end
 
 function Bard:initSpellRotations()
     self:initBYOSCustom()
@@ -271,43 +261,43 @@ function Bard:initDPSAbilities()
     table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
     table.insert(self.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
     table.insert(self.DPSAbilities, sharedabilities.getKick())
-    table.insert(self.DPSAbilities, common.getAA('Selo\'s Kick'))
+    table.insert(self.DPSAbilities, self:addAA('Selo\'s Kick'))
 
-    table.insert(self.AEDPSAbilities, common.getAA('Vainglorious Shout', {threshold=2}))
+    table.insert(self.AEDPSAbilities, self:addAA('Vainglorious Shout', {threshold=2}))
 end
 
 function Bard:initBurns()
     table.insert(self.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
     table.insert(self.burnAbilities, common.getItem('Rage of Rolfron'))
-    table.insert(self.burnAbilities, common.getAA('Quick Time'))
-    table.insert(self.burnAbilities, common.getAA('Funeral Dirge'))
+    table.insert(self.burnAbilities, self:addAA('Quick Time'))
+    table.insert(self.burnAbilities, self:addAA('Funeral Dirge'))
     if state.emu then
-        table.insert(self.burnAbilities, common.getAA('Third Spire of the Minstrels'))
+        table.insert(self.burnAbilities, self:addAA('Third Spire of the Minstrels'))
     else
-        table.insert(self.burnAbilities, common.getAA('Spire of the Minstrels'))
+        table.insert(self.burnAbilities, self:addAA('Spire of the Minstrels'))
     end
-    table.insert(self.burnAbilities, common.getAA('Bladed Song'))
-    table.insert(self.burnAbilities, common.getAA('Dance of Blades'))
-    table.insert(self.burnAbilities, common.getAA('Flurry of Notes'))
-    table.insert(self.burnAbilities, common.getAA('Frenzied Kicks'))
+    table.insert(self.burnAbilities, self:addAA('Bladed Song'))
+    table.insert(self.burnAbilities, self:addAA('Dance of Blades'))
+    table.insert(self.burnAbilities, self:addAA('Flurry of Notes'))
+    table.insert(self.burnAbilities, self:addAA('Frenzied Kicks'))
     table.insert(self.burnAbilities, common.getBestDisc({'Thousand Blades'}))
-    table.insert(self.burnAbilities, common.getAA('Cacophony', {opt='USECACOPHONY'}))
+    table.insert(self.burnAbilities, self:addAA('Cacophony', {opt='USECACOPHONY'}))
     -- Delay after using swarm pet AAs while pets are spawning
-    table.insert(self.burnAbilities, common.getAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
-    table.insert(self.burnAbilities, common.getAA('Song of Stone', {opt='USESWARM', delay=1500}))
+    table.insert(self.burnAbilities, self:addAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
+    table.insert(self.burnAbilities, self:addAA('Song of Stone', {opt='USESWARM', delay=1500}))
 
-    table.insert(self.burnAbilities, common.getAA('A Tune Stuck In Your Head'))
+    table.insert(self.burnAbilities, self:addAA('A Tune Stuck In Your Head'))
     table.insert(self.burnAbilities, common.getBestDisc({'Puretone Discipline'}))
 end
 
 function Bard:initBuffs()
     table.insert(self.auras, self.spells.aura)
-    table.insert(self.selfBuffs, common.getAA('Sionachie\'s Crescendo'))
+    table.insert(self.selfBuffs, self:addAA('Sionachie\'s Crescendo', {selfbuff=true}))
 end
 
 function Bard:initDefensiveAbilities()
-    table.insert(self.defensiveAbilities, common.getAA('Shield of Notes'))
-    table.insert(self.defensiveAbilities, common.getAA('Hymn of the Last Stand'))
+    table.insert(self.defensiveAbilities, self:addAA('Shield of Notes'))
+    table.insert(self.defensiveAbilities, self:addAA('Hymn of the Last Stand'))
     table.insert(self.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
 
     -- Aggro
@@ -317,14 +307,14 @@ function Bard:initDefensiveAbilities()
         mq.cmd('/makemevis')
         mq.cmd('/attack on')
     end
-    table.insert(self.fadeAbilities, common.getAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
+    table.insert(self.fadeAbilities, self:addAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
 end
 
 function Bard:initRecoverAbilities()
     -- Mana Recovery AAs
-    self.rallyingsolo = common.getAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
+    self.rallyingsolo = self:addAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
     table.insert(self.recoverAbilities, self.rallyingsolo)
-    self.rallyingcall = common.getAA('Rallying Call')
+    self.rallyingcall = self:addAA('Rallying Call')
 end
 
 local selosTimer = timer:new(30000)
@@ -439,7 +429,7 @@ local function findNextSong()
     for _,song in ipairs(Bard.spellRotations[Bard:get('SPELLSET')]) do -- iterates over the dots array. ipairs(dots) returns 2 values, an index and its value in the array. we don't care about the index, we just want the dot
         local song_id = song.ID
         local song_name = song.Name
-        if isSongReady(song_id, song_name) and Bard:isAbilityEnabled(song.opt) and not mq.TLO.Target.Buff(song.CheckFor)() then
+        if Bard:isAbilityEnabled(song.opt) and isSongReady(song_id, song_name) and not mq.TLO.Target.Buff(song.CheckFor)() then
             if song_name ~= (Bard.spells.composite and Bard.spells.composite.Name) or mq.TLO.Target() then
                 return song
             end
@@ -481,7 +471,7 @@ function Bard:cast()
         if spell then -- if a song was found
             local didCast = false
             if spell.TargetType == 'Single' and mq.TLO.Target.Type() == 'NPC' then
-                if mq.TLO.Me.CombatState() == 'COMBAT' then didCast = spell:use() end
+                if assist.isFighting() then didCast = spell:use() end
             else
                 didCast = spell:use()
             end

@@ -65,36 +65,35 @@ function Warrior:initTankAbilities()
     table.insert(self.tankAbilities, common.getBestDisc({'Phantom Aggressor'}, {opt='USEPHANTOM'}))
     table.insert(self.tankAbilities, common.getBestDisc({'Confluent Precision'}, {opt='USEPRECISION'}))
 
-    table.insert(self.tankAbilities, common.getAA('Blast of Anger', {maxdistance=100, condition=conditions.withinMaxDistance}))
-    table.insert(self.tankAbilities, common.getAA('Blade Guardian'))
-    table.insert(self.tankAbilities, common.getAA('Brace for Impact'))
-    table.insert(self.tankAbilities, common.getAA('Call of Challenge', {opt='USESNARE'}))
-    table.insert(self.tankAbilities, common.getAA('Grappling Strike', {opt='USEGRAPPLE'}))
-    table.insert(self.tankAbilities, common.getAA('Warlord\'s Grasp', {opt='USEGRASP'}))
+    table.insert(self.tankAbilities, self:addAA('Blast of Anger', {maxdistance=100, condition=conditions.withinMaxDistance}))
+    table.insert(self.tankAbilities, self:addAA('Blade Guardian'))
+    table.insert(self.tankAbilities, self:addAA('Brace for Impact'))
+    table.insert(self.tankAbilities, self:addAA('Call of Challenge', {opt='USESNARE'}))
+    table.insert(self.tankAbilities, self:addAA('Grappling Strike', {opt='USEGRAPPLE'}))
+    table.insert(self.tankAbilities, self:addAA('Warlord\'s Grasp', {opt='USEGRASP'}))
 
     table.insert(self.AETankAbilities, common.getBestDisc({'Roar of Challenge'}, {threshold=2, condition=conditions.aboveMobThreshold}))
     table.insert(self.AETankAbilities, common.getBestDisc({'Confluent Expanse'}, {opt='USEEXPANSE', threshold=2, condition=conditions.aboveMobThreshold}))
     table.insert(self.AETankAbilities, common.getBestDisc({'Wade into Battle'}, {threshold=4, condition=conditions.aboveMobThreshold}))
-    local aeTauntOpts = {threshold=3, condition=conditions.aboveMobThreshold}
-    table.insert(self.AETankAbilities, common.getAA('Extended Area Taunt', aeTauntOpts) or common.getAA('Area Taunt', aeTauntOpts))
+    table.insert(self.AETankAbilities, self:addAA('Extended Area Taunt', {threshold=3, condition=conditions.aboveMobThreshold}) or self:addAA('Area Taunt', {threshold=3, condition=conditions.aboveMobThreshold}))
     -- 'Razor Tongue Discipline' -- proc on taunt
 
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Unconditional Attention', 'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'}, {condition=conditions.withinMeleeDistance}))
     --table.insert(self.tankBurnAbilities, common.getBestDisc({'Climactic Stand', 'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.Name or nil}))
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Armor of Rallosian Runes', 'Armor of Akhevan Runes'}, {overwritedisc=self.mash_defensive and self.mash_defensive.Name or nil}))
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=self.mash_defensive and self.mash_defensive.Name or nil}))
-    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=conditions.aggroBelow})) -- big taunt
-    table.insert(self.tankBurnAbilities, common.getAA('Projection of Fury', {opt='USEPROJECTION'}))
-    table.insert(self.tankBurnAbilities, common.getAA('Warlord\'s Fury')) -- more big aggro
-    table.insert(self.tankBurnAbilities, common.getAA('Mark of the Mage Hunter')) -- 25% spell dmg absorb
-    table.insert(self.tankBurnAbilities, common.getAA('Resplendent Glory')) -- increase incoming heals
-    table.insert(self.tankBurnAbilities, common.getAA('Warlord\'s Bravery')) -- reduce incoming melee dmg
-    table.insert(self.tankBurnAbilities, common.getAA('Warlord\'s Tenacity')) -- big heal and temp HP
+    table.insert(self.tankBurnAbilities, self:addAA('Ageless Enmity', {aggro=true, condition=conditions.aggroBelow})) -- big taunt
+    table.insert(self.tankBurnAbilities, self:addAA('Projection of Fury', {opt='USEPROJECTION'}))
+    table.insert(self.tankBurnAbilities, self:addAA('Warlord\'s Fury')) -- more big aggro
+    table.insert(self.tankBurnAbilities, self:addAA('Mark of the Mage Hunter')) -- 25% spell dmg absorb
+    table.insert(self.tankBurnAbilities, self:addAA('Resplendent Glory')) -- increase incoming heals
+    table.insert(self.tankBurnAbilities, self:addAA('Warlord\'s Bravery')) -- reduce incoming melee dmg
+    table.insert(self.tankBurnAbilities, self:addAA('Warlord\'s Tenacity')) -- big heal and temp HP
     if state.emu then
-        table.insert(self.tankBurnAbilities, common.getAA('Fundament: Third Spire of the Warlord'))
+        table.insert(self.tankBurnAbilities, self:addAA('Fundament: Third Spire of the Warlord'))
     else
         -- live mashed these two together in ae, not just burns..
-        table.insert(self.tankBurnAbilities, common.getAA('Spire of the Warlord'))
+        table.insert(self.tankBurnAbilities, self:addAA('Spire of the Warlord'))
         table.insert(self.tankBurnAbilities, common.getBestDisc({'Warrior\'s Resolve', 'Warrior\'s Aegis'}))
     end
 
@@ -103,48 +102,42 @@ function Warrior:initTankAbilities()
 
     self.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE', overwritesdisc=self.mash_defensive and self.mash_defensive.name or nil})
     self.flash = common.getBestDisc({'Flash of Anger'})
-    self.resurgence = common.getAA('Warlord\'s Resurgence') -- 10min cd, 60k heal
+    self.resurgence = self:addAA('Warlord\'s Resurgence') -- 10min cd, 60k heal
 end
 
 function Warrior:initDPSAbilities()
     table.insert(self.AEDPSAbilities, common.getBestDisc({'Spiraling Blades', 'Vortex Blade', 'Cyclone Blade'}, {threshold=3, condition=conditions.aboveMobThreshold}))
-    table.insert(self.AEDPSAbilities, common.getAA('Rampage', {threshold=5, condition=conditions.aboveMobThreshold}))
+    table.insert(self.AEDPSAbilities, self:addAA('Rampage', {threshold=5, condition=conditions.aboveMobThreshold}))
     table.insert(self.DPSAbilities, sharedabilities.getKick())
 
     table.insert(self.DPSAbilities, common.getBestDisc({'Shield Splinter'}, {condition=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Throat Jab'}, {condition=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Knuckle Break'}, {condition=conditions.withinMeleeDistance}))
 
-    table.insert(self.DPSAbilities, common.getAA('Gut Punch', {condition=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getAA('Knee Strike', {condition=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, self:addAA('Gut Punch', {condition=conditions.withinMeleeDistance}))
+    table.insert(self.DPSAbilities, self:addAA('Knee Strike', {condition=conditions.withinMeleeDistance}))
     table.insert(self.DPSAbilities, common.getBestDisc({'Decisive Strike', 'Exploitive Strike'}, {usebelowpct=20, condition=function(ability) return conditions.targetHPBelow(ability) and conditions.withinMeleeDistance(ability) end})) -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
 
     --table.insert(self.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
     table.insert(self.burnAbilities, common.getBestDisc({'Offensive Discipline'})) -- 4min cd, timer 2, increased offensive capabilities
 
-    table.insert(self.burnAbilities, common.getAA('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
+    table.insert(self.burnAbilities, self:addAA('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
 end
 
 function Warrior:initBuffs()
     -- Buffs and Other
-    local breatherCondition = function(ability)
-        return mq.TLO.Me.PctEndurance() <= config.get('RECOVERPCT') and (ability.combat or mq.TLO.Me.CombatState() ~= 'COMBAT')
-    end
-    table.insert(self.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20, condition=breatherCondition}))
+    table.insert(self.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20, condition=function(ability) return mq.TLO.Me.PctEndurance() <= config.get('RECOVERPCT') and (ability.combat or mq.TLO.Me.CombatState() ~= 'COMBAT') end}))
 
-    local leapCondition = function(ability)
-        return false
-    end
-    self.leap = common.getAA('Battle Leap', {opt='USEBATTLELEAP', maxdistance=30, delay=500, combat=false, condition=leapCondition})
-    table.insert(self.auras, common.getBestDisc({'Champion\'s Aura', 'Myrmidon\'s Aura'}))
-    table.insert(self.combatBuffs, common.getBestDisc({'Field Bulwark', 'Full Moon\'s Champion', 'Field Armorer'}, {condition=conditions.missingBuff}))
-    table.insert(self.combatBuffs, common.getAA('Imperator\'s Command'))
+    self.leap = self:addAA('Battle Leap', {opt='USEBATTLELEAP', maxdistance=30, delay=500, combat=false, condition=function(ability) return false end})
+    table.insert(self.auras, common.getBestDisc({'Champion\'s Aura', 'Myrmidon\'s Aura'}, {aurabuff=true}))
+    table.insert(self.combatBuffs, common.getBestDisc({'Field Bulwark', 'Full Moon\'s Champion', 'Field Armorer'}, {condition=conditions.missingBuff, combatbuff=true}))
+    table.insert(self.combatBuffs, self:addAA('Imperator\'s Command', {combatbuff=true}))
 
-    table.insert(self.selfBuffs, common.getAA('Infused by Rage'))
+    table.insert(self.selfBuffs, self:addAA('Infused by Rage', {selfbuff=true}))
 
     if not state.emu then
-        table.insert(self.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summonMinimum=101, condition=conditions.summonMinimum}))
-        table.insert(self.combatBuffs, common.getBestDisc({'Commanding Voice'}))
+        table.insert(self.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summonMinimum=101, condition=conditions.summonMinimum, selfbuff=true}))
+        table.insert(self.combatBuffs, common.getBestDisc({'Commanding Voice'}, {combatbuff=true}))
     end
 end
 

@@ -155,4 +155,17 @@ function conditions.lowAggroInMelee(ability)
     return (ability.aggro == nil or aggropct < 100) and targetDistance <= targetMaxRange
 end
 
+function conditions.mobsMissingAggro()
+    if state.mobCount >= 2 then
+        local xtar_aggro_count = 0
+        for i=1,13 do
+            local xtar = mq.TLO.Me.XTarget(i)
+            if xtar.ID() ~= mq.TLO.Target.ID() and xtar.TargetType() == 'Auto Hater' and xtar.PctAggro() < 100 then
+                xtar_aggro_count = xtar_aggro_count + 1
+            end
+        end
+        return xtar_aggro_count > 0
+    end
+end
+
 return conditions

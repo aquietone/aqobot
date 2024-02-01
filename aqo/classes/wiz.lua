@@ -20,7 +20,7 @@ function Wizard:init()
     self:initBurns()
     self:initBuffs()
     self:addCommonAbilities()
-    table.insert(self.recoverAbilities, common.getAA('Harvest of Druzzil'))
+    table.insert(self.recoverAbilities, self:addAA('Harvest of Druzzil'))
 end
 
 Wizard.SpellLines = {
@@ -51,19 +51,19 @@ function Wizard:initSpellRotations()
 end
 
 function Wizard:initDPSAbilities()
-    table.insert(self.DPSAbilities, common.getAA('Force of Will'))
+    table.insert(self.DPSAbilities, self:addAA('Force of Will'))
 end
 
 function Wizard:initBurns()
-    table.insert(self.burnAbilities, common.getAA('Fury of Ro'))
-    table.insert(self.burnAbilities, common.getAA('Prolonged Destruction'))
-    table.insert(self.burnAbilities, common.getAA('Fundament: Second Spire of Arcanum'))
-    table.insert(self.burnAbilities, common.getAA('Mana Blaze'))
+    table.insert(self.burnAbilities, self:addAA('Fury of Ro'))
+    table.insert(self.burnAbilities, self:addAA('Prolonged Destruction'))
+    table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of Arcanum'))
+    table.insert(self.burnAbilities, self:addAA('Mana Blaze'))
 end
 
 function Wizard:initBuffs()
-    table.insert(self.selfBuffs, common.getAA('Pyromancy'))
-    table.insert(self.selfBuffs, common.getAA('Kerafyrm\'s Prismatic Familiar'))
+    table.insert(self.selfBuffs, self:addAA('Pyromancy', {selfbuff=true}))
+    table.insert(self.selfBuffs, self:addAA('Kerafyrm\'s Prismatic Familiar', {selfbuff=true}))
 end
 
 return Wizard

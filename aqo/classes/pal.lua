@@ -63,12 +63,8 @@ function Paladin:init()
     self:initCures()
     self:addCommonAbilities()
 
-    -- self:addSpell('brells', {'Brell's Brawny Bulwark'})
-    -- table.insert(self.selfBuffs, self.spells.brells)
-    -- self:addRequestAlias(self.spells.brells, 'BRELLS')
-
     self.rezStick = common.getItem('Staff of Forbidden Rites')
-    self.rezAbility = common.getAA('Gift of Resurrection', {}) -- 90% rez
+    self.rezAbility = self:addAA('Gift of Resurrection', {}) -- 90% rez
 
     state.nukeTimer = timer:new(2000)
     self.useCommonListProcessor = true
@@ -133,12 +129,12 @@ Paladin.SpellLines = {
     {
         Group='growth',
         Spells={'Stubborn Stance'},
-        Options={Gem=11},
+        Options={Gem=11, combatbuff=true},
     },
     {
         Group='procbuff',
         Spells={'Preservation of Marr'},
-        Options={Gem=12},
+        Options={Gem=12, selfbuff=true},
     },
     {-- same stats as cleric aego
         Group='aego',
@@ -148,28 +144,28 @@ Paladin.SpellLines = {
     {
         Group='brells',
         Spells={'Brell\'s Tellurian Rampart'},
-        Options={},
+        Options={alias='BRELLS', selfbuff=true},
     },
     {
         Group='selfarmor',
         Spells={'Armor of Implacable Faith'},
-        Options={},
+        Options={selfbuff=true},
     },
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
 Paladin.allDPSSpellGroups = {}
 
 --[[ AA's to sort out
-common.getAA('Bestow Divine Aura', {}) -- 
-common.getAA('Divine Aura', {}) -- 
+self:addAA('Bestow Divine Aura', {}) -- 
+self:addAA('Divine Aura', {}) -- 
 
-common.getAA('Shackles of Tunare', {}) -- root
-common.getAA('Speed of the Savior', {}) -- 18s movement speed buff, 15m cd, timer 13
+self:addAA('Shackles of Tunare', {}) -- root
+self:addAA('Speed of the Savior', {}) -- 18s movement speed buff, 15m cd, timer 13
 
-common.getAA('Balefire Burst', {}) -- fade, 10m cd, timer 15
-common.getAA('Cloak of Light', {}) -- self IVU
-common.getAA('Group Perfected Invisibility to Undead', {}) -- group IVU
-common.getAA('Leap of Faith', {}) -- standard leap ability
+self:addAA('Balefire Burst', {}) -- fade, 10m cd, timer 15
+self:addAA('Cloak of Light', {}) -- self IVU
+self:addAA('Group Perfected Invisibility to Undead', {}) -- group IVU
+self:addAA('Leap of Faith', {}) -- standard leap ability
 ]]
 
 function Paladin:initSpellRotations()
@@ -185,23 +181,23 @@ end
 function Paladin:initTankAbilities()
     table.insert(self.tankAbilities, sharedabilities.getTaunt())
     table.insert(self.tankAbilities, common.getBestDisc({'Defy'}))
-    table.insert(self.tankAbilities, common.getAA('Disruptive Persecution', {})) -- DD + agro + interrupt, mash
-    table.insert(self.tankAbilities, common.getAA('Force of Disruption', {})) -- agro + interrupt, mash
-    table.insert(self.tankAbilities, common.getAA('Projection of Piety', {opt='USEPROJECTION'})) -- agro generating swarm pet
+    table.insert(self.tankAbilities, self:addAA('Disruptive Persecution', {})) -- DD + agro + interrupt, mash
+    table.insert(self.tankAbilities, self:addAA('Force of Disruption', {})) -- agro + interrupt, mash
+    table.insert(self.tankAbilities, self:addAA('Projection of Piety', {opt='USEPROJECTION'})) -- agro generating swarm pet
 
-    table.insert(self.AETankAbilities, common.getAA('Beacon of the Righteous', {threshold=3})) -- pbae stun/agro, 5m cd, timer 30
-    table.insert(self.AETankAbilities, common.getAA('Hallowed Lodestar', {threshold=3})) -- pbae stun/agro, 5m cd, timer 36
+    table.insert(self.AETankAbilities, self:addAA('Beacon of the Righteous', {threshold=3})) -- pbae stun/agro, 5m cd, timer 30
+    table.insert(self.AETankAbilities, self:addAA('Hallowed Lodestar', {threshold=3})) -- pbae stun/agro, 5m cd, timer 36
 
-    table.insert(self.tankBurnAbilities, common.getAA('Ageless Enmity', {aggro=true, condition=conditions.lowAggroInMelee})) -- 
+    table.insert(self.tankBurnAbilities, self:addAA('Ageless Enmity', {aggro=true, condition=conditions.lowAggroInMelee})) -- 
 
-    self.attraction = common.getAA('Divine Call', {opt='USEATTRACTION'}) -- agro + pull mob in, 2m cd, timer 14
+    self.attraction = self:addAA('Divine Call', {opt='USEATTRACTION'}) -- agro + pull mob in, 2m cd, timer 14
 
     -- Sort out these ones
-    -- common.getAA('Heroic Leap', {}) -- leap to target + ae agro, 2m cd, timer 9
-    -- common.getAA('Divine Stun', {}) -- kb + stun, mash
-    -- common.getAA('Halt the Dead', {}) -- undead snare
-    -- common.getAA('Vanquish the Fallen', {}) -- large undead nuke, 3m cd, timer 43
-    -- common.getAA('Shield Flash', {}) -- 6 second deflection, 4m cd
+    -- self:addAA('Heroic Leap', {}) -- leap to target + ae agro, 2m cd, timer 9
+    -- self:addAA('Divine Stun', {}) -- kb + stun, mash
+    -- self:addAA('Halt the Dead', {}) -- undead snare
+    -- self:addAA('Vanquish the Fallen', {}) -- large undead nuke, 3m cd, timer 43
+    -- self:addAA('Shield Flash', {}) -- 6 second deflection, 4m cd
 end
 
 function Paladin:initDPSAbilities()
@@ -212,20 +208,20 @@ function Paladin:initBurns()
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Exalted Mantle'})) -- 35% dmg absorb, 15m cd, 1m duration
     table.insert(self.tankBurnAbilities, common.getBestDisc({'Armor of Courage'})) -- 20% dmg absorb, stun attackers, 7.5m cd, 2m duration
 
-    common.getAA('Armor of the Inquisitor', {}) -- inc incoming instant heal effectiveness for 1m, 15m cd, timer 10
-    common.getAA('Group Armor of the Inquisitor', {}) -- inc incoming instant heal effectiveness for 2min to group, 20m cd, timer 8
-    common.getAA('Hand of Tunare', {}) -- twincast heals, 15m cd, timer 35
-    common.getAA('Inquisitor\'s Judgement', {}) -- dps burn, dd + agro reducer proc, 12m cd, timer 52
-    common.getAA('Spire of Chivalry', {}) -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
-    common.getAA('Thunder of Karana', {}) -- inc dmg of spells and crit chance, 9m cd, timer 17
-    common.getAA('Valorous Rage', {}) -- inc base melee dmg and crits, 20m cd, timer 75
+    self:addAA('Armor of the Inquisitor', {}) -- inc incoming instant heal effectiveness for 1m, 15m cd, timer 10
+    self:addAA('Group Armor of the Inquisitor', {}) -- inc incoming instant heal effectiveness for 2min to group, 20m cd, timer 8
+    self:addAA('Hand of Tunare', {}) -- twincast heals, 15m cd, timer 35
+    self:addAA('Inquisitor\'s Judgement', {}) -- dps burn, dd + agro reducer proc, 12m cd, timer 52
+    self:addAA('Spire of Chivalry', {}) -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
+    self:addAA('Thunder of Karana', {}) -- inc dmg of spells and crit chance, 9m cd, timer 17
+    self:addAA('Valorous Rage', {}) -- inc base melee dmg and crits, 20m cd, timer 75
 end
 
 function Paladin:initHeals()
-    common.getAA('Gift of Life', {}) -- large aoe heal + hot, 24m cd, timer 38
-    common.getAA('Hand of Piety', {}) -- instant group heal, 24m cd, timer 4
-    common.getAA('Lay on Hands', {}) -- 
-    common.getAA('Marr\'s Gift', {}) -- large self hp/mana/end heal, 10m cd, timer 32
+    self:addAA('Gift of Life', {}) -- large aoe heal + hot, 24m cd, timer 38
+    self:addAA('Hand of Piety', {}) -- instant group heal, 24m cd, timer 4
+    self:addAA('Lay on Hands', {}) -- 
+    self:addAA('Marr\'s Gift', {}) -- large self hp/mana/end heal, 10m cd, timer 32
 
     --table.insert(self.healAbilities, self.spells.ohshitheal)
     table.insert(self.healAbilities, self.spells.groupheal)
@@ -233,8 +229,8 @@ function Paladin:initHeals()
 end
 
 function Paladin:initCures()
-    common.getAA('Blessing of Purification', {}) -- cure target any detrimental, 14m cd, timer 6
-    common.getAA('Purification', {}) -- remove detrimentals from self, 14m cd, timer 6
+    self:addAA('Blessing of Purification', {}) -- cure target any detrimental, 14m cd, timer 6
+    self:addAA('Purification', {}) -- remove detrimentals from self, 14m cd, timer 6
 end
 
 function Paladin:initBuffs()
@@ -243,8 +239,8 @@ function Paladin:initBuffs()
     table.insert(self.selfBuffs, self.spells.procbuff)
     table.insert(self.combatBuffs, self.spells.growth)
 
-    common.getAA('Divine Protector\'s Unity', {}) -- self buffs
-    common.getAA('Marr\'s Salvation', {}) -- reduce groups agro generation, 5m cd, timer 16
+    self:addAA('Divine Protector\'s Unity', {}) -- self buffs
+    self:addAA('Marr\'s Salvation', {}) -- reduce groups agro generation, 5m cd, timer 16
 end
 
 function Paladin:mashClass()

@@ -12,8 +12,8 @@ local Druid = class:new()
 
     -- Tank AAs
     self:addSpell('', {'Fervent Growth'}) -- temp max hp boost
-    common.getAA('Swarm of Fireflies') -- instant heal + regen below 40% hp
-    common.getAA('Bear Spirit') -- short duration max hp, ac, dodge buff
+    self:addAA('Swarm of Fireflies') -- instant heal + regen below 40% hp
+    self:addAA('Bear Spirit') -- short duration max hp, ac, dodge buff
 
 ]]
 --[[
@@ -50,13 +50,13 @@ function Druid:init()
 
     -- Rezzing
     if state.emu then
-        self.rezAbility = common.getAA('Call of the Wild')
+        self.rezAbility = self:addAA('Call of the Wild')
     else
-        self.callAbility = common.getAA('Call of the Wild') -- brez
-        self.rezAbility = common.getAA('Rejuvenation of Spirit') -- 96% rez ooc only
+        self.callAbility = self:addAA('Call of the Wild') -- brez
+        self.rezAbility = self:addAA('Rejuvenation of Spirit') -- 96% rez ooc only
         self.rezStick = common.getItem('Staff of Forbidden Rites')
     end
-    self.summonCompanion = common.getAA('Summon Companion')
+    self.summonCompanion = self:addAA('Summon Companion')
     state.nuketimer = timer:new(500)
 end
 
@@ -102,14 +102,14 @@ Druid.SpellLines = {
     {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET'}},
 
     -- Buffs
-    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing'}},
-    {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}},
-    {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender'}}, -- self mana regen, part of unity AA
+    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing'}, Options={alias='SKIN', selfbuff=true}},
+    {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}, Options={selfbuff=true}},
+    {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender'}, Options={selfbuff=true}}, -- self mana regen, part of unity AA
     {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin'}},
-    {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
+    {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={selfbuff=true, alias='REPTILE', singlebuff=true, classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
 
     -- Aura
-    {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}}, -- adds cold dmg proc to spells
+    {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}, Options={aurabuff=true}}, -- adds cold dmg proc to spells
 }
 
 Druid.compositeNames = {['Ecliptic Winds']=true,['Composite Winds']=true,['Dissident Winds']=true,['Dichotomic Winds']=true,}
@@ -136,16 +136,16 @@ function Druid:initHeals()
     table.insert(self.healAbilities, self.spells.heal3)
     table.insert(self.healAbilities, self.spells.groupheal1)
     table.insert(self.healAbilities, self.spells.groupheal2)
-    table.insert(self.healAbilities, common.getAA('Convergence of Spirits', {panic=true}))
+    table.insert(self.healAbilities, self:addAA('Convergence of Spirits', {panic=true}))
     if state.emu then
-        table.insert(self.healAbilities, common.getAA('Peaceful Convergence of Spirits', {panic=true}))
+        table.insert(self.healAbilities, self:addAA('Peaceful Convergence of Spirits', {panic=true}))
     else
         -- Heal AA's
-        table.insert(self.healAbilities, common.getAA('Convergence of Spirits')) -- instant heal + hot
-        table.insert(self.healAbilities, common.getAA('Blessing of Tunare')) -- targeted AE splash heal if lunarush down
-        table.insert(self.healAbilities, common.getAA('Wildtender\'s Survival')) -- casts highest survival spell. group heal
-        table.insert(self.healAbilities, common.getAA('Nature\'s Boon')) -- stationary healing ward
-        table.insert(self.healAbilities, common.getAA('Spirit of the Wood')) -- group hot, MGB'able
+        table.insert(self.healAbilities, self:addAA('Convergence of Spirits')) -- instant heal + hot
+        table.insert(self.healAbilities, self:addAA('Blessing of Tunare')) -- targeted AE splash heal if lunarush down
+        table.insert(self.healAbilities, self:addAA('Wildtender\'s Survival')) -- casts highest survival spell. group heal
+        table.insert(self.healAbilities, self:addAA('Nature\'s Boon')) -- stationary healing ward
+        table.insert(self.healAbilities, self:addAA('Spirit of the Wood')) -- group hot, MGB'able
     end
 end
 
@@ -187,18 +187,18 @@ end
 -- nature's guardian, 22min  cd, temp pet
 function Druid:initBurns()
     if state.emu then
-        table.insert(self.burnAbilities, common.getAA('Spirits of Nature', {delay=1500}))
-        table.insert(self.burnAbilities, common.getAA('Group Spirit of the Black Wolf'))
-        table.insert(self.burnAbilities, common.getAA('Nature\'s Guardian'))
-        table.insert(self.burnAbilities, common.getAA('Nature\'s Fury'))
-        table.insert(self.burnAbilities, common.getAA('Nature\'s Boon'))
-        table.insert(self.burnAbilities, common.getAA('Nature\'s Blessing'))
-        table.insert(self.burnAbilities, common.getAA('Improved Twincast'))
-        table.insert(self.burnAbilities, common.getAA('Fundament: Second Spire of Nature'))
+        table.insert(self.burnAbilities, self:addAA('Spirits of Nature', {delay=1500}))
+        table.insert(self.burnAbilities, self:addAA('Group Spirit of the Black Wolf'))
+        table.insert(self.burnAbilities, self:addAA('Nature\'s Guardian'))
+        table.insert(self.burnAbilities, self:addAA('Nature\'s Fury'))
+        table.insert(self.burnAbilities, self:addAA('Nature\'s Boon'))
+        table.insert(self.burnAbilities, self:addAA('Nature\'s Blessing'))
+        table.insert(self.burnAbilities, self:addAA('Improved Twincast'))
+        table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of Nature'))
     else
         -- Wolf forms. Alternate them
-        common.getAA('Group Spirit of the Great Wolf') -- reduce mana cost, inc crit, mana regen
-        common.getAA('Spirit of the Great Wolf') -- self only
+        self:addAA('Group Spirit of the Great Wolf') -- reduce mana cost, inc crit, mana regen
+        self:addAA('Spirit of the Great Wolf') -- self only
 
         -- Pre Burn
         -- Silent Casting, Distant Conflagration, BP click, Blessing of Ro, Season\'s Wrath
@@ -210,27 +210,27 @@ function Druid:initBurns()
         -- Twincast, Spire of Nature
 
         -- Main Burn
-        table.insert(self.burnAbilities, common.getAA('Group Spirit of the Great Wolf', {first=true})) -- reduce mana cost, inc crit, mana regen
-        table.insert(self.burnAbilities, common.getAA('Improved Twincast', {first=true}))
-        table.insert(self.burnAbilities, common.getAA('Destructive Vortex', {first=true}))
-        table.insert(self.burnAbilities, common.getAA('Nature\'s Fury', {first=true}))
-        table.insert(self.burnAbilities, common.getAA('Focus of Arcanum', {first=true}))
+        table.insert(self.burnAbilities, self:addAA('Group Spirit of the Great Wolf', {first=true})) -- reduce mana cost, inc crit, mana regen
+        table.insert(self.burnAbilities, self:addAA('Improved Twincast', {first=true}))
+        table.insert(self.burnAbilities, self:addAA('Destructive Vortex', {first=true}))
+        table.insert(self.burnAbilities, self:addAA('Nature\'s Fury', {first=true}))
+        table.insert(self.burnAbilities, self:addAA('Focus of Arcanum', {first=true}))
 
-        table.insert(self.burnAbilities, common.getAA('Spire of Nature', {second=true}))
+        table.insert(self.burnAbilities, self:addAA('Spire of Nature', {second=true}))
     end
 end
 
 function Druid:initDPSAbilities()
     if state.emu then
         table.insert(self.DPSAbilities, common.getItem('Nature Walkers Scimitar'))
-        table.insert(self.DPSAbilities, common.getAA('Storm Strike'))
+        table.insert(self.DPSAbilities, self:addAA('Storm Strike'))
     else
         -- Nuke Order
         -- nuke1, natures fire, nuke2, natures bolt, nuke3, natures frost, nuke4
         -- Nuke AAs
-        table.insert(self.DPSAbilities, common.getAA('Nature\'s Fire'))
-        table.insert(self.DPSAbilities, common.getAA('Nature\'s Bolt'))
-        table.insert(self.DPSAbilities, common.getAA('Nature\'s Frost'))
+        table.insert(self.DPSAbilities, self:addAA('Nature\'s Fire'))
+        table.insert(self.DPSAbilities, self:addAA('Nature\'s Bolt'))
+        table.insert(self.DPSAbilities, self:addAA('Nature\'s Frost'))
     end
 end
 
@@ -239,29 +239,26 @@ function Druid:initBuffs()
     table.insert(self.auras, self.spells.aura)
 
     table.insert(self.singleBuffs, self.spells.reptile)
-    table.insert(self.singleBuffs, common.getAA('Wrath of the Wild', {classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}))
+    table.insert(self.singleBuffs, self:addAA('Wrath of the Wild', {classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}, singlebuff=true}))
     table.insert(self.selfBuffs, self.spells.reptile)
-    table.insert(self.selfBuffs, common.getAA('Spirit of the Black Wolf'))
-    self.bear = common.getAA('Spirit of the Bear')
-    self:addRequestAlias(self.bear, 'GROWTH')
-    self:addRequestAlias(self.spells.reptile, 'REPTILE')
-    self:addRequestAlias(self.spells.skin, 'SKIN')
+    table.insert(self.selfBuffs, self:addAA('Spirit of the Black Wolf', {selfbuff=true}))
+    self.bear = self:addAA('Spirit of the Bear', {alias='GROWTH'})
 
     table.insert(self.selfBuffs, self.spells.skin)
     table.insert(self.selfBuffs, self.spells.regen)
     table.insert(self.selfBuffs, self.spells.mask)
-    table.insert(self.selfBuffs, common.getAA('Preincarnation')) -- invuln instead of death AA
+    table.insert(self.selfBuffs, self:addAA('Preincarnation', {selfbuff=true})) -- invuln instead of death AA
 end
 
 function Druid:initDefensiveAbilities()
-    table.insert(self.defensiveAbilities, common.getAA('Protection of Direwood'))
+    table.insert(self.defensiveAbilities, self:addAA('Protection of Direwood'))
     -- fade
-    table.insert(self.fadeAbilities, common.getAA('Veil of the Underbrush'))
+    table.insert(self.fadeAbilities, self:addAA('Veil of the Underbrush'))
 end
 
 function Druid:initDebuffs()
-    table.insert(self.debuffs, common.getAA('Blessing of Ro', {opt='USEDEBUFF'})) -- always cast. lower atk, fire resist, ac, heals tot
-    table.insert(self.debuffs, common.getAA('Season\'s Wrath', {opt='USEDEBUFF'})) -- inc dmg from fire+cold
+    table.insert(self.debuffs, self:addAA('Blessing of Ro', {opt='USEDEBUFF'})) -- always cast. lower atk, fire resist, ac, heals tot
+    table.insert(self.debuffs, self:addAA('Season\'s Wrath', {opt='USEDEBUFF'})) -- inc dmg from fire+cold
     table.insert(self.debuffs, self.spells.snare)
 end
 
