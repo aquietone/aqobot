@@ -39,6 +39,7 @@ local function getSpell(spellName)
 end
 
 function common.getBestSpell(spells, options, spellGroup)
+    local currentBest = nil
     for i,spellName in ipairs(spells) do
         local bestSpell = getSpell(spellName)
         if bestSpell then
@@ -47,9 +48,17 @@ function common.getBestSpell(spells, options, spellGroup)
             for key,value in pairs(options) do
                 bestSpell[key] = value
             end
-            logger.info('[%s] Found Spell: %s (%s)', spellGroup, bestSpell.Ref.Link(), bestSpell.Level)
-            return abilities.Spell:new(bestSpell)
+            if not options.searchbylevel then
+                logger.info('[%s] Found Spell: %s (%s)', spellGroup, bestSpell.Ref.Link(), bestSpell.Level)
+                return abilities.Spell:new(bestSpell)
+            else
+                currentBest = (not currentBest or bestSpell.Level >= currentBest.Level) and bestSpell or currentBest
+            end
         end
+    end
+    if currentBest then
+        logger.info('[%s] Found Spell: %s (%s)', spellGroup, currentBest.Ref.Link(), currentBest.Level)
+        return abilities.Spell:new(currentBest)
     end
     return nil
 end
