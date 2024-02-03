@@ -41,9 +41,11 @@ local state     = require('state')
 ---@field allDPSSpellGroups         table   #Spell group names of all DPS spells allowed for selection in custom spell rotation
 ---Ability lists
 ---@field useCommonListProcessor?   boolean #
+---@field Abilities?                table   # All AA, Disc, Skill, Item definitions which will be searched for on startup and loaded into below lists
 ---@field DPSAbilities              table   #Abilities used in mash in any modes
 ---@field tankAbilities             table   #Abilities used in mash in tank modes
 ---@field burnAbilities             table   #Abilities used in burn in any modes
+---@field rangedBurnAbilities       table   #Abilities used in burn when ranged (just ranger atm)
 ---@field tankBurnAbilities         table   #Abilities used in burn in tank modes
 ---@field healAbilities             table   #Abilities used in heal routine
 ---@field AEDPSAbilities            table   #Abilities used in ae in any mode
@@ -87,6 +89,7 @@ local base = {
     DPSAbilities = {},
     tankAbilities = {},
     burnAbilities = {},
+    rangedBurnAbilities = {},
     tankBurnAbilities = {},
     healAbilities = {},
     AEDPSAbilities = {},
@@ -177,8 +180,10 @@ end
 
 function base:addCommonAbilities()
     self.tranquil = self:addAA('Tranquil Blessings')
-    self.radiant = self:addAA('Radiant Cure', {all=true, alias='RC'})
-    self.silent = self:addAA('Silent Casting')
+    self.radiant = self:addAA('Radiant Cure', {all=true, alias='RC', cure=true})
+    table.insert(self.cures, self.radiant)
+    self.silent = self:addAA('Silent Casting', {first=true})
+    table.insert(self.burnAbilities, self.silent)
     self.mgb = self:addAA('Mass Group Buff')
     self.rezAbility = common.getItem('Token of Resurrection')
     if not state.emu then
@@ -235,7 +240,9 @@ function base:addNSpells(spellGroup, numToAdd, spellList, options)
                 self.spells[spellGroup..i][k] = v
             end
         end
-        if self.spells[spellGroup..i].alias then self.requestAliases[options.alias] = self.spells[spellGroup..i] end
+        if self.spells[spellGroup..i] then
+            self:addAbilityToLists(self.spells[spellGroup..i])
+        end
         local j = 1
         while spellList[1] ~= foundSpell.BaseName or j > 25 do
             j = j + 1 -- prevent infinite loop in case of some strange edge case maybe
@@ -272,13 +279,73 @@ function base:addSpell(spellGroup, spellList, options)
             self.spells[spellGroup][k] = v
         end
     end
-    if self.spells[spellGroup].alias then self.requestAliases[options.alias] = self.spells[spellGroup] end
+    if self.spells[spellGroup] then
+        self:addAbilityToLists(self.spells[spellGroup])
+    end
+end
+
+local flagToTableMap = {
+    dps = 'DPSAbilities',
+    aedps = 'AEDPSAbilities',
+    first = 'burnAbilities',
+    second = 'burnAbilities',
+    third = 'burnAbilities',
+    burn = 'burnAbilities',
+    rangeburn = 'rangedBurnAbilities',
+    tanking = 'tankAbilities',
+    aetank = 'AETankAbilities',
+    tankburn = 'tankBurnAbilities',
+    heal = 'healAbilities',
+    combatbuff = 'combatBuffs',
+    selfbuff = 'selfBuffs',
+    aurabuff = 'auras',
+    petbuff = 'petBuffs',
+    singlebuff = 'singleBuffs',
+    fade = 'fadeAbilities',
+    defensive = 'defensiveAbilities',
+    recover = 'recoverAbilities',
+    cure = 'cures',
+    debuff = 'debuffs',
+    aggroreducer = 'aggroReducers',
+    preburn = 'preburn',
+}
+
+function base:addAbilityToLists(ability)
+    if ability.key and not self[ability.key] then self[ability.key] = ability end
+    if ability.alias and not self.requestAliases[ability.alias] then self.requestAliases[ability.alias] = ability end
+    for flag,abilityTableName in pairs(flagToTableMap) do
+        if type(ability[flag]) == 'function' then ability[flag] = ability[flag]() end
+        if ability[flag] == true then
+            table.insert(self[abilityTableName], ability)
+        end
+    end
 end
 
 function base:addAA(name, options)
     local aa = common.getAA(name, options)
     if aa and aa.alias then self.requestAliases[options.alias] = aa end
     return aa
+end
+
+function base:initAbilities()
+    for _,ability in ipairs(self.Abilities) do
+        if (ability.Options and ability.Options.emu and state.emu) or (not ability.Options or not ability.Options.emu) then
+            local foundAbility = nil
+            if ability.Type == 'AA' then
+                foundAbility = self:addAA(ability.Name, ability.Options)
+            elseif ability.Type == 'Disc' then
+                foundAbility = common.getBestDisc(ability.Names, ability.Options)
+                if ability.Group ~= '' and not self[ability.Group] then self[ability.Group] = foundAbility end
+            elseif ability.Type == 'Item' then
+                foundAbility = common.getItem(ability.Name, ability.Options)
+            elseif ability.Type == 'Skill' then
+                foundAbility = common.getSkill(ability.Name, ability.Options)
+            end
+            if foundAbility then
+                self:addAbilityToLists(foundAbility)
+            end
+        end
+    end
 end
 
 function base:getTableForClicky(clickyType)
@@ -737,13 +804,13 @@ function base:aggro()
     if mq.TLO.Target() and mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() and mq.TLO.Target.Named() then
         local useDefensives = true
         if self.useCommonListProcessor then
-            if common.processList(self.fadeAbilities, self, true) then
-                if mq.TLO.Me.TargetOfTarget.ID() ~= mq.TLO.Me.ID() then
-                    useDefensives = false
-                end
+            if common.processList(self.fadeAbilities, self, true) then return
+                -- if mq.TLO.Me.TargetOfTarget.ID() ~= mq.TLO.Me.ID() then
+                --     useDefensives = false
+                -- end
             end
             if useDefensives then
-                common.processList(self.defensiveAbilities, self, true)
+                if common.processList(self.defensiveAbilities, self, true) then return end
             end
         else
             for _,ability in ipairs(self.fadeAbilities) do
@@ -773,7 +840,7 @@ function base:aggro()
     -- 2. Is my aggro above some threshold? Use aggro reduction abilities
     if mq.TLO.Target() and pctAggro >= 70 and mq.TLO.Target.Named() then
         if self.useCommonListProcessor then
-            common.processList(self.aggroReducers, self, true)
+            if common.processList(self.aggroReducers, self, true) then return end
         else
             for _,ability in ipairs(self.aggroReducers) do
                 if self:isAbilityEnabled(ability.opt) then

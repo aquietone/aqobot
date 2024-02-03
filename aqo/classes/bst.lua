@@ -36,12 +36,7 @@ function BeastLord:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initDPSAbilities()
-    self:initBurns()
-    self:initHeals()
-    self:initBuffs()
-    self:initDefensiveAbilities()
-    self:initRecoverAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.summonCompanion = self:addAA('Summon Companion')
@@ -203,7 +198,7 @@ BeastLord.SpellLines = {
     {-- Player heal / Salve of Artikla (Pet heal) Slot 13. Slot 7 if use alliance
         Group='heal',
         Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending', 'Minor Healing'},
-        Options={opt='USEMENDING', Gem=function() return not BeastLord:isEnabled('USEALLIANCE') and 13 or 7 end, me=75, self=true}
+        Options={opt='USEMENDING', Gem=function() return not BeastLord:isEnabled('USEALLIANCE') and 13 or 7 end, me=75, self=true, heal=true}
     },
     {-- adds extra damage to bst dots + fulmination. Slot 13
         Group='alliance',
@@ -215,17 +210,30 @@ BeastLord.SpellLines = {
 
     {Group='pet', Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Lachemit', 'Spirit of Kolos', 'Spirit of Averc', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha', 'Spirit of Sharik'}, Options={opt='SUMMONPET'}},
     {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
-    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50}}, -- (Pet heal)
+    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
     {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity'}, Options={swap=true, petbuff=true}}, -- pet haste
     {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic'}, Options={swap=true, petbuff=true}}, -- pet buff
     {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression', 'Plakt\'s Aggression', 'Mea\'s Aggression', 'Neivr\'s Aggression', --[[emu cutoff]] }, Options={swap=true}},
 
     {Group='regen', Spells={'Feral Vigor'}, Options={classes={WAR=true,SHD=true,PAL=true}}}, -- single regen
-    {Group='groupregen', Spells={'Spiritual Enduement', 'Spiritual Erudition', 'Spiritual Elaboration', 'Spiritual Empowerment', 'Spiritual Insight', 'Spiritual Evolution', 'Spiritual Enrichment', 'Spiritual Enhancement', --[[emu cutoff]] 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'}, Options={swap=true, alias='SE', selfbuff=true}}, -- group buff
-    {Group='grouphp', Spells={'Spiritual Valiancy', 'Spiritual Vigor', 'Spiritual Vehemence', 'Spiritual Vibrancy', 'Spiritual Vivification', 'Spiritual Vindication', 'Spiritual Valiance', 'Spiritual Valor', --[[emu cutoff]] 'Spiritual Verve', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'}, Options={swap=true, alias='SV', selfbuff=true, searchbylevel=true}},
-    {Group='groupunity', Spells={'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'}, Options={swap=true, selfbuff=true}},
+    {
+        Group='groupunity',
+        Spells={'Wildfang\'s Unity', 'Chieftain\'s Unity', 'Reclaimer\'s Unity', 'Feralist\'s Unity', 'Stormblood\'s Unity'},
+        Options={swap=true, selfbuff=true}
+        --condition = function() return not (mq.TLO.Me.Buff(self.spells.groupregen.name)() and mq.TLO.Me.Buff(self.spells.grouphp.name)()) end
+    },
+    {
+        Group='groupregen',
+        Spells={'Spiritual Enduement', 'Spiritual Erudition', 'Spiritual Elaboration', 'Spiritual Empowerment', 'Spiritual Insight', 'Spiritual Evolution', 'Spiritual Enrichment', 'Spiritual Enhancement', --[[emu cutoff]] 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'},
+        Options={swap=true, alias='SE', selfbuff=function() return not BeastLord.spells.groupunity and true or false end}
+    }, -- group buff
+    {
+        Group='grouphp',
+        Spells={'Spiritual Valiancy', 'Spiritual Vigor', 'Spiritual Vehemence', 'Spiritual Vibrancy', 'Spiritual Vivification', 'Spiritual Vindication', 'Spiritual Valiance', 'Spiritual Valor', --[[emu cutoff]] 'Spiritual Verve', 'Spiritual Vivacity', 'Spiritual Vim', 'Spiritual Vitality', 'Spiritual Vigor'},
+        Options={swap=true, alias='SV', selfbuff=function() return not BeastLord.spells.groupunity and true or false end, searchbylevel=true}
+    },
     -- below lvl 100
-    {Group='fero', Spells={'Ferocity of Irionu', 'Ferocity'}, Options={classes={WAR=true,MNK=true,BER=true,ROG=true}, singlebuff=true, selfbuff=true}}, -- like shm avatar
+    {Group='fero', Spells={'Ferocity of Irionu', 'Ferocity'}, Options={classes={WAR=true,MNK=true,BER=true,ROG=true}, selfbuff=function() return not BeastLord.spells.groupfero and true or false end}}, -- like shm avatar
     --     --Spells(Group)
     --     self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit'})
     --     self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom'}) -- (DD)
@@ -261,6 +269,224 @@ BeastLord.SpellLines = {
 BeastLord.compositeNames = {['Ecliptic Fury']=true, ['Composite Fury']=true, ['Dissident Fury']=true, ['Dichotomic Fury']=true}
 BeastLord.allDPSSpellGroups = {'nuke1', 'nuke2', 'nuke3', 'lance1', 'lance2', 'roar', 'dddot1', 'dot1', 'dddot2', 'swarmpet', 'alliance'}
 
+BeastLord.Abilities = {
+    -- DPS
+    {
+        Type='AA',
+        Name='Feral Swipe',
+        Options={emu=true, dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Bite of the Asp',
+        Options={emu=true, dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Gorilla Smash',
+        Options={emu=true, dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Raven\'s Claw',
+        Options={emu=true, dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- (aggro reducer)
+        Type='AA',
+        Name='Chameleon Strike',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='focused',
+        Names={'Focused Clamor of Claws'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Roar of Thunder',
+        Options={dps=true, opt='USENUKES', condition=conditions.withinMeleeDistance}
+    },
+    { -- (synergy proc ability)
+        Type='Disc',
+        Group='synergy',
+        Names={'Wallop', 'Clobber', 'Batter', 'Rake', 'Mangle', 'Maul', 'Pummel', 'Barrage', 'Rush'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- (procs bite of the asp, /autoskill with round kick)
+        Type='Skill',
+        Name='Eagle\'s Strike',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    -- { -- Swap Eagle's Strike for Dragon Punch in raids - procs gorilla smash
+    --     Type='Skill',
+    --     Name='Dragon Punch',
+    --     Options={dps=true, condition=conditions.withinMeleeDistance}
+    -- },
+    {
+        Type='Skill',
+        Name='Round Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Skill',
+        Name='Kick',
+        Options={dps=function() return mq.TLO.Me.Skill('Round Kick')() == 0 end, condition=conditions.withinMeleeDistance}
+    },
+
+    -- AE DPS
+    {
+        Type='Disc',
+        Group='claws',
+        Names={'Barrage of Claws', 'Eruption of Claws', 'Maelstrom of Claws', 'Storm of Claws', 'Tempest of Claws', 'Clamor of Claws', 'Tumult of Claws', 'Flurry of Claws'},
+        Options={aedps=true, condition=conditions.withinMeleeDistance}
+    },
+
+    -- First burns
+    {
+        Type='Disc',
+        Group='vindication',
+        Names={'Kejaan\'s Vindication', 'Ikatiar\'s Vindication', 'Venon\'s Vindication', 'Al\'ele\'s Vindication'},
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='furydisc',
+        Names={'Savage Rancor', 'Savage Rage', 'Savage Fury', --[[emu cutoff]] 'Empathic Fury', 'Bestial Fury Discipline'},
+        Options={first=function() return mq.TLO.Me.Level() < 102 end, second=function() return mq.TLO.Me.Level() > 101 end}
+    },
+    {
+        Type='AA',
+        Name='Frenzy of Spirit',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Bloodlust',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Frenzied Swipes',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Bestial Bloodrage',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Bestial Alignment',
+        Options={first=true, skipifbuff='Group Bestial Alignment', condition=conditions.skipifbuff}
+    },
+    {
+        Type='AA',
+        Name='Attack of the Warders',
+        Options={first=true, delay=1500}
+    },
+    -- Second burns
+    {
+        Type='Disc',
+        Group='groupfury',
+        Names={'Ruaabri\'s Fury', 'Kolos\' Fury', 'Nature\'s Fury'},
+        Options={second=true}
+    },
+    {
+        Type='AA',
+        Name='Spire of the Savage Lord',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Third Spire of the Savage Lord',
+        Options={first=true}
+    },
+    -- Third burns
+    {
+        Type='AA',
+        Name='Group Bestial Alignment',
+        Options={third=true}
+    },
+    {
+        Type='AA',
+        Name='Ferociousness',
+        Options={third=true}
+    },
+    -- Optional Burn
+    --Dissident Fury
+    --Forceful Rejuvenation
+    --Dissident Fury
+
+    -- Other
+    --Attack of the Warders
+    --table.insert(self.burnAbilities, common.getBestDisc({'Reflexive Riving'})) -- (disc)
+    --table.insert(self.burnAbilities, self:addAA('Enduring Frenzy')) -- (AA)
+    --table.insert(self.burnAbilities, self:addAA('Roar of Thunder')) -- (AA)
+
+    -- Buffs
+    { -- self buff
+        Type='Disc',
+        Group='bestialdisc',
+        Names={'Bestial Fierceness', 'Bestial Savagery', 'Bestial Evulsing', 'Bestial Rending', 'Bestial Vivisection'},
+        Options={combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Gelid Rending',
+        Options={emu=true, selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Pact of the Wurine',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Protection of the Warder',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Fortify Companion',
+        Options={petbuff=true}
+    },
+    {
+        Type='Item',
+        Name='Spiritcaller Totem of the Feral',
+        Options={petbuff=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor}
+    },
+    {
+        Type='Item',
+        Name='Savage Lord\'s Totem',
+        Options={petbuff=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor}
+    },
+    {
+        Type='AA',
+        Name='Taste of Blood',
+        Options={CheckFor='Taste of Blood', condition=conditions.missingPetCheckFor, petbuff=true}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='Playing Possum',
+        Options={defensive=true, opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}
+    },
+
+    -- Recover
+    {
+        Type='AA',
+        Name='Focused Paragon of Spirits',
+        Options={key='fParagon', recover=true, opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true, skipTargetCheck=true, alias='FPARAGON', precast=function() mq.cmdf('/mqt 0') end, condition=function() return mq.TLO.Me.PctMana() <= config.get('RECOVERPCT') end}
+    },
+    {
+        Type='AA',
+        Name='Paragon of Spirit',
+        Options={key='paragon', opt='USEPARAGON', alias='PARAGON'}
+    }
+}
+
 function BeastLord:initSpellRotations()
     self:initBYOSCustom()
     -- composite, alliance
@@ -275,126 +501,6 @@ function BeastLord:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.lance2)
     table.insert(self.spellRotations.standard, self.spells.dddot1)
     table.insert(self.spellRotations.standard, self.spells.dddot2)
-end
-
-function BeastLord:initDPSAbilities()
-    if state.emu then
-        -- Passive on live, activated on emu (at least on lazarus)
-        table.insert(self.DPSAbilities, self:addAA('Feral Swipe', {conditions=conditions.withinMeleeDistance}))
-        table.insert(self.DPSAbilities, self:addAA('Bite of the Asp', {conditions=conditions.withinMeleeDistance}))
-        table.insert(self.DPSAbilities, self:addAA('Gorilla Smash', {conditions=conditions.withinMeleeDistance}))
-        table.insert(self.DPSAbilities, self:addAA('Raven Claw', {conditions=conditions.withinMeleeDistance}))
-    end
-    --Melee Spam
-    table.insert(self.DPSAbilities, self:addAA('Chameleon Strike', {conditions=conditions.withinMeleeDistance})) -- (aggro reducer)
-    table.insert(self.DPSAbilities, common.getBestDisc({'Focused Clamor of Claws'}, {conditions=conditions.withinMeleeDistance}))
-    table.insert(self.AEDPSAbilities, common.getBestDisc({'Barrage of Claws', 'Eruption of Claws', 'Maelstrom of Claws', 'Storm of Claws', 'Tempest of Claws', 'Clamor of Claws', 'Tumult of Claws', 'Flurry of Claws'}, {conditions=conditions.withinMeleeDistance})) -- (AE)
-    table.insert(self.DPSAbilities, self:addAA('Roar of Thunder', {opt='USENUKES', conditions=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Wallop', 'Clobber', 'Batter', 'Rake', 'Mangle', 'Maul', 'Pummel', 'Barrage', 'Rush',}, {conditions=conditions.withinMeleeDistance})) -- (synergy proc ability)
-    table.insert(self.combatBuffs, common.getBestDisc({'Bestial Fierceness', 'Bestial Savagery', 'Bestial Evulsing', 'Bestial Rending', 'Bestial Vivisection', }, {combatbuff=true})) -- (self buff)
-    table.insert(self.DPSAbilities, common.getSkill('Eagle\'s Strike', {conditions=conditions.withinMeleeDistance})) -- (procs bite of the asp, /autoskill with round kick)
-    if mq.TLO.Me.Skill('Round Kick')() > 0 then
-        table.insert(self.DPSAbilities, sharedabilities.getRoundKick())
-    elseif mq.TLO.Me.Skill('Kick')() > 0 then
-        table.insert(self.DPSAbilities, sharedabilities.getKick())
-    end
-
-    --Raid
-    --Swap Eagle's Strike for Dragon Punch - procs gorilla  smash
-    -- table.insert(self.DPSAbilities, common.getSkill('Dragon Punch', {conditions=conditions.withinMeleeDistance}))
-end
-
-function BeastLord:initBurns()
-    if state.emu then
-        table.insert(self.burnAbilities, common.getBestDisc({'Empathic Fury', 'Bestial Fury Discipline'}, {first=true})) -- burn disc
-        table.insert(self.burnAbilities, self:addAA('Fundament: Third Spire of the Savage Lord', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Frenzy of Spirit', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Bestial Bloodrage', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Group Bestial Alignment', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Bestial Alignment', {first=true, skipifbuff='Group Bestial Alignment', condition=conditions.skipifbuff}))
-        table.insert(self.burnAbilities, self:addAA('Attack of the Warders', {first=true, delay=1500}))
-    else
-        -- Main Burn
-        table.insert(self.burnAbilities, common.getBestDisc({'Ikatiar\'s Vindication'}, {first=true})) -- (disc) - load dots and spam ikatiar's blood
-        table.insert(self.burnAbilities, self:addAA('Frenzy of Spirit', {first=true})) -- (AA)
-        table.insert(self.burnAbilities, self:addAA('Bloodlust', {first=true})) -- (AA)
-        table.insert(self.burnAbilities, self:addAA('Bestial Alignment', {first=true})) -- (AA)
-        table.insert(self.burnAbilities, self:addAA('Frenzied Swipes', {first=true})) -- (AA)
-
-        -- Second Burn
-        table.insert(self.burnAbilities, common.getBestDisc({'Savage Rancor', 'Savage Rage', 'Savage Fury', }, {second=true})) -- (disc)
-        table.insert(self.burnAbilities, self:addAA('Spire of the Savage Lord', {second=true})) -- (AA)
-        -- Fury of the Beast (chest click)
-        table.insert(self.burnAbilities, common.getBestDisc({'Ruaabri\'s Fury', 'Kolos\' Fury', 'Nature\'s Fury'}, {second=true})) -- (disc)
-
-        -- Third Burn
-        --Bestial Bloodrage (Companion's Fury)
-        table.insert(self.burnAbilities, self:addAA('Ferociousness', {third=true})) -- (AA)
-        table.insert(self.burnAbilities, self:addAA('Group Bestial Alignment', {third=true})) -- (AA)
-
-        -- Optional Burn
-        --Dissident Fury
-        --Forceful Rejuvenation
-        --Dissident Fury
-
-        -- Other
-        --Attack of the Warders
-        --table.insert(self.burnAbilities, common.getBestDisc({'Reflexive Riving'})) -- (disc)
-        --table.insert(self.burnAbilities, self:addAA('Enduring Frenzy')) -- (AA)
-        --table.insert(self.burnAbilities, self:addAA('Roar of Thunder')) -- (AA)
-    end
-end
-
-function BeastLord:initBuffs()
-    if self.spells.groupunity then
-        --self.spells.groupunity.condition = function() return not (mq.TLO.Me.Buff(self.spells.groupregen.name)() and mq.TLO.Me.Buff(self.spells.grouphp.name)()) end
-        table.insert(self.selfBuffs, self.spells.groupunity)
-    else
-        table.insert(self.selfBuffs, self.spells.groupregen)
-        table.insert(self.selfBuffs, self.spells.grouphp)
-    end
-
-    table.insert(self.petBuffs, self.spells.combatbuff)
-
-    if self.spells.groupfero then
-        table.insert(self.selfBuffs, self.spells.groupfero)
-    elseif self.spells.fero then
-        table.insert(self.selfBuffs, self.spells.fero)
-        table.insert(self.singleBuffs, self.spells.fero)
-    end
-
-    if state.emu then table.insert(self.selfBuffs, self:addAA('Gelid Rending', {selfbuff=true})) end
-    table.insert(self.selfBuffs, self:addAA('Pact of the Wurine', {selfbuff=true}))
-    table.insert(self.selfBuffs, self:addAA('Protection of the Warder', {selfbuff=true}))
-
-    if self.spells.petunity then
-        table.insert(self.petBuffs, self.spells.petunity)
-    else
-        table.insert(self.petBuffs, self.spells.pethaste)
-        table.insert(self.petBuffs, self.spells.petbuff)
-    end
-
-    table.insert(self.petBuffs, self:addAA('Fortify Companion', {petbuff=true}))
-    --local epicOpts = {CheckFor='Savage Wildcaller\'s Blessing', condition=conditions.missingPetCheckFor}
-    local epicOpts = {CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor, petbuff=true}
-    table.insert(self.petBuffs, common.getItem('Spiritcaller Totem of the Feral', epicOpts) or common.getItem('Savage Lord\'s Totem', epicOpts))
-    table.insert(self.petBuffs, self:addAA('Taste of Blood', {CheckFor='Taste of Blood', condition=conditions.missingPetCheckFor, petbuff=true}))
-
-    self.paragon = self:addAA('Paragon of Spirit', {opt='USEPARAGON', alias='PARAGON'})
-    self.fParagon = self:addAA('Focused Paragon of Spirits', {opt='USEFOCUSEDPARAGON', mana=true, threshold=70, combat=true, endurance=false, minhp=20, ooc=true, skipTargetCheck=true, alias='FPARAGON', precast=function() mq.cmdf('/mqt 0') end, condition=function() return mq.TLO.Me.PctMana() <= config.get('RECOVERPCT') end})
-end
-
-function BeastLord:initHeals()
-    table.insert(self.healAbilities, self.spells.heal)
-    table.insert(self.healAbilities, self.spells.petheal)
-end
-
-function BeastLord:initDefensiveAbilities()
-    table.insert(self.fadeAbilities, self:addAA('Playing Possum', {opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}))
-end
-
-function BeastLord:initRecoverAbilities()
-    table.insert(self.recoverAbilities, self.fParagon)
 end
 
 function BeastLord:recoverClass()

@@ -100,13 +100,10 @@ function Magician:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initHeals()
-    self:initBuffs()
-    self:initBurns()
-    self:initDPSAbilities()
-    self:initDebuffs()
-    self:initDefensiveAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
+
+    self.summonCompanion = self:addAA('Summon Companion')
 end
 
 Magician.PetTypes = {Water='waterpet',Earth='earthpet',Air='airpet',Fire='firepet',Monster='monsterpet'}
@@ -275,7 +272,7 @@ Magician.SpellLines = {
         Spells={'Firebound Conjunction', 'Firebound Coalition', 'Firebound Covenant', 'Firebound Alliance'},
         Options={opt='USEALLIANCE', Gem=13}
     },
-
+    --if state.emu and not mq.TLO.FindItem('Glyphwielder\'s Sleeves of the Summoner')() then
     {
         Group='shield',
         Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', --[[emu cutoff]] 'Elemental Aura'},
@@ -327,7 +324,7 @@ Magician.SpellLines = {
     {
         Group='petheal',
         Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal'},
-        Options={opt='HEALPET', pet=50}
+        Options={opt='HEALPET', pet=50, heal=true}
     },
     {-- aborb 9 smaller hits, spellslot 1
         Group='petshield',
@@ -395,6 +392,97 @@ Magician.SpellLines = {
 Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
 Magician.allDPSSpellGroups = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
 
+Magician.Abilities = {
+    {
+        Type='AA',
+        Name='Force of Elements',
+        Options={dps=true}
+    },
+
+    -- Burns
+    {
+        Type='AA',
+        Name='Fundament: First Spire of the Elements',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Host of the Elements',
+        Options={first=true, delay=1500}
+    },
+    {
+        Type='AA',
+        Name='Servant of Ro',
+        Options={first=true, delay=500}
+    },
+    {
+        Type='AA',
+        Name='Frenzied Burnout',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Improved Twincast',
+        Options={first=true}
+    },
+
+    -- Buffs
+    {
+        Type='AA',
+        Name='Elemental Form: Earth',
+        Options={selfbuff=true, opt='EARTHFORM'}
+    },
+    {
+        Type='AA',
+        Name='Elemental Form: Fire',
+        Options={opt='FIREFORM', selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Large Modulation Shard',
+        Options={selfbuff=true, opt='SUMMONMODROD', summonMinimum=1, nodmz=true,}
+    },
+    {
+        Type='AA',
+        Name='Fire Core',
+        Options={combatbuff=true}
+    },
+    {
+        Type='Item',
+        Name='Focus of Primal Elements',
+        Options={petbuff=true, CheckFor='Elemental Conjunction'}
+    },
+    {
+        Type='Item',
+        Name='Staff of Elemental Essence',
+        Options={petbuff=true, CheckFor='Elemental Conjunction'}
+    },
+    {
+        Type='AA',
+        Name='Aegis of Kildrukaun',
+        Options={petbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Fortify Companion',
+        Options={petbuff=true}
+    },
+
+    -- Debuffs
+    {
+        Type='AA',
+        Name='Malosinete',
+        Options={debuff=true, opt='USEDEBUFF'}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='Companion of Necessity',
+        Options={fade=true}
+    }
+}
+
 function Magician:initSpellRotations()
     self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.servant)
@@ -404,54 +492,6 @@ function Magician:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.spear1)
     table.insert(self.spellRotations.standard, self.spells.spear2)
     table.insert(self.spellRotations.standard, self.spells.beam)
-end
-
-function Magician:initDPSAbilities()
-    table.insert(self.DPSAbilities, self:addAA('Force of Elements'))
-
-    self.summonCompanion = self:addAA('Summon Companion')
-end
-
-function Magician:initBurns()
-    table.insert(self.burnAbilities, self:addAA('Fundament: First Spire of the Elements'))
-    table.insert(self.burnAbilities, self:addAA('Host of the Elements', {delay=1500}))
-    table.insert(self.burnAbilities, self:addAA('Servant of Ro', {delay=500}))
-    table.insert(self.burnAbilities, self:addAA('Frenzied Burnout'))
-    table.insert(self.burnAbilities, self:addAA('Improved Twincast'))
-end
-
-function Magician:initHeals()
-    table.insert(self.healAbilities, self.spells.petheal)
-end
-
-function Magician:initBuffs()
-    table.insert(self.selfBuffs, self:addAA('Elemental Form: Earth', {opt='EARTHFORM', selfbuff=true}))
-    table.insert(self.selfBuffs, self:addAA('Elemental Form: Fire', {opt='FIREFORM', selfbuff=true}))
-    --table.insert(self.selfBuffs, self.spells.manaregen)
-    if state.emu and not mq.TLO.FindItem('Glyphwielder\'s Sleeves of the Summoner')() then
-        table.insert(self.selfBuffs, self.spells.shield)
-    end
-    table.insert(self.selfBuffs, self.spells.acregen)
-    table.insert(self.selfBuffs, self.spells.orb)
-    -- table.insert(self.selfBuffs, self.spells.groupds)
-    table.insert(self.selfBuffs, self:addAA('Large Modulation Shard', {opt='SUMMONMODROD', summonMinimum=1, nodmz=true, selfbuff=true}))
-    table.insert(self.combatBuffs, self:addAA('Fire Core', {combatbuff=true}))
-    -- table.insert(self.singleBuffs, self.spells.bigds)
-
-    table.insert(self.petBuffs, common.getItem('Focus of Primal Elements') or common.getItem('Staff of Elemental Essence', {CheckFor='Elemental Conjunction', petbuff=true}))
-    table.insert(self.petBuffs, self.spells.petbuff)
-    table.insert(self.petBuffs, self.spells.petstrbuff)
-    table.insert(self.petBuffs, self.spells.petds)
-    table.insert(self.petBuffs, self:addAA('Aegis of Kildrukaun', {petbuff=true}))
-    table.insert(self.petBuffs, self:addAA('Fortify Companion', {petbuff=true}))
-end
-
-function Magician:initDebuffs()
-    table.insert(self.debuffs, self:addAA('Malosinete', {opt='USEDEBUFF'}))
-end
-
-function Magician:initDefensiveAbilities()
-    table.insert(self.fadeAbilities, self:addAA('Companion of Necessity'))
 end
 
 function Magician:getPetSpell()

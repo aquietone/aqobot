@@ -39,13 +39,8 @@ function Druid:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
+    self:initAbilities()
     self:initHeals()
-    self:initCures()
-    self:initBuffs()
-    self:initBurns()
-    self:initDPSAbilities()
-    self:initDefensiveAbilities()
-    self:initDebuffs()
     self:addCommonAbilities()
 
     -- Rezzing
@@ -92,13 +87,13 @@ Druid.SpellLines = {
     {Group='dot4', Spells={'Chill of the Ferntender', 'Chill of the Dusksage Tender', 'Chill of the Arbor Tender', 'Chill of the Wildtender', 'Chill of the Copsetender'}, Options={opt='USEDOTS'}},
     {Group='heal3', Spells={'Vivavida', 'Clotavida', 'Viridavida', 'Curavida', 'Panavida'}, Options={panic=true, regular=true, tank=true, pet=60}}, -- healing spam if other heals on cd
     {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}},
-    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE'}},
+    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE', debuff=true}},
 
     {Group='healtot', Spells={'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}}, -- Heal tot, dec atk, dec AC
     {Group='tcnuke', Spells={'Sunbliss Blessing', 'Sunwarmth Blessing', 'Sunrake Blessing', 'Sunflash Blessing', 'Sunfire Blessing', 'Sunburst Blessing'}, Options={opt='USENUKES'}},
     {Group='harvest', Spells={'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}}, -- self return 10k mana
-    {Group='cure', Spells={'Sanctified Blood'}, Options={curse=true,disease=true,poison=true,corruption=true}}, -- cure dis/poi/cor/cur
-    {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
+    {Group='cure', Spells={'Sanctified Blood'}, Options={cure=true, all=true}}, -- cure dis/poi/cor/cur
+    {Group='rgc', Spells={'Remove Greater Curse'}, Options={cure=true, curse=true}},
     {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET'}},
 
     -- Buffs
@@ -114,6 +109,166 @@ Druid.SpellLines = {
 
 Druid.compositeNames = {['Ecliptic Winds']=true,['Composite Winds']=true,['Dissident Winds']=true,['Dichotomic Winds']=true,}
 Druid.allDPSSpellGroups = {'dot1', 'dot2', 'dot3', 'dot4', 'dot5', 'tcnuke', 'nuke1', 'nuke2', 'nuke3', 'nuke4', 'snare'}
+
+Druid.Abilities = {
+    -- Heals
+    { -- instant heal + hot
+        Type='AA',
+        Name='Convergence of Spirits',
+        Options={heal=true, panic=true}
+    },
+    {
+        Type='AA',
+        Name='Peaceful Convergence of Spirits',
+        Options={heal=true, panic=true}
+    },
+    { -- targeted AE splash heal if lunarush down
+        Type='AA',
+        Name='Blessing of Tunare',
+        Options={heal=true, regular=true}
+    },
+    { -- casts highest survival spell. group heal
+        Type='AA',
+        Name='Wildtender\'s Survival',
+        Options={heal=true, group=true}
+    },
+    { -- stationary healing ward
+        Type='AA',
+        Name='Nature\'s Boon',
+        Options={heal=true, --[[todo: new category for wards]]}
+    },
+    { -- group hot, MGB'able
+        Type='AA',
+        Name='Spirit of the Wood',
+        Options={alias='WOOD'}
+    },
+
+    -- Burns
+    {
+        Type='AA',
+        Name='Spirits of Nature',
+        Options={first=true, delay=1500}
+    },
+    { -- on emu, maybe live renamed this to great wolf?
+        Type='AA',
+        Name='Group Spirit of the Black Wolf',
+        Options={first=true}
+    },
+    { -- reduce mana cost, inc crit, mana regen
+        Type='AA',
+        Name='Group Spirit of the Great Wolf',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Guardian',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Fury',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Boon',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Blessing',
+        Options={first=true}
+    },
+    -- Second burn
+    { -- self only
+        Type='AA',
+        Name='Spirit of the Great Wolf',
+        Options={second=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Second Spire of Nature',
+        Options={second=true}
+    },
+    {
+        Type='AA',
+        Name='Spire of Nature',
+        Options={second=true}
+    },
+
+    -- DPS
+    {
+        Type='Item',
+        Name='Nature Walker\'s Scimitar',
+        Options={dps=true, emu=true}
+    },
+    {
+        Type='AA',
+        Name='Storm Strike',
+        Options={dps=true, emu=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Fire',
+        Options={dps=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Bolt',
+        Options={dps=true}
+    },
+    {
+        Type='AA',
+        Name='Nature\'s Frost',
+        Options={dps=true}
+    },
+
+    -- Buffs
+    {
+        Type='AA',
+        Name='Wrath of the Wild',
+        Options={singlebuff=true, classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}
+    },
+    {
+        Type='AA',
+        Name='Spirit of the Black Wolf',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Spirit of the Bear',
+        Options={alias='GROWTH'}
+    },
+    { -- invuln instead of death AA
+        Type='AA',
+        Name='Preincarnation',
+        Options={selfbuff=true}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='Protection of Direwood',
+        Options={defensive=true}
+    },
+    {
+        Type='AA',
+        Name='Veil of the Underbrush',
+        Options={fade=true}
+    },
+
+    -- Debuffs
+    {
+        Type='AA',
+        Name='Blessing of Ro',
+        Options={debuff=true, opt='USEDEBUFF'}
+    },
+    {
+        Type='AA',
+        Name='Season\'s Wrath',
+        Options={debuff=true, opt='USEDEBUFF'}
+    },
+}
 
 function Druid:initSpellRotations()
     self:initBYOSCustom()
@@ -136,28 +291,6 @@ function Druid:initHeals()
     table.insert(self.healAbilities, self.spells.heal3)
     table.insert(self.healAbilities, self.spells.groupheal1)
     table.insert(self.healAbilities, self.spells.groupheal2)
-    table.insert(self.healAbilities, self:addAA('Convergence of Spirits', {panic=true}))
-    if state.emu then
-        table.insert(self.healAbilities, self:addAA('Peaceful Convergence of Spirits', {panic=true}))
-    else
-        -- Heal AA's
-        table.insert(self.healAbilities, self:addAA('Convergence of Spirits')) -- instant heal + hot
-        table.insert(self.healAbilities, self:addAA('Blessing of Tunare')) -- targeted AE splash heal if lunarush down
-        table.insert(self.healAbilities, self:addAA('Wildtender\'s Survival')) -- casts highest survival spell. group heal
-        table.insert(self.healAbilities, self:addAA('Nature\'s Boon')) -- stationary healing ward
-        table.insert(self.healAbilities, self:addAA('Spirit of the Wood')) -- group hot, MGB'able
-    end
-end
-
-function Druid:initCures()
-    if state.emu then
-        table.insert(self.cures, self.radiant)
-        table.insert(self.cures, self.spells.rgc)
-    else
-        -- Cures
-        table.insert(self.cureAbilities, self.spells.cure)
-        table.insert(self.cureAbilities, self.radiant) -- poi,dis,cur, any detri
-    end
 end
 
 -- Group Spirit of the Black Wolf
@@ -185,81 +318,17 @@ end
 -- nature's boon, 30min cd, healing ward
 -- nature's fury, 45min cd, improved damage
 -- nature's guardian, 22min  cd, temp pet
-function Druid:initBurns()
-    if state.emu then
-        table.insert(self.burnAbilities, self:addAA('Spirits of Nature', {delay=1500}))
-        table.insert(self.burnAbilities, self:addAA('Group Spirit of the Black Wolf'))
-        table.insert(self.burnAbilities, self:addAA('Nature\'s Guardian'))
-        table.insert(self.burnAbilities, self:addAA('Nature\'s Fury'))
-        table.insert(self.burnAbilities, self:addAA('Nature\'s Boon'))
-        table.insert(self.burnAbilities, self:addAA('Nature\'s Blessing'))
-        table.insert(self.burnAbilities, self:addAA('Improved Twincast'))
-        table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of Nature'))
-    else
-        -- Wolf forms. Alternate them
-        self:addAA('Group Spirit of the Great Wolf') -- reduce mana cost, inc crit, mana regen
-        self:addAA('Spirit of the Great Wolf') -- self only
 
-        -- Pre Burn
-        -- Silent Casting, Distant Conflagration, BP click, Blessing of Ro, Season\'s Wrath
+-- Pre Burn
+-- Silent Casting, Distant Conflagration, BP click, Blessing of Ro, Season\'s Wrath
 
-        -- Burn Order
-        -- group wolf, ITC+DV+NF+FA, Nature\'s Sweltering Wrath, Horde of Duskwigs, Sunpyre, Chill of the Dusksage Tender, Tenebrous Sunray
+-- Burn Order
+-- group wolf, ITC+DV+NF+FA, Nature\'s Sweltering Wrath, Horde of Duskwigs, Sunpyre, Chill of the Dusksage Tender, Tenebrous Sunray
 
-        -- Lesser Burn
-        -- Twincast, Spire of Nature
+-- Lesser Burn
+-- Twincast, Spire of Nature
 
-        -- Main Burn
-        table.insert(self.burnAbilities, self:addAA('Group Spirit of the Great Wolf', {first=true})) -- reduce mana cost, inc crit, mana regen
-        table.insert(self.burnAbilities, self:addAA('Improved Twincast', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Destructive Vortex', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Nature\'s Fury', {first=true}))
-        table.insert(self.burnAbilities, self:addAA('Focus of Arcanum', {first=true}))
-
-        table.insert(self.burnAbilities, self:addAA('Spire of Nature', {second=true}))
-    end
-end
-
-function Druid:initDPSAbilities()
-    if state.emu then
-        table.insert(self.DPSAbilities, common.getItem('Nature Walkers Scimitar'))
-        table.insert(self.DPSAbilities, self:addAA('Storm Strike'))
-    else
-        -- Nuke Order
-        -- nuke1, natures fire, nuke2, natures bolt, nuke3, natures frost, nuke4
-        -- Nuke AAs
-        table.insert(self.DPSAbilities, self:addAA('Nature\'s Fire'))
-        table.insert(self.DPSAbilities, self:addAA('Nature\'s Bolt'))
-        table.insert(self.DPSAbilities, self:addAA('Nature\'s Frost'))
-    end
-end
-
-function Druid:initBuffs()
-    -- Aura of the Grove, Aura of the Grove Effect
-    table.insert(self.auras, self.spells.aura)
-
-    table.insert(self.singleBuffs, self.spells.reptile)
-    table.insert(self.singleBuffs, self:addAA('Wrath of the Wild', {classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}, singlebuff=true}))
-    table.insert(self.selfBuffs, self.spells.reptile)
-    table.insert(self.selfBuffs, self:addAA('Spirit of the Black Wolf', {selfbuff=true}))
-    self.bear = self:addAA('Spirit of the Bear', {alias='GROWTH'})
-
-    table.insert(self.selfBuffs, self.spells.skin)
-    table.insert(self.selfBuffs, self.spells.regen)
-    table.insert(self.selfBuffs, self.spells.mask)
-    table.insert(self.selfBuffs, self:addAA('Preincarnation', {selfbuff=true})) -- invuln instead of death AA
-end
-
-function Druid:initDefensiveAbilities()
-    table.insert(self.defensiveAbilities, self:addAA('Protection of Direwood'))
-    -- fade
-    table.insert(self.fadeAbilities, self:addAA('Veil of the Underbrush'))
-end
-
-function Druid:initDebuffs()
-    table.insert(self.debuffs, self:addAA('Blessing of Ro', {opt='USEDEBUFF'})) -- always cast. lower atk, fire resist, ac, heals tot
-    table.insert(self.debuffs, self:addAA('Season\'s Wrath', {opt='USEDEBUFF'})) -- inc dmg from fire+cold
-    table.insert(self.debuffs, self.spells.snare)
-end
+-- table.insert(self.burnAbilities, self:addAA('Improved Twincast', {first=true}))
+-- table.insert(self.burnAbilities, self:addAA('Destructive Vortex', {first=true}))
 
 return Druid

@@ -31,11 +31,7 @@ function Monk:init()
 
     self:initClassOptions()
     self:loadSettings()
-    self:initDPSAbilities()
-    self:initBurns()
-    self:initBuffs()
-    self:initDefensiveAbilities()
-    self:initHeals()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.useCommonListProcessor = true
@@ -45,26 +41,231 @@ function Monk:initClassOptions()
     self:addOption('USEFADE', 'Use Feign Death', true, nil, 'Toggle use of Feign Death in combat', 'checkbox', nil, 'UseFade', 'bool')
 end
 
-function Monk:initDPSAbilities()
-    -- Kick abilities
-    table.insert(self.DPSAbilities, common.getBestDisc({'Fatewalker\'s Synergy', 'Bloodwalker\'s Synergy', 'Icewalker\'s Synergy', 'Firewalker\'s Synergy', 'Doomwalker\'s Synergy'}, {condition=conditions.withinMeleeDistance})) -- strong kick + inc kick dmg
-    table.insert(self.DPSAbilities, common.getBestDisc({'Flurry of Fists', 'Buffeting of Fists', 'Barrage of Fists', 'Firestorm of Fists', 'Torrent of Fists'}, {condition=conditions.withinMeleeDistance})) -- 3x tiger claw + monk synergy proc
-    table.insert(self.DPSAbilities, common.getBestDisc({'Curse of Sixteen Shadows', 'Curse of Fifteen Strikes', 'Curse of Fourteen Fists', 'Curse of the Thirteen Fingers'}, {condition=conditions.withinMeleeDistance})) -- inc dmg from DS
-    table.insert(self.DPSAbilities, common.getBestDisc({'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang', 'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'}, {condition=conditions.withinMeleeDistance})) -- a nuke?
-    table.insert(self.DPSAbilities, self:addAA('Stunning Kick', {condition=conditions.withinMeleeDistance})) -- free flying kick + a stun, emu only?
-    if mq.TLO.Me.Skill('Flying Kick')() > 0 then
-        table.insert(self.DPSAbilities, common.getSkill('Flying Kick', {condition=conditions.withinMeleeDistance}))
-    elseif mq.TLO.Me.Skill('Round Kick')() > 0 then
-        table.insert(self.DPSAbilities, sharedabilities.getRoundKick())
-    elseif mq.TLO.Me.Skill('Kick')() > 0 then
-        table.insert(self.DPSAbilities, sharedabilities.getKick())
-    end
-    table.insert(self.DPSAbilities, common.getSkill('Tiger Claw', {condition=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Bloodwalker\'s Precision Strike', 'Icewalker\'s Precision Strike', 'Firewalker\'s Precision Strike', 'Doomwalker\'s Precision Strike'})) -- shuriken attack + buffs shuriken dmg
-    table.insert(self.DPSAbilities, common.getBestDisc({'Bloodwalker\'s Conjunction', 'Icewalker\'s Coalition', 'Firewalker\'s Covenant', 'Doomwalker\'s Alliance'}))
-    table.insert(self.DPSAbilities, self:addAA('Five Point Palm', {condition=conditions.withinMeleeDistance})) -- large nuke, 5 min cd, should FD after
-    table.insert(self.DPSAbilities, self:addAA('Eye Gouge', {condition=conditions.withinMeleeDistance})) -- emu only?
-end
+Monk.Abilities = {
+    -- DPS
+    { -- strong kick + inc kick dmg
+        Type='Disc',
+        Group='',
+        Names={'Fatewalker\'s Synergy', 'Bloodwalker\'s Synergy', 'Icewalker\'s Synergy', 'Firewalker\'s Synergy', 'Doomwalker\'s Synergy'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- 3x tiger claw + monk synergy proc
+        Type='Disc',
+        Group='',
+        Names={'Flurry of Fists', 'Buffeting of Fists', 'Barrage of Fists', 'Firestorm of Fists', 'Torrent of Fists'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- inc dmg from DS
+        Type='Disc',
+        Group='',
+        Names={'Curse of Sixteen Shadows', 'Curse of Fifteen Strikes', 'Curse of Fourteen Fists', 'Curse of the Thirteen Fingers'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- a nuke?
+        Type='Disc',
+        Group='',
+        Names={'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang', 'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- free flying kick + a stun, emu only?
+        Type='AA',
+        Name='Stunning Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Skill',
+        Name='Flying Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Skill',
+        Name='Round Kick',
+        Options={dps=function() return mq.TLO.Me.Skill('Flying Kick')() == 0 end, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Skill',
+        Name='Kick',
+        Options={dps=function() return mq.TLO.Me.Skill('Round Kick')() == 0 end, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Skill',
+        Name='Tiger Claw',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- shuriken attack + buffs shuriken dmg
+        Type='Disc',
+        Group='',
+        Names={'Bloodwalker\'s Precision Strike', 'Icewalker\'s Precision Strike', 'Firewalker\'s Precision Strike', 'Doomwalker\'s Precision Strike'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Bloodwalker\'s Conjunction', 'Icewalker\'s Coalition', 'Firewalker\'s Covenant', 'Doomwalker\'s Alliance'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- large nuke, 5 min cd, should FD after
+        Type='AA',
+        Name='Five Point Palm',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- emu only?
+        Type='AA',
+        Name='Eye Gouge',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+
+    -- Burns
+    { -- double dmg taken from special punches, doesn't stack across monks
+        Type='AA',
+        Name='Two-Finger Wasp Touch',
+        Options={first=true}
+    },
+    { -- defensive
+        Type='Disc',
+        Group='',
+        Names={'Disciplined Reflexes', 'Decisive Reflexes', 'Rapid Reflexes', 'Nimble Reflexes'},
+        Options={first=true}
+    },
+    { -- inc melee dmg
+        Type='Disc',
+        Group='',
+        Names={'Ironfist'},
+        Options={first=true}
+    },
+    {  -- inc chance for wep procs
+        Type='AA',
+        Name='Spire of the Sensei',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Second Spire of the Sensei',
+        Options={first=true}
+    },
+    { -- adds extra attacks
+        Type='Disc',
+        Group='',
+        Names={'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'},
+        Options={first=true}
+    },
+    { -- chance to inc melee dmg + nuke
+        Type='AA',
+        Name='Infusion of Thunder',
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Crane Stance'},
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Heel of Zagali', 'Heel of Kai', 'Heel of Kanji'},
+        Options={first=true}
+    },
+    -- 2nd burn
+    { -- doubles attack speed
+        Type='Disc',
+        Group='',
+        Names={'Speed Focus Discipline'},
+        Options={second=true, condition=function() return not Monk.heel or not mq.TLO.Me.CombatAbilityReady(Monk.heel.Name)() end}
+    },
+    { -- doubles number of primary hand attacks
+        Type='AA',
+        Name='Focused Destructive Force',
+        Options={second=true}
+    },
+    { -- doubles number of primary hand attacks
+        Type='AA',
+        Name='Destructive Force',
+        Options={second=true, opt='USEAOE'}
+    },
+    -- 3rd burn
+    { -- if another monks has faded
+        Type='Disc',
+        Group='',
+        Names={'Terrorpalm Discipline', 'Crystalpalm Discipline', 'Innerflame Discipline'},
+        Options={third=true, condition=function() return (not Monk.heel or not mq.TLO.Me.CombatAbilityReady(Monk.heel.Name)()) and (not Monk.speedfocus or not mq.TLO.Me.CombatAbilityReady(Monk.speedfocus.Name)()) end}
+    },
+    { -- inc dmg from melee, inc min dmg
+        Type='AA',
+        Name='Two-Finger Wasp Touch',
+        Options={third=true}
+    },
+    { -- inc dmg, inc min dmg
+        Type='Disc',
+        Group='',
+        Names={'Eye of the Storm'},
+        Options={third=true}
+    },
+
+    -- Buffs
+    {
+        Type='Disc',
+        Group='aura',
+        Names={'Master\'s Aura', 'Disciple\'s Aura'},
+        Options={aurabuff=true, CheckFor='Disciples Aura'}
+    },
+    {
+        Type='Item',
+        Name='Fistwraps of Celestial Discipline',
+        Options={combatbuff=true, delay=1000}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Fists of Wu'},
+        Options={combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Zan Fi\'s Whistle',
+        Options={combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Infusion of Thunder',
+        Options={combatbuff=true}
+    },
+    { -- large bonus dmg
+        Type='Disc',
+        Group='composite',
+        Names={'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'},
+        Options={combatbuff=true}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='Imitate Death',
+        Options={fade=true, opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Earthforce Discipline'},
+        Options={defensive=true}
+    },
+    {
+        Type='Skill',
+        Name='Feign Death',
+        Options={aggroreducer=true, opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}
+    },
+
+    -- Heals
+    {
+        Type='Skill',
+        Name='Mend',
+        Options={heal=true, me=60, self=true}
+    }
+}
+
+-- local speedFocus = common.getBestDisc({'Speed Focus Discipline'})
+-- local crystalPalm = common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'}, {condition=function() return not speedFocus or not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end})
+-- local heel = common.getBestDisc({'Heel of Kai', 'Heel of Kanji'}, {condition=function() return not crystalPalm or not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end})
 
 --[[
         -- Burns
@@ -101,69 +302,5 @@ end
     -- 5th Burn
     table.insert(self.burnAbilities, common.getBestDisc({'Earthforce'})) -- defensive, adds heroic str
 ]]
-function Monk:initBurns()
-    if state.emu then
-        table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of the Sensei'))
-        local speedFocus = common.getBestDisc({'Speed Focus Discipline'})
-        local crystalPalm = common.getBestDisc({'Crystalpalm Discipline', 'Innerflame Discipline'}, {condition=function() return not speedFocus or not mq.TLO.Me.CombatAbilityReady(speedFocus.Name)() end})
-        local heel = common.getBestDisc({'Heel of Kai', 'Heel of Kanji'}, {condition=function() return not crystalPalm or not mq.TLO.Me.CombatAbilityReady(crystalPalm.Name)() end})
-        table.insert(self.burnAbilities, speedFocus)
-        table.insert(self.burnAbilities, crystalPalm)
-        table.insert(self.burnAbilities, heel)
-        table.insert(self.burnAbilities, self:addAA('Destructive Force', {opt='USEAOE'}))
-    else
-        -- Instant activations for start of burn
-        -- bp click -- add dmg to next x kicks
-        table.insert(self.burnAbilities, self:addAA('Two-Finger Wasp Touch', {first=true})) -- double dmg taken from special punches, doesn't stack across monks
-        --Zan Fi's Whistle -- big melee dmg bonus, combat buff
-        table.insert(self.burnAbilities, common.getBestDisc({'Disciplined Reflexes', 'Decisive Reflexes', 'Rapid Reflexes', 'Nimble Reflexes'}, {first=true})) -- defensive
-        table.insert(self.burnAbilities, common.getBestDisc({'Ironfist'}, {first=true})) -- inc melee dmg
-        table.insert(self.burnAbilities, self:addAA('Spire of the Sensei', {first=true}))  -- inc chance for wep procs
-        table.insert(self.burnAbilities, common.getBestDisc({'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'}, {first=true})) -- adds extra attacks
-        table.insert(self.burnAbilities, self:addAA('Infusion of Thunder', {first=true})) -- chance to inc melee dmg + nuke
-        table.insert(self.burnAbilities, common.getBestDisc({'Crane Stance'}, {first=true})) -- 2 big kicks
-
-        -- click off ironfist?
-        -- click bp here?
-        table.insert(self.burnAbilities, common.getBestDisc({'Heel of Zagali'}, {first=true}))
-        -- spam kick abilities
-
-        -- 2nd Burn
-        table.insert(self.burnAbilities, common.getBestDisc({'Speed Focus Discipline'}, {second=true})) -- doubles attack speed
-        table.insert(self.burnAbilities, self:addAA('Focused Destructive Force', {second=true})) -- doubles number of primary hand attacks
-
-        -- 3rd Burn
-        table.insert(self.burnAbilities, self:addAA('Two-Finger Wasp Touch', {third=true})) -- if another monks has faded
-        table.insert(self.burnAbilities, common.getBestDisc({'Terrorpalm Discipline'}, {third=true})) -- inc dmg from melee, inc min dmg
-
-        -- 4th Burn
-        --table.insert(self.burnAbilities, common.getBestDisc({'Ironfist'})) -- if not used yet
-        table.insert(self.burnAbilities, common.getBestDisc({'Eye of the Storm'}, {third=true})) -- inc dmg, inc min dmg
-    end
-end
-
-function Monk:initBuffs()
-    table.insert(self.auras, common.getBestDisc({'Master\'s Aura', 'Disciple\'s Aura'}, {CheckFor='Disciples Aura', aurabuff=true}))
-    table.insert(self.combatBuffs, common.getItem('Fistwraps of Celestial Discipline', {delay=1000, combatbuff=true}))
-    table.insert(self.combatBuffs, common.getBestDisc({'Fists of Wu'}, {combatbuff=true}))
-    table.insert(self.combatBuffs, self:addAA('Zan Fi\'s Whistle', {combatbuff=true}))
-    table.insert(self.combatBuffs, self:addAA('Infusion of Thunder', {combatbuff=true}))
-    table.insert(self.combatBuffs, common.getBestDisc({'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'}, {combatbuff=true})) -- large bonus dmg
-end
-
-function Monk:initDefensiveAbilities()
-    local postFD = function()
-        mq.delay(1000)
-        mq.cmd('/stand')
-        mq.cmd('/makemevis')
-    end
-    table.insert(self.fadeAbilities, self:addAA('Imitate Death', {opt='USEFD', postcast=postFD}))
-    table.insert(self.aggroReducers, common.getSkill('Feign Death', {opt='USEFD', postcast=postFD}))
-    table.insert(self.defensiveAbilities, common.getBestDisc({'Earthforce Discipline'})) -- defensive, adds heroic str
-end
-
-function Monk:initHeals()
-    table.insert(self.healAbilities, common.getSkill('Mend', {me=60, self=true}))
-end
 
 return Monk

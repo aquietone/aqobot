@@ -90,13 +90,7 @@ function Shaman:init()
     self:initSpellLines()
     self:initSpellRotations()
     self:initHeals()
-    self:initCures()
-    self:initBuffs()
-    self:initBurns()
-    self:initDPSAbilities()
-    self:initDebuffs()
-    self:initDefensiveAbilities()
-    self:initRecoverAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.rezAbility = self:addAA('Call of the Wild')
@@ -172,7 +166,7 @@ Shaman.SpellLines = {
     {-- cure all. Slot 6
         Group='cureall',
         Spells={'Blood of Mayong', 'Blood of Tevik', 'Blood of Rivans'},
-        Options={opt='MEMCUREALL', Gem=6}
+        Options={cure=true, all=true, opt='MEMCUREALL', Gem=6}
     },
     {-- group heal. Slot 7
         Group='recourse',
@@ -250,14 +244,14 @@ Shaman.SpellLines = {
     -- self buff, proc heal when hit
     {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}, Options={selfbuff=true}},
     -- Cures
-    {Group='cure', Spells={'Blood of Nadox'}},
-    {Group='rgc', Spells={'Remove Greater Curse'}, Options={curse=true}},
+    {Group='cure', Spells={'Blood of Nadox'}, Options={cure=true, all=true}},
+    {Group='rgc', Spells={'Remove Greater Curse'}, Options={cure=true, curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
     {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT'}},
-    {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
-    {Group='dispel', Spells={'Abashi\'s Disempowerment'}, Options={opt='USEDISPEL'}},
-    {Group='debuff', Spells={'Crippling Spasm'}, Options={opt='USEDEBUFF'}},
+    {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', debuff=true, condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment'}, Options={opt='USEDISPEL', debuff=true}},
+    {Group='debuff', Spells={'Crippling Spasm'}, Options={opt='USEDEBUFF', debuff=true}},
     -- EMU special: Ice Age nuke has 25% chance to proc slow
     {Group='slownuke', Spells={'Ice Age'}, Options={opt='USENUKES'}},
 
@@ -265,10 +259,10 @@ Shaman.SpellLines = {
     {-- Malo spell line. AA malo is Malosinete
         Group='malo',
         Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete'},
-        Options={opt='USEDEBUFF'}
+        Options={opt='USEDEBUFF', debuff=true}
     },
-    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects'}, Options={opt='USESLOW'}},
-    {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={opt='USESLOWAOE'}},
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects'}, Options={debuff=true, opt='USESLOW'}},
+    {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={debuff=true, opt='USESLOWAOE'}},
 
     -- Extra DoTs just used by combo spells
     {-- disease dot. Not used directly, only by combo spell. (pendemiccombo)
@@ -285,16 +279,16 @@ Shaman.SpellLines = {
     -- Buffs
     {Group='proc', Spells={'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}, singlebuff=true}},
     {Group='champion', Spells={'Champion', 'Ferine Avatar'}},
-    {Group='panther', Spells={'Talisman of the Panther'}, Options={selfbuff=true}},
+    {Group='panther', Spells={'Talisman of the Panther'}, Options={selfbuff=function() return not mq.TLO.FindItem('Imbued Rune of the Panther')() and true or false end}},
     -- {Group='talisman', Spells={'Talisman of Unification'}, Options={group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
     -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
     {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
     {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
     {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'}, Options={alias='SINGLEFOCUS'}},
-    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}, singlebuff=true, alias='FOCUS'}},
+    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},
 
     -- Utility
-    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
+    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
     {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'}, Options={'SUMMONPET'}},
 
     --Call of the Ancients -- 5 minute duration ward AE healing
@@ -334,26 +328,104 @@ function Shaman:initSpellRotations()
     table.insert(self.spellRotations.dps, self.spells.poisonnuke)
     table.insert(self.spellRotations.dps, self.spells.icenuke)
 end
-
-function Shaman:initDPSAbilities()
-
-end
-
-function Shaman:initBurns()
-    local epic = common.getItem('Blessed Spiritstaff of the Heyokah', {opt='USEEPIC'}) or common.getItem('Crafted Talisman of Fates', {opt='USEEPIC'})
-
-    table.insert(self.burnAbilities, self:addAA('Ancestral Aid'))
-    table.insert(self.burnAbilities, epic)
-    table.insert(self.burnAbilities, self:addAA('Rabid Bear'))
-    table.insert(self.burnAbilities, self:addAA('Fundament: First spire of Ancestors'))
+Shaman.Abilities = {
+    {
+        Type='AA',
+        Name='Ancestral Aid',
+        Options={first=true}
+    },
+    {
+        Type='Item',
+        Name='Blessed Spiritstaff of the Heyokah',
+        Options={first=true, opt='USEEPIC'}
+    },
+    {
+        Type='Item',
+        Name='Crafted Talisman of Fates',
+        Options={first=true, opt='USEEPIC'}
+    },
+    {
+        Type='AA',
+        Name='Rabid Bear',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: First Spire of Ancestors',
+        Options={first=true}
+    },
     -- table.insert(self.burnAbilities, common.getItem('Blessed Spiritstaff of the Heyokah'), {first=true}) -- 2.0 click
     -- table.insert(self.burnAbilities, self:addAA('Spire of Ancestors'), {first=true}) -- inc total healing, dot crit
     -- table.insert(self.burnAbilities, self:addAA('Apex of Ancestors'), {first=true}) -- inc proc mod, accuracy, min dmg
     -- --table.insert(self.burnAbilities, self:addAA('Ancestral Aid'), {first=true}) -- large HoT, stacks, use with tranquil blessings
     -- table.insert(self.burnAbilities, self:addAA('Union of Spirits'), {first=true}) -- instant cast, use on monks/rogues
     -- table.insert(self.selfBuffs, self:addAA('Group Pact of the Wolf')) -- aura, cast before self wolf, they stack
-end
 
+    -- Heals
+    { -- AA instant version of intervention spell
+        Type='AA',
+        Name='Soothsayer\'s Intervention',
+        Options={heal=true, group=true, threshold=3}
+    },
+    { -- AA buff on target, big HoT below 50% HP, use on fragile melee
+        Type='AA',
+        Name='Ancestral Guard Spirit',
+        Options={heal=true}
+    },
+    {
+        Type='AA',
+        Name='Union of Spirits',
+        Options={panic=true, tank=true, pet=30, heal=true}
+    },
+
+    -- Buffs
+    {
+        Type='AA',
+        Name='Pact of the Wolf',
+        Options={RemoveBuff='Pact of the Wolf Effect', selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Preincarnation',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Languid Bite',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Group Pact of the Wolf',
+        Options={RemoveBuff='Pact of the Wolf Effect', singlebuff=true, classes={WAR=true,PAL=true,SHD=true}}
+    },
+
+    -- Debuffs
+    {
+        Type='AA',
+        Name='Malosinete',
+        Options={debuff=true, opt='USEDEBUFF'}
+    },
+    {
+        Type='AA',
+        Name='Turgur\'s Swarm',
+        Options={debuff=true, opt='USESLOW'}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='Ancestral Guard',
+        Options={defensive=true}
+    },
+
+    -- Recover
+    {
+        Type='AA',
+        Name='Cannibalization',
+        Options={recover=true, mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false}
+    }
+}
 function Shaman:initHeals()
     if mq.TLO.Me.Level() >= 105 then
         table.insert(self.healAbilities, self.spells.reckless1) -- single target
@@ -367,59 +439,8 @@ function Shaman:initHeals()
     table.insert(self.healAbilities, self.spells.recourse) -- group heal, several stages of healing
     table.insert(self.healAbilities, self.spells.intervention) -- longer refresh quick group heal
     table.insert(self.healAbilities, self.spells.grouphot)
-    table.insert(self.healAbilities, self:addAA('Soothsayer\'s Intervention', {group=true, threshold=3})) -- AA instant version of intervention spell
-    table.insert(self.healAbilities, self:addAA('Ancestral Guard Spirit')) -- AA buff on target, big HoT below 50% HP, use on fragile melee
-    table.insert(self.healAbilities, self:addAA('Union of Spirits', {panic=true, tank=true, pet=30}))
     table.insert(self.healAbilities, self.spells.hottank)
     table.insert(self.healAbilities, self.spells.hotdps)
-end
-
-function Shaman:initCures()
-    table.insert(self.cures, self.spells.cureall)
-    table.insert(self.cures, self.spells.cure)
-    table.insert(self.cures, self.radiant)
-    table.insert(self.cures, self.spells.rgc)
-end
-
-function Shaman:initBuffs()
-    -- Self buffs
-    table.insert(self.selfBuffs, self:addAA('Pact of the Wolf', {selfbuff=true}))
-    table.insert(self.selfBuffs, self.spells.selfprocheal)
-    table.insert(self.selfBuffs, self:addAA('Preincarnation', {selfbuff=true}))
---
-    --table.insert(self.combatBuffs, self.spells.champion)
-    -- table.insert(self.selfBuffs, common.getItem('Earring of Pain Deliverance', {CheckFor='Reyfin\'s Random Musings'}))
-    -- table.insert(self.selfBuffs, common.getItem('Xxeric\'s Matted-Fur Mask', {CheckFor='Reyfin\'s Racing Thoughts'}))
-    local pantherTablet = mq.TLO.FindItem('Imbued Rune of the Panther')()
-    if not pantherTablet then
-        table.insert(self.selfBuffs, self.spells.panther)
-    end
-    table.insert(self.singleBuffs, self.spells.slowproc)
-    table.insert(self.singleBuffs, self.spells.proc)
-    table.insert(self.selfBuffs, self:addAA('Pact of the Wolf', {RemoveBuff='Pact of the Wolf Effect', selfbuff=true}))
-    --table.insert(self.selfBuffs, self.spells.champion)
-    table.insert(self.selfBuffs, self:addAA('Languid Bite', {selfbuff=true}))
-    table.insert(self.singleBuffs, self.spells.groupunity)
-    table.insert(self.singleBuffs, self:addAA('Group Pact of the Wolf', {classes={SHD=true,WAR=true}, singlebuff=true}))
-    -- pact of the wolf, remove pact of the wolf effect
-end
-
-function Shaman:initDebuffs()
-    table.insert(self.debuffs, self.spells.dispel)
-    table.insert(self.debuffs, self.spells.idol)
-    table.insert(self.debuffs, self:addAA('Malosinete', {opt='USEDEBUFF'}))
-    table.insert(self.debuffs, self:addAA('Turgur\'s Swarm', {opt='USESLOW'}) or self.spells.slow)
-    table.insert(self.debuffs, self.spells.debuff)
-end
-
-function Shaman:initDefensiveAbilities()
-    table.insert(self.defensiveAbilities, self:addAA('Ancestral Guard'))
-end
-
-function Shaman:initRecoverAbilities()
-    self.canni = self:addAA('Cannibalization', {mana=true, endurance=false, threshold=60, combat=true, minhp=80, ooc=false})
-    table.insert(self.recoverAbilities, self.canni)
-    table.insert(self.recoverAbilities, self.spells.canni)
 end
 
 return Shaman

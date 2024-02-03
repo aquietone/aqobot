@@ -33,21 +33,21 @@ constants.commandHelp = {
 }
 
 constants.buffs = {
-    BER = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    BRD = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    BST = {'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    BER = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    BRD = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    BST = {'AEGO', --[['SYMBOL', 'SKIN',]] 'SPELLHASTE', 'KEI', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
     CLR = {'SE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
     DRU = {'SE', 'SYMBOL', 'SPELLHASTE', 'KEI', 'BRELLS', 'FOCUS'},
     ENC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS'},
     MAG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
-    MNK = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    MNK = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
     NEC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS'},
     PAL = {'AEGO', 'HASTE', 'KEI', 'SHOUT', 'STR', 'FOCUS'},
     RNG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'HASTE', 'FOCUS'},
-    ROG = {'SYMBOL', 'SKIN', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
+    ROG = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
     SHD = {'AEGO', 'HASTE', 'KEI', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
     SHM = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS'},
-    WAR = {'SYMBOL', 'SKIN', 'HASTE', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
+    WAR = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
     WIZ = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
 
     -- BST

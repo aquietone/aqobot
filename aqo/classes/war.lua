@@ -25,9 +25,7 @@ function Warrior:init()
 
     self:initClassOptions()
     self:loadSettings()
-    self:initTankAbilities()
-    self:initDPSAbilities()
-    self:initBuffs()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.useCommonListProcessor = true
@@ -45,101 +43,328 @@ function Warrior:initClassOptions()
     self:addOption('USESNARE', 'Use Snare', false, nil, 'Use Call of Challenge AA, which includes a snare', 'checkbox', nil, 'UseSnare', 'bool')
 end
 
--- bazu bellow 69
--- mock 65
--- bellow of the mastruq 65
--- ancient: chaos cry 65
--- incite 63
--- berate 56
--- bellow 52
-function Warrior:initTankAbilities()
-    table.insert(self.tankAbilities, sharedabilities.getTaunt())
+Warrior.Abilities = {
+    {
+        Type='Skill',
+        Name='Taunt',
+        Options={tanking=true, aggro=true, condition=conditions.lowAggroInMelee}
+    },
+    {
+        Type='Disc',
+        Group='defense',
+        Names={'Vigorous Defense', 'Primal Defense'},
+        Options={tanking=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Mortimus\' Roar', 'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq', 'Bellow'},
+        Options={tanking=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Infuriate', 'Bristle', 'Mock', 'Incite'},
+        Options={tanking=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Distressing Shout', 'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'},
+        Options={tanking=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Ecliptic Shield', 'Composite Shield', 'Dissident Shield', 'Dichotomic Shield'},
+        Options={tanking=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'End of the Line', 'Finish the Fight'},
+        Options={tanking=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Phantom Aggressor'},
+        Options={tanking=true, opt='USEPHANTOM'}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Confluent Precision'},
+        Options={tanking=true, opt='USEPRECISION'}
+    },
+    {
+        Type='AA',
+        Name='Blast of Anger',
+        Options={tanking=true, maxdistance=100, condition=conditions.withinMaxDistance}
+    },
+    {
+        Type='AA',
+        Name='Blade Guardian',
+        Options={tanking=true}
+    },
+    {
+        Type='AA',
+        Name='Brace for Impact',
+        Options={tanking=true}
+    },
+    {
+        Type='AA',
+        Name='Call of Challenge',
+        Options={tanking=true, opt='USESNARE'}
+    },
+    {
+        Type='AA',
+        Name='Grappling Strike',
+        Options={tanking=true, opt='USEGRAPPLE'}
+    },
+    {
+        Type='AA',
+        Name='Warlord\'s Grasp',
+        Options={tanking=true, opt='USEGRASP'}
+    },
 
-    self.mash_defensive = common.getBestDisc({'Vigorous Defense', 'Primal Defense'})
-    table.insert(self.tankAbilities, self.mash_defensive)
-    table.insert(self.tankAbilities, common.getBestDisc({'Mortimus\' Roar', 'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq', 'Bellow'}, {condition=conditions.withinMeleeDistance}))
-    table.insert(self.tankAbilities, common.getBestDisc({'Infuriate', 'Bristle', 'Mock', 'Incite'}, {condition=conditions.withinMeleeDistance}))
-    table.insert(self.tankAbilities, common.getBestDisc({'Distressing Shout', 'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'}, {condition=conditions.withinMeleeDistance}))
-    table.insert(self.tankAbilities, common.getBestDisc({'Ecliptic Shield', 'Composite Shield', 'Dissident Shield', 'Dichotomic Shield'}))
-    table.insert(self.tankAbilities, common.getBestDisc({'End of the Line', 'Finish the Fight'}))
-    table.insert(self.tankAbilities, common.getBestDisc({'Phantom Aggressor'}, {opt='USEPHANTOM'}))
-    table.insert(self.tankAbilities, common.getBestDisc({'Confluent Precision'}, {opt='USEPRECISION'}))
-
-    table.insert(self.tankAbilities, self:addAA('Blast of Anger', {maxdistance=100, condition=conditions.withinMaxDistance}))
-    table.insert(self.tankAbilities, self:addAA('Blade Guardian'))
-    table.insert(self.tankAbilities, self:addAA('Brace for Impact'))
-    table.insert(self.tankAbilities, self:addAA('Call of Challenge', {opt='USESNARE'}))
-    table.insert(self.tankAbilities, self:addAA('Grappling Strike', {opt='USEGRAPPLE'}))
-    table.insert(self.tankAbilities, self:addAA('Warlord\'s Grasp', {opt='USEGRASP'}))
-
-    table.insert(self.AETankAbilities, common.getBestDisc({'Roar of Challenge'}, {threshold=2, condition=conditions.aboveMobThreshold}))
-    table.insert(self.AETankAbilities, common.getBestDisc({'Confluent Expanse'}, {opt='USEEXPANSE', threshold=2, condition=conditions.aboveMobThreshold}))
-    table.insert(self.AETankAbilities, common.getBestDisc({'Wade into Battle'}, {threshold=4, condition=conditions.aboveMobThreshold}))
-    table.insert(self.AETankAbilities, self:addAA('Extended Area Taunt', {threshold=3, condition=conditions.aboveMobThreshold}) or self:addAA('Area Taunt', {threshold=3, condition=conditions.aboveMobThreshold}))
+    -- ae tank
+    {
+        Type='Disc',
+        Group='',
+        Names={'Roar of Challenge'},
+        Options={aetank=true, threshold=2, condition=conditions.aboveMobThreshold}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Confluent Expanse'},
+        Options={aetank=true, opt='USEEXPANSE', threshold=2, condition=conditions.aboveMobThreshold}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Wade into Battle'},
+        Options={aetank=true, threshold=4, condition=conditions.aboveMobThreshold}
+    },
+    {
+        Type='AA',
+        Name='Extended Area Taunt',
+        Options={aetank=true, threshold=3, condition=conditions.aboveMobThreshold}
+    },
+    {
+        Type='AA',
+        Name='Area Taunt',
+        Options={aetank=true, threshold=3, condition=conditions.aboveMobThreshold}
+    },
     -- 'Razor Tongue Discipline' -- proc on taunt
 
-    table.insert(self.tankBurnAbilities, common.getBestDisc({'Unconditional Attention', 'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'}, {condition=conditions.withinMeleeDistance}))
+    -- tank burn
+    {
+        Type='Disc',
+        Group='',
+        Names={'Unconditional Attention', 'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'},
+        Options={tankburn=true, condition=conditions.withinMeleeDistance}
+    },
     --table.insert(self.tankBurnAbilities, common.getBestDisc({'Climactic Stand', 'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.Name or nil}))
-    table.insert(self.tankBurnAbilities, common.getBestDisc({'Armor of Rallosian Runes', 'Armor of Akhevan Runes'}, {overwritedisc=self.mash_defensive and self.mash_defensive.Name or nil}))
-    table.insert(self.tankBurnAbilities, common.getBestDisc({'Levincrash Defense Discipline'}, {overwritedisc=self.mash_defensive and self.mash_defensive.Name or nil}))
-    table.insert(self.tankBurnAbilities, self:addAA('Ageless Enmity', {aggro=true, condition=conditions.aggroBelow})) -- big taunt
-    table.insert(self.tankBurnAbilities, self:addAA('Projection of Fury', {opt='USEPROJECTION'}))
-    table.insert(self.tankBurnAbilities, self:addAA('Warlord\'s Fury')) -- more big aggro
-    table.insert(self.tankBurnAbilities, self:addAA('Mark of the Mage Hunter')) -- 25% spell dmg absorb
-    table.insert(self.tankBurnAbilities, self:addAA('Resplendent Glory')) -- increase incoming heals
-    table.insert(self.tankBurnAbilities, self:addAA('Warlord\'s Bravery')) -- reduce incoming melee dmg
-    table.insert(self.tankBurnAbilities, self:addAA('Warlord\'s Tenacity')) -- big heal and temp HP
-    if state.emu then
-        table.insert(self.tankBurnAbilities, self:addAA('Fundament: Third Spire of the Warlord'))
-    else
-        -- live mashed these two together in ae, not just burns..
-        table.insert(self.tankBurnAbilities, self:addAA('Spire of the Warlord'))
-        table.insert(self.tankBurnAbilities, common.getBestDisc({'Warrior\'s Resolve', 'Warrior\'s Aegis'}))
-    end
+    {
+        Type='Disc',
+        Group='',
+        Names={'Armor of Rallosian Runes', 'Armor of Akhevan Runes'},
+        Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Levincrash Defense Discipline'},
+        Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil}
+    },
+    { -- big taunt
+        Type='AA',
+        Name='Ageless Enmity',
+        Options={tankburn=true, aggro=true, condition=conditions.aggroBelow}
+    },
+    {
+        Type='AA',
+        Name='Projection of Fury',
+        Options={tankburn=true, opt='USEPROJECTION'}
+    },
+    { -- more big aggro
+        Type='AA',
+        Name='Warlord\'s Fury',
+        Options={tankburn=true, }
+    },
+    { -- 25% spell dmg absorb
+        Type='AA',
+        Name='Mark of the Mage Hunter',
+        Options={tankburn=true, }
+    },
+    { -- increase incoming heals
+        Type='AA',
+        Name='Resplendent Glory',
+        Options={tankburn=true, }
+    },
+    { -- reduce incoming melee dmg
+        Type='AA',
+        Name='Warlord\'s Bravery',
+        Options={tankburn=true, }
+    },
+    { -- big heal and temp HP
+        Type='AA',
+        Name='Warlord\'s Tenacity',
+        Options={tankburn=true, }
+    },
+    {
+        Type='AA',
+        Name='Spire of the Warlord',
+        Options={tankburn=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Third Spire of the Warlord',
+        Options={tankburn=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Warrior\'s Resolve', 'Warrior\'s Aegis'},
+        Options={tankburn=true}
+    },
 
-    -- what to do with this one..
-    self.attraction = common.getBestDisc({'Forceful Attraction'})
+    {
+        Type='Disc',
+        Group='attraction',
+        Names={'Forceful Attraction'},
+        Options={opt='USEATTRACTION'}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Fortitude Discipline'},
+        Options={opt='USEFORTITUDE', overwritesdisc=Warrior.defense and Warrior.defense.name or nil}
+    },
+    {
+        Type='Disc',
+        Group='flash',
+        Names={'Flash of Anger'},
+        Options={}
+    },
+    { -- 10min cd, 60k heal
+        Type='AA',
+        Name='Warlord\'s Resurgence',
+        Options={key='resurgence'}
+    },
 
-    self.fortitude = common.getBestDisc({'Fortitude Discipline'}, {opt='USEFORTITUDE', overwritesdisc=self.mash_defensive and self.mash_defensive.name or nil})
-    self.flash = common.getBestDisc({'Flash of Anger'})
-    self.resurgence = self:addAA('Warlord\'s Resurgence') -- 10min cd, 60k heal
-end
-
-function Warrior:initDPSAbilities()
-    table.insert(self.AEDPSAbilities, common.getBestDisc({'Spiraling Blades', 'Vortex Blade', 'Cyclone Blade'}, {threshold=3, condition=conditions.aboveMobThreshold}))
-    table.insert(self.AEDPSAbilities, self:addAA('Rampage', {threshold=5, condition=conditions.aboveMobThreshold}))
-    table.insert(self.DPSAbilities, sharedabilities.getKick())
-
-    table.insert(self.DPSAbilities, common.getBestDisc({'Shield Splinter'}, {condition=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Throat Jab'}, {condition=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Knuckle Break'}, {condition=conditions.withinMeleeDistance}))
-
-    table.insert(self.DPSAbilities, self:addAA('Gut Punch', {condition=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, self:addAA('Knee Strike', {condition=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Decisive Strike', 'Exploitive Strike'}, {usebelowpct=20, condition=function(ability) return conditions.targetHPBelow(ability) and conditions.withinMeleeDistance(ability) end})) -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
-
+    -- DPS
+    {
+        Type='Disc',
+        Group='',
+        Names={'Spiraling Blades', 'Vortex Blade', 'Cyclone Blade'},
+        Options={aedps=true, threshold=3, condition=conditions.aboveMobThreshold}
+    },
+    {
+        Type='AA',
+        Name='Rampage',
+        Options={aedps=true, threshold=5, condition=conditions.aboveMobThreshold}
+    },
+    {
+        Type='Skill',
+        Name='Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Shield Splinter'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Throat Jab'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Knuckle Break'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Gut Punch',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Knee Strike',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    { -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
+        Type='Disc',
+        Group='',
+        Names={'Decisive Strike', 'Exploitive Strike'},
+        Options={dps=true, usebelowpct=20, condition=function(ability) return conditions.targetHPBelow(ability) and conditions.withinMeleeDistance(ability) end}
+    },
     --table.insert(self.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
-    table.insert(self.burnAbilities, common.getBestDisc({'Offensive Discipline'})) -- 4min cd, timer 2, increased offensive capabilities
+    { -- 4min cd, timer 2, increased offensive capabilities
+        Type='Disc',
+        Group='',
+        Names={'Offensive Discipline'},
+        Options={first=true}
+    },
+    { -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
+        Type='AA',
+        Name='War Sheol\'s Heroic Blade',
+        Options={first=true}
+    },
 
-    table.insert(self.burnAbilities, self:addAA('War Sheol\'s Heroic Blade')) -- 15min cd, 3 2HS attacks, crit % and dmg buff for 1 min
-end
-
-function Warrior:initBuffs()
-    -- Buffs and Other
-    table.insert(self.recoverAbilities, common.getBestDisc({'Breather'}, {combat=false, endurance=true, threshold=20, condition=function(ability) return mq.TLO.Me.PctEndurance() <= config.get('RECOVERPCT') and (ability.combat or mq.TLO.Me.CombatState() ~= 'COMBAT') end}))
-
-    self.leap = self:addAA('Battle Leap', {opt='USEBATTLELEAP', maxdistance=30, delay=500, combat=false, condition=function(ability) return false end})
-    table.insert(self.auras, common.getBestDisc({'Champion\'s Aura', 'Myrmidon\'s Aura'}, {aurabuff=true}))
-    table.insert(self.combatBuffs, common.getBestDisc({'Field Bulwark', 'Full Moon\'s Champion', 'Field Armorer'}, {condition=conditions.missingBuff, combatbuff=true}))
-    table.insert(self.combatBuffs, self:addAA('Imperator\'s Command', {combatbuff=true}))
-
-    table.insert(self.selfBuffs, self:addAA('Infused by Rage', {selfbuff=true}))
-
-    if not state.emu then
-        table.insert(self.selfBuffs, common.getItem('Huntsman\'s Ethereal Quiver', {summonMinimum=101, condition=conditions.summonMinimum, selfbuff=true}))
-        table.insert(self.combatBuffs, common.getBestDisc({'Commanding Voice'}, {combatbuff=true}))
-    end
-end
+    -- Buffs
+    {
+        Type='Disc',
+        Group='',
+        Names={'Breather'},
+        Options={recover=true, combat=false, endurance=true, threshold=20, condition=function(ability) return mq.TLO.Me.PctEndurance() <= config.get('RECOVERPCT') and (ability.combat or mq.TLO.Me.CombatState() ~= 'COMBAT') end}
+    },
+    {
+        Type='AA',
+        Name='Battle Leap',
+        Options={key='leap', combatbuff=true, opt='USEBATTLELEAP', maxdistance=30, delay=500, combat=false, condition=function(ability) return false end}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Champion\'s Aura', 'Myrmidon\'s Aura'},
+        Options={aurabuff=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Field Bulwark', 'Full Moon\'s Champion', 'Field Armorer'},
+        Options={condition=conditions.missingBuff, combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Imperator\'s Command',
+        Options={combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Infused by Rage',
+        Options={selfbuff=true}
+    },
+    {
+        Type='Item',
+        Name='Huntsman\'s Ethereal Quiver',
+        Options={summonMinimum=101, condition=conditions.summonMinimum, selfbuff=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Commanding Voice'},
+        Options={combatbuff=not state.emu and true or false}
+    },
+}
 
 function Warrior:ohShitClass()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then

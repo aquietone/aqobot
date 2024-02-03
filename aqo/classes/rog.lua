@@ -58,9 +58,7 @@ function Rogue:init()
 
     self:initClassOptions()
     self:loadSettings()
-    self:initDPSAbilities()
-    self:initBurns()
-    self:initBuffs()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.useCommonListProcessor = true
@@ -70,32 +68,101 @@ function Rogue:initClassOptions()
     self:addOption('USEEVADE', 'Evade', true, nil, 'Hide and backstab on engage', 'checkbox', nil, 'UseEvade', 'bool')
 end
 
-function Rogue:initDPSAbilities()
-    table.insert(self.DPSAbilities, common.getSkill('Kick', {conditions=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getSkill('Backstab', {conditions=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, self:addAA('Twisted Shank', {conditions=conditions.withinMeleeDistance}))
-    table.insert(self.DPSAbilities, common.getBestDisc({'Assault', {conditions=conditions.withinMeleeDistance}}))
-    table.insert(self.DPSAbilities, self:addAA('Ligament Slice', {conditions=conditions.withinMeleeDistance}))
-end
+Rogue.Abilities = {
+    {
+        Type='Skill',
+        Name='Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='Skill',
+        Name='Backstab',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Twisted Shank',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Group='',
+        Names={'Assault'},
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
+    {
+        Type='AA',
+        Name='Ligament Slice',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
 
-function Rogue:initBurns()
-    table.insert(self.burnAbilities, self:addAA('Rogue\'s Fury'))
-    --table.insert(self.burnAbilities, common.getBestDisc({'Poison Spikes Trap'}))
-    table.insert(self.burnAbilities, common.getBestDisc({'Duelist Discipline'}))
-    table.insert(self.burnAbilities, common.getBestDisc({'Deadly Precision Discipline'}))
-    table.insert(self.burnAbilities, common.getBestDisc({'Frenzied Stabbing Discipline'}))
-    table.insert(self.burnAbilities, common.getBestDisc({'Twisted Chance Discipline'}))
-    table.insert(self.burnAbilities, self:addAA('Fundament: Third Spire of the Rake'))
-    table.insert(self.burnAbilities, self:addAA('Dirty Fighting'))
-end
+    {
+        Type='AA',
+        Name='Rogue\'s Fury',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Group='',
+        Names={'Duelist Discipline'},
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Group='',
+        Names={'Deadly Precision Discipline'},
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Group='',
+        Names={'Frenzied Stabbing Discipline'},
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Group='',
+        Names={'Twisted Chance Discipline'},
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Third Spire of the Rake',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Dirty Fighting',
+        Options={first=true}
+    },
 
-function Rogue:initBuffs()
-    table.insert(self.combatBuffs, self:addAA('Envenomed Blades', {combatbuff=true}))
-    table.insert(self.combatBuffs, common.getBestDisc({'Brigand\'s Gaze', 'Thief\'s Eyes'}, {combatbuff=true}))
-    table.insert(self.combatBuffs, common.getItem('Fatestealer', {CheckFor='Assassin\'s Taint', combatbuff=true}))
-    table.insert(self.selfBuffs, self:addAA('Sleight of Hand', {selfbuff=true}))
-    table.insert(self.selfBuffs, common.getItem('Faded Gloves of the Shadows', {CheckFor='Strike Poison', {selfbuff=true}}))
-end
+    {
+        Type='AA',
+        Name='Envenomed Blades',
+        Options={combatbuff=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Brigand\'s Gaze', 'Thief\'s Eyes'},
+        Options={combatbuff=true}
+    },
+    {
+        Type='Item',
+        Name='Fatestealer',
+        Options={CheckFor='Assassin\'s Taint', combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Sleight of Hand',
+        Options={selfbuff=true}
+    },
+    {
+        Type='Item',
+        Name='Faded Gloves of the Shadows',
+        Options={CheckFor='Strike Poison', selfbuff=true}
+    },
+}
 
 function Rogue:beforeEngage()
     if self:isEnabled('USEEVADE') and not mq.TLO.Me.Combat() and mq.TLO.Target.ID() == state.assistMobID then

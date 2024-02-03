@@ -56,11 +56,7 @@ function Paladin:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initHeals()
-    self:initTankAbilities()
-    self:initDPSAbilities()
-    self:initBuffs()
-    self:initCures()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.rezStick = common.getItem('Staff of Forbidden Rites')
@@ -109,12 +105,12 @@ Paladin.SpellLines = {
     {
         Group='groupheal',
         Spells={'Wave of Penitence'},
-        Options={Gem=7, threshold=2, group=true},
+        Options={Gem=7, threshold=2, heal=true, group=true},
     },
     {
         Group='grouphealfast',
         Spells={'Aurora of Daybreak'},
-        Options={Gem=8, threshold=2, group=true},
+        Options={Gem=8, threshold=2, heal=true, group=true},
     },
     {
         Group='challenge',
@@ -178,70 +174,162 @@ function Paladin:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.stun3)
 end
 
-function Paladin:initTankAbilities()
-    table.insert(self.tankAbilities, sharedabilities.getTaunt())
-    table.insert(self.tankAbilities, common.getBestDisc({'Defy'}))
-    table.insert(self.tankAbilities, self:addAA('Disruptive Persecution', {})) -- DD + agro + interrupt, mash
-    table.insert(self.tankAbilities, self:addAA('Force of Disruption', {})) -- agro + interrupt, mash
-    table.insert(self.tankAbilities, self:addAA('Projection of Piety', {opt='USEPROJECTION'})) -- agro generating swarm pet
+Paladin.Abilities = {
+    {
+        Type='Skill',
+        Name='Taunt',
+        Options={tanking=true, aggro=true, condition=conditions.lowAggroInMelee}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Defy'},
+        Options={tanking=true}
+    },
+    { -- DD + agro + interrupt, mash
+        Type='AA',
+        Name='Disruptive Persecution',
+        Options={tanking=true}
+    },
+    { -- agro + interrupt, mash
+        Type='AA',
+        Name='Force of Disruption',
+        Options={tanking=true}
+    },
+    { -- agro generating swarm pet
+        Type='AA',
+        Name='Projection of Piety',
+        Options={tanking=true, opt='USEPROJECTION'}
+    },
+    { -- pbae stun/agro, 5m cd, timer 30
+        Type='AA',
+        Name='Beacon of the Righteous',
+        Options={aetank=true, threshold=3}
+    },
+    { -- pbae stun/agro, 5m cd, timer 36
+        Type='AA',
+        Name='Hallowed Lodestar',
+        Options={aetank=true, threshold=3}
+    },
+    {
+        Type='AA',
+        Name='Ageless Enmity',
+        Options={tankburn=true, aggro=true, condition=conditions.lowAggroInMelee}
+    },
+    { -- agro + pull mob in, 2m cd, timer 14
+        Type='AA',
+        Name='Divine Call',
+        Options={tanking=true, opt='USEATTRACTION', key='attraction'}
+    },
 
-    table.insert(self.AETankAbilities, self:addAA('Beacon of the Righteous', {threshold=3})) -- pbae stun/agro, 5m cd, timer 30
-    table.insert(self.AETankAbilities, self:addAA('Hallowed Lodestar', {threshold=3})) -- pbae stun/agro, 5m cd, timer 36
+    -- DPS
+    {
+        Type='Skill',
+        Name='Bash',
+        Options={dps=true, condition=conditions.useBash}
+    },
 
-    table.insert(self.tankBurnAbilities, self:addAA('Ageless Enmity', {aggro=true, condition=conditions.lowAggroInMelee})) -- 
+    -- Burn
+    { -- 35% dmg absorb, 15m cd, 1m duration
+        Type='Disc',
+        Group='',
+        Names={'Exalted Mantle'},
+        Options={first=true}
+    },
+    { -- 20% dmg absorb, stun attackers, 7.5m cd, 2m duration
+        Type='Disc',
+        Group='',
+        Names={'Armor of Courage'},
+        Options={first=true}
+    },
+    { -- inc incoming instant heal effectiveness for 1m, 15m cd, timer 10
+        Type='AA',
+        Name='Armor of the Inquisitor',
+        Options={first=true}
+    },
+    { -- inc incoming instant heal effectiveness for 2min to group, 20m cd, timer 8
+        Type='AA',
+        Name='Group Armor of the Inquisitor',
+        Options={first=true}
+    },
+    { -- twincast heals, 15m cd, timer 35
+        Type='AA',
+        Name='Hand of Tunare',
+        Options={first=true}
+    },
+    { -- dps burn, dd + agro reducer proc, 12m cd, timer 52
+        Type='AA',
+        Name='Inquisitor\'s Judgement',
+        Options={first=true}
+    },
+    { -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
+        Type='AA',
+        Name='Spire of Chivalry',
+        Options={first=true}
+    },
+    { -- inc dmg of spells and crit chance, 9m cd, timer 17
+        Type='AA',
+        Name='Thunder of Karana',
+        Options={first=true}
+    },
+    { -- inc base melee dmg and crits, 20m cd, timer 75
+        Type='AA',
+        Name='Valorous Rage',
+        Options={first=true}
+    },
 
-    self.attraction = self:addAA('Divine Call', {opt='USEATTRACTION'}) -- agro + pull mob in, 2m cd, timer 14
+    -- Heals
+    { -- large aoe heal + hot, 24m cd, timer 38
+        Type='AA',
+        Name='Gift of Life',
+        Options={heal=true}
+    },
+    { -- instant group heal, 24m cd, timer 4
+        Type='AA',
+        Name='Hand of Piety',
+        Options={heal=true}
+    },
+    {
+        Type='AA',
+        Name='Lay on Hands',
+        Options={heal=true}
+    },
+    { -- large self hp/mana/end heal, 10m cd, timer 32
+        Type='AA',
+        Name='Marr\'s Gift',
+        Options={heal=true}
+    },
 
-    -- Sort out these ones
-    -- self:addAA('Heroic Leap', {}) -- leap to target + ae agro, 2m cd, timer 9
-    -- self:addAA('Divine Stun', {}) -- kb + stun, mash
-    -- self:addAA('Halt the Dead', {}) -- undead snare
-    -- self:addAA('Vanquish the Fallen', {}) -- large undead nuke, 3m cd, timer 43
-    -- self:addAA('Shield Flash', {}) -- 6 second deflection, 4m cd
-end
+    -- Cures
+    { -- cure target any detrimental, 14m cd, timer 6
+        Type='AA',
+        Name='Blessing of Purification',
+        Options={cure=true, all=true}
+    },
+    { -- remove detrimentals from self, 14m cd, timer 6
+        Type='AA',
+        Name='Purification',
+        Options={cure=true, all=true}
+    },
 
-function Paladin:initDPSAbilities()
-    table.insert(self.DPSAbilities, sharedabilities.getBash())
-end
-
-function Paladin:initBurns()
-    table.insert(self.tankBurnAbilities, common.getBestDisc({'Exalted Mantle'})) -- 35% dmg absorb, 15m cd, 1m duration
-    table.insert(self.tankBurnAbilities, common.getBestDisc({'Armor of Courage'})) -- 20% dmg absorb, stun attackers, 7.5m cd, 2m duration
-
-    self:addAA('Armor of the Inquisitor', {}) -- inc incoming instant heal effectiveness for 1m, 15m cd, timer 10
-    self:addAA('Group Armor of the Inquisitor', {}) -- inc incoming instant heal effectiveness for 2min to group, 20m cd, timer 8
-    self:addAA('Hand of Tunare', {}) -- twincast heals, 15m cd, timer 35
-    self:addAA('Inquisitor\'s Judgement', {}) -- dps burn, dd + agro reducer proc, 12m cd, timer 52
-    self:addAA('Spire of Chivalry', {}) -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
-    self:addAA('Thunder of Karana', {}) -- inc dmg of spells and crit chance, 9m cd, timer 17
-    self:addAA('Valorous Rage', {}) -- inc base melee dmg and crits, 20m cd, timer 75
-end
-
-function Paladin:initHeals()
-    self:addAA('Gift of Life', {}) -- large aoe heal + hot, 24m cd, timer 38
-    self:addAA('Hand of Piety', {}) -- instant group heal, 24m cd, timer 4
-    self:addAA('Lay on Hands', {}) -- 
-    self:addAA('Marr\'s Gift', {}) -- large self hp/mana/end heal, 10m cd, timer 32
-
-    --table.insert(self.healAbilities, self.spells.ohshitheal)
-    table.insert(self.healAbilities, self.spells.groupheal)
-    table.insert(self.healAbilities, self.spells.grouphealfast)
-end
-
-function Paladin:initCures()
-    self:addAA('Blessing of Purification', {}) -- cure target any detrimental, 14m cd, timer 6
-    self:addAA('Purification', {}) -- remove detrimentals from self, 14m cd, timer 6
-end
-
-function Paladin:initBuffs()
-    table.insert(self.selfBuffs, self.spells.selfarmor)
-    table.insert(self.selfBuffs, self.spells.brells)
-    table.insert(self.selfBuffs, self.spells.procbuff)
-    table.insert(self.combatBuffs, self.spells.growth)
-
-    self:addAA('Divine Protector\'s Unity', {}) -- self buffs
-    self:addAA('Marr\'s Salvation', {}) -- reduce groups agro generation, 5m cd, timer 16
-end
+    -- Buffs
+    { -- self buffs
+        Type='AA',
+        Name='Divine Protector\'s Unity',
+        Options={selfbuff=true}
+    },
+    { -- reduce groups agro generation, 5m cd, timer 16
+        Type='AA',
+        Name='Marr\'s Salvation',
+        Options={selfbuff=true}
+    }
+}
+-- Sort out these ones
+-- self:addAA('Heroic Leap', {}) -- leap to target + ae agro, 2m cd, timer 9
+-- self:addAA('Divine Stun', {}) -- kb + stun, mash
+-- self:addAA('Halt the Dead', {}) -- undead snare
+-- self:addAA('Vanquish the Fallen', {}) -- large undead nuke, 3m cd, timer 43
+-- self:addAA('Shield Flash', {}) -- 6 second deflection, 4m cd
 
 function Paladin:mashClass()
     local target = mq.TLO.Target

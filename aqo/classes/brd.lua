@@ -2,6 +2,7 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local assist = require('routines.assist')
+local conditions = require('routines.conditions')
 local logger = require('utils.logger')
 local sharedabilities = require('utils.sharedabilities')
 local timer = require('libaqo.timer')
@@ -30,11 +31,7 @@ function Bard:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initDPSAbilities()
-    self:initBurns()
-    self:initBuffs()
-    self:initDefensiveAbilities()
-    self:initRecoverAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.fierceeye = self:addAA('Fierce Eye')
@@ -72,6 +69,8 @@ function Bard:initClassOptions()
     self:addOption('USEREGENSONG', 'Use Regen Song', false, nil, 'Toggle use of hp/mana regen song line', 'checkbox', nil, 'UseRegenSong', 'bool')
 end
 
+-- melee haste v98 (Bard Haste) (Composition of Ervaj (lvl 60), Melody of Ervaj (lvl 50))
+-- melee haste v119 (BardHaste2) (Aria song line, Aura song line, Echo song line, Warsong)
 Bard.SpellLines = {
     {-- spell dmg, overhaste, flurry, triple atk. Slot 1
         Group='aria',
@@ -95,7 +94,7 @@ Bard.SpellLines = {
     },
     {-- inc fire DD. Slot 3
         Group='firenukebuff',
-        Spells={'Flariton\'s Aria', 'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Nilsara\'s Aria', --[[emu cutoff]] 'Rizlona\'s Fire', 'Rizlona\'s Embers'},
+        Spells={'Flariton\'s Aria', 'Constance\'s Aria', 'Sontalak\'s Aria', 'Quinard\'s Aria', 'Nilsara\'s Aria', --[[emu cutoff]] 'Yelhun\'s Mystic Call', 'Rizlona\'s Fire', 'Rizlona\'s Embers'},
         Options={Gem=function() return Bard:get('SPELLSET') == 'caster' and 3 or nil end}
     },
     {-- fire dot. Slot 3
@@ -115,7 +114,7 @@ Bard.SpellLines = {
     },
     {-- haste, atk, ds. Slot 6
         Group='warmarch',
-        Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'War March of Jocelyn', --[[emu cutoff]] },
+        Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'War March of Jocelyn', --[[emu cutoff]] 'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'},
         Options={Gem=6}
     },
     {-- spell shield, AC, dmg mitigation. Slot 7
@@ -191,6 +190,205 @@ Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissid
 Bard.allDPSSpellGroups = {'aria', 'arcane', 'chantfrost', 'spiteful', 'firenukebuff', 'chantflame', 'suffering', 'insult', 'warmarch', 'sonata', 'firemagicdotbuff', 'chantdisease',
     'crescendo', 'pulse', 'composite', 'dirge', 'insultpushback', 'chantpoison', 'alliance', 'overhaste', 'bardhaste', 'emuhaste', 'snare', 'debuff'}
 
+Bard.Abilities = {
+    --[[{
+        Type='AA',
+        Name='Fierce Eye',
+        Options={}
+    },
+    { -- Epic 2.0
+        Type='Item',
+        Name='Blade of Vesagran',
+        Options={}
+    },
+    { -- Epic 1.5
+        Type='Item',
+        Name='Prismatic Dragon Blade',
+        Options={}
+    },
+    { -- single target AA with fulmination
+        Type='AA',
+        Name='Boastful Bellow',
+        Options={}
+    },
+    { -- long AA mez
+        Type='AA',
+        Name='Dirge of the Sleepwalker',
+        Options={}
+    },
+    { -- pull ability
+        Type='AA',
+        Name='Sonic Disturbance',
+        Options={}
+    },
+    { -- pull ability
+        Type='Item',
+        Name='Staff of Viral Flux',
+        Options={}
+    },
+    {
+        Type='AA',
+        Name='Selo\'s Sonata',
+        Options={}
+    },]]
+
+    -- DPS
+    {
+        Type='Disc',
+        Group='reflexive',
+        Names={'Reflexive Rebuttal'},
+        Options={dps=true}
+    },
+    {
+        Type='Skill',
+        Name='Intimidation',
+        Options={opt='USEINTIMIDATE', dps=true}
+    },
+    {
+        Type='Skill',
+        Name='Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance},
+    },
+    {
+        Type='AA',
+        Name='Selo\'s Kick',
+        Options={dps=true}
+    },
+
+    -- AE DPS
+    { -- aoe aa
+        Type='AA',
+        Name='Vainglorious Shout',
+        Options={aedps=true, threshold=3}
+    },
+
+    -- Burns
+    {
+        Type='Item',
+        Name=mq.TLO.InvSlot('Chest').Item.Name(),
+        Options={first=true}
+    },
+    {
+        Type='Item',
+        Name='Rage of Rolfron',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Quick Time',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Funeral Dirge',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Spire of the Minstrels',
+        Options={first=true}
+    },
+    {
+        Type='first=true',
+        Name='Third Spire of the Minstrels',
+        Options={emu=true, first=true}
+    },
+    {
+        Type='AA',
+        Name='Bladed Song',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Dance of Blades',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Flurry of Notes',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Frenzied Kicks',
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='thousand',
+        Names={'Thousand Blades'},
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Cacophony',
+        Options={first=true, opt='USECACOPHONY'}
+    },
+    {
+        Type='AA',
+        Name='Lyrical Prankster',
+        Options={first=true, opt='USESWARM', delay=1500}
+    },
+    {
+        Type='AA',
+        Name='Song of Stone',
+        Options={first=true, opt='USESWARM', delay=1500}
+    },
+    {
+        Type='AA',
+        Name='A Tune Stuck In Your Head',
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='puretone',
+        Names={'Puretone Discipline'},
+        Options={first=true}
+    },
+
+    -- Buffs
+    {
+        Type='AA',
+        Name='Sionachie\'s Crescendo',
+        Options={selfbuff=true}
+    },
+
+    -- Defensives and Fade
+    {
+        Type='AA',
+        Name='Shield of Notes',
+        Options={defensive=true}
+    },
+    {
+        Type='AA',
+        Name='Hymn of the Last Stand',
+        Options={defensive=true}
+    },
+    {
+        Type='Disc',
+        Group='deftdance',
+        Names={'Deftdance Discipline'},
+        Options={defensive=true}
+    },
+    {
+        Type='AA',
+        Name='Fading Memories',
+        Options={fade=true, opt='USEFADE', precast=function() mq.cmd('/attack off') end, postcast=function() mq.delay(1000) mq.cmd('/makemevis') mq.cmd('/attack on') end}
+    },
+
+    -- Recover
+    {
+        Type='AA',
+        Name='Rallying Solo',
+        Options={recover=true, mana=true, endurance=true, threshold=20, combat=false, ooc=true}
+    },
+    {
+        Type='AA',
+        Name='Rallying Call',
+        Options={recover=true}
+    },
+}
+
 function Bard:initSpellRotations()
     self:initBYOSCustom()
     if state.emu then
@@ -255,66 +453,6 @@ function Bard:initSpellRotations()
         }
         -- synergy, mezst, mezae
     end
-end
-
-function Bard:initDPSAbilities()
-    table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Rebuttal'}))
-    table.insert(self.DPSAbilities, common.getSkill('Intimidation', {opt='USEINTIMIDATE'}))
-    table.insert(self.DPSAbilities, sharedabilities.getKick())
-    table.insert(self.DPSAbilities, self:addAA('Selo\'s Kick'))
-
-    table.insert(self.AEDPSAbilities, self:addAA('Vainglorious Shout', {threshold=2}))
-end
-
-function Bard:initBurns()
-    table.insert(self.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
-    table.insert(self.burnAbilities, common.getItem('Rage of Rolfron'))
-    table.insert(self.burnAbilities, self:addAA('Quick Time'))
-    table.insert(self.burnAbilities, self:addAA('Funeral Dirge'))
-    if state.emu then
-        table.insert(self.burnAbilities, self:addAA('Third Spire of the Minstrels'))
-    else
-        table.insert(self.burnAbilities, self:addAA('Spire of the Minstrels'))
-    end
-    table.insert(self.burnAbilities, self:addAA('Bladed Song'))
-    table.insert(self.burnAbilities, self:addAA('Dance of Blades'))
-    table.insert(self.burnAbilities, self:addAA('Flurry of Notes'))
-    table.insert(self.burnAbilities, self:addAA('Frenzied Kicks'))
-    table.insert(self.burnAbilities, common.getBestDisc({'Thousand Blades'}))
-    table.insert(self.burnAbilities, self:addAA('Cacophony', {opt='USECACOPHONY'}))
-    -- Delay after using swarm pet AAs while pets are spawning
-    table.insert(self.burnAbilities, self:addAA('Lyrical Prankster', {opt='USESWARM', delay=1500}))
-    table.insert(self.burnAbilities, self:addAA('Song of Stone', {opt='USESWARM', delay=1500}))
-
-    table.insert(self.burnAbilities, self:addAA('A Tune Stuck In Your Head'))
-    table.insert(self.burnAbilities, common.getBestDisc({'Puretone Discipline'}))
-end
-
-function Bard:initBuffs()
-    table.insert(self.auras, self.spells.aura)
-    table.insert(self.selfBuffs, self:addAA('Sionachie\'s Crescendo', {selfbuff=true}))
-end
-
-function Bard:initDefensiveAbilities()
-    table.insert(self.defensiveAbilities, self:addAA('Shield of Notes'))
-    table.insert(self.defensiveAbilities, self:addAA('Hymn of the Last Stand'))
-    table.insert(self.defensiveAbilities, common.getBestDisc({'Deftdance Discipline'}))
-
-    -- Aggro
-    local preFade = function() mq.cmd('/attack off') end
-    local postFade = function()
-        mq.delay(1000)
-        mq.cmd('/makemevis')
-        mq.cmd('/attack on')
-    end
-    table.insert(self.fadeAbilities, self:addAA('Fading Memories', {opt='USEFADE', precase=preFade, postcast=postFade}))
-end
-
-function Bard:initRecoverAbilities()
-    -- Mana Recovery AAs
-    self.rallyingsolo = self:addAA('Rallying Solo', {mana=true, endurance=true, threshold=20, combat=false, ooc=true})
-    table.insert(self.recoverAbilities, self.rallyingsolo)
-    self.rallyingcall = self:addAA('Rallying Call')
 end
 
 local selosTimer = timer:new(30000)

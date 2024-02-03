@@ -4,6 +4,7 @@ local class = require('classes.classbase')
 local config = require('interface.configuration')
 local assist = require('routines.assist')
 local camp = require('routines.camp')
+local conditions = require('routines.conditions')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
@@ -29,11 +30,7 @@ function Ranger:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initBurns()
-    self:initDPSAbilities()
-    self:initBuffs()
-    self:initDebuffs()
-    self:initDefensiveAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
 end
 
@@ -149,14 +146,14 @@ Ranger.SpellLines = {
     {Group='ds', Spells={'Shield of Needlespikes', 'Shield of Shadethorns'}}, -- DS
     {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true}}, -- self rune + debuff proc
     {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
-    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE'}},
-    {Group='dispel', Spells={'Nature\'s Balance'}, Options={opt='USEDISPEL'}},
+    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE', debuff=true}},
+    {Group='dispel', Spells={'Nature\'s Balance'}, Options={opt='USEDISPEL', debuff=true}},
     -- Maelstrom of Blades, 4x 1h slash
     -- Jolting Emberquartz, add proc decrease hate
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light'}},
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light'}, Options={heal=true, regular=true}},
 }
 
 Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
@@ -188,95 +185,195 @@ function Ranger:initSpellRotations()
     table.insert(self.combat_heal_spells, self.spells.healtot2) -- replacing in main spell lineup with self rune buff
 end
 
-function Ranger:initDPSAbilities()
-    table.insert(self.DPSAbilities, self:addAA('Elemental Arrow')) -- inc dmg from fire+ice nukes, 1min CD
-
-    table.insert(self.DPSAbilities, common.getBestDisc({'Focused Blizzard of Blades'})) -- 4x arrows, 12s CD, timer 6
-    table.insert(self.DPSAbilities, common.getBestDisc({'Reflexive Rimespurs'})) -- 4x melee attacks + group HoT, 10min CD, timer 19
+Ranger.Abilities = {
+    -- DPS
+    { -- inc dmg from fire+ice nukes, 1min CD
+        Type='AA',
+        Name='Elemental Arrow',
+        Options={dps=true}
+    },
+    { -- 4x arrows, 12s CD, timer 6
+        Type='Disc',
+        Group='',
+        Names={'Focused Blizzard of Blades'},
+        Options={dps=true}
+    },
+    { -- 4x melee attacks + group HoT, 10min CD, timer 19
+        Type='Disc',
+        Group='',
+        Names={'Reflexive Rimespurs'},
+        Options={dps=true}
+    },
     -- table.insert(mashDiscs, self:addAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
-    -- Enraging Drop Kicks, increase hate?
-    table.insert(self.DPSAbilities, common.getBestDisc({'Jolting Drop Kicks', 'Jolting Roundhouse Kicks', 'Jolting Snapkicks'})) -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+    { -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
+        Type='Disc',
+        Group='',
+        Names={'Jolting Drop Kicks', 'Jolting Roundhouse Kicks', 'Jolting Snapkicks'},
+        Options={dps=true}
+    },
+    {
+        Type='Skill',
+        Name='Kick',
+        Options={dps=true, condition=conditions.withinMeleeDistance}
+    },
 
-    table.insert(self.DPSAbilities, common.getSkill('Kick'))
-end
-
-function Ranger:initBurns()
-    -- entries in the AAs table are pairs of {aa name, aa id}
-    if state.emu then
-        table.insert(self.burnAbilities, self:addAA('Fundament: First Spire of the Pathfinders'))
-    else
-        table.insert(self.burnAbilities, self:addAA('Spire of the Pathfinders')) -- 7.5min CD
-    end
-
-    table.insert(self.burnAbilities, self:addAA('Auspice of the Hunter'))
-    table.insert(self.burnAbilities, self:addAA('Pack Hunt')) -- swarm pets, 15min CD
-    table.insert(self.burnAbilities, self:addAA('Empowered Blades')) -- melee dmg burn, 10min CD
-    table.insert(self.burnAbilities, self:addAA('Guardian of the Forest')) -- base dmg, atk, overhaste, 6min CD
-    table.insert(self.burnAbilities, self:addAA('Group Guardian of the Forest')) -- base dmg, atk, overhaste, 10min CD
-    table.insert(self.burnAbilities, self:addAA('Outrider\'s Accuracy')) -- base dmg, accuracy, atk, crit dmg, 5min CD
-    table.insert(self.burnAbilities, self:addAA('Imbued Ferocity')) -- 100% wep proc chance, 8min CD
-    table.insert(self.burnAbilities, self:addAA('Silent Strikes')) -- silent casting
-    table.insert(self.burnAbilities, self:addAA('Scarlet Cheetah\'s Fang')) -- does what?, 20min CD
+    -- Burns
+    { -- 7.5min CD
+        Type='AA',
+        Name='Spire of the Pathfinders',
+        Options={first=true}
+    },
+    { -- 7.5min CD
+        Type='AA',
+        Name='Fundament: First Spire of the Pathfinders',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Auspice of the Hunter',
+        Options={first=true, alias='AUSPICE'}
+    },
+    { -- swarm pets, 15min CD
+        Type='AA',
+        Name='Pack Hunt',
+        Options={first=true}
+    },
+    { -- melee dmg burn, 10min CD
+        Type='AA',
+        Name='Empowered Blades',
+        Options={first=true}
+    },
+    { -- base dmg, atk, overhaste, 6min CD
+        Type='AA',
+        Name='Guardian of the Forest',
+        Options={first=true}
+    },
+    { -- base dmg, atk, overhaste, 10min CD
+        Type='AA',
+        Name='Group Guardian of the Forest',
+        Options={first=true}
+    },
+    { -- base dmg, accuracy, atk, crit dmg, 5min CD
+        Type='AA',
+        Name='Outrider\'s Accuracy',
+        Options={first=true}
+    },
+    { -- 100% wep proc chance, 8min CD
+        Type='AA',
+        Name='Imbued Ferocity',
+        Options={first=true}
+    },
+    { -- silent casting
+        Type='AA',
+        Name='Silent Strikes',
+        Options={first=true}
+    },
+    { -- does what?, 20min CD
+        Type='AA',
+        Name='Scarlet Cheetah\'s Fang',
+        Options={first=true}
+    },
     --table.insert(self.burnAbilities, common.getBestDisc({'Warder\'s Wrath'}))
-    table.insert(self.burnAbilities, self:addAA('Poison Arrows', {nodmz=true}))--{opt='USEPOISONARROW', nodmz=true}))
-    self.meleeBurnDiscs = {}
-    table.insert(self.meleeBurnDiscs, common.getBestDisc({'Fernstalker\'s Discipline', 'Dusksage Stalker\'s Discipline'})) -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
-    self.rangedBurnDiscs = {}
-    table.insert(self.rangedBurnDiscs, common.getBestDisc({'Pureshot Discipline'})) -- bow dmg buff, 1hr7min CD, timer 2
-end
+    {
+        Type='AA',
+        Name='Poison Arrows',
+        Options={first=true, nodmz=true} -- opt='USEPOISONARROW'
+    },
+    { -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
+        Type='Disc',
+        Group='',
+        Names={'Fernstalker\'s Discipline', 'Dusksage Stalker\'s Discipline'},
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Pureshot Discipline'},
+        Options={rangedburn=true}
+    },
 
-function Ranger:initBuffs()
-    table.insert(self.selfBuffs, self:addAA('Outrider\'s Evasion', {selfbuff=true}))
-    table.insert(self.selfBuffs, self:addAA('Bulwark of the Brownies', {selfbuff=true})) -- 10m cd, 4min buff procs 100% parry below 50% HP
-    table.insert(self.selfBuffs, self:addAA('Chameleon\'s Gift', {selfbuff=true})) -- 5min cd, 3min buff procs hate reduction below 50% HP
-    self.protection = self:addAA('Protection of the Spirit Wolf') -- 20min cd, large rune
-    self.unity_azia = self:addAA('Wildstalker\'s Unity (Azia)')
+    -- Buffs
+    {
+        Type='AA',
+        Name='Outrider\'s Evasion',
+        Options={selfbuff=true}
+    },
+    { -- 10m cd, 4min buff procs 100% parry below 50% HP
+        Type='AA',
+        Name='Bulwark of the Brownies',
+        Options={selfbuff=true}
+    },
+    { -- 5min cd, 3min buff procs hate reduction below 50% HP
+        Type='AA',
+        Name='Chameleon\'s Gift',
+        Options={selfbuff=true}
+    },
+    { -- 20min cd, large rune
+        Type='AA',
+        Name='Protection of the Spirit Wolf',
+        Options={key='protection'}
+    },
     --Slot 1: 	Devastating Barrage
     --Slot 2: 	Steeled by the Hunt
     --Slot 3: 	Protection of the Valley
     --Slot 4: 	Eyes of the Senshali
     --Slot 5: 	Moonthorn Coat
-    if state.emu then
-        table.insert(self.selfBuffs, self.spells.eyes)
-        --table.insert(self.selfBuffs, self.spells.protection)
-        table.insert(self.selfBuffs, self.spells.blades)
-        table.insert(self.selfBuffs, self.spells.predator)
-        table.insert(self.selfBuffs, self.spells.strength)
-        table.insert(self.combatBuffs, common.getBestDisc({'Trueshot Discipline'}, {combatbuff=true}))
-        table.insert(self.healAbilities, self.spells.heal)
-        table.insert(self.selfBuffs, self.spells.buffs)
-    else
-        table.insert(self.selfBuffs, self:addAA('Wildstalker\'s Unity (Azia)', {opt='USEUNITYAZIA', CheckFor='Devastating Barrage', selfbuff=true}))
-        table.insert(self.selfBuffs, self:addAA('Wildstalker\'s Unity (Beza)', {opt='USEUNITYBEZA', CheckFor='Vociferous Blades', selfbuff=true}))
-        table.insert(self.selfBuffs, self.spells.rune)
-    end
-    self.unity_beza = self:addAA('Wildstalker\'s Unity (Beza)')
+    {
+        Type='AA',
+        Name='Wildstalker\'s Unity (Azia)',
+        Options={selfbuff=true, opt='USEUNITYAZIE', CheckFor='Devastating Barrage'}
+    },
     --Slot 1: 	Vociferous Blades
     --Slot 2: 	Steeled by the Hunt
     --Slot 3: 	Protection of the Valley
     --Slot 4: 	Eyes of the Senshali
     --Slot 5: 	Moonthorn Coat
-    
-    table.insert(self.selfBuffs, self:addAA('Poison Arrows', {opt='USEPOISONARROW', nodmz=true, selfbuff=true}))
-    table.insert(self.selfBuffs, self:addAA('Flaming Arrows', {opt='USEFIREARROW', nodmz=true, selfbuff=true}))
+    {
+        Type='AA',
+        Name='Wildstalker\'s Unity (Beza)',
+        Options={selfbuff=true, opt='USEUNITYBEZA', CheckFor='Vociferous Blades'}
+    },
+    {
+        Type='Disc',
+        Group='',
+        Names={'Trueshot Discipline'},
+        Options={emu=true, combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Poison Arrows',
+        Options={opt='USEPOISONARROW', nodmz=true, selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Flaming Arrows',
+        Options={opt='USEFIREARROW', nodmz=true, selfbuff=true}
+    },
 
-    table.insert(self.selfBuffs, self.spells.dmgbuff)
-    self.auspice = self:addAA('Auspice of the Hunter', {alias='AUSPICE'})
-end
+    -- Debuffs
+    {
+        Type='AA',
+        Name='Entropy of Nature',
+        Options={opt='USEDISPEL', debuff=true}
+    },
+    {
+        Type='AA',
+        Name='Entrap',
+        Options={opt='USESNARE', debuff=true}
+    },
 
-function Ranger:initDebuffs()
-    table.insert(self.debuffs, self:addAA('Entropy of Nature', {opt='USEDISPEL'}) or self.spells.dispel)
-    table.insert(self.debuffs, self:addAA('Entrap', {opt='USESNARE'}) or self.spells.snare)
-end
-
-function Ranger:initDefensiveAbilities()
-    local postCT = function()
-        mq.delay(1000)
-        mq.cmd('/makemevis')
-    end
-    table.insert(self.fadeAbilities, self:addAA('Cover Tracks', {opt='USEFADE', postcast=postCT}))
-    table.insert(self.defensiveAbilities, self:addAA('Outrider\'s Evasion')) -- 7min cd, 85% avoidance, 10% absorb
-end
+    -- Defensives
+    { -- 7min cd, 85% avoidance, 10% absorb
+        Type='AA',
+        Name='Outrider\'s Evasion',
+        Options={defensive=true}
+    },
+    {
+        Type='AA',
+        Name='Cover Tracks',
+        Options={fade=true, opt='USEFADE', postcast=function() mq.delay(1000) mq.cmd('/makemevis') end}
+    },
+}
 
 local rangedTimer = timer:new(5000)
 function Ranger:resetClassTimers()
@@ -463,11 +560,11 @@ end
 ]]--
 function Ranger:burnClass()
     if mq.TLO.Me.Combat() then
-        for _,disc in ipairs(self.meleeBurnDiscs) do
+        for _,disc in ipairs(self.burnAbilities) do
             disc:use()
         end
     elseif mq.TLO.Me.AutoFire() then
-        for _,disc in ipairs(self.rangedBurnDiscs) do
+        for _,disc in ipairs(self.rangedBurnAbilities) do
             disc:use()
         end
     end

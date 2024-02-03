@@ -24,10 +24,7 @@ function Enchanter:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initBuffs()
-    self:initBurns()
-    self:initDebuffs()
-    self:initDefensiveAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.mezbeam = self:addAA('Beam of Slumber')
@@ -95,7 +92,7 @@ Enchanter.SpellLines = {
     {-- Slot 1
         Group='tash',
         Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', 'Enunciation of Tashan', 'Declaration of Tashan', 'Clamor of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan'},
-        Options={opt='USEDEBUFF', Gem=1}
+        Options={debuff=true, opt='USEDEBUFF', Gem=1}
     },
     {-- Slot 2
         Group='charm',
@@ -136,7 +133,7 @@ Enchanter.SpellLines = {
     {-- single target dmg proc buff. Slot 9
         Group='procbuff',
         Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Replication', 'Mana Repetition', 'Mana Reciprocation', 'Mana Reverberation', 'Mana Repercussion', 'Mana Reiteration', --[[emu cutoff]] 'Mana Recursion', 'Mana Flare'},
-        Options={swap=false, Gem=9, singlebuff=true, selfbuff=true}
+        Options={swap=false, Gem=9, singlebuff=true, selfbuff=true, classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}}
     },
     {-- extra dot. Slot 10
         Group='dot2',
@@ -208,28 +205,195 @@ Enchanter.SpellLines = {
     {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', }},
     {Group='pethaste', Spells={'Invigorated Minion'}, Options={petbuff=true}},
     -- buffs
-    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Voice of Quellious'}, Options={alias='SINGLEKEI'}},
-    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Voice of Clairvoyance', 'Voice of Quellious'}, Options={alias='KEI'}},
-    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak',}, Options={alias='SINGLEHASTE'}}, -- single target buff
+    {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI', selfbuff=true}},
+    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Voice of Clairvoyance', 'Voice of Quellious'}, Options={alias='KEI', selfbuff=function() return not Enchanter.spells.unified and true or false end}},
+    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Voice of Quellious'}, Options={alias='SINGLEKEI', selfbuff=function() return (not Enchanter.spells.unified and not Enchanter.spells.keigroup) and true or false end}},
     {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar', 'Hastening of Milyex', 'Hastening of Prokev', 'Hastening of Sviir', 'Hastening of Aransir', 'Hastening of Novak'}, Options={alias='HASTE'}}, -- group haste
+    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak',}, Options={alias='SINGLEHASTE'}}, -- single target buff
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
-    {Group='twincast', Spells={'Twincast Aura'}, Options={aurabuff=true, condition=function() return Enchanter.get('AURA1') == Enchanter.spells.twincast.Name or Enchanter.get('AURA2') == Enchanter.spells.twincast.Name end}},
-    {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}, Options={aurabuff=true, condition=function() return Enchanter.get('AURA1') == Enchanter.spells.regen.Name or Enchanter.get('AURA2') == Enchanter.spells.regen.Name end}}, -- mana + end regen aura
-    {Group='spellfocus', Spells={'Intensifying Aura', 'Enhancing Aura', 'Fortifying Aura'}, Options={aurabuff=true, condition=function() return Enchanter.get('AURA1') == Enchanter.spells.spellfocus.Name or Enchanter.get('AURA2') == Enchanter.spells.spellfocus.Name end}}, -- increase dmg of DDs
-    {Group='combatinnate', Spells={'Mana Ripple Aura', 'Mana Radix Aura', 'Mana Replication Aura'}, Options={aurabuff=true, condition=function() return Enchanter.get('AURA1') == Enchanter.spells.combatinnate.Name or Enchanter.get('AURA2') == Enchanter.spells.combatinnate.Name end}}, -- dmg proc on spells, Issuance of Mana Radix == place aura at location
-    {Group='disempower', Spells={'Arcane Disjunction Aura'}, Options={aurabuff=true, condition=function() return Enchanter.get('AURA1') == Enchanter.spells.disempower.Name or Enchanter.get('AURA2') == Enchanter.spells.disempower.Name end}},
+    {Group='twincast', Spells={'Twincast Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.twincast.Name or Enchanter:get('AURA2') == Enchanter.spells.twincast.Name end}},
+    {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.regen.Name or Enchanter:get('AURA2') == Enchanter.spells.regen.Name end}}, -- mana + end regen aura
+    {Group='spellfocus', Spells={'Intensifying Aura', 'Enhancing Aura', 'Fortifying Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.spellfocus.Name or Enchanter:get('AURA2') == Enchanter.spells.spellfocus.Name end}}, -- increase dmg of DDs
+    {Group='combatinnate', Spells={'Mana Ripple Aura', 'Mana Radix Aura', 'Mana Replication Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.combatinnate.Name or Enchanter:get('AURA2') == Enchanter.spells.combatinnate.Name end}}, -- dmg proc on spells, Issuance of Mana Radix == place aura at location
+    {Group='disempower', Spells={'Arcane Disjunction Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.disempower.Name or Enchanter:get('AURA2') == Enchanter.spells.disempower.Name end}},
     -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
     {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'}},
     {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
 
-    {Group='spasm', Spells={'Synapsis Spasm'}, Options={opt='USEDEBUFF', emu=true}},
-    {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI'}},
+    {Group='spasm', Spells={'Synapsis Spasm'}, Options={debuff=true, opt='USEDEBUFF', emu=true}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic'}, Options={opt='USEDISPEL'}},
 }
 
 Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}
 Enchanter.allDPSSpellGroups = {'dot1', 'dot2', 'mindnuke1', 'mindnuke2', 'nuke1', 'nuke2', 'nuke3', 'manadot', 'nukerune', 'debuffdot', 'stunst', 'stunae', 'stunpbae', 'stunaerune'}
+
+Enchanter.Abilities = {
+    -- Burns
+    {
+        Type='Item',
+        Name=mq.TLO.InvSlot('Chest').Item.Name(),
+        Options={first=true}
+    },
+    -- {
+    --     Type='Item',
+    --     Name='Rage of Rolfron',
+    --     Options={first=true}
+    -- },
+    { -- song, 12 minute CD
+        Type='AA',
+        Name='Illusions of Grandeur',
+        Options={first=true}
+    },
+    { -- 20 minute CD, increase crit for 27 spells
+        Type='AA',
+        Name='Calculated Insanity',
+        Options={first=true}
+    },
+    { -- buff, 7:30 minute CD
+        Type='AA',
+        Name='Spire of Enchantment',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Second Spire of Enchantment',
+        Options={first=true}
+    },
+    { -- 15min CD
+        Type='AA',
+        Name='Improved Twincast',
+        Options={first=true}
+    },
+    { -- 15min CD
+        Type='AA',
+        Name='Chromatic Haze',
+        Options={first=true}
+    },
+    { -- 10 minute CD
+        Type='AA',
+        Name='Companion\'s Fury',
+        Options={first=true}
+    },
+    { -- 15 minute CD
+        Type='AA',
+        Name='Companion\'s Fortification',
+        Options={first=true}
+    },
+    { -- decrease melee dmg + DoT
+        Type='AA',
+        Name='Mental Corruption',
+        Options={first=true}
+    },
+
+    -- Debuffs
+    {
+        Type='AA',
+        Name='Eradicate Magic',
+        Options={debuff=true, opt='USEDISPEL'}
+    },
+    {
+        Type='AA',
+        Name='Bite of Tashani',
+        Options={debuff=true, opt='USETASHAOE'}
+    },
+    { -- AE slow on 8 targets
+        Type='AA',
+        Name='Enveloping Helix',
+        Options={debuff=true, opt='USESLOWAOE'}
+    },
+    { -- single target slow
+        Type='AA',
+        Name='Slowing Helix',
+        Options={debuff=true, opt='USESLOW'}
+    },
+    {
+        Type='Item',
+        Name='Serpent of Vindication',
+        Options={debuff=true, opt='USESLOW'}
+    },
+
+    -- Defensive
+    {
+        Type='AA',
+        Name='Self Stasis',
+        Options={fade=true, postcast=function() mq.delay(1000) mq.cmd('/removebuff "Self Stasis"') mq.cmd('/makemevis') end}
+    },
+
+    -- Buffs
+    {
+        Type='AA',
+        Name='Dimensional Shield',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Eldritch Rune',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Glyph Spray',
+        Options={alias='SPRAY'}
+    },
+    { -- group buff, melee/spell shield that procs rune
+        Type='AA',
+        Name='Reactive Rune',
+        Options={selfbuff=true}
+    },
+    { -- absorb dmg using mana
+        Type='AA',
+        Name='Mind over Matter',
+        Options={selfbuff=true, opt='USEMINDOVERMATTER'}
+    },
+    { -- 5min CD, another rune?
+        Type='AA',
+        Name='Veil of Mindshadow',
+        Options={selfbuff=true}
+    },
+    { -- summon clicky mana heal
+        Type='AA',
+        Name='Azure Mind Crystal',
+        Options={key='azure', summonMinimum=1, nodmz=true, selfbuff=true}
+    },
+    { -- summon clicky hp heal
+        Type='AA',
+        Name='Sanguine Mind Crystal',
+        Options={key='sanguine', summonMinimum=1, nodmz=true, selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Auroria Mastery',
+        Options={CheckFor='Aura of Bedazzlement', aurabuff=true}
+    },
+    {
+        Type='Item',
+        Name='Staff of Eternal Eloquence',
+        Options={classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}, singlebuff=true}
+    },
+    {
+        Type='AA',
+        Name='Orator\'s Unity',
+        Options={CheckFor='Ward of the Beguiler', selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Fortify Companion',
+        Options={petbuff=true}
+    },
+
+    -- Recover
+    {
+        Type='AA',
+        Name='Gather Mana',
+        Options={recover=true}
+    },
+    {
+        Type='AA',
+        Name='Mana Draw',
+        Options={recover=true}
+    },
+}
 
 function Enchanter:initSpellRotations()
     self:initBYOSCustom()
@@ -250,86 +414,6 @@ function Enchanter:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.guard)
     table.insert(self.spellRotations.standard, self.spells.nightsterror)
     table.insert(self.spellRotations.standard, self.spells.combatinnate)
-end
-
-function Enchanter:initBurns()
-    table.insert(self.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
-    table.insert(self.burnAbilities, common.getItem('Rage of Rolfron'))
-
-    table.insert(self.burnAbilities, self.silent) -- song, 12 minute CD
-    table.insert(self.burnAbilities, self:addAA('Illusions of Grandeur')) -- 12 minute CD, group spell crit buff
-    table.insert(self.burnAbilities, self:addAA('Calculated Insanity')) -- 20 minute CD, increase crit for 27 spells
-    if state.emu then
-        table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of Enchantment'))
-    else
-        table.insert(self.burnAbilities, self:addAA('Spire of Enchantment')) -- buff, 7:30 minute CD
-    end
-    table.insert(self.burnAbilities, self:addAA('Improved Twincast')) -- 15min CD
-    table.insert(self.burnAbilities, self:addAA('Chromatic Haze')) -- 15min CD
-    table.insert(self.burnAbilities, self:addAA('Companion\'s Fury')) -- 10 minute CD
-    table.insert(self.burnAbilities, self:addAA('Companion\'s Fortification')) -- 15 minute CD
-    table.insert(self.burnAbilities, self:addAA('Mental Corruption')) -- decrease melee dmg + DoT
-end
-
-function Enchanter:initBuffs()
-    self.shield = self:addAA('Dimensional Shield')
-    self.rune = self:addAA('Eldritch Rune', {selfbuff=true})
-    self.grouprune = self:addAA('Glyph Spray')
-    self.reactiverune = self:addAA('Reactive Rune') -- group buff, melee/spell shield that procs rune
-    self.manarune = self:addAA('Mind over Matter') -- absorb dmg using mana
-    self.veil = self:addAA('Veil of Mindshadow', {selfbuff=true}) -- 5min CD, another rune?
-
-    -- Mana Recovery AAs
-    self.azure = self:addAA('Azure Mind Crystal', {summonMinimum=1, nodmz=true, selfbuff=true}) -- summon clicky mana heal
-    self.gathermana = self:addAA('Gather Mana')
-    self.manadraw = self:addAA('Mana Draw')
-    self.sanguine = self:addAA('Sanguine Mind Crystal', {summonMinimum=1, nodmz=true, selfbuff=true}) -- summon clicky hp heal
-
-    table.insert(self.selfBuffs, self.spells.guard)
-    table.insert(self.selfBuffs, self.spells.stunaerune)
-    table.insert(self.selfBuffs, self.rune)
-    table.insert(self.selfBuffs, self.veil)
-    table.insert(self.selfBuffs, self.sanguine)
-    table.insert(self.selfBuffs, self.azure)
-
-    table.insert(self.petBuffs, self.spells.pethaste)
-    table.insert(self.petBuffs, self:addAA('Fortify Companion', {petbuff=true}))
-    if state.emu then
-        table.insert(self.auras, self:addAA('Auroria Mastery', {CheckFor='Aura of Bedazzlement', aurabuff=true}))
-        if self.spells.procbuff then self.spells.procbuff.classes = {MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true} end
-        table.insert(self.singleBuffs, self.spells.procbuff)
-        table.insert(self.selfBuffs, self.spells.procbuff)
-        local epic = common.getItem('Staff of Eternal Eloquence', {classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}, singlebuff=true})
-        table.insert(self.singleBuffs, epic)
-    else
-        table.insert(self.auras, self.spells[self:get('AURA1')])
-        table.insert(self.selfBuffs, self:addAA('Orator\'s Unity', {CheckFor='Ward of the Beguiler', selfbuff=true}))
-    end
-end
-
-function Enchanter:initDebuffs()
-    --self.debuff = self:addAA('Bite of Tashani')
-    if state.emu then
-        table.insert(self.debuffs, self.spells.dispel)
-        table.insert(self.debuffs, self.spells.tash)
-        table.insert(self.debuffs, common.getItem('Serpent of Vindication', {opt='USESLOW'}))
-        table.insert(self.debuffs, self.spells.spasm)
-    else
-        table.insert(self.debuffs, self:addAA('Eradicate Magic', {opt='USEDISPEL'}))
-        table.insert(self.debuffs, self:addAA('Bite of Tashani', {opt='USETASHAOE'}))
-        table.insert(self.debuffs, self:addAA('Enveloping Helix', {opt='USESLOWAOE'})) -- AE slow on 8 targets
-        table.insert(self.debuffs, self:addAA('Slowing Helix', {opt='USESLOW'})) -- single target slow
-    end
-end
-
-function Enchanter:initDefensiveAbilities()
-    -- Aggro
-    local postStasis = function()
-        mq.delay(1000)
-        mq.cmd('/removebuff "Self Stasis"')
-        mq.cmd('/makemevis')
-    end
-    table.insert(self.fadeAbilities, self:addAA('Self Stasis', {postcast=postStasis}))
 end
 
 local function castSynergy()

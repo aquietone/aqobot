@@ -22,9 +22,7 @@ function Necromancer:init()
     self:initSpellLines()
     self:initSpellRotations()
     self:initBurns()
-    self:initBuffs()
-    self:initDebuffs()
-    self:initDefensiveAbilities()
+    self:initAbilities()
     self:addCommonAbilities()
 
     self.tcclick = common.getItem('Bifold Focus of the Evil Eye')
@@ -41,6 +39,7 @@ function Necromancer:init()
     self.rezAbility = self.convergence
     self.summonCompanion = self:addAA('Summon Companion')
     self.neccount = 1
+    self.debuffTimer = timer:new(30000)
 end
 
 function Necromancer:initClassOptions()
@@ -252,42 +251,148 @@ function Necromancer:initSpellRotations()
     table.insert(self.spellRotations.short, self.spells.ignite)
 end
 
-function Necromancer:initBurns()
-    -- entries in the items table are MQ item datatypes
-    table.insert(self.burnAbilities, common.getItem(mq.TLO.InvSlot('Chest').Item.Name()))
-    table.insert(self.burnAbilities, common.getItem('Rage of Rolfron'))
-    table.insert(self.burnAbilities, common.getItem('Blightbringer\'s Tunic of the Grave')) -- buff, 5 minute CD
+Necromancer.Abilities = {
+    {
+        Type='Item',
+        Name=mq.TLO.InvSlot('Chest').Item.Name(),
+        Options={first=true}
+    },
+    { -- buff, 5 minute CD
+        Type='Item',
+        Name='Blightbringer\'s Tunic of the Grave',
+        Options={first=true}
+    },
     --table.insert(items, common.getItem('Vicious Rabbit')) -- 5 minute CD
     --table.insert(items, common.getItem('Necromantic Fingerbone')) -- 3 minute CD
     --table.insert(items, common.getItem('Amulet of the Drowned Mariner')) -- 5 minute CD
+    { -- buff, 24 minute CD
+        Type='AA',
+        Name='Mercurial Torment',
+        Options={first=true}
+    },
+    { -- buff, 15 minute CD
+        Type='AA',
+        Name='Heretic\'s Twincast',
+        Options={first=true}
+    },
+    { -- buff
+        Type='AA',
+        Name='Spire of Necromancy',
+        Options={first=true}
+    },
+    { -- buff, 7:30 minute CD
+        Type='AA',
+        Name='Fundament: Third Spire of Necromancy',
+        Options={emu=true, first=true}
+    },
+    {
+        Type='AA',
+        Name='Embalmer\'s Carapace',
+        Options={emu=true, first=true}
+    },
+    { -- song, 8:30 minute CD
+        Type='AA',
+        Name='Hand of Death',
+        Options={}
+    },
+    { -- song, Duskfall Empowerment, 10 minute CD
+        Type='AA',
+        Name='Gathering Dusk',
+        Options={}
+    },
+    { -- 10 minute CD
+        Type='AA',
+        Name='Companion\'s Fury',
+        Options={first=true}
+    },
+    { -- 15 minute CD
+        Type='AA',
+        Name='Companion\'s Fortification',
+        Options={first=true}
+    },
+    { -- 10 minute CD
+        Type='AA',
+        Name='Rise of Bones',
+        Options={first=true, delay=1500}
+    },
+    { -- 9 minute CD
+        Type='AA',
+        Name='Swarm of Decay',
+        Options={first=true, delay=1500}
+    },
+    { -- 3 minute CD
+        Type='AA',
+        Name='Wake the Dead',
+        Options={key='wakethedead'}
+    },
+    { -- song, 20 minute CD
+        Type='AA',
+        Name='Funeral Pyre',
+        Options={key='funeralpyre'}
+    },
 
+    -- Buffs
+    {
+        Type='AA',
+        Name='Mortifier\'s Unity',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Gift of the Grave',
+        Options={selfbuff=true, RemoveBuff='Gift of the Grave Effect'}
+    },
+    {
+        Type='AA',
+        Name='Reluctant Benevolence',
+        Options={combatbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Fortify Companion',
+        Options={petbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Dead Man Floating',
+        Options={skipifbuff='Perfected Dead Men Floating', alias='DMF', selfbuff=true}
+    },
+    --for i,spell in ipairs(self.selfBuffs) do if spell.SpellGroup == 'dmf' then table.remove(self.selfBuffs, i) end end
+
+    -- Debuffs
+    {
+        Type='AA',
+        Name='Eradicate Magic',
+        Options={debuff=true, opt='USEDISPEL'}
+    },
+    {
+        Type='AA',
+        Name='Scent of Thule',
+        Options={debuff=true, opt='USEDEBUFF'}
+    },
+    {
+        Type='AA',
+        Name='Scent of Terris',
+        Options={debuff=true, opt='USEDEBUFF'}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='Death\'s Effigy',
+        Options={key='deathseffigy', fade=true, opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}
+    },
+    {
+        Type='AA',
+        Name='Death Peace',
+        Options={key='deathpeace', aggroreducer=true, opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}
+    },
+}
+
+function Necromancer:initBurns()
     self.pre_burn_items = {}
     table.insert(self.pre_burn_items, common.getItem('Blightbringer\'s Tunic of the Grave')) -- buff
     table.insert(self.pre_burn_items, common.getItem(mq.TLO.InvSlot('Chest').Item.Name())) -- buff, Consuming Magic
-
-    -- entries in the AAs table are pairs of {aa name, aa id}
-    table.insert(self.burnAbilities, self.silent) -- song, 12 minute CD
-    table.insert(self.burnAbilities, self:addAA('Mercurial Torment')) -- buff, 24 minute CD
-    table.insert(self.burnAbilities, self:addAA('Heretic\'s Twincast')) -- buff, 15 minute CD
-    if not state.emu then
-        table.insert(self.burnAbilities, self:addAA('Spire of Necromancy')) -- buff
-    else
-        table.insert(self.burnAbilities, self:addAA('Fundament: Third Spire of Necromancy')) -- buff, 7:30 minute CD
-        table.insert(self.burnAbilities, self:addAA('Embalmer\'s Carapace'))
-    end
-    table.insert(self.burnAbilities, self:addAA('Hand of Death')) -- song, 8:30 minute CD
-    table.insert(self.burnAbilities, self:addAA('Gathering Dusk')) -- song, Duskfall Empowerment, 10 minute CD
-    table.insert(self.burnAbilities, self:addAA('Companion\'s Fury')) -- 10 minute CD
-    table.insert(self.burnAbilities, self:addAA('Companion\'s Fortification')) -- 15 minute CD
-    table.insert(self.burnAbilities, self:addAA('Rise of Bones', {delay=1500})) -- 10 minute CD
-    table.insert(self.burnAbilities, self:addAA('Swarm of Decay', {delay=1500})) -- 9 minute CD
-
-    self.glyph = self:addAA('Mythic Glyph of Ultimate Power V')
-    self.intensity = self:addAA('Intensity of the Resolute')
-
-    self.wakethedead = self:addAA('Wake the Dead') -- 3 minute CD
-
-    self.funeralpyre = self:addAA('Funeral Pyre') -- song, 20 minute CD
 
     self.pre_burn_AAs = {}
     table.insert(self.pre_burn_AAs, self:addAA('Mercurial Torment')) -- buff
@@ -297,47 +402,6 @@ function Necromancer:initBurns()
     else
         table.insert(self.pre_burn_AAs, self:addAA('Fundament: Third Spire of Necromancy')) -- buff
     end
-end
-
-function Necromancer:initBuffs()
-    -- Buffs
-    self.unity = self:addAA('Mortifier\'s Unity', {selfbuff=true})
-
-    if state.emu then
-        table.insert(self.selfBuffs, self.spells.lich)
-        table.insert(self.selfBuffs, self.spells.hpbuff)
-        table.insert(self.selfBuffs, self:addAA('Gift of the Grave', {RemoveBuff='Gift of the Grave Effect', selfbuff=true}))
-        table.insert(self.singleBuffs, self.spells.defensiveproc)
-        table.insert(self.combatBuffs, self:addAA('Reluctant Benevolence', {combatbuff=true}))
-    else
-        table.insert(self.selfBuffs, self.unity)
-    end
-    table.insert(self.selfBuffs, self.spells.shield)
-    --table.insert(self.petBuffs, self.spells.inspire)
-    table.insert(self.petBuffs, self.spells.pethaste)
-    table.insert(self.petBuffs, self:addAA('Fortify Companion', {petbuff=true}))
-    local dmf = self:addAA('Dead Man Floating', {skipifbuff='Perfected Dead Men Floating', alias='DMF', selfbuff=true})
-    table.insert(self.selfBuffs, dmf or self.spells.dmf)
-end
-
-function Necromancer:initDebuffs()
-    self.dispel = self:addAA('Eradicate Magic', {opt='USEDISPEL'})
-
-    self.scent = self:addAA('Scent of Thule', {opt='USEDEBUFF'}) or self:addAA('Scent of Terris', {opt='USEDEBUFF'})
-    self.debuffTimer = timer:new(30000)
-    table.insert(self.debuffs, self.dispel)
-    table.insert(self.debuffs, self.scent)
-end
-
-function Necromancer:initDefensiveAbilities()
-    -- Aggro
-    local postFD = function()
-        mq.delay(1000)
-        mq.cmd('/stand')
-        mq.cmd('/makemevis')
-    end
-    table.insert(self.fadeAbilities, self:addAA('Death\'s Effigy', {opt='USEFD', postcast=postFD}))
-    table.insert(self.aggroReducers, self:addAA('Death Peace', {opt='USEFD', postcast=postFD}))
 end
 
 --[[

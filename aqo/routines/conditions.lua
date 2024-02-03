@@ -143,6 +143,11 @@ function conditions.aboveMobThreshold(ability)
     return ability.threshold == nil or ability.threshold <= state.mobCountNoPets
 end
 
+function conditions.useBash(ability)
+    return (mq.TLO.Me.AltAbility('Improved Bash')() or mq.TLO.Me.Inventory('offhand').Type() == 'Shield')
+        and (mq.TLO.Target.Distance3D() or 100) < (mq.TLO.Target.MaxMeleeTo() or 0) and mq.TLO.Me.Heading() == mq.TLO.Target.HeadingTo()
+end
+
 function conditions.aggroBelow(ability)
     local aggropct = mq.TLO.Target.PctAggro() or 100
     return ability.aggro == nil or aggropct < 100

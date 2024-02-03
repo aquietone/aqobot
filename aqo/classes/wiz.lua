@@ -16,11 +16,8 @@ function Wizard:init()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
-    self:initDPSAbilities()
-    self:initBurns()
-    self:initBuffs()
+    self:initAbilities()
     self:addCommonAbilities()
-    table.insert(self.recoverAbilities, self:addAA('Harvest of Druzzil'))
 end
 
 Wizard.SpellLines = {
@@ -38,6 +35,55 @@ Wizard.SpellLines = {
 Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
 Wizard.allDPSSpellGroups = {'nuke1', 'nuke2', 'Swarm', 'rain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
 
+Wizard.Abilities = {
+    -- DPS
+    {
+        Type='AA',
+        Name='Force of Will',
+        Options={dps=true}
+    },
+
+    -- Burns
+    {
+        Type='AA',
+        Name='Fury of Ro',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Prolonged Destruction',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Fundament: Second Spire of Arcanum',
+        Options={first=true}
+    },
+    {
+        Type='AA',
+        Name='Mana Blaze',
+        Options={first=true}
+    },
+
+    -- Buffs
+    {
+        Type='AA',
+        Name='Pyromancy',
+        Options={selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Kerafyrm\'s Prismatic Familiar',
+        Options={selfbuff=true}
+    },
+
+    -- Recover
+    {
+        Type='AA',
+        Name='Harvest of Druzzil',
+        Options={recover=true}
+    }
+}
 function Wizard:initSpellRotations()
     self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.swarm)
@@ -48,22 +94,6 @@ function Wizard:initSpellRotations()
     table.insert(self.spellRotations.ae, self.spells.ae2)
     table.insert(self.spellRotations.ae, self.spells.ae3)
     table.insert(self.spellRotations.ae, self.spells.ae4)
-end
-
-function Wizard:initDPSAbilities()
-    table.insert(self.DPSAbilities, self:addAA('Force of Will'))
-end
-
-function Wizard:initBurns()
-    table.insert(self.burnAbilities, self:addAA('Fury of Ro'))
-    table.insert(self.burnAbilities, self:addAA('Prolonged Destruction'))
-    table.insert(self.burnAbilities, self:addAA('Fundament: Second Spire of Arcanum'))
-    table.insert(self.burnAbilities, self:addAA('Mana Blaze'))
-end
-
-function Wizard:initBuffs()
-    table.insert(self.selfBuffs, self:addAA('Pyromancy', {selfbuff=true}))
-    table.insert(self.selfBuffs, self:addAA('Kerafyrm\'s Prismatic Familiar', {selfbuff=true}))
 end
 
 return Wizard

@@ -13,7 +13,7 @@ function SharedAbilities.getKick()
 end
 
 function SharedAbilities.getRoundKick()
-    return common.getSkill('Round Kick', {conditions=conditions.withinMeleeDistance})
+    return common.getSkill('Round Kick', {condition=conditions.withinMeleeDistance})
 end
 
 function SharedAbilities.getBash()
