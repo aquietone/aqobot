@@ -656,13 +656,13 @@ function base:burn()
 
         if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
             if self.useCommonListProcessor then
-                common.processList(self.tankBurnAbilities, self, false)
+                common.processList(self.tankBurnAbilities, self, true)
             else
                 self:doCombatLoop(self.tankBurnAbilities, state.burn_type)
             end
         end
         if self.useCommonListProcessor then
-            common.processList(self.burnAbilities, self, false)
+            common.processList(self.burnAbilities, self, true)
         else
             self:doCombatLoop(self.burnAbilities, state.burn_type)
         end

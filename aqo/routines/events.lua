@@ -39,7 +39,7 @@ end
 
 function events.cantHit(line)
     if mq.TLO.Target() and (mq.TLO.Target.Distance3D() or 50) < 50 and not mq.TLO.Navigation.Active() then
-        mq.cmd('/nav target')
+        mq.cmd('/nav target log=off')
         mq.delay(50)
         mq.delay(1000)
     end

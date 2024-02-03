@@ -186,8 +186,8 @@ end
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
 ---@return boolean @Returns true if not under any loss of control effects, false otherwise.
 function common.inControl()
-    return not (mq.TLO.Me.Dead() or mq.TLO.Me.Ducking() or mq.TLO.Me.Charmed() or
-            mq.TLO.Me.Stunned() or mq.TLO.Me.Silenced() or mq.TLO.Me.Feigning() or
+    return not (mq.TLO.Me.Dead() or mq.TLO.Me.Charmed() or
+            mq.TLO.Me.Stunned() or mq.TLO.Me.Silenced() or
             mq.TLO.Me.Mezzed() or mq.TLO.Me.Invulnerable() or mq.TLO.Me.Hovering())
 end
 
