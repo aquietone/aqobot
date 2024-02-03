@@ -93,8 +93,6 @@ function Shaman:init()
     self:initAbilities()
     self:addCommonAbilities()
 
-    self.rezAbility = self:addAA('Call of the Wild')
-    self.summonCompanion = self:addAA('Summon Companion')
     state.nuketimer = timer:new(3000)
 end
 
@@ -329,6 +327,17 @@ function Shaman:initSpellRotations()
     table.insert(self.spellRotations.dps, self.spells.icenuke)
 end
 Shaman.Abilities = {
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    },
+    {
+        Type='AA',
+        Name='Call of the Wild',
+        Options={rez=true}
+    },
+
     {
         Type='AA',
         Name='Ancestral Aid',

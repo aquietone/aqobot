@@ -25,19 +25,6 @@ function Necromancer:init()
     self:initAbilities()
     self:addCommonAbilities()
 
-    self.tcclick = common.getItem('Bifold Focus of the Evil Eye')
-
-    -- lifeburn/dying grasp combo
-    self.lifeburn = self:addAA('Life Burn')
-    self.dyinggrasp = self:addAA('Dying Grasp')
-
-    -- Mana Recovery AAs
-    self.deathbloom = self:addAA('Death Bloom', {nodmz=true})
-    self.bloodmagic = self:addAA('Blood Magic', {nodmz=true})
-
-    self.convergence = self:addAA('Convergence')
-    self.rezAbility = self.convergence
-    self.summonCompanion = self:addAA('Summon Companion')
     self.neccount = 1
     self.debuffTimer = timer:new(30000)
 end
@@ -196,7 +183,7 @@ Necromancer.SpellLines = {
     {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}, singlebuff=true}},
     {Group='reflect', Spells={'Mirror'}},
     {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}, Options={selfbuff=true}}, -- pre-unity
-    {Group='dmf', Spells={'Dead Men Floating'}, Options={alias='DMF', selfbuff=true}},
+    {Group='dmf', Spells={'Dead Men Floating'}, Options={alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
     -- Pet spells
     {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous'}},
     {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness'}, Options={petbuff=true}},
@@ -355,7 +342,7 @@ Necromancer.Abilities = {
     {
         Type='AA',
         Name='Dead Man Floating',
-        Options={skipifbuff='Perfected Dead Men Floating', alias='DMF', selfbuff=true}
+        Options={skipifbuff=state.emu and 'Dead Men Floating' or 'Perfected Dead Men Floating', alias='DMF', selfbuff=true}
     },
     --for i,spell in ipairs(self.selfBuffs) do if spell.SpellGroup == 'dmf' then table.remove(self.selfBuffs, i) end end
 
@@ -387,6 +374,43 @@ Necromancer.Abilities = {
         Name='Death Peace',
         Options={key='deathpeace', aggroreducer=true, opt='USEFD', postcast=function() mq.delay(1000) mq.cmd('/stand') mq.cmd('/makemevis') end}
     },
+
+    -- Extras
+    {
+        Type='Item',
+        Name='Bifold Focus of the Evil Eye',
+        Options={key='tcclick'}
+    },
+    {
+        Type='AA',
+        Name='Life Burn',
+        Options={key='lifeburn'}
+    },
+    {
+        Type='AA',
+        Name='Dying Grasp',
+        Options={key='dyinggrasp'}
+    },
+    {
+        Type='AA',
+        Name='Death Bloom',
+        Options={key='deathbloom', nodmz=true}
+    },
+    {
+        Type='AA',
+        Name='Blood Magic',
+        Options={key='bloodmagic', nodmz=true}
+    },
+    {
+        Type='AA',
+        Name='Convergence',
+        Options={rez=true, key='convergence'}
+    },
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    }
 }
 
 function Necromancer:initBurns()

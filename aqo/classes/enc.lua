@@ -26,25 +26,6 @@ function Enchanter:init()
     self:initSpellRotations()
     self:initAbilities()
     self:addCommonAbilities()
-
-    self.mezbeam = self:addAA('Beam of Slumber')
-    self.longmez = self:addAA('Noctambulate') -- 3min single target mez
-
-    self.aekbblur = self:addAA('Beguiler\'s Banishment')
-    self.kbblur = self:addAA('Beguiler\'s Directed Banishment')
-    self.aeblur = self:addAA('Blanket of Forgetfulness')
-    self.summonCompanion = self:addAA('Summon Companion')
-    if self.spells.mezst then
-        function Enchanter:beforeMez()
-            if not mq.TLO.Target.Tashed() and Enchanter:isEnabled('TASHTHENMEZ') and Enchanter.spells.tash then
-                Enchanter.spells.tash:use()
-                mq.delay(50)
-                mq.delay(2000, function() return not mq.TLO.Me.Casting() and not mq.TLO.Me.SpellInCooldown() end)
-            end
-            return true
-        end
-        self.spells.mezst.precast = self.beforeMez
-    end
 end
 
 function Enchanter:initClassOptions()
@@ -107,7 +88,12 @@ Enchanter.SpellLines = {
     {-- 9 ticks. Slot 3
         Group='mezst',
         Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria'},
-        Options={Gem=3}
+        Options={Gem=3, precast=function() if not mq.TLO.Target.Tashed() and Enchanter:isEnabled('TASHTHENMEZ') and Enchanter.spells.tash then
+            Enchanter.spells.tash:use()
+            mq.delay(50)
+            mq.delay(2000, function() return not mq.TLO.Me.Casting() and not mq.TLO.Me.SpellInCooldown() end)
+        end
+        return true end}
     },
     {-- targeted AE mez. Slot 4
         Group='mezaeprocblur',
@@ -393,6 +379,38 @@ Enchanter.Abilities = {
         Name='Mana Draw',
         Options={recover=true}
     },
+
+    -- Extras
+    {
+        Type='AA',
+        Name='Beam of Slumber',
+        Options={key='mezbeam'}
+    },
+    { -- 3min single target mez
+        Type='AA',
+        Name='Noctambulate',
+        Options={key='longmez'}
+    },
+    {
+        Type='AA',
+        Name='Beguiler\'s Banishment',
+        Options={key='aekbblur'}
+    },
+    {
+        Type='AA',
+        Name='Beguiler\'s Directed Banishment',
+        Options={key='kbblur'}
+    },
+    {
+        Type='AA',
+        Name='Blanket of Forgetfulness',
+        Options={key='aeblur'}
+    },
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    }
 }
 
 function Enchanter:initSpellRotations()

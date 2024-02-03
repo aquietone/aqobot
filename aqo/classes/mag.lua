@@ -102,8 +102,6 @@ function Magician:init()
     self:initSpellRotations()
     self:initAbilities()
     self:addCommonAbilities()
-
-    self.summonCompanion = self:addAA('Summon Companion')
 end
 
 Magician.PetTypes = {Water='waterpet',Earth='earthpet',Air='airpet',Fire='firepet',Monster='monsterpet'}
@@ -393,6 +391,12 @@ Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=
 Magician.allDPSSpellGroups = {'servant', 'ofmany', 'chaotic', 'shock', 'spear1', 'spear2', 'prenuke', 'ofsand', 'firebolt', 'sands', 'summonednuke', 'magicbolt', 'magicmalonuke', 'beam', 'firerain', 'magicrain', 'pbaefire', 'frontalmagic'}
 
 Magician.Abilities = {
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    },
+
     {
         Type='AA',
         Name='Force of Elements',

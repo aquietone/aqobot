@@ -33,19 +33,6 @@ function Bard:init()
     self:initSpellRotations()
     self:initAbilities()
     self:addCommonAbilities()
-
-    self.fierceeye = self:addAA('Fierce Eye')
-    self.epic = common.getItem('Blade of Vesagran') or common.getItem('Prismatic Dragon Blade')
-
-    -- Bellow handled separately as we want it to run its course and not be refreshed early
-    self.bellow = self:addAA('Boastful Bellow')
-
-    -- aa mez
-    self.dirge = self:addAA('Dirge of the Sleepwalker')
-    self.sonic = self:addAA('Sonic Disturbance')
-    self.fluxstaff = common.getItem('Staff of Viral Flux')
-
-    self.selos = self:addAA('Selo\'s Sonata')
 end
 
 function Bard:initClassOptions()
@@ -191,46 +178,47 @@ Bard.allDPSSpellGroups = {'aria', 'arcane', 'chantfrost', 'spiteful', 'firenukeb
     'crescendo', 'pulse', 'composite', 'dirge', 'insultpushback', 'chantpoison', 'alliance', 'overhaste', 'bardhaste', 'emuhaste', 'snare', 'debuff'}
 
 Bard.Abilities = {
-    --[[{
+    {
         Type='AA',
         Name='Fierce Eye',
-        Options={}
+        Options={key='fierceeye'}
     },
     { -- Epic 2.0
         Type='Item',
         Name='Blade of Vesagran',
-        Options={}
+        Options={key='epic'}
     },
     { -- Epic 1.5
         Type='Item',
         Name='Prismatic Dragon Blade',
-        Options={}
+        Options={key='epic'}
     },
+    -- Bellow handled separately as we want it to run its course and not be refreshed early
     { -- single target AA with fulmination
         Type='AA',
         Name='Boastful Bellow',
-        Options={}
+        Options={key='bellow'}
     },
     { -- long AA mez
         Type='AA',
         Name='Dirge of the Sleepwalker',
-        Options={}
+        Options={key='dirge'}
     },
     { -- pull ability
         Type='AA',
         Name='Sonic Disturbance',
-        Options={}
+        Options={key='sonic'}
     },
     { -- pull ability
         Type='Item',
         Name='Staff of Viral Flux',
-        Options={}
+        Options={key='fluxstaff'}
     },
     {
         Type='AA',
         Name='Selo\'s Sonata',
-        Options={}
-    },]]
+        Options={key='selos'}
+    },
 
     -- DPS
     {

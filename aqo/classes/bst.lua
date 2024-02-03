@@ -39,8 +39,6 @@ function BeastLord:init()
     self:initAbilities()
     self:addCommonAbilities()
 
-    self.summonCompanion = self:addAA('Summon Companion')
-
     self.useCommonListProcessor = true
 end
 
@@ -270,6 +268,12 @@ BeastLord.compositeNames = {['Ecliptic Fury']=true, ['Composite Fury']=true, ['D
 BeastLord.allDPSSpellGroups = {'nuke1', 'nuke2', 'nuke3', 'lance1', 'lance2', 'roar', 'dddot1', 'dot1', 'dddot2', 'swarmpet', 'alliance'}
 
 BeastLord.Abilities = {
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    },
+
     -- DPS
     {
         Type='AA',

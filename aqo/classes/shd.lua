@@ -41,10 +41,6 @@ function ShadowKnight:init()
     self:initAbilities()
     self:addCommonAbilities()
 
-    self.leechtouch = self:addAA('Leech Touch') -- 9min CD, giant lifetap
-
-    self.epic = common.getItem('Innoruuk\'s Dark Blessing') or common.getItem('Innoruuk\'s Voice')
-    self.summonCompanion = self:addAA('Summon Companion')
     self.pullSpell = self.spells.terror
 
     self.useCommonListProcessor = true
@@ -216,6 +212,27 @@ function ShadowKnight:initSpellRotations()
 end
 
 ShadowKnight.Abilities = {
+    { -- 9min CD, giant lifetap
+        Type='AA',
+        Name='Leech Touch',
+        Options={key='leechtouch'}
+    },
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    },
+    {
+        Type='Item',
+        Name='Innoruuk\'s Dark Blessing',
+        Options={key='epic'}
+    },
+    {
+        Type='Item',
+        Name='Innoruuk\'s Voice',
+        Options={key='epic'}
+    },
+
     { -- 4min CD, short deflection
         Type='AA',
         Name='Shield Flash',

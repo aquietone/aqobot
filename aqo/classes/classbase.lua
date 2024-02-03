@@ -319,6 +319,7 @@ function base:addAbilityToLists(ability)
             table.insert(self[abilityTableName], ability)
         end
     end
+    if ability.rez then self.rezAbility = ability end
 end
 
 function base:addAA(name, options)

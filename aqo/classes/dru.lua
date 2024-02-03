@@ -43,15 +43,6 @@ function Druid:init()
     self:initHeals()
     self:addCommonAbilities()
 
-    -- Rezzing
-    if state.emu then
-        self.rezAbility = self:addAA('Call of the Wild')
-    else
-        self.callAbility = self:addAA('Call of the Wild') -- brez
-        self.rezAbility = self:addAA('Rejuvenation of Spirit') -- 96% rez ooc only
-        self.rezStick = common.getItem('Staff of Forbidden Rites')
-    end
-    self.summonCompanion = self:addAA('Summon Companion')
     state.nuketimer = timer:new(500)
 end
 
@@ -268,6 +259,27 @@ Druid.Abilities = {
         Name='Season\'s Wrath',
         Options={debuff=true, opt='USEDEBUFF'}
     },
+
+    {
+        Type='AA',
+        Name='Call of the Wild',
+        Options={rez=state.emu and true or false}
+    },
+    {
+        Type='AA',
+        Name='Rejuvenation of Spirits',
+        Optionss={rez=not state.emu and true or false}
+    },
+    {
+        Type='Item',
+        Name='Staff of Forbidden Rites',
+        Options={key='rezStick'}
+    },
+    {
+        Type='AA',
+        Name='Summon Companion',
+        Options={key='summoncompanion'}
+    }
 }
 
 function Druid:initSpellRotations()

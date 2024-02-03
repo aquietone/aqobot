@@ -58,8 +58,6 @@ function Cleric:init()
     self:initAbilities()
     self:initHeals()
     self:addCommonAbilities()
-
-    self.rezAbility = self:addAA('Blessing of Resurrection')
 end
 
 function Cleric:initClassOptions()
@@ -300,6 +298,12 @@ Cleric.compositeNames = {['Ecliptic Blessing']=true, ['Composite Blessing']=true
 Cleric.allDPSSpellGroups = {'rebuke', 'contravention', 'stun', 'aestun'}
 
 Cleric.Abilities = {
+    {
+        Type='AA',
+        Name='Blessing of Resurrection',
+        Options={rez=true}
+    },
+
     -- Heal
     {
         Type='AA',

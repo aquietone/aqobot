@@ -59,9 +59,6 @@ function Paladin:init()
     self:initAbilities()
     self:addCommonAbilities()
 
-    self.rezStick = common.getItem('Staff of Forbidden Rites')
-    self.rezAbility = self:addAA('Gift of Resurrection', {}) -- 90% rez
-
     state.nukeTimer = timer:new(2000)
     self.useCommonListProcessor = true
 end
@@ -175,6 +172,17 @@ function Paladin:initSpellRotations()
 end
 
 Paladin.Abilities = {
+    {
+        Type='AA',
+        Name='Gift of Resurrection',
+        Options={rez=true}
+    },
+    {
+        Type='Item',
+        Name='Staff of Forbidden Rites',
+        Options={key='rezStick'}
+    },
+
     {
         Type='Skill',
         Name='Taunt',
