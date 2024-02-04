@@ -118,7 +118,7 @@ Shaman.SpellLines = {
     },
     {-- DPS spellset. Disease DoT. Slot 1
         Group='maladydot',
-        Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady', --[[emu cutoff]] 'Sicken'},
+        Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady', --[[emu cutoff]] 'Affliction', 'Sicken'},
         Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 1 or nil end}
     },
     {-- group HoT. Slot 2
@@ -184,7 +184,7 @@ Shaman.SpellLines = {
     },
     {-- Below lvl 100 main heal. Slot 8
         Group='heal',
-        Spells={'Krasir\'s Mending', 'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Light Healing', 'Minor Healing'},
+        Spells={'Krasir\'s Mending', 'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Healing', 'Light Healing', 'Minor Healing'},
         Options={Gem=function() return mq.TLO.Me.Level() < 105 and 8 or nil end, panic=true, regular=true, tank=true, pet=60}
     },
     {-- DPS spellset. combo malo + DoT. Slot 9
@@ -194,7 +194,7 @@ Shaman.SpellLines = {
     },
     {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
         Group='nectardot',
-        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Tainted Breath'},
+        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Envenomed Breath', 'Tainted Breath'},
         Options={opt='USEDOTS', Gem=function() return not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9 or nil end}
     },
     {-- DPS spellset. curse DoT. Slot 10
@@ -214,7 +214,7 @@ Shaman.SpellLines = {
     },
     {-- Hybrid spellset. Slot 11
         Group='icenuke',
-        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]] 'Frost Rift', 'Burst of Flame'},
+        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]] 'Frost Strike', 'Spirit Strike', 'Frost Rift', 'Burst of Flame'},
         Options={opt='USENUKES', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11 or nil end}
     },
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
@@ -243,23 +243,25 @@ Shaman.SpellLines = {
     {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}, Options={selfbuff=true}},
     -- Cures
     {Group='cure', Spells={'Blood of Nadox'}, Options={cure=true, all=true}},
-    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
+    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
     {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT'}},
+    {Group='hot', Spells={'Celestial Remedy'}, Options={}},
     {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', debuff=true, condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
-    {Group='dispel', Spells={'Abashi\'s Disempowerment'}, Options={opt='USEDISPEL', debuff=true}},
-    {Group='debuff', Spells={'Crippling Spasm'}, Options={opt='USEDEBUFF', debuff=true}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true}},
+    {Group='debuff', Spells={'Crippling Spasm', 'Disempower'}, Options={opt='USEDEBUFF', debuff=true}},
+    {Group='disdebuff', Spells={'Insidious Fever'}, Options={opt='USEDEBUFF', debuff=true}},
     -- EMU special: Ice Age nuke has 25% chance to proc slow
     {Group='slownuke', Spells={'Ice Age'}, Options={opt='USENUKES'}},
 
     -- Debuffs
     {-- Malo spell line. AA malo is Malosinete
         Group='malo',
-        Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete'},
+        Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete', --[[emu cutoff]] 'Malaise'},
         Options={opt='USEDEBUFF', debuff=true}
     },
-    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Drowsy'}, Options={debuff=true, opt='USESLOW'}},
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Walking Sleep', 'Drowsy'}, Options={debuff=true, opt='USESLOW'}},
     {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={debuff=true, opt='USESLOWAOE'}},
 
     -- Extra DoTs just used by combo spells
@@ -286,12 +288,15 @@ Shaman.SpellLines = {
     {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},
 
     -- Utility
-    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
+    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
     {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'}, Options={'SUMMONPET'}},
     {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
+    {Group='shrink', Spells={'Shrink'}, Options={alias='SHRINK'}},
+    {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
 
     --Call of the Ancients -- 5 minute duration ward AE healing
 
+    -- Low Level cures and buffs.. not currently doing anything with them
     {
         Group='curepoison',
         Spells={'Cure Poison'},
@@ -299,27 +304,27 @@ Shaman.SpellLines = {
     },
     {
         Group='curedisease',
-        Spells={'Cure Disease'},
+        Spells={'Counteract Disease', 'Cure Disease'},
         Options={cure=true, disease=true}
     },
     {-- single dex buff
         Group='singledex',
-        Spells={'Dexterous Aura'},
+        Spells={'Rising Dexterity', 'Spirit of Monkey', 'Dexterous Aura'},
         Options={}
     },
     {-- single str buff
         Group='singlestr',
-        Spells={'Talisman of the Beast', 'Strengthen'},
+        Spells={'Spirit Strength', 'Talisman of the Beast', 'Strengthen'},
         Options={}
     },
     {-- single agi buff
         Group='singleagi',
-        Spells={'Feet like Cat'},
+        Spells={'Spirit of Cat', 'Feet like Cat'},
         Options={}
     },
     {-- single sta buff
         Group='singlesta',
-        Spells={'Spirit of Bear'},
+        Spells={'Spirit of Ox', 'Spirit of Bear'},
         Options={}
     },
     {-- single cha buff
@@ -329,14 +334,40 @@ Shaman.SpellLines = {
     },
     {-- single ac buff
         Group='singleac',
-        Spells={'Turtle Skin'},
+        Spells={'Protect', 'Turtle Skin', 'Scale Skin'},
         Options={}
     },
+    { -- single str, dex, agi, ac buff
+        Group='statbuff',
+        Spells={'Frenzy'},
+        Options={}
+    },
+    { -- regen
+        Group='regen',
+        Spells={'Regeneration'},
+        Options={}
+    },
+    { -- regen + wis bear form low level buff
+        Group='selfbear',
+        Spells={'Form of the Bear'},
+        Options={}
+    },
+    -- AE DPS, can be used in byos custom otherwise unused
+    {
+        Group='aedot',
+        Spells={'Infectious Cloud'},
+        Options={opt='USEAOE'}
+    },
+    {
+        Group='rain',
+        Spells={'Poison Storm'},
+        Options={opt='USEAOE'}
+    }
 }
 
 Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Roar of the Lion']=true}
 Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
-    'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot'}
+    'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot', 'aedot', 'rain'}
 
 function Shaman:initSpellRotations()
     self:initBYOSCustom()

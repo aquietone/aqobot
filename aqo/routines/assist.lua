@@ -368,7 +368,7 @@ end
 function assist.isFighting()
     local cur_mode = mode.currentMode
     local targetName = mq.TLO.Target.CleanName()
-    return (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isManualMode() and mq.TLO.Me.Combat() and targetName:find('Combat Dummy')) or state.forceEngage
+    return (cur_mode:isTankMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isAssistMode() and assist.shouldAssist()) or (cur_mode:isManualMode() and mq.TLO.Me.CombatState() == 'COMBAT') or (cur_mode:isManualMode() and mq.TLO.Me.Combat() and targetName and targetName:find('Combat Dummy')) or state.forceEngage
 end
 
 ---Send pet and swarm pets against the assist target if assist conditions are met.

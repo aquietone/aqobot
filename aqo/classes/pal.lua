@@ -66,6 +66,7 @@ end
 function Paladin:initClassOptions()
     self:addOption('USEATTRACTION', 'Use Divine Call', true, nil, 'Toggle use of Divine Call AA', 'checkbox', nil, 'UseAttraction', 'bool')
     self:addOption('USEPROJECTION', 'Use Projection', true, nil, 'Toggle use of Projection AA', 'checkbox', nil, 'UseProjection', 'bool')
+    self:addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nuke spells', 'checkbox', nil, 'UseNukes', 'bool')
 end
 
 Paladin.SpellLines = {
@@ -131,7 +132,7 @@ Paladin.SpellLines = {
     },
     {-- same stats as cleric aego
         Group='aego',
-        Spells={'Oauthbound Keeper', --[[emu cutoff]] 'Courage'},
+        Spells={'Oauthbound Keeper', --[[emu cutoff]] 'Center', 'Courage'},
         Options={},
     },
     {
@@ -167,7 +168,12 @@ Paladin.SpellLines = {
     {
         Group='undeadnuke',
         Spells={'Ward Undead'},
-        Options={opt='USENUKES'}
+        Options={opt='USENUKES', condition=function() return mq.TLO.Target.Type() == 'Undead' end}
+    },
+    {
+        Group='rgc',
+        Spells={'Remove Minor Curse'},
+        Options={cure=true, curse=true}
     }
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
@@ -194,6 +200,7 @@ function Paladin:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.stun1)
     table.insert(self.spellRotations.standard, self.spells.stun2)
     table.insert(self.spellRotations.standard, self.spells.stun3)
+    table.insert(self.spellRotations.standard, self.spells.undeadnuke)
 end
 
 Paladin.Abilities = {

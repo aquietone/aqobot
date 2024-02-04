@@ -55,7 +55,7 @@ end
 Ranger.SpellLines = {
     {-- Slot 1
         Group='firenuke1',
-        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Burst of Fire'},
+        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Ignite', 'Burst of Fire'},
         Options={Gem=1},
     },
     {-- 4x archery attacks, Focused Blizzard of Arrows. Slot 2
@@ -128,7 +128,8 @@ Ranger.SpellLines = {
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
     {Group='firenuke3', Spells={'Laurion Ash', 'Hearth Embers'}}, -- fire + ice nuke, Summer's Sleet
     {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}}, -- 
-    {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    {Group='rain', Spells={'Invoke Lightning'}, Options={opt='USEAOE'}},
+    {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment', --[[emu cutoff]] 'Firefist'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
     {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs'}}, -- Cloak of Rimespurs
@@ -153,12 +154,12 @@ Ranger.SpellLines = {
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Minor Healing', 'Salve'}, Options={heal=true, regular=true}},
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Light Healing', 'Minor Healing', 'Salve'}, Options={heal=true, regular=true}},
 }
 
 Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
 Ranger.allDPSSpellGroups = {'firenuke1', 'focused', 'aoearrow', 'healtot2', 'heart', 'firenuke2', 'dot', 'healtot', 'shots', 'dotds', 'coldnuke1', 'composite', 
-    'alliance', 'opener', 'firenuke3', 'coldnuke2', 'barrage', 'snare'}
+    'alliance', 'opener', 'firenuke3', 'coldnuke2', 'barrage', 'snare', 'rain'}
 
 function Ranger:initSpellRotations()
     self:initBYOSCustom()

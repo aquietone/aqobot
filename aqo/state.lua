@@ -96,7 +96,7 @@ function state.handleQueuedAction()
 end
 
 state.memSpell = false
-state.memSpellTimer = timer:new(10000)
+state.memSpellTimer = timer:new(30000)
 state.wait_for_spell_ready = false
 state.restoreGem = nil
 

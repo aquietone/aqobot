@@ -76,7 +76,7 @@ Bard.SpellLines = {
     },
     {-- AC. Slot 3
         Group='spiteful',
-        Spells={'Tatalros\' Spiteful Lyric', 'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric', 'Fjilnauk\'s Spiteful Lyric', --[[emu cutoff]] },
+        Spells={'Tatalros\' Spiteful Lyric', 'Von Deek\'s Spiteful Lyric', 'Omorden\'s Spiteful Lyric', 'Travenro\' Spiteful Lyric', 'Fjilnauk\'s Spiteful Lyric', --[[emu cutoff]] 'Guardian Rhythms'},
         Options={Gem=function() return Bard:get('SPELLSET') == 'melee' and 3 or nil end}
     },
     {-- inc fire DD. Slot 3
@@ -173,6 +173,11 @@ Bard.SpellLines = {
     {Group='magicweapons', Spells={'Magical Monologue'}, Options={}},
 
     {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed', 'Selo\'s Accelerando'}},
+
+    {Group='aedot', Spells={'Denon\'s Disruptive Discord', 'Chords of Dissonance'}, Options={'USEAOE'}},
+    {Group='aeslow', Spells={'Largo\'s Melodic Binding'}, Options={}},
+    {Group='manasong', Spells={'Cassindra\'s Chant of Clarity'}, Options={}},
+    {Group='dispel', Spells={'Alenia\'s Disenchanting Melody'}, Options={}}
 }
 
 Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}

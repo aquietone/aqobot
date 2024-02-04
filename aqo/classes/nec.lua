@@ -180,7 +180,7 @@ Necromancer.SpellLines = {
     {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}},
     {Group='rune', Spells={'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}}, -- unused
     {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
-    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}, singlebuff=true}},
+    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}, singlebuff=true, alias='necrotic'}},
     {Group='reflect', Spells={'Mirror'}},
     {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin'}, Options={selfbuff=true}}, -- pre-unity
     {Group='dmf', Spells={'Dead Men Floating'}, Options={alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
