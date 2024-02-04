@@ -271,7 +271,7 @@ ShadowKnight.Abilities = {
     -- Tanking
     { -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
         Type='Disc',
-        Group='',
+        Group='repudiate',
         Names={'Repudiate'},
         Options={tanking=true}
     },
@@ -302,7 +302,7 @@ ShadowKnight.Abilities = {
     -- Tank burns
     { -- instant aggro
         Type='Disc',
-        Group='',
+        Group='acrimony',
         Names={'Unconditional Acrimony', 'Unrelenting Acrimony'},
         Options={tankburn=true, condition=conditions.withinMeleeDistance}
     },
@@ -330,7 +330,7 @@ ShadowKnight.Abilities = {
     },
     { -- 3x 2hs attack + heal
         Type='Disc',
-        Group='',
+        Group='reflexive',
         Names={'Reflexive Resentment'},
         Options={dps=true, condition=conditions.withinMaxDistance}
     },
@@ -347,14 +347,14 @@ ShadowKnight.Abilities = {
 
     { -- 2hs attack
         Type='Disc',
-        Group='',
+        Group='2hblade',
         Names={'Incapacitating Blade', 'Grisly Blade'},
         Options={first=true, condition=conditions.withinMaxDistance}
     },
     { -- 3 strikes
         Type='Disc',
-        Group='',
-        Names={'ncarnadine Blade', 'Sanguine Blade'},
+        Group='tripleblade',
+        Names={'Incarnadine Blade', 'Sanguine Blade'},
         Options={first=true, condition=conditions.withinMaxDistance}
     },
     { -- 10min CD, twincast

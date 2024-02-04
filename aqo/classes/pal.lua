@@ -215,7 +215,7 @@ Paladin.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='defy',
         Names={'Defy'},
         Options={tanking=true}
     },
@@ -265,13 +265,13 @@ Paladin.Abilities = {
     -- Burn
     { -- 35% dmg absorb, 15m cd, 1m duration
         Type='Disc',
-        Group='',
+        Group='mantle',
         Names={'Exalted Mantle'},
         Options={first=true}
     },
     { -- 20% dmg absorb, stun attackers, 7.5m cd, 2m duration
         Type='Disc',
-        Group='',
+        Group='armor',
         Names={'Armor of Courage'},
         Options={first=true}
     },

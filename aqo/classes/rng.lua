@@ -194,20 +194,20 @@ Ranger.Abilities = {
     },
     { -- 4x arrows, 12s CD, timer 6
         Type='Disc',
-        Group='',
+        Group='focused',
         Names={'Focused Blizzard of Blades'},
         Options={dps=true}
     },
     { -- 4x melee attacks + group HoT, 10min CD, timer 19
         Type='Disc',
-        Group='',
+        Group='reflexive',
         Names={'Reflexive Rimespurs'},
         Options={dps=true}
     },
     -- table.insert(mashDiscs, self:addAA('Tempest of Blades')) -- frontal cone melee flurry, 12s CD
     { -- agro reducer kick, timer 9, procs synergy, Jolting Roundhouse Kicks
         Type='Disc',
-        Group='',
+        Group='jolting',
         Names={'Jolting Drop Kicks', 'Jolting Roundhouse Kicks', 'Jolting Snapkicks'},
         Options={dps=true}
     },
@@ -281,13 +281,13 @@ Ranger.Abilities = {
     },
     { -- melee dmg buff, 19.5min CD, timer 2, Arbor Stalker's Discipline
         Type='Disc',
-        Group='',
+        Group='meleedmgbuff',
         Names={'Fernstalker\'s Discipline', 'Dusksage Stalker\'s Discipline'},
         Options={first=true}
     },
     {
         Type='Disc',
-        Group='',
+        Group='pureshot',
         Names={'Pureshot Discipline'},
         Options={rangedburn=true}
     },
@@ -335,7 +335,7 @@ Ranger.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='trueshot',
         Names={'Trueshot Discipline'},
         Options={emu=true, combatbuff=true}
     },

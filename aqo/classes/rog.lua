@@ -85,8 +85,8 @@ Rogue.Abilities = {
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     {
-        Type='AA',
-        Group='',
+        Type='Disc',
+        Group='assault',
         Names={'Assault'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
@@ -102,26 +102,26 @@ Rogue.Abilities = {
         Options={first=true}
     },
     {
-        Type='AA',
-        Group='',
+        Type='Disc',
+        Group='duelist',
         Names={'Duelist Discipline'},
         Options={first=true}
     },
     {
-        Type='AA',
-        Group='',
+        Type='Disc',
+        Group='precision',
         Names={'Deadly Precision Discipline'},
         Options={first=true}
     },
     {
-        Type='AA',
-        Group='',
+        Type='Disc',
+        Group='stabbing',
         Names={'Frenzied Stabbing Discipline'},
         Options={first=true}
     },
     {
-        Type='AA',
-        Group='',
+        Type='Disc',
+        Group='twisted',
         Names={'Twisted Chance Discipline'},
         Options={first=true}
     },
@@ -143,7 +143,7 @@ Rogue.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='eyes',
         Names={'Brigand\'s Gaze', 'Thief\'s Eyes'},
         Options={combatbuff=true}
     },

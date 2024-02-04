@@ -332,14 +332,24 @@ function base:initAbilities()
                 foundAbility = self:addAA(ability.Name, ability.Options)
             elseif ability.Type == 'Disc' then
                 foundAbility = common.getBestDisc(ability.Names, ability.Options)
-                if ability.Group ~= '' and not self[ability.Group] then self[ability.Group] = foundAbility end
             elseif ability.Type == 'Item' then
                 foundAbility = common.getItem(ability.Name, ability.Options)
             elseif ability.Type == 'Skill' then
                 foundAbility = common.getSkill(ability.Name, ability.Options)
             end
             if foundAbility then
-                self:addAbilityToLists(foundAbility)
+                if foundAbility.Group and foundAbility.Group ~= '' then
+                    if not self[foundAbility.Group] then
+                        self[foundAbility.Group] = foundAbility
+                        self:addAbilityToLists(foundAbility)
+                    else
+                        for k,v in pairs(foundAbility) do
+                            self.spells[foundAbility.Group][k] = v
+                        end
+                    end
+                else
+                    self:addAbilityToLists(foundAbility)
+                end
             end
         end
     end

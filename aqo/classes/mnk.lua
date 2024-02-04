@@ -45,25 +45,25 @@ Monk.Abilities = {
     -- DPS
     { -- strong kick + inc kick dmg
         Type='Disc',
-        Group='',
+        Group='synergy',
         Names={'Fatewalker\'s Synergy', 'Bloodwalker\'s Synergy', 'Icewalker\'s Synergy', 'Firewalker\'s Synergy', 'Doomwalker\'s Synergy'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     { -- 3x tiger claw + monk synergy proc
         Type='Disc',
-        Group='',
+        Group='fists',
         Names={'Flurry of Fists', 'Buffeting of Fists', 'Barrage of Fists', 'Firestorm of Fists', 'Torrent of Fists'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     { -- inc dmg from DS
         Type='Disc',
-        Group='',
+        Group='curse',
         Names={'Curse of Sixteen Shadows', 'Curse of Fifteen Strikes', 'Curse of Fourteen Fists', 'Curse of the Thirteen Fingers'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     { -- a nuke?
         Type='Disc',
-        Group='',
+        Group='fang',
         Names={'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang', 'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
@@ -94,13 +94,13 @@ Monk.Abilities = {
     },
     { -- shuriken attack + buffs shuriken dmg
         Type='Disc',
-        Group='',
+        Group='precision',
         Names={'Bloodwalker\'s Precision Strike', 'Icewalker\'s Precision Strike', 'Firewalker\'s Precision Strike', 'Doomwalker\'s Precision Strike'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     {
         Type='Disc',
-        Group='',
+        Group='alliance',
         Names={'Bloodwalker\'s Conjunction', 'Icewalker\'s Coalition', 'Firewalker\'s Covenant', 'Doomwalker\'s Alliance'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
@@ -123,13 +123,13 @@ Monk.Abilities = {
     },
     { -- defensive
         Type='Disc',
-        Group='',
+        Group='reflexes',
         Names={'Disciplined Reflexes', 'Decisive Reflexes', 'Rapid Reflexes', 'Nimble Reflexes'},
         Options={first=true}
     },
     { -- inc melee dmg
         Type='Disc',
-        Group='',
+        Group='ironfist',
         Names={'Ironfist'},
         Options={first=true}
     },
@@ -145,7 +145,7 @@ Monk.Abilities = {
     },
     { -- adds extra attacks
         Type='Disc',
-        Group='',
+        Group='poise',
         Names={'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'},
         Options={first=true}
     },
@@ -156,20 +156,20 @@ Monk.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='stance',
         Names={'Crane Stance'},
         Options={first=true}
     },
     {
         Type='Disc',
-        Group='',
+        Group='heel',
         Names={'Heel of Zagali', 'Heel of Kai', 'Heel of Kanji'},
         Options={first=true}
     },
     -- 2nd burn
     { -- doubles attack speed
         Type='Disc',
-        Group='',
+        Group='speedfocus',
         Names={'Speed Focus Discipline'},
         Options={second=true, condition=function() return not Monk.heel or not mq.TLO.Me.CombatAbilityReady(Monk.heel.Name)() end}
     },
@@ -186,7 +186,7 @@ Monk.Abilities = {
     -- 3rd burn
     { -- if another monks has faded
         Type='Disc',
-        Group='',
+        Group='palm',
         Names={'Terrorpalm Discipline', 'Crystalpalm Discipline', 'Innerflame Discipline'},
         Options={third=true, condition=function() return (not Monk.heel or not mq.TLO.Me.CombatAbilityReady(Monk.heel.Name)()) and (not Monk.speedfocus or not mq.TLO.Me.CombatAbilityReady(Monk.speedfocus.Name)()) end}
     },
@@ -197,7 +197,7 @@ Monk.Abilities = {
     },
     { -- inc dmg, inc min dmg
         Type='Disc',
-        Group='',
+        Group='eyeofthestorm',
         Names={'Eye of the Storm'},
         Options={third=true}
     },
@@ -216,7 +216,7 @@ Monk.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='wu',
         Names={'Fists of Wu'},
         Options={combatbuff=true}
     },
@@ -245,7 +245,7 @@ Monk.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='earthforce',
         Names={'Earthforce Discipline'},
         Options={defensive=true}
     },

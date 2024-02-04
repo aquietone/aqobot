@@ -128,13 +128,13 @@ Berserker.Abilities = {
     },
     { -- Increase Chance to Critical Hit by 221%, Increase Base Hit Damage by 54%, Use before brutal
         Type='Disc',
-        Group='',
+        Group='mangling',
         Names={'Mangling Discipline'},
         Options={first=true}
     },
     { -- Increase Hit Damage by 120%, Increase Min Hit Damage by 610%
         Type='Disc',
-        Group='',
+        Group='brutal',
         Names={'Brutal Discipline', 'Blind Rage Discipline', 'Cleaving Rage Discipline'},
         Options={first=true}
     },
@@ -268,7 +268,7 @@ Berserker.Abilities = {
     },
     { -- proc stun when hit over 18k, lasts 1 hr, timer 18
         Type='Disc',
-        Group='',
+        Group='retaliation',
         Names={'Unthinking Retaliation', 'Instintive Retaliation', 'Reflexive Retaliation', 'Conditioned Retaliation'},
         Options={combatbuff=true}
     },

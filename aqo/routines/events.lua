@@ -20,7 +20,8 @@ function events.init(_class)
     mq.event('eventCantHit', 'You can\'t hit them from here.', events.cantHit)
     mq.event('eventNewLevel', 'You have gained a level', events.eventNewLevel)
     mq.event('eventNewSpellMemmed', '#*#You have finished scribing #1#.', events.eventNewSpellMemmed)
-    mq.event('eventNewDiscipline', 'You have learned a new combat ability!', events.eventNewDiscipline)
+    mq.event('eventNewCombatAbility', 'You have learned a new combat ability!', events.eventNewDiscipline)
+    mq.event('eventNewDiscipline', 'You have learned a new discipline!', events.eventNewDiscipline)
     mq.event('zoned', 'You have entered #*#', events.zoned)
     mq.event('cannotSee', '#*#cannot see your target#*#', events.movecloser)
     mq.event('tooFar', '#*#Your target is too far away#*#', events.movecloser)
@@ -50,7 +51,8 @@ function events.notMemorized(line)
 end
 
 function events.eventNewDiscipline()
-
+    logger.info('New combat ability learned. Reinitializing abilities')
+    class:initAbilities()
 end
 
 function events.initClassBasedEvents()

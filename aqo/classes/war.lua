@@ -57,43 +57,43 @@ Warrior.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='provoke1',
         Names={'Mortimus\' Roar', 'Namdrows\' Roar', 'Bazu Bellow', 'Bellow of the Mastruq', 'Bellow'},
         Options={tanking=true, condition=conditions.withinMeleeDistance}
     },
     {
         Type='Disc',
-        Group='',
+        Group='provoke2',
         Names={'Infuriate', 'Bristle', 'Mock', 'Incite'},
         Options={tanking=true, condition=conditions.withinMeleeDistance}
     },
     {
         Type='Disc',
-        Group='',
+        Group='provoke3',
         Names={'Distressing Shout', 'Twilight Shout', 'Ancient: Chaos Cry', 'Berate'},
         Options={tanking=true, condition=conditions.withinMeleeDistance}
     },
     {
         Type='Disc',
-        Group='',
+        Group='composite',
         Names={'Ecliptic Shield', 'Composite Shield', 'Dissident Shield', 'Dichotomic Shield'},
         Options={tanking=true}
     },
     {
         Type='Disc',
-        Group='',
+        Group='dmgabsorb',
         Names={'End of the Line', 'Finish the Fight'},
         Options={tanking=true}
     },
     {
         Type='Disc',
-        Group='',
+        Group='phantom',
         Names={'Phantom Aggressor'},
         Options={tanking=true, opt='USEPHANTOM'}
     },
     {
         Type='Disc',
-        Group='',
+        Group='precision',
         Names={'Confluent Precision'},
         Options={tanking=true, opt='USEPRECISION'}
     },
@@ -131,19 +131,19 @@ Warrior.Abilities = {
     -- ae tank
     {
         Type='Disc',
-        Group='',
+        Group='roar',
         Names={'Roar of Challenge'},
         Options={aetank=true, threshold=2, condition=conditions.aboveMobThreshold}
     },
     {
         Type='Disc',
-        Group='',
+        Group='expanse',
         Names={'Confluent Expanse'},
         Options={aetank=true, opt='USEEXPANSE', threshold=2, condition=conditions.aboveMobThreshold}
     },
     {
         Type='Disc',
-        Group='',
+        Group='aewade',
         Names={'Wade into Battle'},
         Options={aetank=true, threshold=4, condition=conditions.aboveMobThreshold}
     },
@@ -162,20 +162,20 @@ Warrior.Abilities = {
     -- tank burn
     {
         Type='Disc',
-        Group='',
+        Group='attention',
         Names={'Unconditional Attention', 'Unrelenting Attention', 'Unyielding Attention', 'Undivided Attention'},
         Options={tankburn=true, condition=conditions.withinMeleeDistance}
     },
     --table.insert(self.tankBurnAbilities, common.getBestDisc({'Climactic Stand', 'Resolute Stand', 'Stonewall Discipline', 'Defensive Discipline'}, {overwritedisc=mash_defensive and mash_defensive.Name or nil}))
     {
         Type='Disc',
-        Group='',
+        Group='armorrunes',
         Names={'Armor of Rallosian Runes', 'Armor of Akhevan Runes'},
         Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil}
     },
     {
         Type='Disc',
-        Group='',
+        Group='defenseburn',
         Names={'Levincrash Defense Discipline'},
         Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil}
     },
@@ -226,7 +226,7 @@ Warrior.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='resolve',
         Names={'Warrior\'s Resolve', 'Warrior\'s Aegis'},
         Options={tankburn=true}
     },
@@ -239,7 +239,7 @@ Warrior.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='fortitude',
         Names={'Fortitude Discipline'},
         Options={opt='USEFORTITUDE', overwritesdisc=Warrior.defense and Warrior.defense.name or nil}
     },
@@ -258,7 +258,7 @@ Warrior.Abilities = {
     -- DPS
     {
         Type='Disc',
-        Group='',
+        Group='vortex',
         Names={'Spiraling Blades', 'Vortex Blade', 'Cyclone Blade'},
         Options={aedps=true, threshold=3, condition=conditions.aboveMobThreshold}
     },
@@ -274,19 +274,19 @@ Warrior.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='shieldbreak',
         Names={'Shield Splinter'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     {
         Type='Disc',
-        Group='',
+        Group='throatjab',
         Names={'Throat Jab'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     {
         Type='Disc',
-        Group='',
+        Group='knucklebreak',
         Names={'Knuckle Break'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
@@ -302,14 +302,14 @@ Warrior.Abilities = {
     },
     { -- 35s cd, timer 9, 2H attack, Mob HP 20% or below only
         Type='Disc',
-        Group='',
+        Group='strike',
         Names={'Decisive Strike', 'Exploitive Strike'},
         Options={dps=true, usebelowpct=20, condition=function(ability) return conditions.targetHPBelow(ability) and conditions.withinMeleeDistance(ability) end}
     },
     --table.insert(self.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
     { -- 4min cd, timer 2, increased offensive capabilities
         Type='Disc',
-        Group='',
+        Group='offensive',
         Names={'Offensive Discipline'},
         Options={first=true}
     },
@@ -322,7 +322,7 @@ Warrior.Abilities = {
     -- Buffs
     {
         Type='Disc',
-        Group='',
+        Group='endregen',
         Names={'Breather'},
         Options={recover=true, combat=false, endurance=true, threshold=20, condition=function(ability) return mq.TLO.Me.PctEndurance() <= config.get('RECOVERPCT') and (ability.combat or mq.TLO.Me.CombatState() ~= 'COMBAT') end}
     },
@@ -333,13 +333,13 @@ Warrior.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='aura',
         Names={'Champion\'s Aura', 'Myrmidon\'s Aura'},
         Options={aurabuff=true}
     },
     {
         Type='Disc',
-        Group='',
+        Group='fieldbuff',
         Names={'Field Bulwark', 'Full Moon\'s Champion', 'Field Armorer'},
         Options={condition=conditions.missingBuff, combatbuff=true}
     },
@@ -360,7 +360,7 @@ Warrior.Abilities = {
     },
     {
         Type='Disc',
-        Group='',
+        Group='voice',
         Names={'Commanding Voice'},
         Options={combatbuff=not state.emu and true or false}
     },
