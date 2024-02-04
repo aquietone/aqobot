@@ -96,12 +96,12 @@ Bard.SpellLines = {
     },
     {-- synergy DD. Slot 5
         Group='insult',
-        Spells={'Nord\'s Disdain', 'Yelinak\'s Insult', 'Sathir\'s Insult', 'Tsaph\'s Insult', 'Garath\'s Insult', --[[emu cutoff]] },
+        Spells={'Nord\'s Disdain', 'Yelinak\'s Insult', 'Sathir\'s Insult', 'Tsaph\'s Insult', 'Garath\'s Insult', --[[emu cutoff]] 'Brusco\'s Boastful Bellow'},
         Options={opt='USEINSULTS', Gem=5}
     },
     {-- haste, atk, ds. Slot 6
         Group='warmarch',
-        Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'War March of Jocelyn', --[[emu cutoff]] 'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'},
+        Spells={'War March of Nokk', 'War March of Centien Xi Va Xakra', 'War March of Radiwol', 'War March of Dekloaz', 'War March of Jocelyn', --[[emu cutoff]] 'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms', 'Chant of Battle'},
         Options={Gem=6}
     },
     {-- spell shield, AC, dmg mitigation. Slot 7
@@ -121,7 +121,7 @@ Bard.SpellLines = {
     },
     {-- single target mez. Slot 8
         Group='mezst',
-        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell'},
+        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell', 'Kelin\'s Lucid Lullaby'},
         Options={opt='MEZST', Gem=8}
     },
     {-- aoe mez. Slot 9
@@ -136,7 +136,7 @@ Bard.SpellLines = {
     },
     {-- heal focus + regen. Slot 11
         Group='pulse',
-        Spells={'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Pulse of Sionachie', --[[emu cutoff]] 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing'},
+        Spells={'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Pulse of Sionachie', --[[emu cutoff]] 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing', 'Hymn of Restoration'},
         Options={opt='USEREGENSONG', Gem=11}
     },
     {-- DD+melee dmg bonus + small heal. Slot 12
@@ -169,8 +169,10 @@ Bard.SpellLines = {
     {Group='emuhaste', Spells={'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'}},
     {Group='snare', Spells={'Selo\'s Consonant Chain'}, Options={opt='USESNARE'}},
     {Group='debuff', Spells={'Harmony of Sound'}},
+    {Group='jonthans', Spells={'Jonthan\'s Whistling Warsong'}, Options={}},
+    {Group='magicweapons', Spells={'Magical Monologue'}, Options={}},
 
-    {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed'}},
+    {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed', 'Selo\'s Accelerando'}},
 }
 
 Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}

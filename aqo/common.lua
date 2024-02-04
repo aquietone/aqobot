@@ -329,14 +329,15 @@ function common.checkMana()
     local feather = mq.TLO.FindItem('=Unified Phoenix Feather') or mq.TLO.FindItem('=Miniature Horn of Unity')
     if pct_mana < 75 and mq.TLO.Me.MaxMana() > 0 then
         local cursor = mq.TLO.Cursor.Name()
-        if cursor and (cursor == 'Summoned: Dazzling Modulation Shard' or cursor == 'Sickle of Umbral Modulation' or cursor == 'Wand of Restless Modulation') then
+        if modrods[cursor] then
             mq.cmd('/autoinventory')
             mq.delay(50)
         end
         -- Find ModRods in check_mana since they poof when out of charges, can't just find once at startup.
         for item,_ in pairs(modrods) do
             local modrod = mq.TLO.FindItem(item)
-            if modrod() and mq.TLO.Me.PctHPs() > 70 then
+            local hp_amount = modrod.Spell.Base(1)()
+            if hp_amount and math.abs(hp_amount)*2 < mq.TLO.Me.CurrentHPs() then
                 abilities.use(abilities.Item:new({Name=modrod(), ID=modrod.ID()}))
             end
         end

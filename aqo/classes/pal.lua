@@ -71,7 +71,7 @@ end
 Paladin.SpellLines = {
     {
         Group='stun1',
-        Spells={'Force of Marr'},
+        Spells={'Force of Marr', --[[emu cutoff]] 'Desist', 'Cease'},
         Options={Gem=1},
     },
     {
@@ -131,7 +131,7 @@ Paladin.SpellLines = {
     },
     {-- same stats as cleric aego
         Group='aego',
-        Spells={'Oauthbound Keeper'},
+        Spells={'Oauthbound Keeper', --[[emu cutoff]] 'Courage'},
         Options={},
     },
     {
@@ -144,9 +144,34 @@ Paladin.SpellLines = {
         Spells={'Armor of Implacable Faith'},
         Options={selfbuff=true},
     },
+    {
+        Group='heal',
+        Spells={'Light Healing', 'Minor Healing', 'Salve'},
+        Options={heal=true, tank=true, regular=true}
+    },
+    {
+        Group='curepoison',
+        Spells={'Cure Poison'},
+        Options={cure=true, poison=true}
+    },
+    {
+        Group='curedisease',
+        Spells={'Cure Disease'},
+        Options={cure=true, disease=true}
+    },
+    {
+        Group='Yaulp',
+        Spells={'Yaulp'},
+        Options={}
+    },
+    {
+        Group='undeadnuke',
+        Spells={'Ward Undead'},
+        Options={opt='USENUKES'}
+    }
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
-Paladin.allDPSSpellGroups = {}
+Paladin.allDPSSpellGroups = {'stun1', 'stun2', 'stun3'}
 
 --[[ AA's to sort out
 self:addAA('Bestow Divine Aura', {}) -- 

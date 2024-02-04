@@ -118,7 +118,7 @@ Shaman.SpellLines = {
     },
     {-- DPS spellset. Disease DoT. Slot 1
         Group='maladydot',
-        Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady'},
+        Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady', --[[emu cutoff]] 'Sicken'},
         Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 1 or nil end}
     },
     {-- group HoT. Slot 2
@@ -194,7 +194,7 @@ Shaman.SpellLines = {
     },
     {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
         Group='nectardot',
-        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain'},
+        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Tainted Breath'},
         Options={opt='USEDOTS', Gem=function() return not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9 or nil end}
     },
     {-- DPS spellset. curse DoT. Slot 10
@@ -214,7 +214,7 @@ Shaman.SpellLines = {
     },
     {-- Hybrid spellset. Slot 11
         Group='icenuke',
-        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall'},
+        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]] 'Frost Rift', 'Burst of Flame'},
         Options={opt='USENUKES', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11 or nil end}
     },
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
@@ -243,7 +243,7 @@ Shaman.SpellLines = {
     {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}, Options={selfbuff=true}},
     -- Cures
     {Group='cure', Spells={'Blood of Nadox'}, Options={cure=true, all=true}},
-    {Group='rgc', Spells={'Remove Greater Curse'}, Options={cure=true, curse=true}},
+    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
     {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT'}},
@@ -259,7 +259,7 @@ Shaman.SpellLines = {
         Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete'},
         Options={opt='USEDEBUFF', debuff=true}
     },
-    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects'}, Options={debuff=true, opt='USESLOW'}},
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Drowsy'}, Options={debuff=true, opt='USESLOW'}},
     {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={debuff=true, opt='USESLOWAOE'}},
 
     -- Extra DoTs just used by combo spells
@@ -282,14 +282,56 @@ Shaman.SpellLines = {
     -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
     {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
     {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
-    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'}, Options={alias='SINGLEFOCUS'}},
+    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale', --[[emu cutoff]] 'Inner Fire'}, Options={alias='SINGLEFOCUS'}},
     {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II'}, Options={recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
     {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit'}, Options={'SUMMONPET'}},
+    {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
 
     --Call of the Ancients -- 5 minute duration ward AE healing
+
+    {
+        Group='curepoison',
+        Spells={'Cure Poison'},
+        Options={cure=true, poison=true}
+    },
+    {
+        Group='curedisease',
+        Spells={'Cure Disease'},
+        Options={cure=true, disease=true}
+    },
+    {-- single dex buff
+        Group='singledex',
+        Spells={'Dexterous Aura'},
+        Options={}
+    },
+    {-- single str buff
+        Group='singlestr',
+        Spells={'Talisman of the Beast', 'Strengthen'},
+        Options={}
+    },
+    {-- single agi buff
+        Group='singleagi',
+        Spells={'Feet like Cat'},
+        Options={}
+    },
+    {-- single sta buff
+        Group='singlesta',
+        Spells={'Spirit of Bear'},
+        Options={}
+    },
+    {-- single cha buff
+        Group='singlecha',
+        Spells={'Spirit of Snake'},
+        Options={}
+    },
+    {-- single ac buff
+        Group='singleac',
+        Spells={'Turtle Skin'},
+        Options={}
+    },
 }
 
 Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Roar of the Lion']=true}

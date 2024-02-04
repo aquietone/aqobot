@@ -235,13 +235,11 @@ function base:addNSpells(spellGroup, numToAdd, spellList, options)
         end
         if not self.spells[spellGroup..i] then
             self.spells[spellGroup..i] = foundSpell
+            self:addAbilityToLists(self.spells[spellGroup..i])
         else
             for k,v in pairs(foundSpell) do
                 self.spells[spellGroup..i][k] = v
             end
-        end
-        if self.spells[spellGroup..i] then
-            self:addAbilityToLists(self.spells[spellGroup..i])
         end
         local j = 1
         while spellList[1] ~= foundSpell.BaseName or j > 25 do
@@ -274,13 +272,11 @@ function base:addSpell(spellGroup, spellList, options)
     end
     if not self.spells[spellGroup] then
         self.spells[spellGroup] = foundSpell
+        self:addAbilityToLists(self.spells[spellGroup])
     else
         for k,v in pairs(foundSpell) do
             self.spells[spellGroup][k] = v
         end
-    end
-    if self.spells[spellGroup] then
-        self:addAbilityToLists(self.spells[spellGroup])
     end
 end
 

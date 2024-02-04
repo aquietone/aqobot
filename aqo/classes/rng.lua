@@ -55,7 +55,7 @@ end
 Ranger.SpellLines = {
     {-- Slot 1
         Group='firenuke1',
-        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash'},
+        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Burst of Fire'},
         Options={Gem=1},
     },
     {-- 4x archery attacks, Focused Blizzard of Arrows. Slot 2
@@ -146,14 +146,14 @@ Ranger.SpellLines = {
     {Group='ds', Spells={'Shield of Needlespikes', 'Shield of Shadethorns'}}, -- DS
     {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true}}, -- self rune + debuff proc
     {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
-    {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE', debuff=true}},
+    {Group='snare', Spells={'Ensnare', 'Snare', 'Tangling Weeds'}, Options={opt='USESNARE', debuff=true}},
     {Group='dispel', Spells={'Nature\'s Balance'}, Options={opt='USEDISPEL', debuff=true}},
     -- Maelstrom of Blades, 4x 1h slash
     -- Jolting Emberquartz, add proc decrease hate
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light'}, Options={heal=true, regular=true}},
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Minor Healing', 'Salve'}, Options={heal=true, regular=true}},
 }
 
 Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}
