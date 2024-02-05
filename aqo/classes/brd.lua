@@ -121,7 +121,7 @@ Bard.SpellLines = {
     },
     {-- single target mez. Slot 8
         Group='mezst',
-        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell', 'Kelin\'s Lucid Lullaby'},
+        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell', 'Crission\'s Pixie Strike', 'Kelin\'s Lucid Lullaby'},
         Options={opt='MEZST', Gem=8}
     },
     {-- aoe mez. Slot 9
@@ -171,12 +171,12 @@ Bard.SpellLines = {
     {Group='debuff', Spells={'Harmony of Sound'}},
     {Group='jonthans', Spells={'Jonthan\'s Whistling Warsong'}, Options={}},
     {Group='magicweapons', Spells={'Magical Monologue'}, Options={}},
-
+    {Group='chantmagic', Spells={'Fufil\'s Curtailing Chant'}, Options={}},
     {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed', 'Selo\'s Accelerando'}},
 
     {Group='aedot', Spells={'Denon\'s Disruptive Discord', 'Chords of Dissonance'}, Options={'USEAOE'}},
     {Group='aeslow', Spells={'Largo\'s Melodic Binding'}, Options={}},
-    {Group='manasong', Spells={'Cassindra\'s Chant of Clarity'}, Options={}},
+    {Group='manasong', Spells={'Cassindra\'s Chorus of Clarity', 'Cassindra\'s Chant of Clarity'}, Options={}},
     {Group='dispel', Spells={'Alenia\'s Disenchanting Melody'}, Options={}}
 }
 

@@ -72,7 +72,7 @@ end
 Paladin.SpellLines = {
     {
         Group='stun1',
-        Spells={'Force of Marr', --[[emu cutoff]] 'Desist', 'Cease'},
+        Spells={'Force of Marr', --[[emu cutoff]] 'Stun', 'Desist', 'Cease'},
         Options={Gem=1},
     },
     {
@@ -127,7 +127,7 @@ Paladin.SpellLines = {
     },
     {
         Group='procbuff',
-        Spells={'Preservation of Marr'},
+        Spells={'Preservation of Marr', 'Instrument of Nife'},
         Options={Gem=12, selfbuff=true},
     },
     {-- same stats as cleric aego
@@ -147,7 +147,7 @@ Paladin.SpellLines = {
     },
     {
         Group='heal',
-        Spells={'Light Healing', 'Minor Healing', 'Salve'},
+        Spells={'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
         Options={heal=true, tank=true, regular=true}
     },
     {
@@ -167,13 +167,18 @@ Paladin.SpellLines = {
     },
     {
         Group='undeadnuke',
-        Spells={'Ward Undead'},
+        Spells={'Expulse Undead', 'Ward Undead'},
         Options={opt='USENUKES', condition=function() return mq.TLO.Target.Type() == 'Undead' end}
     },
     {
         Group='rgc',
         Spells={'Remove Minor Curse'},
         Options={cure=true, curse=true}
+    },
+    {
+        Group='dispel',
+        Spells={'Cancel Magic'},
+        Options={debuff=true}
     }
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}

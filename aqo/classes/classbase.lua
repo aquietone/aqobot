@@ -1074,7 +1074,7 @@ end
 
 base.checkSpellTimer = timer:new(30000)
 function base:checkMemmedSpells()
-    if not mq.TLO.Me.Class.CanCast() or not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') then return end
+    if not mq.TLO.Me.Class.CanCast() or not self.spells or not common.clearToBuff() or mq.TLO.Me.Moving() or self:isEnabled('BYOS') or state.memSpell or state.restore_gem then return end
     local spellSet = self:get('SPELLSET')
     if state.spellSetLoaded ~= spellSet or self.checkSpellTimer:expired() then
         local numGems = mq.TLO.Me.NumGems() or 8

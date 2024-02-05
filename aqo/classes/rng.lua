@@ -55,7 +55,7 @@ end
 Ranger.SpellLines = {
     {-- Slot 1
         Group='firenuke1',
-        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Ignite', 'Burst of Fire'},
+        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Flaming Arrow', 'Ignite', 'Burst of Fire'},
         Options={Gem=1},
     },
     {-- 4x archery attacks, Focused Blizzard of Arrows. Slot 2
@@ -132,14 +132,15 @@ Ranger.SpellLines = {
     {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment', --[[emu cutoff]] 'Firefist'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
-    {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs'}}, -- Cloak of Rimespurs
+    {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs', --[[emu cutoff]] 'Riftwood\'s Protection'}}, -- Cloak of Rimespurs
     {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}, Options={alias='PREDATOR', selfbuff=true}}, -- Frostroar of the Predator
-    {Group='strength', Spells={'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare'}, Options={alias='STRENGTH', selfbuff=true}}, -- Strength of the Arbor Stalker
+    {Group='strength', Spells={'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare', --[[emu cutoff]] 'Strength of Earth'}, Options={alias='STRENGTH', selfbuff=true}}, -- Strength of the Arbor Stalker
     -- Unity AA Buffs
     {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}}, -- Protection of the Wakening Land
     {Group='eyes', Spells={'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}, Options={selfbuff=true}}, -- Eyes of the Visionary
     {Group='hunt', Spells={'Engulfed by the Hunt', 'Steeled by the Hunt'}}, -- Provoked by the Hunt
-    {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat'}}, -- Rimespur Coat
+    {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat', --[[emu cutoff]] 'Barbcoat'}}, -- Rimespur Coat
+    {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
     -- Unity Azia only
     {Group='barrage', Spells={'Devastating Barrage'}}, -- Devastating Velium
     -- Unity Beza only
@@ -148,7 +149,7 @@ Ranger.SpellLines = {
     {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true}}, -- self rune + debuff proc
     {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
     {Group='snare', Spells={'Ensnare', 'Snare', 'Tangling Weeds'}, Options={opt='USESNARE', debuff=true}},
-    {Group='dispel', Spells={'Nature\'s Balance'}, Options={opt='USEDISPEL', debuff=true}},
+    {Group='dispel', Spells={'Nature\'s Balance', --[[emu cutoff]] 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true}},
     -- Maelstrom of Blades, 4x 1h slash
     -- Jolting Emberquartz, add proc decrease hate
     -- Cloud of Guardian Fernflies, big ds
