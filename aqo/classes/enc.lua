@@ -72,7 +72,7 @@ end
 Enchanter.SpellLines = {
     {-- Slot 1
         Group='tash',
-        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', 'Enunciation of Tashan', 'Declaration of Tashan', 'Clamor of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan'},
+        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', 'Enunciation of Tashan', 'Declaration of Tashan', 'Clamor of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan', 'Tashan'},
         Options={debuff=true, opt='USEDEBUFF', Gem=1}
     },
     {-- Slot 2
@@ -87,7 +87,7 @@ Enchanter.SpellLines = {
     },
     {-- 9 ticks. Slot 3
         Group='mezst',
-        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria'},
+        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria', 'Mesmerize'},
         Options={Gem=3, precast=function() if not mq.TLO.Target.Tashed() and Enchanter:isEnabled('TASHTHENMEZ') and Enchanter.spells.tash then
             Enchanter.spells.tash:use()
             mq.delay(50)
@@ -102,7 +102,7 @@ Enchanter.SpellLines = {
     },
     {-- main dot. Slot 5
         Group='dot1',
-        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', 'Stifle', 'Suffocation', 'Constrict', --[[emu cutoff]] 'Arcane Noose'},
+        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', 'Stifle', 'Suffocation', 'Constrict', --[[emu cutoff]] 'Arcane Noose', 'Suffocating Sphere', 'Shallow Breath'},
         Options={opt='USEDOTS', Gem=5}
     },
     {-- 77k nuke, procs synery. Slot 6, 7
@@ -185,10 +185,10 @@ Enchanter.SpellLines = {
     {Group='calm', Spells={'Still Mind'}},
     {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
-    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration'}},
+    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Flux'}},
     {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}, Options={selfbuff=true}}, -- self rune, proc ae stun on fade
 
-    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', }},
+    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', 'Juli\'s Animation'}},
     {Group='pethaste', Spells={'Invigorated Minion'}, Options={petbuff=true}},
     -- buffs
     {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI', selfbuff=true}},
@@ -204,11 +204,11 @@ Enchanter.SpellLines = {
     {Group='disempower', Spells={'Arcane Disjunction Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.disempower.Name or Enchanter:get('AURA2') == Enchanter.spells.disempower.Name end}},
     -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
-    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice'}},
+    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Lesser Shielding', 'Minor Shielding'}},
     {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
 
-    {Group='spasm', Spells={'Synapsis Spasm'}, Options={debuff=true, opt='USEDEBUFF', emu=true}},
-    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic'}, Options={opt='USEDISPEL'}},
+    {Group='spasm', Spells={'Synapsis Spasm', 'Enfeeblement'}, Options={debuff=true, opt='USEDEBUFF', emu=true}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
 }
 
 Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}

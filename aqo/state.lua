@@ -112,6 +112,10 @@ function state.handleMemSpell()
             state.resetMemSpellState()
             return true
             -- maybe re-mem old spell?
+        elseif not mq.TLO.Me.Gem(state.memSpell.Name)() and not mq.TLO.Window('SpellBookWnd').Open() then
+            -- cut off during mem spell?
+            state.resetMemSpellState()
+            return true
         else
             -- spin
             return false

@@ -197,12 +197,12 @@ Magician.SpellLines = {
     {-- Main fire nuke. Slot 1/2
         Group='spear',
         NumToPick=2,
-        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Burst of Flame'},
+        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
         Options={opt='USEFIRENUKES', Gems={function() return not Magician:isEnabled('USEAOE') and 1 or nil end,2}}
     },
     {-- Main AE nuke. Slot 1
         Group='beam',
-        Spells={'Beam of Molten Dacite', 'Beam of Molten Olivine', 'Beam of Molten Komatiite', 'Beam of Molten Rhyolite', 'Beam of Molten Shieldstone', --[[emu cutoff]]},
+        Spells={'Beam of Molten Dacite', 'Beam of Molten Olivine', 'Beam of Molten Komatiite', 'Beam of Molten Rhyolite', 'Beam of Molten Shieldstone', --[[emu cutoff]] 'Fire Flux'},
         Options={opt='USEAOE', Gem=1}
     },
     {-- Strong elemental temporary pet summon. Slot 3
@@ -222,7 +222,7 @@ Magician.SpellLines = {
     },
     {-- Main magic nuke. Slot 6
         Group='shock',
-        Spells={'Shock of Memorial Steel', 'Shock of Carbide Steel', 'Shock of Burning Steel', 'Shock of Arcronite Steel', 'Shock of Darksteel', --[[emu cutoff]] 'Blade Strike', 'Rock of Taelosia', 'Shock of Steel', 'Shock of Swords'},
+        Spells={'Shock of Memorial Steel', 'Shock of Carbide Steel', 'Shock of Burning Steel', 'Shock of Arcronite Steel', 'Shock of Darksteel', --[[emu cutoff]] 'Blade Strike', 'Rock of Taelosia', 'Shock of Steel', 'Shock of Swords', 'Shock of Blades'},
         Options={opt='USEMAGICNUKES', Gem=6}
     },
     {-- Summons clicky nuke orb with 10 charges. Slot 7
@@ -286,22 +286,22 @@ Magician.SpellLines = {
         Spells={'Recruitment of Water', 'Conscription of Water', 'Manifestation of Water', 'Embodiment of Water', 'Convocation of Water', --[[emu cutoff]]
                 'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
                 'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
-                'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elementalkin: Water'},
+                'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elemental: Water', 'Elementaling: Water', 'Elementalkin: Water'},
         Options={}
     },
     {
         Group='airpet',
-        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]]},
+        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
         Options={}
     },
     {
         Group='earthpet',
-        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]]},
+        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]] 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
         Options={}
     },
     {
         Group='firepet',
-        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]]},
+        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]] 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
         Options={}
     },
     {
@@ -321,7 +321,7 @@ Magician.SpellLines = {
     },
     {
         Group='petheal',
-        Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal'},
+        Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal', 'Renew Elements'},
         Options={opt='HEALPET', pet=50, heal=true}
     },
     {-- aborb 9 smaller hits, spellslot 1
@@ -341,7 +341,7 @@ Magician.SpellLines = {
     },
 
     -- self hp buff, blocks shm
-    {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus'--[[emu cutoff]] }, Options={}},
+    {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus', --[[emu cutoff]] 'Lesser Shielding', 'Minor Shielding'}, Options={}},
     {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}, Options={selfbuff=true}}, -- self regen/ac buff
     {Group='manaregen', Spells={'Valiant Symbiosis', 'Relentless Symbiosis', 'Restless Symbiosis', 'Burning Symbiosis', 'Dark Symbiosis', --[[emu cutoff]] 'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
     {Group='bodyguard', Spells={'Valorforged Bodyguard', 'Ophiolite Bodyguard', 'Pyroxenite Bodyguard', 'Rhylitic Bodyguard', 'Shieldstone Bodyguard'}, Options={}}, -- proc pet when hit
