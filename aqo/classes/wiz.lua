@@ -21,19 +21,27 @@ function Wizard:init()
 end
 
 Wizard.SpellLines = {
-    {Group='nuke1', Spells={'Ether Flame', 'Draught of Ro', 'Pillar of Fire'}},
-    {Group='nuke2', Spells={'Ancient: Spear of Gelaqua', 'Fire Spiral of Al\'Kabor'}},
+    {Group='largefire', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Conflagration', 'Fire Bolt'}},
+    {Group='smallfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire', 'Inferno Shock', 'Shock of Fire'}},
+    {Group='smallice', Spells={'Ancient: Spear of Gelaqua', 'Black Ice', 'Claw of Frost', 'Ice Spear of Solist', 'Ice Shock', 'Frost Shock', 'Shock of Ice', 'Blast of Cold'}},
+    {Group='lightning', Spells={'Shock of Lightning'}},
+    {Group='stun', Spells={'Telekemara'}},
     {Group='Swarm', Spells={'Solist\'s Frozen Sword'}},
-    {Group='rain', Spells={'Gelid Rains'}},
+    {Group='rain', Spells={'Gelid Rains', 'Icestrike'}},
     {Group='aeTrap', Spells={'Fire Rune'}},
     {Group='ae1', Spells={'Circle of Thunder'}},
     {Group='ae2', Spells={'Jyll\'s Static Pulse'}},
-    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice'}},
-    {Group='ae4', Spells={'Jyll\'s Wave of Heat'}},
+    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice', 'Column of Frost', 'Numbing Cold'}},
+    {Group='ae4', Spells={'Jyll\'s Wave of Heat', 'Fire Spiral of Al\'Kabor', 'Pillar of Fire', 'Fingers of Fire'}},
+    {Group='hpbuff', Spells={'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
+    {Group='ds', Spells={'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true}},
+
+    {Group='lurefire', Spells={'Firebane', 'Lure of Ro', 'Lure of Flame', 'Enticement of Flame'}},
+    {Group='lureice', Spells={'Lure of Ice'}},
 }
 
 Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
-Wizard.allDPSSpellGroups = {'nuke1', 'nuke2', 'Swarm', 'rain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
+Wizard.allDPSSpellGroups = {'largefire', 'smallfire', 'smallice', 'stun', 'Swarm', 'rain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
 
 Wizard.Abilities = {
     -- DPS
@@ -87,8 +95,10 @@ Wizard.Abilities = {
 function Wizard:initSpellRotations()
     self:initBYOSCustom()
     table.insert(self.spellRotations.standard, self.spells.swarm)
-    table.insert(self.spellRotations.standard, self.spells.nuke1)
-    table.insert(self.spellRotations.standard, self.spells.nuke2)
+    table.insert(self.spellRotations.standard, self.spells.largefire)
+    table.insert(self.spellRotations.standard, self.spells.smallfire)
+    table.insert(self.spellRotations.standard, self.spells.smallice)
+    table.insert(self.spellRotations.standard, self.spells.stun)
     table.insert(self.spellRotations.ae, self.spells.aeTrap)
     table.insert(self.spellRotations.ae, self.spells.ae1)
     table.insert(self.spellRotations.ae, self.spells.ae2)

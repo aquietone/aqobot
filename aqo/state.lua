@@ -98,7 +98,7 @@ end
 state.memSpell = false
 state.memSpellTimer = timer:new(60000)
 state.wait_for_spell_ready = false
-state.restoreGem = nil
+state.restore_gem = nil
 
 function state.handleMemSpell()
     if state.memSpell then

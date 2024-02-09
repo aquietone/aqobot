@@ -64,7 +64,7 @@ end
 ShadowKnight.SpellLines = {
     {-- Regular lifetap. Slot 1
         Group='tap1',
-        Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk'},
+        Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk', --[[emu cutoff]] 'Lifetap'},
         Options={Gem=1, condition=function() return mq.TLO.Me.PctHPs() < 85 end}
     },--, 'Drain Soul', 'Lifedraw'})
     {-- Temp buff (Gift of) lifetap. Slot 2
@@ -110,7 +110,7 @@ ShadowKnight.SpellLines = {
     },
     {-- DPS spellset. disease dot. Slot 7
         Group='disease',
-        Spells={'Plague of the Fleawalker', 'Plague of Fleshrot'},
+        Spells={'Plague of the Fleawalker', 'Plague of Fleshrot', --[[emu cutoff]] 'Disease Cloud'},
         Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 7 or nil end}
     },
     {-- lifetap dot. Slot 8
@@ -130,7 +130,7 @@ ShadowKnight.SpellLines = {
     },
     {-- ac debuff. Slot 10
         Group='acdebuff',
-        Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony'},
+        Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony', --[[emu cutoff]] 'Siphon Strength'},
         Options={opt='USETORRENT', Gem=10}
     },
     {-- temp HP buff, 2.5min. Slot 11
@@ -158,12 +158,13 @@ ShadowKnight.SpellLines = {
     --['']={'Oppressor\'s Audacity', 'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 
     {Group='acdis', Spells={'Dire Squelch', 'Dire Seizure'}}, -- disease + ac dot
+    {Group='atkdebuff', Spells={'Despair'}, Options={}},
     --['']={'Odious Bargain', 'Despicable Bargain'}), -- ae hate nuke, does this get used?
     -- Short Term Buffs
     {Group='disruption', Spells={'Confluent Disruption', 'Scream of Death'}}, -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead'}}, -- pet
+    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Leering Corpse'}}, -- pet
     {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
     {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
