@@ -135,6 +135,9 @@ end
 --- @param type string # The UI element type (combobox, checkbox, inputint)
 --- @param exclusive string|nil # The key of another option which is mutually exclusive with this option
 function base:addOption(key, label, value, options, tip, type, exclusive, tlo, tlotype)
+    if not self.options[key] then
+        table.insert(self.options, key)
+    end
     self.options[key] = {
         label=label,
         value=value,
@@ -145,9 +148,7 @@ function base:addOption(key, label, value, options, tip, type, exclusive, tlo, t
         tlo=tlo,
         tlotype=tlotype,
     }
-    table.insert(self.options, key)
 end
-
 
 function base:addCommonOptions()
     if self.spellRotations then
@@ -477,15 +478,15 @@ function base:loadSettings()
             base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled})
         end
     end
-    if settings.petWeapons then
-        self.petWeapons = settings.petWeapons
-    end
+    self.petWeapons = settings.petWeapons or nil
     if settings.BYOSCustom then
         self.customRotationTemp = {}
         for i,spellGroup in ipairs(settings.BYOSCustom) do
             self.customRotationTemp[i] = spellGroup
         end
     end
+    self.customAbilities = settings.customAbilities or {}
+    self.customOptions = settings.customOptions or {}
 end
 
 function base:saveSettings()
@@ -493,7 +494,7 @@ function base:saveSettings()
     for name,options in pairs(self.options) do optValues[name] = options.value end
     local byos = {}
     if self.customRotation then for i,spell in ipairs(self.customRotation) do byos[i] = spell.SpellGroup end end
-    mq.pickle(config.SETTINGS_FILE, {common=config.getAll(), [self.class]=optValues, clickies=self.clickies, petWeapons=self.petWeapons, BYOSCustom=byos})
+    mq.pickle(config.SETTINGS_FILE, {common=config.getAll(), [self.class]=optValues, clickies=self.clickies, petWeapons=self.petWeapons, BYOSCustom=byos, customAbilities=self.customAbilities, customOptions=self.customOptions})
 end
 
 function base:initBYOSCustom()

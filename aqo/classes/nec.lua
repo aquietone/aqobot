@@ -442,7 +442,7 @@ local function countNecros()
 end
 
 function Necromancer:resetClassTimers()
-    self.debuffTimer:reset(0)
+    Necromancer.debuffTimer:reset(0)
 end
 
 function Necromancer:swapSpells()

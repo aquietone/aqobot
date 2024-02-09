@@ -5,6 +5,7 @@ require 'ImGui'
 local icons = require('mq.icons')
 
 local config = require('interface.configuration')
+local customAbilities = require('interface.customabilityui')
 local widgets = require('libaqo.widgets')
 local camp = require('routines.camp')
 local helpers = require('utils.helpers')
@@ -324,6 +325,7 @@ local uiTabs = {
     {label=icons.FA_BATTERY_QUARTER..' Rest', draw=drawRestTab, color=RED},
     {label=icons.FA_PICTURE_O..' Display', draw=drawDisplayTab, color=GREY},
     {label=icons.FA_CODE..' Debug', draw=drawDebugTab, color=YELLOW},
+    -- {label='Custom', draw=function() customAbilities:render(class) end, color=LIGHT_BLUE},
 }
 local function drawBody()
     if ImGui.BeginTabBar('##tabbar', ImGuiTabBarFlags.None) then

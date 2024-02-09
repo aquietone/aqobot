@@ -1,7 +1,6 @@
 local mq = require('mq')
 local class = require('classes.classbase')
 local conditions = require('routines.conditions')
-local sharedabilities = require('utils.sharedabilities')
 local timer = require('libaqo.timer')
 local common = require('common')
 local mode = require('mode')

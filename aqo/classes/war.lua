@@ -4,7 +4,6 @@ local class = require('classes.classbase')
 local common = require('common')
 local config = require('interface.configuration')
 local conditions = require('routines.conditions')
-local sharedabilities = require('utils.sharedabilities')
 local mode = require('mode')
 local state = require('state')
 
