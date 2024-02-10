@@ -120,7 +120,7 @@ ShadowKnight.SpellLines = {
     },
     {-- main hate spell. Slot 9
         Group='challenge',
-        Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate', 'Scream of Hate'},
+        Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate', 'Scream of Pain', 'Scream of Hate'},
         Options={tanking=true, Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 9 or nil end, condition=function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 end}
     },
     {-- DPS spellset. corruption dot. Slot 9
@@ -140,7 +140,7 @@ ShadowKnight.SpellLines = {
     },
     {-- Xenacious' Skin proc, 5min buff. Slot 12
         Group='skin',
-        Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin'},
+        Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin', 'Vampiric Embrace'},
         Options={Gem=12, selfbuff=true}
     },
     {-- lifetap with hp/mana recourse. Slot 13
@@ -163,7 +163,7 @@ ShadowKnight.SpellLines = {
     {Group='disruption', Spells={'Confluent Disruption', 'Scream of Death'}}, -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Bone Walk', 'Leering Corpse'}}, -- pet
+    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}}, -- pet
     {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
     {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
@@ -172,10 +172,11 @@ ShadowKnight.SpellLines = {
     {Group='ds', Spells={'Goblin Skin', 'Tekuel Skin'}}, -- large damage shield self buff
     {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}, Options={selfbuff=true}}, -- lich mana regen
     {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}, Options={selfbuff=true}}, -- self buff hp, ac, ds
-    {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call'}}, -- atk buff, hp drain on self
+    {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call', 'Grim Aura'}}, -- atk buff, hp drain on self
     {Group='voice', Spells={'Voice of Innoruuk'}, Options={opt='USEVOICEOFTHULE', selfbuff=true}},
     --['']=common.get_best_spell({'Remorseless Demeanor'})
-    {Group='snare', Spells={'Clinging Darkness'}, Options={opt='USESNARE', debuff=true}}
+    {Group='snare', Spells={'Engulfing Darkness', 'Clinging Darkness'}, Options={opt='USESNARE', debuff=true}},
+    {Group='undeadnuke', Spells={'Ward Undead'}, Options={opt='USENUKES'}},
 }
 
 ShadowKnight.compositeNames = {['Ecliptic Fang']=true,['Composite Fang']=true,['Dissident Fang']=true,['Dichotomic Fang']=true}

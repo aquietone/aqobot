@@ -58,7 +58,7 @@ Druid.SpellLines = {
     {Group='twincast', Spells={'Twincast'}},
     {
         Group='heal1',
-        Spells={'Resuscitation', 'Soothseance', 'Rejuvenescence', 'Revitalization', 'Resurgence', 'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Light Healing', 'Minor Healing'},
+        Spells={'Resuscitation', 'Soothseance', 'Rejuvenescence', 'Revitalization', 'Resurgence', 'Ancient: Chlorobon', 'Sylvan Infusion', 'Nature\'s Infusion', 'Chloroblast', 'Superior Healing', 'Nature\'s Renewal', 'Healing', 'Light Healing', 'Minor Healing'},
         Options={Gem=1, panic=true, regular=true, tank=true, pet=60}
     },
     {
@@ -78,12 +78,12 @@ Druid.SpellLines = {
     }, -- group heal
     {
         Group='dot1',
-        Spells={'Nature\'s Boiling Wrath', 'Nature\'s Sweltering Wrath', 'Nature\'s Fervid Wrath', 'Nature\'s Blistering Wrath', 'Nature\'s Fiery Wrath', --[[emu cutoff]] 'Flame Lick'},
+        Spells={'Nature\'s Boiling Wrath', 'Nature\'s Sweltering Wrath', 'Nature\'s Fervid Wrath', 'Nature\'s Blistering Wrath', 'Nature\'s Fiery Wrath', --[[emu cutoff]] 'Immolate', 'Flame Lick'},
         Options={Gem=5, opt='USEDOTS'}
     },
     {
         Group='dot2',
-        Spells={'Horde of Hotaria', 'Horde of Duskwigs', 'Horde of Hyperboreads', 'Horde of Polybiads', 'Horde of Aculeids', 'Wasp Swarm', 'Swarming Death', 'Winged Death', 'Stinging Swarm'},
+        Spells={'Horde of Hotaria', 'Horde of Duskwigs', 'Horde of Hyperboreads', 'Horde of Polybiads', 'Horde of Aculeids', 'Wasp Swarm', 'Swarming Death', 'Winged Death', 'Creeping Crud', 'Stinging Swarm'},
         Options={Gem=6, opt='USEDOTS'}
     },
     {Group='dot3', Spells={'Sunscald', 'Sunpyre', 'Sunshock', 'Sunflame', 'Sunflash', 'Vengeance of the Sun'}, Options={opt='USEDOTS'}},
@@ -108,34 +108,38 @@ Druid.SpellLines = {
     {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}},
     {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE', debuff=true}},
 
+    --{Group='hot', Spells={'Celestial Remedy'}, Options={}},
     {Group='healtot', Spells={'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}}, -- Heal tot, dec atk, dec AC
     {Group='tcnuke', Spells={'Sunbliss Blessing', 'Sunwarmth Blessing', 'Sunrake Blessing', 'Sunflash Blessing', 'Sunfire Blessing', 'Sunburst Blessing'}, Options={opt='USENUKES'}},
     {Group='harvest', Spells={'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}}, -- self return 10k mana
     {Group='cure', Spells={'Sanctified Blood'}, Options={cure=true, all=true}}, -- cure dis/poi/cor/cur
     {Group='curedisease', Spells={'Counteract Disease', 'Cure Disease'}, Options={cure=true, disease=true}},
     {Group='curepoison', Spells={'Counteract Poison', 'Cure Poison'}, Options={cure=true, poison=true}},
-    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
+    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
     {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET'}},
+    {Group='petbuff', Spells={'Feral Spirit'}, Options={opt='USEPET', petbuff=true}},
 
     -- Buffs
-    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true}},
+    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Protection of Rock', 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true}},
     {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}, Options={selfbuff=true}},
     {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender'}, Options={selfbuff=true}}, -- self mana regen, part of unity AA
-    {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin', --[[emu cutoff]] 'Skin like Rock', 'Skin like Wood'}},
+    {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin', --[[emu cutoff]] 'Skin like Steel', 'Skin like Rock', 'Skin like Wood'}},
     {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={selfbuff=true, alias='REPTILE', singlebuff=true, classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
-    {Group='coat', Spells={'Thistlecoat'}, Options={selfbuff=true}},
-    {Group='ds', Spells={'Shield of Thistles'}, Options={singlebuff=true, classes={}}},
+    {Group='coat', Spells={'Barbcoat', 'Thistlecoat'}, Options={selfbuff=true}},
+    {Group='ds', Spells={'Shield of Barbs', 'Shield of Thistles'}, Options={singlebuff=true, classes={}}},
     {Group='sow', Spells={'Spirit of Wolf'}, Options={singlebuff=true, classes={}}},
     -- Aura
     {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}, Options={aurabuff=true}}, -- adds cold dmg proc to spells
 
-    {Group='summonednuke', Spells={'Expulse Summoned', 'Ward Summoned'}, Options={opt='USENUKES', condition=function() return false end}}, -- summoned mobs only
-    {Group='outdoornuke', Spells={'Whirling Wind'}, Options={opt='USENUKES', condition=function() return false end}}, -- outdoor only
-    {Group='rainnuke', Spells={'Cascade of Hail', 'Invoke Lightning'}, Options={opt='USEAOE'}},
+    {Group='summonednuke', Spells={'Dismiss Summoned', 'Expulse Summoned', 'Ward Summoned'}, Options={opt='USENUKES', condition=function() return false end}}, -- summoned mobs only
+    {Group='outdoornuke', Spells={'Dizzying Wind', 'Whirling Wind'}, Options={opt='USENUKES', condition=function() return false end}}, -- outdoor only
+    {Group='rainnuke', Spells={'Pogonip', 'Cascade of Hail', 'Invoke Lightning'}, Options={opt='USEAOE'}},
+    {Group='dispel', Spells={'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true, dispel=true}},
+    {Group='pbaenuke', Spells={'Tremor'}, Options={opt='USEAOE'}}
 }
 
 Druid.compositeNames = {['Ecliptic Winds']=true,['Composite Winds']=true,['Dissident Winds']=true,['Dichotomic Winds']=true,}
-Druid.allDPSSpellGroups = {'dot1', 'dot2', 'dot3', 'dot4', 'dot5', 'tcnuke', 'nuke1', 'nuke2', 'nuke3', 'nuke4', 'snare'}
+Druid.allDPSSpellGroups = {'dot1', 'dot2', 'dot3', 'dot4', 'dot5', 'tcnuke', 'nuke1', 'nuke2', 'nuke3', 'nuke4', 'pbaenuke', 'summonednuke', 'outdoornuke', 'rainnuke', 'snare'}
 
 Druid.Abilities = {
     -- Heals
@@ -383,5 +387,25 @@ end
 Druid.Ports = {
     -- 'Ring of Surefall Glade'
     -- 'Ring of Karana'
+    -- 'Ring of Butcher'
+    -- 'Ring of Toxxulia'
+    -- 'Ring of Commons'
+    -- 'Ring of Grimling'
+    -- 'Ring of the Nexus'
+    -- 'Ring of Ro'
+    -- 'Ring of Stonebrunt'
+    -- 'Ring of Steamfont'
+    -- 'Ring of Feerrott'
+    -- 'Ring of Lavastorm'
+    -- 'Ring of Twilight'
+    -- 'Ring of the Combines'
+    -- 'Ring of Knowledge'
+    -- 'Ring of Misty'
+    -- 'Circle of '
+    -- 'Circle of '
+    -- 'Circle of '
+    -- 'Circle of Butcher'
+    -- 'Circle of Toxxulia'
+    -- 'Circle of Karana'
 }
 return Druid

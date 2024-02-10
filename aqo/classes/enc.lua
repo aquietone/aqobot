@@ -72,12 +72,12 @@ end
 Enchanter.SpellLines = {
     {-- Slot 1
         Group='tash',
-        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', 'Enunciation of Tashan', 'Declaration of Tashan', 'Clamor of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan', 'Tashan'},
+        Spells={'Roar of Tashan', 'Edict of Tashan', 'Proclamation of Tashan', 'Order of Tashan', 'Decree of Tashan', 'Enunciation of Tashan', 'Declaration of Tashan', 'Clamor of Tashan', --[[emu cutoff]] 'Bite of Tashani', 'Echo of Tashan', 'Tashani', 'Tashan'},
         Options={debuff=true, opt='USEDEBUFF', Gem=1}
     },
     {-- Slot 2
         Group='charm',
-        Spells={'Esoteric Command', 'Marvel\'s Command', 'Deviser\'s Command', 'Transfixer\'s Command', 'Enticer\'s Command', --[[emu cutoff]] 'Charm'},
+        Spells={'Esoteric Command', 'Marvel\'s Command', 'Deviser\'s Command', 'Transfixer\'s Command', 'Enticer\'s Command', --[[emu cutoff]] 'Beguile', 'Charm'},
         Options={opt='USECHARM', Gem=2}
     },
     {-- 6 tick mez + twincast on next spell. Slot 3
@@ -87,7 +87,7 @@ Enchanter.SpellLines = {
     },
     {-- 9 ticks. Slot 3
         Group='mezst',
-        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria', 'Enthrall', 'Mesmerize'},
+        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria', 'Mesmerization', 'Enthrall', 'Mesmerize'},
         Options={Gem=3, precast=function() if not mq.TLO.Target.Tashed() and Enchanter:isEnabled('TASHTHENMEZ') and Enchanter.spells.tash then
             Enchanter.spells.tash:use()
             mq.delay(50)
@@ -113,7 +113,7 @@ Enchanter.SpellLines = {
     },
     {-- 28k nuke. Slot 8
         Group='nuke2',
-        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst', 'Chaotic Feedback'},
+        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst', 'Chaos Flux', 'Sanity Warp', 'Chaotic Feedback'},
         Options={opt='USENUKES', Gem=8}
     },
     {-- single target dmg proc buff. Slot 9
@@ -160,7 +160,7 @@ Enchanter.SpellLines = {
     {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}}, -- mez proc on being hit
 
     {Group='rune', Spells={'Disquieting Rune', 'Marvel\'s Rune'}}, -- 160k rune, self
-    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune I'}}, -- 90k rune, single target
+    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune II', 'Rune I'}}, -- 90k rune, single target
     {Group='dotrune', Spells={'Aegis of Dhakka', 'Aegis of Xetheg'}}, -- absorb DoT dmg
     {Group='guard', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}, Options={selfbuff=true}}, -- spell + melee guard
     {Group='dotmiti', Spells={'Deviser\'s Auspice', 'Transfixer\'s Auspice'}}, -- DoT guard
@@ -185,17 +185,17 @@ Enchanter.SpellLines = {
     {Group='calm', Spells={'Still Mind'}},
     {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex', 'Whirl till you hurl'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
-    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Flux'}},
+    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}},
     {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}, Options={selfbuff=true}}, -- self rune, proc ae stun on fade
 
-    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}},
+    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', 'Sagar\'s Animation', 'Sisna\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}},
     {Group='pethaste', Spells={'Invigorated Minion'}, Options={petbuff=true}},
     -- buffs
     {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI', selfbuff=true}},
     {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Voice of Clairvoyance', 'Voice of Quellious'}, Options={alias='KEI', selfbuff=function() return not Enchanter.spells.unified and true or false end}},
     {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Voice of Quellious', 'Breeze'}, Options={alias='SINGLEKEI', selfbuff=function() return (not Enchanter.spells.unified and not Enchanter.spells.keigroup) and true or false end}},
     {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar', 'Hastening of Milyex', 'Hastening of Prokev', 'Hastening of Sviir', 'Hastening of Aransir', 'Hastening of Novak'}, Options={alias='HASTE'}}, -- group haste
-    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak', 'Quickness'}, Options={alias='SINGLEHASTE'}}, -- single target buff
+    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak', 'Alacrity', 'Quickness'}, Options={alias='SINGLEHASTE'}}, -- single target buff
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
     {Group='twincast', Spells={'Twincast Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.twincast.Name or Enchanter:get('AURA2') == Enchanter.spells.twincast.Name end}},
     {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.regen.Name or Enchanter:get('AURA2') == Enchanter.spells.regen.Name end}}, -- mana + end regen aura
@@ -204,12 +204,12 @@ Enchanter.SpellLines = {
     {Group='disempower', Spells={'Arcane Disjunction Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.disempower.Name or Enchanter:get('AURA2') == Enchanter.spells.disempower.Name end}},
     -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
-    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}},
+    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}},
     {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
 
-    {Group='spasm', Spells={'Synapsis Spasm', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USEDEBUFF', emu=true}},
-    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Cancel Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
-    {Group='slow', Spells={'Languid Pace'}, Options={opt='USESLOW', debuff=true, slow=true}}
+    {Group='spasm', Spells={'Synapsis Spasm', 'Listless Power', 'Feckless Might', 'Disempower', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USEDEBUFF', emu=true}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Strip Enchantment', 'Cancel Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
+    {Group='slow', Spells={'Tepid Deeds', 'Languid Pace'}, Options={opt='USESLOW', debuff=true, slow=true}}
 }
 
 Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}

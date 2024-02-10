@@ -275,7 +275,7 @@ function Ability.use(theAbility, class, doSwap, skipReadyCheck)
     if (isReady == IsReady.SHOULD_CAST or (isReady == IsReady.NOT_MEMMED and doSwap)) and (not theAbility.condition or theAbility:condition()) and (not class or class:isAbilityEnabled(theAbility.opt)) and (theAbility.enabled == nil or theAbility.enabled) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap and not mq.TLO.Me.Gem(theAbility.CastName)() then
             -- swappings enabled for this spell so memorize it so it can be cast
-            result = Ability.swapAndCast(theAbility, state.swapGem, class)
+            result = Ability.swapAndCast(theAbility, state.swapGem, class, skipReadyCheck)
         else
             -- if precast defined, use that first and queue up the spell to be used
             if theAbility.precast then
@@ -553,7 +553,8 @@ end
 ---@param spell Spell|AA|Disc|Item|Skill # The ability to be used
 ---@param gem number # The spell gem to swap the spell into, if needed
 ---@param class? base # The AQO Class
-function Ability.swapAndCast(spell, gem, class)
+---@param skipReadyCheck? boolean # Whether to skip ready check on the mem'd spell
+function Ability.swapAndCast(spell, gem, class, skipReadyCheck)
     if not spell then return false end
     if not mq.TLO.Me.Gem(spell.Name)() then
         if mq.TLO.Me.Gem(gem)() then
@@ -564,7 +565,7 @@ function Ability.swapAndCast(spell, gem, class)
             return false
         end
         state.queuedAction = function()
-            Ability.use(spell, class)
+            Ability.use(spell, class, false, skipReadyCheck)
             if state.restore_gem then
                 return function()
                     Ability.swapSpell(state.restore_gem, gem)

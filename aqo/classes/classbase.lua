@@ -321,7 +321,7 @@ end
 
 function base:addAA(name, options)
     local aa = common.getAA(name, options)
-    if aa and aa.alias then self.requestAliases[options.alias] = aa end
+    --if aa and aa.alias then self.requestAliases[options.alias] = aa end
     return aa
 end
 
@@ -970,9 +970,9 @@ function base:handleRequests()
                 if request.requested.CastType == abilities.Types.Spell and not mq.TLO.Me.Gem(request.requested.Name)() then
                     restoreGem = {Name=mq.TLO.Me.Gem(state.swapGem)()}
                     abilities.swapSpell(request.requested, state.swapGem, true)
-                    mq.delay(5000, function() return mq.TLO.Me.SpellReady(request.requested.Name)() end)
+                    mq.delay(30000, function() return mq.TLO.Me.SpellReady(request.requested.Name)() end)
                 end
-                if request.requested:isReady() == abilities.IsReady.SHOULD_CAST then
+                if abilities.canUseSpell(mq.TLO.Spell(request.requested.SpellName), request.requested) == abilities.IsReady.CAN_CAST then
                     local tranquilUsed = '/dgt all Casting'
                     if request.tranquil then
                         if (not mq.TLO.Me.AltAbilityReady('Tranquil Blessings')() or mq.TLO.Me.CombatState() == 'COMBAT') then
@@ -994,7 +994,7 @@ function base:handleRequests()
                         requesterSpawn.DoTarget()
                     end
                     mq.cmdf('%s %s for %s', tranquilUsed, request.requested.Name, request.requester)
-                    request.requested:use()
+                    request.requested:use(true)
                     table.remove(self.requests, 1)
                 end
                 if restoreGem then

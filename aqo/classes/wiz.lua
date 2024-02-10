@@ -29,26 +29,29 @@ Wizard.SpellLines = {
     {Group='largefire', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Conflagration', 'Fire Bolt'}},
     {Group='smallfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire', 'Inferno Shock', 'Flame Shock', 'Shock of Fire'}},
     {Group='smallice', Spells={'Ancient: Spear of Gelaqua', 'Black Ice', 'Claw of Frost', 'Ice Spear of Solist', 'Ice Shock', 'Frost Shock', 'Shock of Ice', 'Blast of Cold'}},
-    {Group='lightning', Spells={'Shock of Lightning'}},
-    {Group='stun', Spells={'Telekemara'}},
+    {Group='lightning', Spells={'Garrison\'s Mighty Mana Shock', 'Force Snap', 'Shock of Lightning'}},
+    {Group='stun', Spells={'Tishan\'s Clash', 'Telekemara'}},
     {Group='Swarm', Spells={'Solist\'s Frozen Sword'}},
     {Group='firerain', Spells={'Firestorm'}},
     {Group='icerain', Spells={'Gelid Rains', 'Icestrike'}},
+    {Group='lightningrain', Spells={'Lightning Storm'}},
     {Group='aeTrap', Spells={'Fire Rune'}},
-    {Group='ae1', Spells={'Circle of Thunder', 'Project Lightning'}},
-    {Group='ae2', Spells={'Jyll\'s Static Pulse'}},
+    {Group='ae1', Spells={'Column of Lightning', 'Circle of Thunder', 'Project Lightning'}},
+    {Group='ae2', Spells={'Jyll\'s Static Pulse', 'Cast Force'}},
     {Group='ae3', Spells={'Jyll\'s Zephyr of Ice', 'Frost Spiral of Al\'Kabor', 'Column of Frost', 'Numbing Cold'}},
     {Group='ae4', Spells={'Jyll\'s Wave of Heat', 'Fire Spiral of Al\'Kabor', 'Pillar of Fire', 'Fingers of Fire'}},
-    {Group='hpbuff', Spells={'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
-    {Group='ds', Spells={'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true, classes={}}},
+    {Group='hpbuff', Spells={'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
+    {Group='ds', Spells={'O`Keil\'s Levity', 'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true, classes={}}},
     {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
 
     {Group='lurefire', Spells={'Firebane', 'Lure of Ro', 'Lure of Flame', 'Enticement of Flame'}},
     {Group='lureice', Spells={'Lure of Ice'}},
+
+    {Group='familiar', Spells={'Minor Familiar'}},
 }
 
 Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
-Wizard.allDPSSpellGroups = {'largefire', 'smallfire', 'smallice', 'stun', 'Swarm', 'firerain', 'icerain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
+Wizard.allDPSSpellGroups = {'largefire', 'smallfire', 'smallice', 'lightning', 'stun', 'Swarm', 'firerain', 'icerain', 'lightningrain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
 
 Wizard.Abilities = {
     -- DPS
@@ -107,12 +110,37 @@ function Wizard:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.largefire)
     table.insert(self.spellRotations.standard, self.spells.smallfire)
     table.insert(self.spellRotations.standard, self.spells.smallice)
+    table.insert(self.spellRotations.standard, self.spells.lightning)
     table.insert(self.spellRotations.standard, self.spells.stun)
     table.insert(self.spellRotations.ae, self.spells.aeTrap)
     table.insert(self.spellRotations.ae, self.spells.ae1)
     table.insert(self.spellRotations.ae, self.spells.ae2)
     table.insert(self.spellRotations.ae, self.spells.ae3)
     table.insert(self.spellRotations.ae, self.spells.ae4)
+    table.insert(self.spellRotations.ae, self.spells.firerain)
+    table.insert(self.spellRotations.ae, self.spells.icerain)
+    table.insert(self.spellRotations.ae, self.spells.lightningrain)
 end
 
+Wizard.Ports = {
+    -- 'Nexus Gate'
+    -- 'North Gate'
+    -- 'Tox Gate'
+    -- 'Blightfire Moors Gate'
+    -- 'Fay Gate'
+    -- 'Grimling Gate'
+    -- 'Common Gate'
+    -- 'Stonebrunt Gate'
+    -- 'Nek Gate'
+    -- 'Ro Gate'
+    -- 'Twilight Gate'
+    -- 'Cazic Gate'
+    -- 'West Gate'
+    -- 'Combine Gate'
+
+    -- 'Blightfire Moors Portal',
+    -- 'North Portal'
+    -- 'Translocate: Blightfire Moors'
+
+}
 return Wizard

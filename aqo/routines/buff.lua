@@ -164,7 +164,7 @@ local function buffActors(base)
                         spawn.DoTarget()
                         mq.delay(1000, function() return mq.TLO.Target.BuffsPopulated() end)
                         if mq.TLO.Target.ID() == spawn.ID() and not mq.TLO.Target.Buff(availableBuffs[buff])() then
-                            if abilities.use(base:getAbilityForAlias(buff), base, true) then return true end
+                            if abilities.use(base:getAbilityForAlias(buff), base, true, true) then return true end
                         end
                     end
                 end

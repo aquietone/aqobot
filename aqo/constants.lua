@@ -33,22 +33,22 @@ constants.commandHelp = {
 }
 
 constants.buffs = {
-    BER = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    BRD = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    BST = {'AEGO', --[['SYMBOL', 'SKIN',]] 'SPELLHASTE', 'KEI', 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    CLR = {'SE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
-    DRU = {'SE', 'SYMBOL', 'SPELLHASTE', 'KEI', 'BRELLS', 'FOCUS'},
-    ENC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS'},
-    MAG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
-    MNK = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    NEC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS'},
-    PAL = {'AEGO', 'HASTE', 'KEI', 'SHOUT', 'STR', 'FOCUS'},
-    RNG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'HASTE', 'FOCUS'},
-    ROG = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS'},
-    SHD = {'AEGO', 'HASTE', 'KEI', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
-    SHM = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS'},
-    WAR = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'BRELLS', 'SHOUT', 'STR', 'FOCUS'},
-    WIZ = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS'},
+    BER = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    BRD = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    BST = {'AEGO', --[['SYMBOL', 'SKIN',]] 'SPELLHASTE', 'KEI', 'HASTE', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    CLR = {'SE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    DRU = {'SE', 'SYMBOL', 'SPELLHASTE', 'KEI', 'BRELLS', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    ENC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    MAG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    MNK = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    NEC = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'BRELLS', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    PAL = {'AEGO', 'HASTE', 'KEI', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    RNG = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'HASTE', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    ROG = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    SHD = {'AEGO', 'HASTE', 'KEI', 'BRELLS', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    SHM = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'NECROTIC', 'REPTILE'},
+    WAR = {'AEGO', --[['SYMBOL', 'SKIN',]] 'HASTE', 'BRELLS', 'SHOUT', 'STR', 'FOCUS', 'NECROTIC', 'REPTILE'},
+    WIZ = {'SE', 'SYMBOL', 'SPELLHASTE', 'SKIN', 'KEI', 'BRELLS', 'FOCUS', 'NECROTIC', 'REPTILE'},
 
     -- BST
     SE = {'BST'}, -- all
@@ -146,7 +146,7 @@ constants.routines = {heal=1,assist=1,mash=1,burn=1,cast=1,cure=1,buff=1,rest=1,
 constants.classLists = {
     'DPSAbilities', 'AEDPSAbilities', 'burnAbilities', 'tankAbilities', 'tankBurnAbilities', 'AETankAbilities', 'healAbilities',
     'fadeAbilities', 'defensiveAbilities', 'aggroReducers', 'recoverAbilities', 'combatBuffs', 'auras', 'selfBuffs',
-    'singleBuffs', 'petBuffs', 'cures', 'debuffs', 'clickies', 'castClickies', 'pullClickies',
+    'singleBuffs', 'petBuffs', 'cures', 'debuffs', 'clickies', 'castClickies', 'pullClickies', 'requestAliases'
 }
 
 constants.uiThemes = {
