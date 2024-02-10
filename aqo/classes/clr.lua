@@ -396,6 +396,7 @@ Cleric.Abilities = {
 
 function Cleric:initSpellRotations()
     self:initBYOSCustom()
+    self.spellRotations.standard = {}
     table.insert(self.spellRotations.standard, self.spells.rebuke)
     table.insert(self.spellRotations.standard, self.spells.stun)
     table.insert(self.spellRotations.standard, self.spells.hammerpet)

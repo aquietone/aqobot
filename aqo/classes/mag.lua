@@ -122,6 +122,7 @@ function Magician:initClassOptions()
     self:addOption('USEMINION', 'Use Minion', false, nil, 'Toggle summoning and use of minion item to use in combat', 'checkbox', nil, 'UseMinion', 'bool')
     self:addOption('USEGATHER', 'Use Gather', false, nil, 'Toggle use of gather line of spells in combat', 'checkbox', nil, 'UseGather', 'bool')
     self:addOption('USEMODRODS', 'Use Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'UseModRods', 'bool')
+    self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
 end
 --[[
 -- Utility
@@ -197,12 +198,12 @@ Magician.SpellLines = {
     {-- Main fire nuke. Slot 1/2
         Group='spear',
         NumToPick=2,
-        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
+        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Shock of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
         Options={opt='USEFIRENUKES', Gems={function() return not Magician:isEnabled('USEAOE') and 1 or nil end,2}}
     },
     {-- Main AE nuke. Slot 1
         Group='beam',
-        Spells={'Beam of Molten Dacite', 'Beam of Molten Olivine', 'Beam of Molten Komatiite', 'Beam of Molten Rhyolite', 'Beam of Molten Shieldstone', --[[emu cutoff]] 'Fire Flux'},
+        Spells={'Beam of Molten Dacite', 'Beam of Molten Olivine', 'Beam of Molten Komatiite', 'Beam of Molten Rhyolite', 'Beam of Molten Shieldstone', --[[emu cutoff]] 'Column of Fire', 'Fire Flux'},
         Options={opt='USEAOE', Gem=1}
     },
     {-- Strong elemental temporary pet summon. Slot 3
@@ -291,17 +292,17 @@ Magician.SpellLines = {
     },
     {
         Group='airpet',
-        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
+        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
         Options={}
     },
     {
         Group='earthpet',
-        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]] 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
+        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]] 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
         Options={}
     },
     {
         Group='firepet',
-        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]] 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
+        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]] 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
         Options={}
     },
     {
@@ -368,7 +369,7 @@ Magician.SpellLines = {
     -- random fire nuke
     {Group='sands', Spells={'Cremating Sands', 'Ravaging Sands', 'Incinerating Sands', 'Blistering Sands', 'Searing Sands'}, Options={opt='USEFIRENUKES'}},
     -- summoned mob nuke
-    {Group='summonednuke', Spells={'Dismantle the Unnatural', 'Unmend the Unnatural', 'Obliterate the Unnatural', 'Repudiate the Unnatural', 'Eradicate the Unnatural'}, Options={opt='USEMAGICNUKES'}},
+    {Group='summonednuke', Spells={'Dismantle the Unnatural', 'Unmend the Unnatural', 'Obliterate the Unnatural', 'Repudiate the Unnatural', 'Eradicate the Unnatural', 'Ward Summoned'}, Options={opt='USEMAGICNUKES'}},
     -- bolt magic nuke
     {Group='magicbolt', Spells={'Luclinite Bolt', 'Komatiite Bolt', 'Korascian Bolt', 'Meteoric Bolt'}, Options={opt='USEMAGICNUKES'}},
     -- magic nuke + malo
@@ -376,7 +377,7 @@ Magician.SpellLines = {
     -- targeted AE fire rain
     {Group='firerain', Spells={'Rain of Molten Dacite', 'Rain of Molten Olivine', 'Rain of Molten Komatiite', 'Rain of Molten Rhyolite', 'Coronal Rain'}, Options={opt='USEAOE'}},
     -- targeted AE magic rain
-    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses'}, Options={opt='USEAOE'}},
+    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses', 'Rain of Blades'}, Options={opt='USEAOE'}},
     {Group='pbaefire', Spells={'Fiery Blast', 'Flaming Blast', 'Burning Blast', 'Searing Blast'}, Options={opt='USEAOE'}},
     {Group='frontalmagic', Spells={'Beam of Kukris', 'Beam of Falchions', 'Beam of Scimitars', 'Beam of Knives'}, Options={opt='USEAOE'}},
     -- pet promised heal
@@ -385,6 +386,7 @@ Magician.SpellLines = {
     {Group='chaoticheal', Spells={'Chaotic Magnanimity', 'Chaotic Largesse', 'Chaotic Bestowal', 'Chaotic Munificence', 'Chaotic Benefaction'}, Options={opt='HEALPET'}},
     -- minion summon clicky 2
     {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
+    {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}}
 }
 
 Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
@@ -489,6 +491,7 @@ Magician.Abilities = {
 
 function Magician:initSpellRotations()
     self:initBYOSCustom()
+    self.spellRotations.standard = {}
     table.insert(self.spellRotations.standard, self.spells.servant)
     table.insert(self.spellRotations.standard, self.spells.ofmany)
     table.insert(self.spellRotations.standard, self.spells.chaotic)

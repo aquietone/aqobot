@@ -13,6 +13,7 @@ function Wizard:init()
     self.spellRotations = {standard={}, ae={},custom={}}
     self:initBase('WIZ')
 
+    self:initClassOptions()
     self:loadSettings()
     self:initSpellLines()
     self:initSpellRotations()
@@ -20,28 +21,34 @@ function Wizard:init()
     self:addCommonAbilities()
 end
 
+function Wizard:initClassOptions()
+    self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
+end
+
 Wizard.SpellLines = {
     {Group='largefire', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Conflagration', 'Fire Bolt'}},
-    {Group='smallfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire', 'Inferno Shock', 'Shock of Fire'}},
+    {Group='smallfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire', 'Inferno Shock', 'Flame Shock', 'Shock of Fire'}},
     {Group='smallice', Spells={'Ancient: Spear of Gelaqua', 'Black Ice', 'Claw of Frost', 'Ice Spear of Solist', 'Ice Shock', 'Frost Shock', 'Shock of Ice', 'Blast of Cold'}},
     {Group='lightning', Spells={'Shock of Lightning'}},
     {Group='stun', Spells={'Telekemara'}},
     {Group='Swarm', Spells={'Solist\'s Frozen Sword'}},
-    {Group='rain', Spells={'Gelid Rains', 'Icestrike'}},
+    {Group='firerain', Spells={'Firestorm'}},
+    {Group='icerain', Spells={'Gelid Rains', 'Icestrike'}},
     {Group='aeTrap', Spells={'Fire Rune'}},
-    {Group='ae1', Spells={'Circle of Thunder'}},
+    {Group='ae1', Spells={'Circle of Thunder', 'Project Lightning'}},
     {Group='ae2', Spells={'Jyll\'s Static Pulse'}},
-    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice', 'Column of Frost', 'Numbing Cold'}},
+    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice', 'Frost Spiral of Al\'Kabor', 'Column of Frost', 'Numbing Cold'}},
     {Group='ae4', Spells={'Jyll\'s Wave of Heat', 'Fire Spiral of Al\'Kabor', 'Pillar of Fire', 'Fingers of Fire'}},
-    {Group='hpbuff', Spells={'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
-    {Group='ds', Spells={'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true}},
+    {Group='hpbuff', Spells={'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
+    {Group='ds', Spells={'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true, classes={}}},
+    {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
 
     {Group='lurefire', Spells={'Firebane', 'Lure of Ro', 'Lure of Flame', 'Enticement of Flame'}},
     {Group='lureice', Spells={'Lure of Ice'}},
 }
 
 Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
-Wizard.allDPSSpellGroups = {'largefire', 'smallfire', 'smallice', 'stun', 'Swarm', 'rain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
+Wizard.allDPSSpellGroups = {'largefire', 'smallfire', 'smallice', 'stun', 'Swarm', 'firerain', 'icerain', 'aeTrap', 'ae1', 'ae2', 'ae3', 'ae4'}
 
 Wizard.Abilities = {
     -- DPS
@@ -94,6 +101,8 @@ Wizard.Abilities = {
 }
 function Wizard:initSpellRotations()
     self:initBYOSCustom()
+    self.spellRotations.standard = {}
+    self.spellRotations.ae = {}
     table.insert(self.spellRotations.standard, self.spells.swarm)
     table.insert(self.spellRotations.standard, self.spells.largefire)
     table.insert(self.spellRotations.standard, self.spells.smallfire)

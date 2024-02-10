@@ -495,6 +495,7 @@ BeastLord.Abilities = {
 function BeastLord:initSpellRotations()
     self:initBYOSCustom()
     -- composite, alliance
+    self.spellRotations.standard = {}
     if state.emu then
         table.insert(self.spellRotations.standard, self.spells.swarmpet)
     end

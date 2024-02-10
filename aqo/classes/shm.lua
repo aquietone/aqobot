@@ -376,6 +376,9 @@ Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'pandemiccombo', 
 
 function Shaman:initSpellRotations()
     self:initBYOSCustom()
+    self.spellRotations.standard = {}
+    self.spellRotations.hybrid = {}
+    self.spellRotations.dps = {}
     if state.emu then
         table.insert(self.spellRotations.standard, self.spells.slownuke)
     end

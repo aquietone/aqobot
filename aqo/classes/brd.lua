@@ -386,6 +386,11 @@ Bard.Abilities = {
 function Bard:initSpellRotations()
     self:initBYOSCustom()
     if state.emu then
+        self.spellRotations.emuancient = {}
+        self.spellRotations.emucaster70 = {}
+        self.spellRotations.emuaura65 = {}
+        self.spellRotations.emuaura55 = {}
+        self.spellRotations.emunoaura = {}
         table.insert(self.spellRotations.emuancient, self.spells.selos)
         table.insert(self.spellRotations.emuancient, self.spells.chantflame)
         table.insert(self.spellRotations.emuancient, self.spells.chantfrost)
@@ -423,6 +428,9 @@ function Bard:initSpellRotations()
         table.insert(self.spellRotations.emunoaura, self.spells.emuhaste)
         table.insert(self.spellRotations.emunoaura, self.spells.firenukebuff)
     else
+        self.spellRotations.melee = {}
+        self.spellRotations.caster = {}
+        self.spellRotations.meleedot = {}
         -- entries in the dots table are pairs of {spell id, spell name} in priority order
         self.spellRotations.melee = {
             self.spells.composite, self.spells.crescendo, self.spells.aria,

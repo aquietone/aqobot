@@ -198,9 +198,10 @@ self:addAA('Leap of Faith', {}) -- standard leap ability
 
 function Paladin:initSpellRotations()
     self:initBYOSCustom()
+    self.spellRotations.standard = {}
     table.insert(self.spellRotations.standard, self.spells.challenge)
     table.insert(self.spellRotations.standard, self.spells.twincast)
-    table.insert(self.spellRotations, self.spells.healtot)
+    table.insert(self.spellRotations.standard, self.spells.healtot)
     table.insert(self.spellRotations.standard, self.spells.stun1)
     table.insert(self.spellRotations.standard, self.spells.stun2)
     table.insert(self.spellRotations.standard, self.spells.stun3)
