@@ -186,7 +186,7 @@ function base:addCommonAbilities()
     self.silent = self:addAA('Silent Casting', {first=true})
     table.insert(self.burnAbilities, self.silent)
     self.mgb = self:addAA('Mass Group Buff')
-    self.rezAbility = common.getItem('Token of Resurrection')
+    if not self.rezAbility then self.rezAbility = common.getItem('Token of Resurrection') end
     if not state.emu then
         self.glyph = self:addAA('Mythic Glyph of Ultimate Power V')
         self.intensity = self:addAA('Intensity of the Resolute')
