@@ -1,4 +1,3 @@
----@type Mq
 local mq = require('mq')
 local assist = require('routines.assist')
 local logger = require('utils.logger')

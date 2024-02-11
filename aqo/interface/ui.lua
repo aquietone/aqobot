@@ -1,6 +1,4 @@
---- @type Mq
 local mq = require('mq')
---- @type ImGui
 require 'ImGui'
 local icons = require('mq.icons')
 

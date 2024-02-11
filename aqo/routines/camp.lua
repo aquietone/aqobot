@@ -1,4 +1,3 @@
---- @type Mq
 local mq = require 'mq'
 local config = require('interface.configuration')
 local helpers = require('utils.helpers')

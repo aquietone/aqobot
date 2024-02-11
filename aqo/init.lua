@@ -1,8 +1,5 @@
---- @type Mq
 local mq = require('mq')
---- @type ImGui
 require 'ImGui'
----@type ConsoleWidget
 local CONSOLE = ImGui.ConsoleWidget.new("##AQOConsole")
 CONSOLE.maxBufferLines = 1000
 

@@ -1,4 +1,3 @@
---- @type Mq
 local mq = require 'mq'
 local constants = require('constants')
 local logger = require('utils.logger')

@@ -104,7 +104,6 @@ There is also no flag for combat looting. It will only loot if no mobs are withi
 
 ]]
 
----@type Mq
 local mq = require 'mq'
 local logger = require('utils.logger')
 local movement = require('utils.movement')

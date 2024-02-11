@@ -1,4 +1,3 @@
----@type Mq
 local mq = require('mq')
 local logger = require('utils.logger')
 local timer = require('libaqo.timer')

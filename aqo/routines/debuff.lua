@@ -1,4 +1,3 @@
---- @type Mq
 local mq = require('mq')
 local abilities = require('ability')
 local constants = require('constants')

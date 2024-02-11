@@ -1,4 +1,3 @@
---- @type Mq
 local mq = require 'mq'
 local named = require('data.named')
 local config = require('interface.configuration')
