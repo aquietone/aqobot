@@ -778,8 +778,8 @@ function base:wantBuffs()
             local availableBuffs = charState.availableBuffs
             if availableBuffs then
                 if availableBuffs[buff] then
-                    if (not mq.TLO.Me.Buff(availableBuffs[buff])() or mq.TLO.Me.Buff(availableBuffs[buff]).Duration() < 60000)
-                            and mq.TLO.Spell(availableBuffs[buff]).WillLand() > 0 then
+                    if (not mq.TLO.Me.Buff(availableBuffs[buff])() or (mq.TLO.Me.Buff(availableBuffs[buff]).Duration() or 0) < 60000)
+                            and (mq.TLO.Spell(availableBuffs[buff]).WillLand() or 0) > 0 then
                         table.insert(request, buff)
                     end
                 end
