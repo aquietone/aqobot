@@ -50,6 +50,8 @@ function Druid:initClassOptions()
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoT spells', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox', nil, 'UseSnare', 'bool')
     self:addOption('USEDEBUFF', 'Use Ro Debuff', false, nil, 'Use Blessing of Ro AA', 'checkbox', nil, 'UseDebuff', 'bool')
+    self:addOption('USEREPTILE', 'Use Reptile Buff', false, nil, 'Use Skin of the Reptile proc buff', 'checkbox', nil, 'UseReptile', 'bool')
+    self:addOption('USEDS', 'Use DS', false, nil, 'Use Damage Shield', 'checkbox', nil, 'UseDS', 'bool')
 end
 
 Druid.SpellLines = {
@@ -119,13 +121,13 @@ Druid.SpellLines = {
     {Group='petbuff', Spells={'Feral Spirit'}, Options={opt='USEPET', petbuff=true}},
 
     -- Buffs
-    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Protection of Rock', 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true}},
+    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Blessing of the Nine', 'Protection of Rock', 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true}},
     {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}, Options={selfbuff=true}},
     {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender'}, Options={selfbuff=true}}, -- self mana regen, part of unity AA
     {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin', --[[emu cutoff]] 'Skin like Steel', 'Skin like Rock', 'Skin like Wood'}},
-    {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={selfbuff=true, alias='REPTILE', singlebuff=true, classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
+    {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={opt='USEREPTILE', selfbuff=true, alias='REPTILE', singlebuff=true, classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
     {Group='coat', Spells={'Barbcoat', 'Thistlecoat'}, Options={selfbuff=true}},
-    {Group='ds', Spells={'Shield of Barbs', 'Shield of Thistles'}, Options={singlebuff=true, classes={}}},
+    {Group='ds', Spells={'Shield of Barbs', 'Shield of Thistles'}, Options={opt='USEDS', singlebuff=true, classes={}}},
     {Group='sow', Spells={'Spirit of Wolf'}, Options={singlebuff=true, classes={}}},
     -- Aura
     {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}, Options={aurabuff=true}}, -- adds cold dmg proc to spells

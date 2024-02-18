@@ -181,9 +181,11 @@ end
 function base:addCommonAbilities()
     self.tranquil = self:addAA('Tranquil Blessings')
     self.radiant = self:addAA('Radiant Cure', {all=true, alias='RC', cure=true})
-    table.insert(self.cures, self.radiant)
+    if self.radiant then self:addAbilityToLists(self.radiant) end
+    -- table.insert(self.cures, self.radiant)
     self.silent = self:addAA('Silent Casting', {first=true})
-    table.insert(self.burnAbilities, self.silent)
+    if self.silent then self:addAbilityToLists(self.silent) end
+    -- table.insert(self.burnAbilities, self.silent)
     self.mgb = self:addAA('Mass Group Buff')
     if not self.rezAbility then self.rezAbility = common.getItem('Token of Resurrection') end
     if not state.emu then
@@ -450,7 +452,9 @@ end
 function base:getRequestAliases()
     local aliases = {}
     for name,ability in pairs(self.requestAliases) do
-        aliases[name] = ability.CastName
+        if self:isAbilityEnabled(ability.opt) then
+            aliases[name] = ability.CastName
+        end
     end
     return aliases
 end
@@ -770,22 +774,43 @@ function base:buff()
     if buffing.buff(self) then state.actionTaken = true end
 end
 
+base.Wanted = {
+    HASTE = function(allBuffs) return true end,
+}
+
 function base:wantBuffs()
     local wanted = constants.buffs[mq.TLO.Me.Class.ShortName()]
     local request = {}
-    for _,buff in ipairs(wanted) do
-        for name, charState in pairs(state.actors) do
-            local availableBuffs = charState.availableBuffs
-            if availableBuffs then
-                if availableBuffs[buff] then
-                    if (not mq.TLO.Me.Buff(availableBuffs[buff])() or (mq.TLO.Me.Buff(availableBuffs[buff]).Duration() or 0) < 60000)
-                            and (mq.TLO.Spell(availableBuffs[buff]).WillLand() or 0) > 0 then
-                        table.insert(request, buff)
-                    end
-                end
+    local allBuffs = {}
+    for _,charState in pairs(state.actors) do
+        local availableBuffs = charState.availableBuffs
+        if availableBuffs then
+            for buffAlias,buffName in pairs(availableBuffs) do
+                allBuffs[buffAlias] = buffName
             end
         end
     end
+    for buffAlias,wantBuff in pairs(wanted) do
+        if wantBuff == true or (type(wantBuff) == 'function' and wantBuff(allBuffs)) then
+            if (not mq.TLO.Me.Buff(allBuffs[buffAlias])() or (mq.TLO.Me.Buff(allBuffs[buffAlias]).Duration() or 0) < 60000)
+                    and (mq.TLO.Spell(allBuffs[buffAlias]).WillLand() or 0) > 0 then
+                table.insert(request, buffAlias)
+            end
+        end
+    end
+    -- for _,buff in ipairs(wanted) do
+    --     for _, charState in pairs(state.actors) do
+    --         local availableBuffs = charState.availableBuffs
+    --         if availableBuffs then
+    --             if availableBuffs[buff] then
+    --                 if (not mq.TLO.Me.Buff(availableBuffs[buff])() or (mq.TLO.Me.Buff(availableBuffs[buff]).Duration() or 0) < 60000)
+    --                         and (mq.TLO.Spell(availableBuffs[buff]).WillLand() or 0) > 0 then
+    --                     table.insert(request, buff)
+    --                 end
+    --             end
+    --         end
+    --     end
+    -- end
     return request
 end
 

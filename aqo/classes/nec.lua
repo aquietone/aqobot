@@ -3,6 +3,7 @@ local class = require('classes.classbase')
 local logger = require('utils.logger')
 local timer = require('libaqo.timer')
 local common = require('common')
+local constants = require('constants')
 local config = require('interface.configuration')
 local abilities = require('ability')
 local mode = require('mode')
@@ -45,6 +46,8 @@ function Necromancer:initClassOptions()
     self:addOption('USELICH', 'Use Lich', true, nil, 'Toggle use of lich, incase you\'re just farming and don\'t really need it', 'checkbox', nil, 'UseLich', 'bool')
     self:addOption('BURNPROC', 'Burn on Proc', false, nil, 'Toggle use of burns once proliferation dot lands', 'checkbox', nil, 'BurnProc', 'bool')
     self:addOption('SWAPSPELLS', 'Combat Spell Swap', true, nil, 'Toggle swapping of spells during combat with standard spell rotation', 'checkbox', nil, 'SwapSpells', 'bool')
+    self:addOption('USEPUSTULES', 'Use Pustules', false, nil, 'Toggle use of Necrotic Pustules proc buff', 'checkbox', nil, 'UsePustules', 'bool')
+    self:addOption('USEDMF', 'Use Dead Man Floating', false, nil, 'Toggle use of DMF spell/aa', 'checkbox', nil, 'UseDMF', 'bool')
 end
 
 Necromancer.SpellLines = {
@@ -182,10 +185,10 @@ Necromancer.SpellLines = {
     {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}},
     {Group='rune', Spells={'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}}, -- unused
     {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
-    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={classes={WAR=true,PAL=true,SHD=true}, singlebuff=true, alias='NECROTIC'}},
+    {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={opt='USEPUSTULES', classes={WAR=true,PAL=true,SHD=true}, singlebuff=true, alias='NECROTIC'}},
     {Group='reflect', Spells={'Mirror'}},
     {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}}, -- pre-unity
-    {Group='dmf', Spells={'Dead Men Floating'}, Options={alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
+    {Group='dmf', Spells={'Dead Men Floating'}, Options={opt='USEDMF', alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
     -- Pet spells
     {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous', 'Haunting Corpse', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse', 'Cavorting Bones'}},
     {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness', 'Intensify Death', 'Focus Death'}, Options={petbuff=true}},
@@ -345,7 +348,7 @@ Necromancer.Abilities = {
     {
         Type='AA',
         Name='Dead Man Floating',
-        Options={skipifbuff=state.emu and 'Dead Men Floating' or 'Perfected Dead Men Floating', alias='DMF', selfbuff=true}
+        Options={opt='USEDMF', skipifbuff=state.emu and 'Dead Men Floating' or 'Perfected Dead Men Floating', alias='DMF', selfbuff=true}
     },
     --for i,spell in ipairs(self.selfBuffs) do if spell.SpellGroup == 'dmf' then table.remove(self.selfBuffs, i) end end
 
@@ -591,6 +594,7 @@ function Necromancer:recover()
     end
     -- modrods
     common.checkMana()
+    if constants.DMZ[mq.TLO.Zone.ID()] then return end
     local pct_mana = mq.TLO.Me.PctMana()
     if self.deathbloom and pct_mana < 65 then
         -- death bloom at some %

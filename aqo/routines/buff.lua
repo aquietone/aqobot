@@ -179,7 +179,7 @@ local function buffOOC(base)
     if buffAuras(base) then return true end
     if buffSelf(base) then return true end
     if buffActors(base) then return true end
-    if buffSingle(base) then return true end
+    -- if buffSingle(base) then return true end
 end
 
 local function buffPet(base)
