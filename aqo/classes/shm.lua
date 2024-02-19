@@ -118,7 +118,7 @@ Shaman.SpellLines = {
     {-- DPS spellset. Disease DoT. Slot 1
         Group='maladydot',
         Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady', --[[emu cutoff]] 'Scourge', 'Affliction', 'Sicken'},
-        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 1 or nil end}
+        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 60 and 5) or (Shaman:get('SPELLSET') == 'dps' and 1) or nil end}
     },
     {-- group HoT. Slot 2
         Group='grouphot',
@@ -127,8 +127,8 @@ Shaman.SpellLines = {
     },
     {-- poison nuke. Slot 3
         Group='bitenuke',
-        Spells={'Oka\'s Bite', 'Ander\'s Bite', 'Direfang\'s Bite', 'Mawmun\'s Bite', 'Reefmaw\'s Bite'},
-        Options={opt='USENUKES', Gem=3}
+        Spells={'Oka\'s Bite', 'Ander\'s Bite', 'Direfang\'s Bite', 'Mawmun\'s Bite', 'Reefmaw\'s Bite', 'Shock of the Tainted'},
+        Options={opt='USENUKES', Gem=function() return mq.TLO.Me.Level() <= 60 and 4 or 3 end}
     },
     {-- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower. Slot 4
         Group='tcnuke',
@@ -167,7 +167,7 @@ Shaman.SpellLines = {
     },
     {-- group heal. Slot 7
         Group='recourse',
-        Spells={'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse', 'Word of Reconstitution', 'Word of Restoration'},
+        Spells={'Grayleaf\'s Recourse', 'Rowain\'s Recourse', 'Zrelik\'s Recourse', 'Eyrzekla\'s Recourse', 'Krasir\'s Recourse', 'Word of Reconstitution', 'Word of Restoration', 'Word of Health'},
         Options={Gem=function() return Shaman:get('SPELLSET') == 'standard' and 7 or nil end, group=true}
     },
     {-- DPS spellset. Slot 7
@@ -184,7 +184,7 @@ Shaman.SpellLines = {
     {-- Below lvl 100 main heal. Slot 8
         Group='heal',
         Spells={'Krasir\'s Mending', 'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Greater Healing', 'Healing', 'Light Healing', 'Minor Healing'},
-        Options={Gem=function() return mq.TLO.Me.Level() < 105 and 8 or nil end, panic=true, regular=true, tank=true, pet=60}
+        Options={Gem=function() return (mq.TLO.Me.Level() <= 60 and 7) or (mq.TLO.Me.Level() < 105 and 8) or nil end, panic=true, regular=true, tank=true, pet=60}
     },
     {-- DPS spellset. combo malo + DoT. Slot 9
         Group='malodot',
@@ -193,12 +193,12 @@ Shaman.SpellLines = {
     },
     {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
         Group='nectardot',
-        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Envenomed Breath', 'Tainted Breath'},
-        Options={opt='USEDOTS', Gem=function() return not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9 or nil end}
+        Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Venom of the Snake', 'Envenomed Breath', 'Tainted Breath'},
+        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 60 and 6) or (not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9) or nil end}
     },
     {-- DPS spellset. curse DoT. Slot 10
         Group='cursedot',
-        Spells={'Fandrel\'s Curse', 'Lenrel\'s Curse', 'Marlek\'s Curse', 'Erogo\'s Curse', 'Sraskus\' Curse', 'Curse of Sisslak'},
+        Spells={'Fandrel\'s Curse', 'Lenrel\'s Curse', 'Marlek\'s Curse', 'Erogo\'s Curse', 'Sraskus\' Curse', 'Curse of Sisslak', 'Curse'},
         Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and 10 or nil end}
     },
     {-- splash, easiest to cast on self, requires los. Slot 11
@@ -214,7 +214,7 @@ Shaman.SpellLines = {
     {-- Hybrid spellset. Slot 11
         Group='icenuke',
         Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]]'Winder\'s Roar', 'Frost Strike', 'Spirit Strike', 'Frost Rift', 'Burst of Flame'},
-        Options={opt='USENUKES', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11 or nil end}
+        Options={opt='USENUKES', Gem=function() return (mq.TLO.Me.Level() <= 60 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11) or nil end}
     },
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
         Group='composite',
@@ -242,15 +242,15 @@ Shaman.SpellLines = {
     {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}, Options={selfbuff=true}},
     -- Cures
     {Group='cure', Spells={'Blood of Nadox'}, Options={cure=true, all=true}},
-    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
+    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
     {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT'}},
-    {Group='hot', Spells={'Celestial Remedy'}, Options={}},
+    {Group='hot', Spells={'Celestial Health', 'Celestial Remedy'}, Options={}},
     {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', debuff=true, condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true}},
     {Group='debuff', Spells={'Crippling Spasm', 'Listless Power', 'Disempower'}, Options={opt='USEDEBUFF', debuff=true}},
-    {Group='disdebuff', Spells={'Insidious Fever'}, Options={opt='USEDEBUFF', debuff=true}},
+    {Group='disdebuff', Spells={'Insidious Malady', 'Insidious Fever'}, Options={opt='USEDEBUFF', debuff=true}},
     -- EMU special: Ice Age nuke has 25% chance to proc slow
     {Group='slownuke', Spells={'Ice Age'}, Options={opt='USENUKES'}},
 
@@ -258,9 +258,9 @@ Shaman.SpellLines = {
     {-- Malo spell line. AA malo is Malosinete
         Group='malo',
         Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete', --[[emu cutoff]] 'Malaisement', 'Malaise'},
-        Options={opt='USEDEBUFF', debuff=true}
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 1 or nil end, opt='USEDEBUFF', debuff=true}
     },
-    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Tagar\'s Insects', 'Walking Sleep', 'Drowsy'}, Options={debuff=true, opt='USESLOW'}},
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Tagar\'s Insects', 'Walking Sleep', 'Drowsy'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 2 or nil end, debuff=true, opt='USESLOW'}},
     {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={debuff=true, opt='USESLOWAOE'}},
 
     -- Extra DoTs just used by combo spells
@@ -283,12 +283,12 @@ Shaman.SpellLines = {
     -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
     {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
     {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
-    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale', --[[emu cutoff]] 'Talisman of Tnarg', 'Inner Fire'}, Options={alias='SINGLEFOCUS'}},
+    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale', --[[emu cutoff]] 'Talisman of Attuna', 'Talisman of Tnarg', 'Inner Fire'}, Options={alias='SINGLEFOCUS'}},
     {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},
 
     -- Utility
-    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
-    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Companion Spirit'}, Options={'SUMMONPET'}},
+    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
+    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={'SUMMONPET'}},
     {Group='sow', Spells={'Spirit of the Shrew', 'Spirit of Wolf'}, Options={}},
     {Group='shrink', Spells={'Shrink'}, Options={alias='SHRINK'}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
@@ -308,12 +308,17 @@ Shaman.SpellLines = {
     },
     {-- single dex buff
         Group='singledex',
-        Spells={'Rising Dexterity', 'Spirit of Monkey', 'Dexterous Aura'},
+        Spells={'Deftness', 'Rising Dexterity', 'Spirit of Monkey', 'Dexterous Aura'},
         Options={}
     },
     {-- single str buff
         Group='singlestr',
-        Spells={'Raging Strength', 'Spirit Strength', 'Talisman of the Beast', 'Strengthen'},
+        Spells={'Furious Strength', 'Raging Strength', 'Spirit Strength', 'Talisman of the Beast', 'Strengthen'},
+        Options={}
+    },
+    {-- group str buff
+        Group='groupstr',
+        Spells={'Tumultuous Strength'},
         Options={}
     },
     {-- single agi buff
@@ -328,7 +333,7 @@ Shaman.SpellLines = {
     },
     {-- single cha buff
         Group='singlecha',
-        Spells={'Alluring Aura', 'Spirit of Snake'},
+        Spells={'Glamour', 'Alluring Aura', 'Spirit of Snake'},
         Options={}
     },
     {-- single ac buff
@@ -343,7 +348,7 @@ Shaman.SpellLines = {
     },
     { -- regen
         Group='regen',
-        Spells={'Regeneration'},
+        Spells={'Chloroplast', 'Regeneration'},
         Options={}
     },
     { -- regen + wis bear form low level buff
@@ -364,7 +369,7 @@ Shaman.SpellLines = {
     },
     {
         Group='rain',
-        Spells={'Poison Storm'},
+        Spells={'Gale of Poison', 'Poison Storm'},
         Options={opt='USEAOE'}
     }
 }

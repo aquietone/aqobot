@@ -127,17 +127,17 @@ Paladin.SpellLines = {
     {
         Group='procbuff',
         Spells={'Preservation of Marr', 'Instrument of Nife'},
-        Options={Gem=12, selfbuff=true},
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 7 or 12 end, selfbuff=true},
     },
     {-- same stats as cleric aego
         Group='aego',
-        Spells={'Oauthbound Keeper', --[[emu cutoff]] 'Center', 'Courage'},
+        Spells={'Oauthbound Keeper', --[[emu cutoff]] 'Daring', 'Center', 'Courage'},
         Options={},
     },
     {
         Group='brells',
-        Spells={'Brell\'s Tellurian Rampart'},
-        Options={alias='BRELLS', selfbuff=true},
+        Spells={'Brell\'s Tellurian Rampart', 'Divine Vidor'},
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 or nil end, alias='BRELLS', selfbuff=true},
     },
     {
         Group='selfarmor',
@@ -146,32 +146,32 @@ Paladin.SpellLines = {
     },
     {
         Group='heal',
-        Spells={'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
-        Options={heal=true, tank=true, regular=true}
+        Spells={'Greater Healing', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 2 or nil end, heal=true, tank=true, regular=true}
     },
     {
         Group='curepoison',
-        Spells={'Cure Poison'},
+        Spells={'Counteract Poison', 'Cure Poison'},
         Options={cure=true, poison=true}
     },
     {
         Group='curedisease',
-        Spells={'Cure Disease'},
+        Spells={'Counteract Disease', 'Cure Disease'},
         Options={cure=true, disease=true}
     },
     {
         Group='Yaulp',
-        Spells={'Yaulp'},
-        Options={}
+        Spells={'Yaulp II', 'Yaulp'},
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}
     },
     {
         Group='undeadnuke',
         Spells={'Expulse Undead', 'Ward Undead'},
-        Options={opt='USENUKES', condition=function() return mq.TLO.Target.Type() == 'Undead' end}
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 3 or nil end, opt='USENUKES', condition=function() return mq.TLO.Target.Body() == 'Undead' end}
     },
     {
         Group='rgc',
-        Spells={'Remove Minor Curse'},
+        Spells={'Remove Lesser Curse', 'Remove Minor Curse'},
         Options={cure=true, curse=true}
     },
     {

@@ -54,7 +54,7 @@ end
 Ranger.SpellLines = {
     {-- Slot 1
         Group='firenuke1',
-        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Flaming Arrow', 'Ignite', 'Burst of Fire'},
+        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Ignite', 'Burst of Fire'},
         Options={Gem=1},
     },
     {-- 4x archery attacks, Focused Blizzard of Arrows. Slot 2
@@ -79,12 +79,12 @@ Ranger.SpellLines = {
     },
     {-- fire + ice nuke, Summer's Sleet. Slot 5
         Group='firenuke2',
-        Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Flaming Arrow'},
+        Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Burning Arrow', 'Flaming Arrow'},
         Options={Gem=5}
     },
     {-- main DoT. Slot 6
         Group='dot',
-        Spells={'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Stinging Swarm', 'Flame Lick'},
+        Spells={'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Swarm of Pain', 'Stinging Swarm', 'Flame Lick'},
         Options={opt='USEDOTS', Gem=6}
     },
     {-- heal ToT, Desperate Meltwater, fast cast, long cd. Slot 7
@@ -127,8 +127,8 @@ Ranger.SpellLines = {
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
     {Group='firenuke3', Spells={'Laurion Ash', 'Hearth Embers'}}, -- fire + ice nuke, Summer's Sleet
     {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}}, -- 
-    {Group='rain', Spells={'Invoke Lightning'}, Options={opt='USEAOE'}},
-    {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment', --[[emu cutoff]] 'Firefist'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
+    {Group='rain', Spells={'Invoke Lightning'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 3 or nil end, opt='USEAOE'}},
+    {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment', --[[emu cutoff]] 'Nature\'s Precision', 'Firefist'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
     {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs', --[[emu cutoff]] 'Riftwood\'s Protection'}}, -- Cloak of Rimespurs
@@ -138,7 +138,7 @@ Ranger.SpellLines = {
     {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}}, -- Protection of the Wakening Land
     {Group='eyes', Spells={'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}, Options={selfbuff=true}}, -- Eyes of the Visionary
     {Group='hunt', Spells={'Engulfed by the Hunt', 'Steeled by the Hunt'}}, -- Provoked by the Hunt
-    {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat', --[[emu cutoff]] 'Barbcoat'}}, -- Rimespur Coat
+    {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat', --[[emu cutoff]] 'Bramblecoat', 'Barbcoat'}}, -- Rimespur Coat
     {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
     -- Unity Azia only
     {Group='barrage', Spells={'Devastating Barrage'}}, -- Devastating Velium
@@ -147,14 +147,14 @@ Ranger.SpellLines = {
     {Group='ds', Spells={'Shield of Needlespikes', 'Shield of Shadethorns'}}, -- DS
     {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true}}, -- self rune + debuff proc
     {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
-    {Group='snare', Spells={'Ensnare', 'Snare', 'Tangling Weeds'}, Options={opt='USESNARE', debuff=true}},
+    {Group='snare', Spells={'Ensnare', 'Snare', 'Tangling Weeds'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 2 or nil end, opt='USESNARE', debuff=true}},
     {Group='dispel', Spells={'Nature\'s Balance', --[[emu cutoff]] 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true}},
     -- Maelstrom of Blades, 4x 1h slash
     -- Jolting Emberquartz, add proc decrease hate
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Light Healing', 'Minor Healing', 'Salve'}, Options={heal=true, regular=true}},
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 7 or nil end, heal=true, regular=true}},
 }
 
 Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}

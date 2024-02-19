@@ -153,12 +153,12 @@ BeastLord.SpellLines = {
     },
     {-- DoT. Slot 7
         Group='dot1',
-        Spells={'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', 'Natigo\'s Endemic', 'Silbar\'s Endemic', 'Shiverback Endemic', --[[emu cutoff]] 'Sicken'},
+        Spells={'Fevered Endemic', 'Vampyric Endemic', 'Neemzaq\'s Endemic', 'Elkikatar\'s Endemic', 'Hemocoraxius\' Endemic', 'Natigo\'s Endemic', 'Silbar\'s Endemic', 'Shiverback Endemic', --[[emu cutoff]] 'Malaria', 'Sicken'},
         Options={opt='USEDOTS', Gem=function() return (not BeastLord:isEnabled('USEMENDING') and 7) or (not BeastLord:isEnabled('USEALLIANCE') and 7) or nil end, condition=function() return state.burnActive end}
     },
     {-- DD DoT. Slot 8
         Group='dddot2',
-        Spells={'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood', 'Asp Blood', 'Binaesa Blood', 'Spinechiller Blood', --[[emu cutoff]] 'Chimera Blood', 'Tainted Breath'},
+        Spells={'Forgebound Blood', 'Akhevan Blood', 'Ikatiar\'s Blood', 'Polybiad Blood', 'Glistenwing Blood', 'Asp Blood', 'Binaesa Blood', 'Spinechiller Blood', --[[emu cutoff]] 'Envenomed Breath', 'Chimera Blood', 'Tainted Breath'},
         Options={opt='USEDOTS', Gem=8}
     },
     {-- self buff. Slot 9
@@ -193,8 +193,8 @@ BeastLord.SpellLines = {
     },
     {-- Player heal / Salve of Artikla (Pet heal) Slot 13. Slot 7 if use alliance
         Group='heal',
-        Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending', 'Light Healing', 'Minor Healing', 'Salve'},
-        Options={opt='USEMENDING', Gem=function() return not BeastLord:isEnabled('USEALLIANCE') and 13 or 7 end, me=75, self=true, heal=true}
+        Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
+        Options={opt='USEMENDING', Gem=function() return (mq.TLO.Me.Level() <= 60 and 5) or (not BeastLord:isEnabled('USEALLIANCE') and 13) or 7 end, me=75, self=true, heal=true}
     },
     {-- adds extra damage to bst dots + fulmination. Slot 13
         Group='alliance',
@@ -204,11 +204,15 @@ BeastLord.SpellLines = {
 
     {Group='slow', Spells={'Sha\'s Legacy', 'Drowsy'}, Options={opt='USESLOW'}},
 
-    {Group='pet', Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Lachemit', 'Spirit of Kolos', 'Spirit of Averc', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha', 'Spirit of Herikol', 'Spirit of Keshuval', 'Spirit of Khaliz', 'Spirit of Sharik'}, Options={opt='SUMMONPET'}},
+    {
+        Group='pet',
+        Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Lachemit', 'Spirit of Kolos', 'Spirit of Averc', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha', 'Spirit of Yekan', 'Spirit of Herikol', 'Spirit of Keshuval', 'Spirit of Khaliz', 'Spirit of Sharik'},
+        Options={opt='SUMMONPET', Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}
+    },
     {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
-    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Herikol\'s Soothing', 'Keshuval\'s Rejuvenation', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
-    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity', 'Spirit of Inferno', 'Spirit of the Blizzard', 'Spirit of Lightning'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor}}, -- pet haste
-    {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic'}, Options={swap=true, petbuff=true}}, -- pet buff
+    {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Yekan\'s Recovery', 'Herikol\'s Soothing', 'Keshuval\'s Rejuvenation', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
+    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity', 'Yekan\'s Quickening'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor}}, -- pet haste
+    {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic', 'Spirit of the Scorpion', 'Spirit of Inferno', 'Spirit of the Blizzard', 'Spirit of Lightning'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor}}, -- pet buff
     {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression', 'Plakt\'s Aggression', 'Mea\'s Aggression', 'Neivr\'s Aggression', --[[emu cutoff]] }, Options={swap=true}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
 
@@ -232,6 +236,7 @@ BeastLord.SpellLines = {
     {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
     -- below lvl 100
     {Group='fero', Spells={'Ferocity of Irionu', 'Ferocity'}, Options={classes={WAR=true,MNK=true,BER=true,ROG=true}, selfbuff=function() return not BeastLord.spells.groupfero and true or false end}}, -- like shm avatar
+    {Group='dispel', Spells={'Cancel Magic'}},
     --     --Spells(Group)
     --     self:addSpell('pet', {'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit'})
     --     self:addSpell('nuke1', {'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom'}) -- (DD)

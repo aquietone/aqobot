@@ -89,7 +89,7 @@ Bard.SpellLines = {
     },
     {-- melee dmg proc. Slot 4
         Group='suffering',
-        Spells={'Kanghammer\'s Song of Suffering', 'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Fjilnauk\'s Song of Suffering', --[[emu cutoff]] 'Storm Blade', 'Song of the Storm'},
+        Spells={'Kanghammer\'s Song of Suffering', 'Shojralen\'s Song of Suffering', 'Omorden\'s Song of Suffering', 'Travenro\'s Song of Suffering', 'Fjilnauk\'s Song of Suffering', --[[emu cutoff]] 'Storm Blade', 'Song of the Storm', 'Katta\'s Sword Dancing'},
         Options={Gem=4}
     },
     {-- synergy DD. Slot 5
@@ -119,7 +119,7 @@ Bard.SpellLines = {
     },
     {-- single target mez. Slot 8
         Group='mezst',
-        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell', 'Crission\'s Pixie Strike', 'Kelin\'s Lucid Lullaby'},
+        Spells={'Slumber of Suja', 'Slumber of the Diabo', 'Slumber of Zburator', 'Slumber of Jembel', 'Slumber of Silisia', --[[emu cutoff]] 'Lullaby of Morell', 'Sionachie\'s Dreams', 'Crission\'s Pixie Strike', 'Kelin\'s Lucid Lullaby'},
         Options={opt='MEZST', Gem=8}
     },
     {-- aoe mez. Slot 9
@@ -135,7 +135,7 @@ Bard.SpellLines = {
     {-- heal focus + regen. Slot 11
         Group='pulse',
         Spells={'Pulse of August', 'Pulse of Nikolas', 'Pulse of Vhal`Sera', 'Pulse of Xigarn', 'Pulse of Sionachie', --[[emu cutoff]] 'Cantata of Life', 'Chorus of Life', 'Wind of Marr', 'Chorus of Marr', 'Chorus of Replenishment', 'Cantata of Soothing', 'Hymn of Restoration'},
-        Options={opt='USEREGENSONG', Gem=11}
+        Options={opt='USEREGENSONG', Gem=function() return (mq.TLO.Me.Level() <= 20 and 7) or (mq.TLO.Me.Level() >= 34 and mq.TLO.Me.Level() <= 60 and 7) or 11 end}
     },
     {-- DD+melee dmg bonus + small heal. Slot 12
         Group='composite',
@@ -164,18 +164,18 @@ Bard.SpellLines = {
     -- haste song doesn't stack with enc haste?
     {Group='overhaste', Spells={'Ancient: Call of Power', 'Warsong of the Vah Shir', 'Battlecry of the Vah Shir'}},
     {Group='bardhaste', Spells={'Verse of Veeshan', 'Psalm of Veeshan', 'Composition of Ervaj'}},
-    {Group='emuhaste', Spells={'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Anthem de Arms'}},
+    {Group='emuhaste', Spells={'War March of Muram', 'War March of the Mastruq', 'McVaxius\' Rousing Rondo', 'McVaxius\' Berserker Crescendo', 'Vilia\'s Verses of Celerity', 'Anthem de Arms'}},
     {Group='snare', Spells={'Selo\'s Consonant Chain'}, Options={opt='USESNARE'}},
     {Group='debuff', Spells={'Harmony of Sound'}},
     {Group='jonthans', Spells={'Jonthan\'s Whistling Warsong'}, Options={}},
     {Group='magicweapons', Spells={'Magical Monologue'}, Options={}},
     {Group='chantmagic', Spells={'Fufil\'s Curtailing Chant'}, Options={}},
-    {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed', 'Selo\'s Accelerando'}},
+    {Group='selos', Spells={'Selo\'s Accelerating Chorus', 'Selo\'s Rhythm of Speed', 'Selo\'s Accelerando'}, Gem={function() return mq.TLO.Me.Level() <= 70 and 1 or nil end}},
 
     {Group='aedot', Spells={'Denon\'s Disruptive Discord', 'Chords of Dissonance'}, Options={'USEAOE'}},
     {Group='aeslow', Spells={'Largo\'s Melodic Binding'}, Options={}},
     {Group='manasong', Spells={'Cassindra\'s Chorus of Clarity', 'Cassindra\'s Chant of Clarity'}, Options={}},
-    {Group='dispel', Spells={'Alenia\'s Disenchanting Melody'}, Options={}}
+    {Group='dispel', Spells={'Syvelian\'s Anti-Magic Aria', 'Alenia\'s Disenchanting Melody'}, Options={}}
 }
 
 Bard.compositeNames = {['Ecliptic Psalm']=true,['Composite Psalm']=true,['Dissident Psalm']=true,['Dichotomic Psalm']=true}
