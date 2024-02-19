@@ -63,7 +63,7 @@ end
 ShadowKnight.SpellLines = {
     {-- Regular lifetap. Slot 1
         Group='tap1',
-        Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk', --[[emu cutoff]] 'Lifespike', 'Lifetap'},
+        Spells={'Touch of Flariton', 'Touch of Txiki', 'Touch of Draygun', 'Touch of Innoruuk', --[[emu cutoff]] 'Lifedraw', 'Lifespike', 'Lifetap'},
         Options={Gem=1, condition=function() return mq.TLO.Me.PctHPs() < 85 end}
     },--, 'Drain Soul', 'Lifedraw'})
     {-- Temp buff (Gift of) lifetap. Slot 2
@@ -94,8 +94,8 @@ ShadowKnight.SpellLines = {
     -- DPS spellset. poison dot. Slot 6
     {
         Group='poison',
-        Spells={'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain'},
-        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 6 or nil end}
+        Spells={'Blood of Shoru', 'Blood of Tearc', 'Blood of Inruku', 'Blood of Pain', --[[emu cutoff]] 'Heat Blood'},
+        Options={Gem=function() return (ShadowKnight:get('SPELLSET') == 'dps' and 6) or (mq.TLO.Me.Level() <= 60 and 4) or nil end}
     },
     {-- ST increase hate by 1. Slot 7
         Group='aeterror',
@@ -110,7 +110,7 @@ ShadowKnight.SpellLines = {
     {-- DPS spellset. disease dot. Slot 7
         Group='disease',
         Spells={'Plague of the Fleawalker', 'Plague of Fleshrot', --[[emu cutoff]] 'Disease Cloud'},
-        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 7 or nil end}
+        Options={Gem=function() return (ShadowKnight:get('SPELLSET') == 'dps' and 7) or (mq.TLO.Me.Level() <= 60 and 3) or nil end}
     },
     {-- lifetap dot. Slot 8
         Group='dottap',
@@ -120,7 +120,7 @@ ShadowKnight.SpellLines = {
     {-- main hate spell. Slot 9
         Group='challenge',
         Spells={'Petition for Power', 'Parlay for Power', 'Terror of Thule', 'Aura of Hate', 'Scream of Pain', 'Scream of Hate'},
-        Options={tanking=true, Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 9 or nil end, condition=function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 end}
+        Options={tanking=true, Gem=function() return (ShadowKnight:get('SPELLSET') == 'standard' and 9) or (mq.TLO.Me.Level() <= 60 and 2) or nil end, condition=function() return mode.currentMode:isTankMode() and mq.TLO.Me.PctHPs() > 70 end}
     },
     {-- DPS spellset. corruption dot. Slot 9
         Group='corruption',
@@ -129,13 +129,13 @@ ShadowKnight.SpellLines = {
     },
     {-- ac debuff. Slot 10
         Group='acdebuff',
-        Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony', --[[emu cutoff]] 'Despair', 'Siphon Strength'},
-        Options={opt='USETORRENT', Gem=10}
+        Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony', --[[emu cutoff]] 'Shroud of Hate', 'Despair', 'Siphon Strength'},
+        Options={opt='USETORRENT', Gem=function() return (mq.TLO.Me.Level() <= 60 and 7) or 10 end}
     },
     {-- temp HP buff, 2.5min. Slot 11
         Group='stance',
         Spells={'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'},
-        Options={Gem=11}
+        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or 11 end}
     },
     {-- Xenacious' Skin proc, 5min buff. Slot 12
         Group='skin',
@@ -162,8 +162,8 @@ ShadowKnight.SpellLines = {
     {Group='disruption', Spells={'Confluent Disruption', 'Scream of Death'}}, -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}}, -- pet
-    {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death'}, Options={petbuff=true}}, -- pet haste
+    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 end}}, -- pet
+    {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death', 'Strengthen Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
     {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
     {Group='bezaproc', Spells={'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, Options={opt='USEBEZA', selfbuff=true}}, -- Mental Anguish Strike proc
@@ -171,10 +171,10 @@ ShadowKnight.SpellLines = {
     {Group='ds', Spells={'Goblin Skin', 'Tekuel Skin'}}, -- large damage shield self buff
     {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}, Options={selfbuff=true}}, -- lich mana regen
     {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}, Options={selfbuff=true}}, -- self buff hp, ac, ds
-    {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call', 'Grim Aura'}}, -- atk buff, hp drain on self
+    {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call', 'Dark Temptation', 'Grim Aura'}}, -- atk buff, hp drain on self
     {Group='voice', Spells={'Voice of Innoruuk'}, Options={opt='USEVOICEOFTHULE', selfbuff=true}},
     --['']=common.get_best_spell({'Remorseless Demeanor'})
-    {Group='snare', Spells={'Engulfing Darkness', 'Clinging Darkness'}, Options={opt='USESNARE', debuff=true}},
+    {Group='snare', Spells={'Engulfing Darkness', 'Clinging Darkness'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 2 end, opt='USESNARE', debuff=true}},
     {Group='undeadnuke', Spells={'Ward Undead'}, Options={opt='USENUKES'}},
 }
 

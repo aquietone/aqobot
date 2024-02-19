@@ -25,28 +25,30 @@ function Wizard:initClassOptions()
 end
 
 Wizard.SpellLines = {
-    {Group='largefire', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Conflagration', 'Fire Bolt'}},
-    {Group='smallfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire', 'Inferno Shock', 'Flame Shock', 'Shock of Fire'}},
-    {Group='smallice', Spells={'Ancient: Spear of Gelaqua', 'Black Ice', 'Claw of Frost', 'Ice Spear of Solist', 'Ice Shock', 'Frost Shock', 'Shock of Ice', 'Blast of Cold'}},
-    {Group='lightning', Spells={'Garrison\'s Mighty Mana Shock', 'Force Snap', 'Shock of Lightning'}},
-    {Group='stun', Spells={'Tishan\'s Clash', 'Telekemara'}},
+    {Group='largefire', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Conflagration', 'Fire Bolt'}, Options={Gem=3}},
+    {Group='smallfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire', 'Inferno Shock', 'Flame Shock', 'Shock of Fire'}, Options={Gem=2}},
+    {Group='smallice', Spells={'Ancient: Spear of Gelaqua', 'Black Ice', 'Claw of Frost', 'Ice Spear of Solist', 'Elnerick\'s Entombment of Ice', 'Ice Shock', 'Frost Shock', 'Shock of Ice', 'Blast of Cold'}, Options={Gem=1}},
+    {Group='lightning', Spells={'Thunder Strike', 'Garrison\'s Mighty Mana Shock', 'Force Snap', 'Shock of Lightning'}, Options={Gem=4}},
+    {Group='stun', Spells={'Telekara', 'Thunderclap', 'Tishan\'s Clash'}},
     {Group='Swarm', Spells={'Solist\'s Frozen Sword'}},
-    {Group='firerain', Spells={'Firestorm'}},
-    {Group='icerain', Spells={'Gelid Rains', 'Icestrike'}},
-    {Group='lightningrain', Spells={'Lightning Storm'}},
+    {Group='firerain', Spells={'Lava Storm', 'Firestorm'}, Options={opt='USEAOE'}},
+    {Group='icerain', Spells={'Gelid Rains', 'Icestrike'}, Options={opt='USEAOE'}},
+    {Group='lightningrain', Spells={'Energy Storm', 'Lightning Storm'}, Options={opt='USEAOE'}},
     {Group='aeTrap', Spells={'Fire Rune'}},
-    {Group='ae1', Spells={'Column of Lightning', 'Circle of Thunder', 'Project Lightning'}},
-    {Group='ae2', Spells={'Jyll\'s Static Pulse', 'Cast Force'}},
-    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice', 'Frost Spiral of Al\'Kabor', 'Column of Frost', 'Numbing Cold'}},
-    {Group='ae4', Spells={'Jyll\'s Wave of Heat', 'Fire Spiral of Al\'Kabor', 'Pillar of Fire', 'Fingers of Fire'}},
-    {Group='hpbuff', Spells={'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
-    {Group='ds', Spells={'O`Keil\'s Levity', 'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true, classes={}}},
-    {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
+    {Group='ae1', Spells={'Column of Lightning', 'Shock Spiral of Al`Kabor', 'Circle of Thunder', 'Project Lightning'}, Options={opt='USEAOE', Gem=6}},
+    {Group='ae2', Spells={'Jyll\'s Static Pulse', 'Force Spiral of Al`Kabor', 'Circle of Force', 'Cast Force'}, Options={opt='USEAOE'}},
+    {Group='ae3', Spells={'Jyll\'s Zephyr of Ice', 'Frost Spiral of Al\'Kabor', 'Column of Frost', 'Numbing Cold'}, Options={opt='USEAOE', Gem=7}},
+    {Group='ae4', Spells={'Jyll\'s Wave of Heat', 'Fire Spiral of Al\'Kabor', 'Pillar of Fire', 'Fingers of Fire'}, Options={opt='USEAOE', Gem=8}},
+    {Group='hpbuff', Spells={'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
+    {Group='ds', Spells={'O`Keil\'s Flickering Flame', 'O`Keil\'s Levity', 'O`Keil\'s Embers', 'O`Keil\'s Radiation'}, Options={singlebuff=true, classes={}}},
+    {Group='dispel', Spells={'Nullify Magic', 'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
 
     {Group='lurefire', Spells={'Firebane', 'Lure of Ro', 'Lure of Flame', 'Enticement of Flame'}},
     {Group='lureice', Spells={'Lure of Ice'}},
 
     {Group='familiar', Spells={'Minor Familiar'}},
+
+    {Group='harvest', Spells={'Harvest'}, Options={Gem=5}},
 }
 
 Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
@@ -136,10 +138,28 @@ Wizard.Ports = {
     -- 'Cazic Gate'
     -- 'West Gate'
     -- 'Combine Gate'
+    -- 'Knowledge Gate'
+    -- 'Iceclad Gate',
+    -- 'Great Divide Gate'
 
     -- 'Blightfire Moors Portal',
     -- 'North Portal'
+    -- 'Fay Portal',
+    -- 'Stonebrunt Portal'
+    -- 'Tox Portal'
+    -- 'Grimling Portal'
+    -- 'Dawnshroud Portal',
+    -- 'Nexus Portal'
+    -- 'Nek Portal'
+    -- 'Iceclad Portal'
+    -- 'Cazic Portal'
+    -- 'Twilight Portal'
+    -- 'Combine Portal'
+    -- 'Common Portal'
+
     -- 'Translocate: Blightfire Moors'
+    -- 'Translocate: North'
+    -- 'Translocate Stonebrunt'
 
 }
 return Wizard

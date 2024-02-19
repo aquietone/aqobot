@@ -86,7 +86,7 @@ Enchanter.SpellLines = {
     },
     {-- 9 ticks. Slot 3
         Group='mezst',
-        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria', 'Mesmerization', 'Enthrall', 'Mesmerize'},
+        Spells={'Flummox', 'Addle', 'Deceive', 'Delude', 'Bewilder', 'Confound', 'Mislead', 'Baffle', --[[emu cutoff]] 'Euphoria', 'Entrance', 'Mesmerization', 'Enthrall', 'Mesmerize'},
         Options={Gem=3, precast=function() if not mq.TLO.Target.Tashed() and Enchanter:isEnabled('TASHTHENMEZ') and Enchanter.spells.tash then
             Enchanter.spells.tash:use()
             mq.delay(50)
@@ -96,12 +96,12 @@ Enchanter.SpellLines = {
     },
     {-- targeted AE mez. Slot 4
         Group='mezaeprocblur',
-        Spells={'Entrancing Stare', 'Mesmeric Stare', 'Deceiving Stare', 'Transfixing Stare', 'Anodyne Stare', 'Mesmerizing Stare', 'Sedative Stare', 'Soporific Stare', --[[emu cutoff]] },
+        Spells={'Entrancing Stare', 'Mesmeric Stare', 'Deceiving Stare', 'Transfixing Stare', 'Anodyne Stare', 'Mesmerizing Stare', 'Sedative Stare', 'Soporific Stare', --[[emu cutoff]] 'Entrancing Lights'},
         Options={Gem=4}
     },
     {-- main dot. Slot 5
         Group='dot1',
-        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', 'Stifle', 'Suffocation', 'Constrict', --[[emu cutoff]] 'Arcane Noose', 'Choke', 'Suffocating Sphere', 'Shallow Breath'},
+        Spells={'Asphyxiating Grasp', 'Throttling Grip', 'Pulmonary Grip', 'Strangulate', 'Drown', 'Stifle', 'Suffocation', 'Constrict', --[[emu cutoff]] 'Arcane Noose', 'Suffocate', 'Choke', 'Suffocating Sphere', 'Shallow Breath'},
         Options={opt='USEDOTS', Gem=5}
     },
     {-- 77k nuke, procs synery. Slot 6, 7
@@ -112,8 +112,8 @@ Enchanter.SpellLines = {
     },
     {-- 28k nuke. Slot 8
         Group='nuke2',
-        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst', 'Chaos Flux', 'Sanity Warp', 'Chaotic Feedback'},
-        Options={opt='USENUKES', Gem=8}
+        Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst', 'Anarchy', 'Chaos Flux', 'Sanity Warp', 'Chaotic Feedback'},
+        Options={opt='USENUKES', Gem=function() return (mq.TLO.Me.Level() <= 60 and 7) or 8 end}
     },
     {-- single target dmg proc buff. Slot 9
         Group='procbuff',
@@ -159,7 +159,7 @@ Enchanter.SpellLines = {
     {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}}, -- mez proc on being hit
 
     {Group='rune', Spells={'Disquieting Rune', 'Marvel\'s Rune'}}, -- 160k rune, self
-    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune II', 'Rune I'}}, -- 90k rune, single target
+    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune III', 'Rune II', 'Rune I'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 or nil end}}, -- 90k rune, single target
     {Group='dotrune', Spells={'Aegis of Dhakka', 'Aegis of Xetheg'}}, -- absorb DoT dmg
     {Group='guard', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}, Options={selfbuff=true}}, -- spell + melee guard
     {Group='dotmiti', Spells={'Deviser\'s Auspice', 'Transfixer\'s Auspice'}}, -- DoT guard
@@ -182,19 +182,19 @@ Enchanter.SpellLines = {
     {Group='aenuke', Spells={'Gravity Roil'}}, -- 23k targeted ae nuke
 
     {Group='calm', Spells={'Still Mind'}},
-    {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex', 'Whirl till you hurl'}}, -- single target stun
+    {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex', 'Dyn\'s Dizzying Draught',  'Whirl till you hurl'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
-    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}},
+    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}, {Gem=function() return not Enchanter:get('MEZAE') and mq.TLO.Me.Level() <= 60 and 4 or nil end}},
     {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}, Options={selfbuff=true}}, -- self rune, proc ae stun on fade
 
-    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', 'Sagar\'s Animation', 'Sisna\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}},
+    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', 'Boltran\'s Animation', 'Uleen\'s Animation', 'Sagar\'s Animation', 'Sisna\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}, Options={}},
     {Group='pethaste', Spells={'Invigorated Minion'}, Options={petbuff=true}},
     -- buffs
     -- {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI', selfbuff=true}},
     {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Unified Alacrity', 'Voice of Clairvoyance', 'Voice of Quellious'}, Options={alias='KEI', selfbuff=true}},
-    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Clairovoyance', 'Breeze'}, Options={alias='SINGLEKEI', selfbuff=function() return not Enchanter.spells.keigroup and true or false end}},
+    {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Clairovoyance', 'Clarity', 'Breeze'}, Options={alias='SINGLEKEI', selfbuff=function() return not Enchanter.spells.keigroup and true or false end}},
     {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar', 'Hastening of Milyex', 'Hastening of Prokev', 'Hastening of Sviir', 'Hastening of Aransir', 'Hastening of Novak', 'Unified Alacrity', 'Hastening of Salik', 'Vallon\'s Quickening'}, Options={alias='HASTE'}}, -- group haste
-    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak', 'Visions of Grandeur', 'Alacrity', 'Quickness'}, Options={alias='SINGLEHASTE'}}, -- single target buff
+    {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak', 'Visions of Grandeur', 'Augmentation', 'Alacrity', 'Quickness'}, Options={alias='SINGLEHASTE'}}, -- single target buff
     -- auras - mana, learners, spellfocus, combatinnate, disempower, rune, twincast
     {Group='twincast', Spells={'Twincast Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.twincast.Name or Enchanter:get('AURA2') == Enchanter.spells.twincast.Name end}},
     {Group='regen', Spells={'Esoteric Aura', 'Marvel\'s Aura', 'Deviser\'s Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.regen.Name or Enchanter:get('AURA2') == Enchanter.spells.regen.Name end}}, -- mana + end regen aura
@@ -203,12 +203,12 @@ Enchanter.SpellLines = {
     {Group='disempower', Spells={'Arcane Disjunction Aura'}, Options={aurabuff=true, condition=function() return Enchanter:get('AURA1') == Enchanter.spells.disempower.Name or Enchanter:get('AURA2') == Enchanter.spells.disempower.Name end}},
     -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
-    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}},
+    {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}},
     {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
 
-    {Group='spasm', Spells={'Synapsis Spasm', 'Listless Power', 'Feckless Might', 'Disempower', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USEDEBUFF', emu=true}},
-    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Strip Enchantment', 'Cancel Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
-    {Group='slow', Spells={'Tepid Deeds', 'Languid Pace'}, Options={opt='USESLOW', debuff=true, slow=true}}
+    {Group='spasm', Spells={'Synapsis Spasm', 'Insipid Weakness', 'Listless Power', 'Feckless Might', 'Disempower', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USEDEBUFF', emu=true, Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}},
+    {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Nullify Magic', 'Strip Enchantment', 'Cancel Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
+    {Group='slow', Spells={'Tepid Deeds', 'Languid Pace'}, Options={opt='USESLOW', debuff=true, slow=true, Gem=function() return mq.TLO.Me.Level() <= 60 and 2 or nil end}}
 }
 
 Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}

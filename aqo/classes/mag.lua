@@ -197,7 +197,7 @@ Magician.SpellLines = {
     {-- Main fire nuke. Slot 1/2
         Group='spear',
         NumToPick=2,
-        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Bolt of Flame', 'Shock of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
+        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Cinder Bolt', 'Blaze', 'Bolt of Flame', 'Shock of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
         Options={opt='USEFIRENUKES', Gems={function() return not Magician:isEnabled('USEAOE') and 1 or nil end,2}}
     },
     {-- Main AE nuke. Slot 1
@@ -291,17 +291,17 @@ Magician.SpellLines = {
     },
     {
         Group='airpet',
-        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 'Summoning: Water', 'Lesser Summoning: Air', 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
+        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 'Minor Conjuration: Air', 'Greater Summoning: Air', 'Summoning: Air', 'Lesser Summoning: Air', 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
         Options={}
     },
     {
         Group='earthpet',
-        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]] 'Summoning: Earth', 'Lesser Summoning: Earth', 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
+        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]] 'Minor Conjuration: Earth', 'Greater Summoning: Earth', 'Summoning: Earth', 'Lesser Summoning: Earth', 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
         Options={}
     },
     {
         Group='firepet',
-        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]] 'Summoning: Fire', 'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
+        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]] 'Minor Conjuration: Fire', 'Greater Summoning: Fire', 'Summoning: Fire', 'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
         Options={}
     },
     {
@@ -321,7 +321,7 @@ Magician.SpellLines = {
     },
     {
         Group='petheal',
-        Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal', 'Renew Summoning', 'Renew Elements'},
+        Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal', 'Refresh Summoning', 'Renew Summoning', 'Renew Elements'},
         Options={opt='HEALPET', pet=50, heal=true}
     },
     {-- aborb 9 smaller hits, spellslot 1
@@ -341,7 +341,7 @@ Magician.SpellLines = {
     },
 
     -- self hp buff, blocks shm
-    {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus', --[[emu cutoff]] 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={}},
+    {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus', --[[emu cutoff]] 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={}},
     {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}, Options={selfbuff=true}}, -- self regen/ac buff
     {Group='manaregen', Spells={'Valiant Symbiosis', 'Relentless Symbiosis', 'Restless Symbiosis', 'Burning Symbiosis', 'Dark Symbiosis', --[[emu cutoff]] 'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
     {Group='bodyguard', Spells={'Valorforged Bodyguard', 'Ophiolite Bodyguard', 'Pyroxenite Bodyguard', 'Rhylitic Bodyguard', 'Shieldstone Bodyguard'}, Options={}}, -- proc pet when hit
@@ -368,15 +368,15 @@ Magician.SpellLines = {
     -- random fire nuke
     {Group='sands', Spells={'Cremating Sands', 'Ravaging Sands', 'Incinerating Sands', 'Blistering Sands', 'Searing Sands'}, Options={opt='USEFIRENUKES'}},
     -- summoned mob nuke
-    {Group='summonednuke', Spells={'Dismantle the Unnatural', 'Unmend the Unnatural', 'Obliterate the Unnatural', 'Repudiate the Unnatural', 'Eradicate the Unnatural', 'Dismiss Summoned', 'Expulse Summoned', 'Ward Summoned'}, Options={opt='USEMAGICNUKES'}},
+    {Group='summonednuke', Spells={'Dismantle the Unnatural', 'Unmend the Unnatural', 'Obliterate the Unnatural', 'Repudiate the Unnatural', 'Eradicate the Unnatural', 'Expel Summoned', 'Dismiss Summoned', 'Expulse Summoned', 'Ward Summoned'}, Options={opt='USEMAGICNUKES'}},
     -- bolt magic nuke
     {Group='magicbolt', Spells={'Luclinite Bolt', 'Komatiite Bolt', 'Korascian Bolt', 'Meteoric Bolt'}, Options={opt='USEMAGICNUKES'}},
     -- magic nuke + malo
     {Group='magicmalonuke', Spells={'Memorial Steel Malosinera', 'Carbide Malosinetra', 'Burning Malosinara', 'Arcronite Malosinata', 'Darksteel Malosenete'}, Options={opt='USEMAGICNUKES'}},
     -- targeted AE fire rain
-    {Group='firerain', Spells={'Rain of Molten Dacite', 'Rain of Molten Olivine', 'Rain of Molten Komatiite', 'Rain of Molten Rhyolite', 'Coronal Rain', 'Rain of Fire'}, Options={opt='USEAOE'}},
+    {Group='firerain', Spells={'Rain of Molten Dacite', 'Rain of Molten Olivine', 'Rain of Molten Komatiite', 'Rain of Molten Rhyolite', 'Coronal Rain', 'Rain of Lava', 'Rain of Fire'}, Options={opt='USEAOE', Gem=function() return mq.TLO.Me.Level() <= 60 and 4 or nil end}},
     -- targeted AE magic rain
-    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses', 'Rain of Blades'}, Options={opt='USEAOE'}},
+    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses', 'Rain of Spikes', 'Rain of Blades'}, Options={opt='USEAOE', Gem=function() return mq.TLO.Me.Level() <= 60 and 5 or nil end}},
     {Group='pbaefire', Spells={'Fiery Blast', 'Flaming Blast', 'Burning Blast', 'Searing Blast', 'Flame Flux'}, Options={opt='USEAOE'}},
     {Group='frontalmagic', Spells={'Beam of Kukris', 'Beam of Falchions', 'Beam of Scimitars', 'Beam of Knives'}, Options={opt='USEAOE'}},
     -- pet promised heal
@@ -385,8 +385,8 @@ Magician.SpellLines = {
     {Group='chaoticheal', Spells={'Chaotic Magnanimity', 'Chaotic Largesse', 'Chaotic Bestowal', 'Chaotic Munificence', 'Chaotic Benefaction'}, Options={opt='HEALPET'}},
     -- minion summon clicky 2
     {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
-    {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
-    {Group='mala', Spells={'Malaise'}, Options={debuff=true, opt='USEDEBUFF'}}
+    {Group='dispel', Spells={'Nullify Magic', 'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
+    {Group='mala', Spells={'Malaise'}, Options={debuff=true, opt='USEDEBUFF', Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}}
 }
 
 Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}
