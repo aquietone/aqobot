@@ -54,13 +54,13 @@ end
 Ranger.SpellLines = {
     {-- Slot 1
         Group='firenuke1',
-        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Ignite', 'Burst of Fire'},
+        Spells={'Pyroclastic Ash', 'Wildfire Ash', 'Beastwood Ash', 'Cataclysm Ash', --[[emu cutoff]] 'Hearth Embers', 'Ignite', 'Burst of Fire'},
         Options={Gem=1},
     },
     {-- 4x archery attacks, Focused Blizzard of Arrows. Slot 2
         Group='focused',
         Spells={'Focused Frenzy of Arrows', 'Focused Whirlwind of Arrows', 'Focused Hail of Arrows', 'Focused Storm of Arrows'},
-        Options={opt='USEARROWSPELLS', Gem=function() return not Ranger:isEnabled('USEAOE') and 2 or nil end}
+        Options={opt='USEARROWSPELLS', Gem=function() return (mq.TLO.Me.Level() <= 70 and 5) or (not Ranger:isEnabled('USEAOE') and 2) or nil end}
     },--, 'Hail of Arrows'})
     {-- Slot 2
         Group='aoearrow',
@@ -75,17 +75,17 @@ Ranger.SpellLines = {
     {-- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin. Slot 4
         Group='heart',
         Spells={'Heartbreak', 'Heartruin', 'Heartslit', 'Heartshot'},
-        Options={opt='USEARROWSPELLS', Gem=4}
+        Options={opt='USEARROWSPELLS', Gem=function() return mq.TLO.Me.Level() <= 70 and 6 or 4 end}
     },
     {-- fire + ice nuke, Summer's Sleet. Slot 5
         Group='firenuke2',
-        Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Icewind', 'Burning Arrow', 'Flaming Arrow'},
-        Options={Gem=5}
+        Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Burning Arrow', 'Flaming Arrow'},
+        Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 4 or 5 end}
     },
     {-- main DoT. Slot 6
         Group='dot',
         Spells={'Hotaria Swarm', 'Bloodbeetle Swarm', 'Locust Swarm', 'Swarm of Pain', 'Stinging Swarm', 'Flame Lick'},
-        Options={opt='USEDOTS', Gem=6}
+        Options={opt='USEDOTS', Gem=function() return mq.TLO.Me.Level() <= 70 and 7 or 6 end}
     },
     {-- heal ToT, Desperate Meltwater, fast cast, long cd. Slot 7
         Group='healtot',
@@ -109,8 +109,8 @@ Ranger.SpellLines = {
     },
     {-- Slot 11
         Group='coldnuke1',
-        Spells={'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind'},
-        Options={Gem=11}
+        Spells={'Frostsquall Boon', 'Lunarflare boon', 'Ancient: North Wind', 'Icewind'},
+        Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 3 or 11 end}
     }, -- 'Fernflash Boon', 
     {-- double bow shot and fire+ice nuke. Slot 12
         Group='composite',
@@ -125,25 +125,25 @@ Ranger.SpellLines = {
 
     {Group='opener', Spells={'Stealthy Shot'}, Options={opt='USEARROWSPELLS'}}, -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
-    {Group='firenuke3', Spells={'Laurion Ash', 'Hearth Embers'}}, -- fire + ice nuke, Summer's Sleet
-    {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}}, -- 
+    {Group='firenuke3', Spells={'Laurion Ash'}}, -- fire + ice nuke, Summer's Sleet
+    {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 2 end}}, -- 
     {Group='rain', Spells={'Invoke Lightning'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 3 or nil end, opt='USEAOE'}},
     {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment', --[[emu cutoff]] 'Nature\'s Precision', 'Firefist'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
     {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
     {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs', --[[emu cutoff]] 'Riftwood\'s Protection'}}, -- Cloak of Rimespurs
-    {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}, Options={alias='PREDATOR', selfbuff=true}}, -- Frostroar of the Predator
-    {Group='strength', Spells={'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare', --[[emu cutoff]] 'Strength of Earth'}, Options={alias='STRENGTH', selfbuff=true}}, -- Strength of the Arbor Stalker
+    {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}, Options={alias='PREDATOR', selfbuff=true, Gem=function() return mq.TLO.Me.Level() <= 70 and 9 or nil end}}, -- Frostroar of the Predator
+    {Group='strength', Spells={'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare', --[[emu cutoff]] 'Strength of Earth'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 8 or nil end, alias='STRENGTH', selfbuff=true}}, -- Strength of the Arbor Stalker
     -- Unity AA Buffs
-    {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}}, -- Protection of the Wakening Land
-    {Group='eyes', Spells={'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}, Options={selfbuff=true}}, -- Eyes of the Visionary
+    {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}, Options={selfbuff=true}}, -- Protection of the Wakening Land
+    {Group='eyes', Spells={'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 12 or nil end, selfbuff=true}}, -- Eyes of the Visionary
     {Group='hunt', Spells={'Engulfed by the Hunt', 'Steeled by the Hunt'}}, -- Provoked by the Hunt
     {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat', --[[emu cutoff]] 'Bramblecoat', 'Barbcoat'}}, -- Rimespur Coat
     {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
     -- Unity Azia only
     {Group='barrage', Spells={'Devastating Barrage'}}, -- Devastating Velium
     -- Unity Beza only
-    {Group='blades', Spells={'Arcing Blades', 'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}, Options={selfbuff=true}}, -- Howling Blades
+    {Group='blades', Spells={'Arcing Blades', 'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 11 or nil end, selfbuff=true}}, -- Howling Blades
     {Group='ds', Spells={'Shield of Needlespikes', 'Shield of Shadethorns'}}, -- DS
     {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true}}, -- self rune + debuff proc
     {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
@@ -154,7 +154,7 @@ Ranger.SpellLines = {
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 7 or nil end, heal=true, regular=true}},
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'}, Options={Gem=function() return (mq.TLO.Me.Level() <= 60 and 7) or (mq.TLO.Me.Level() <= 70 and 10) or nil end, heal=true, regular=true}},
 }
 
 Ranger.compositeNames = {['Ecliptic Fusillade']=true, ['Composite Fusillade']=true, ['Dissident Fusillade']=true, ['Dichotomic Fusillade']=true}

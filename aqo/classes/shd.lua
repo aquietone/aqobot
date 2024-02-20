@@ -115,7 +115,7 @@ ShadowKnight.SpellLines = {
     {-- lifetap dot. Slot 8
         Group='dottap',
         Spells={'Bond of Tatalros', 'Bond of Bynn', 'Bond of Inruku'},
-        Options={Gem=8}
+        Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 3 or 8 end}
     },
     {-- main hate spell. Slot 9
         Group='challenge',
@@ -140,12 +140,12 @@ ShadowKnight.SpellLines = {
     {-- Xenacious' Skin proc, 5min buff. Slot 12
         Group='skin',
         Spells={'Krizad\'s Skin', 'Xenacious\' Skin', 'Decrepit Skin', 'Vampiric Embrace'},
-        Options={Gem=12, selfbuff=true}
+        Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 8 or 12 end, selfbuff=true}
     },
     {-- lifetap with hp/mana recourse. Slot 13
         Group='bitetap',
-        Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite'},
-        Options={Gem=function() return ShadowKnight:isEnabled('USETORRENT') and 13 or 10 end}
+        Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite', 'Inruku\'s Bite'},
+        Options={Gem=function() return (mq.TLO.Me.Level() <= 70 and 4) or (ShadowKnight:isEnabled('USETORRENT') and 13) or 10 end}
     },
     {-- Slot 13
         Group='tap3',
@@ -165,14 +165,14 @@ ShadowKnight.SpellLines = {
     {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 end}}, -- pet
     {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death', 'Strengthen Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
-    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
+    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 11 or nil end, swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
     {Group='bezaproc', Spells={'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, Options={opt='USEBEZA', selfbuff=true}}, -- Mental Anguish Strike proc
     {Group='aziaproc', Spells={'Mortimus\' Horror', 'Brightfield\'s Horror'}, Options={opt='USEAZIA'}}, -- Brightfield's Horror Strike proc
     {Group='ds', Spells={'Goblin Skin', 'Tekuel Skin'}}, -- large damage shield self buff
     {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}, Options={selfbuff=true}}, -- lich mana regen
     {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}, Options={selfbuff=true}}, -- self buff hp, ac, ds
     {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call', 'Dark Temptation', 'Grim Aura'}}, -- atk buff, hp drain on self
-    {Group='voice', Spells={'Voice of Innoruuk'}, Options={opt='USEVOICEOFTHULE', selfbuff=true}},
+    {Group='voice', Spells={'Voice of Innoruuk'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 12 or nil end, opt='USEVOICEOFTHULE', selfbuff=true}},
     --['']=common.get_best_spell({'Remorseless Demeanor'})
     {Group='snare', Spells={'Engulfing Darkness', 'Clinging Darkness'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 2 end, opt='USESNARE', debuff=true}},
     {Group='undeadnuke', Spells={'Ward Undead'}, Options={opt='USENUKES'}},

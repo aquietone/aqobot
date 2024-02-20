@@ -93,6 +93,7 @@ function Shaman:init()
     self:addCommonAbilities()
 
     state.nuketimer = timer:new(3000)
+    state.swapGem = 6
 end
 
 function Shaman:initClassOptions()
@@ -127,8 +128,8 @@ Shaman.SpellLines = {
     },
     {-- poison nuke. Slot 3
         Group='bitenuke',
-        Spells={'Oka\'s Bite', 'Ander\'s Bite', 'Direfang\'s Bite', 'Mawmun\'s Bite', 'Reefmaw\'s Bite', 'Shock of the Tainted'},
-        Options={opt='USENUKES', Gem=function() return mq.TLO.Me.Level() <= 60 and 4 or 3 end}
+        Spells={'Oka\'s Bite', 'Ander\'s Bite', 'Direfang\'s Bite', 'Mawmun\'s Bite', 'Reefmaw\'s Bite'},
+        Options={opt='USENUKES', Gem=3}
     },
     {-- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower. Slot 4
         Group='tcnuke',
@@ -153,7 +154,7 @@ Shaman.SpellLines = {
     {-- disease dot. Not used directly, only by combo spell. Combo spell comes in non-level increase expansions. (pendemiccombo)
         Group='breathdot',
         Spells={'Breath of the Hotariton', 'Breath of the Tegi', 'Breath of Bledrek', 'Breath of Elkikatar', 'Breath of Hemocoraxius', 'Breath of Wunshi'},
-        Options={opt='USEDOTS', Gem=function() return not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5 or nil end}
+        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 70 and 5) or (not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5) or nil end}
     },
     {-- temp hp buff. Slot 6
         Group='growth',
@@ -172,8 +173,8 @@ Shaman.SpellLines = {
     },
     {-- DPS spellset. Slot 7
         Group='poisonnuke',
-        Spells={'Red Eye\'s Spear of Venom', 'Fleshrot\'s Spear of Venom', 'Narandi\'s Spear of Venom', 'Nexona\'s Spear of Venom', 'Serisaria\'s Spear of Venom', 'Yoppa\'s Spear of Venom', 'Spear of Torment'},
-        Options={opt='USENUKES', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and 7 or nil end}
+        Spells={'Red Eye\'s Spear of Venom', 'Fleshrot\'s Spear of Venom', 'Narandi\'s Spear of Venom', 'Nexona\'s Spear of Venom', 'Serisaria\'s Spear of Venom', 'Yoppa\'s Spear of Venom', 'Spear of Torment', 'Shock of the Tainted'},
+        Options={opt='USENUKES', Gem=function() return (mq.TLO.Me.Level() <= 70 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and 7) or nil end}
     },
     {-- Lvl 100+ main heal. Slot 8, 9, 10
         Group='reckless',
@@ -194,12 +195,12 @@ Shaman.SpellLines = {
     {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
         Group='nectardot',
         Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Venom of the Snake', 'Envenomed Breath', 'Tainted Breath'},
-        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 60 and 6) or (not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9) or nil end}
+        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 60 and 6) or (mq.TLO.Me.Level() <= 70 and 9) or (not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9) or nil end}
     },
     {-- DPS spellset. curse DoT. Slot 10
         Group='cursedot',
         Spells={'Fandrel\'s Curse', 'Lenrel\'s Curse', 'Marlek\'s Curse', 'Erogo\'s Curse', 'Sraskus\' Curse', 'Curse of Sisslak', 'Curse'},
-        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') ~= 'standard' and 10 or nil end}
+        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 70 and 10) or (Shaman:get('SPELLSET') ~= 'standard' and 10) or nil end}
     },
     {-- splash, easiest to cast on self, requires los. Slot 11
         Group='splash',
@@ -288,7 +289,7 @@ Shaman.SpellLines = {
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
-    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={'SUMMONPET'}},
+    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 12 or nil end, opt='SUMMONPET'}},
     {Group='sow', Spells={'Spirit of the Shrew', 'Spirit of Wolf'}, Options={}},
     {Group='shrink', Spells={'Shrink'}, Options={alias='SHRINK'}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
@@ -375,7 +376,7 @@ Shaman.SpellLines = {
 }
 
 Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Roar of the Lion']=true}
-Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
+Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'slownuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
     'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot', 'aedot', 'rain'}
 
 function Shaman:initSpellRotations()
@@ -385,15 +386,20 @@ function Shaman:initSpellRotations()
     self.spellRotations.dps = {}
     if state.emu then
         table.insert(self.spellRotations.standard, self.spells.slownuke)
+        table.insert(self.spellRotations.hybrid, self.spells.slownuke)
     end
 
     table.insert(self.spellRotations.standard, self.spells.chaotic)
+    table.insert(self.spellRotations.standard, self.spells.breathdot)
+    table.insert(self.spellRotations.standard, self.spells.nectardot)
+    table.insert(self.spellRotations.standard, self.spells.cursedot)
     table.insert(self.spellRotations.standard, self.spells.tcnuke1)
     table.insert(self.spellRotations.standard, self.spells.bitenuke)
     table.insert(self.spellRotations.standard, self.spells.tcnuke2)
-    table.insert(self.spellRotations.standard, self.spells.chaotic)
 
     table.insert(self.spellRotations.hybrid, self.spells.chaotic)
+    table.insert(self.spellRotations.hybrid, self.spells.breathdot)
+    table.insert(self.spellRotations.hybrid, self.spells.nectardot)
     table.insert(self.spellRotations.hybrid, self.spells.cursedot)
     table.insert(self.spellRotations.hybrid, self.spells.tcnuke1)
     table.insert(self.spellRotations.hybrid, self.spells.bitenuke)
@@ -402,6 +408,7 @@ function Shaman:initSpellRotations()
     table.insert(self.spellRotations.hybrid, self.spells.icenuke)
 
     table.insert(self.spellRotations.dps, self.spells.chaotic)
+    table.insert(self.spellRotations.dps, self.spells.nectardot)
     table.insert(self.spellRotations.dps, self.spells.maladydot)
     table.insert(self.spellRotations.dps, self.spells.pandemiccombo)
     table.insert(self.spellRotations.dps, self.spells.malodot)
