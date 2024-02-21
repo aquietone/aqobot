@@ -271,6 +271,11 @@ ShadowKnight.Abilities = {
     },
 
     -- Tanking
+    {
+        Type='Skill',
+        Name='Taunt',
+        Options={tanking=true, aggro=true, condition=conditions.lowAggroInMelee}
+    },
     { -- mash, 90% melee/spell dmg mitigation, 2 ticks or 85k dmg
         Type='Disc',
         Group='repudiate',
@@ -288,12 +293,12 @@ ShadowKnight.Abilities = {
     { -- 45 sec cd
         Type='AA',
         Name='Explosion of Spite',
-        Options={threshold=2, condition=conditions.aboveMobThreshold}
+        Options={tanking=true, threshold=2, condition=conditions.aboveMobThreshold}
     },
     { -- 45 sec cd
         Type='AA',
         Name='Explosion of Hatred',
-        Options={threshold=4, condition=conditions.aboveMobThreshold}
+        Options={tanking=true, threshold=4, condition=conditions.aboveMobThreshold}
     },
     -- { -- large frontal cone ae aggro
     --     Type='AA',

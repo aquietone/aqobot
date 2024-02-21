@@ -79,8 +79,10 @@ local function checkTarget()
     if not targetType or targetType == 'Corpse' then
         state.assistMobID = 0
         state.tankMobID = 0
-        if mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() then
-            mq.cmd('/multiline ; /attack off; /autofire off;')
+        if mq.TLO.Me.Combat() then
+            mq.cmd('/attack off')
+        elseif mq.TLO.Me.AutoFire() then
+            mq.cmd('/autofire off')
         end
         if targetType == 'Corpse' then
             if clearTargetTimer.start_time == 0 then

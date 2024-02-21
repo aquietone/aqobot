@@ -99,8 +99,10 @@ state.memSpell = false
 state.memSpellTimer = timer:new(60000)
 state.wait_for_spell_ready = false
 state.restore_gem = nil
+state.restoreGemTimer = timer:new(90000)
 
 function state.handleMemSpell()
+    if state.restore_gem and state.restoreGemTimer:expired() then state.restore_gem = nil end
     if state.memSpell then
         if (mq.TLO.Me.Gem(state.memSpell.Name)() and not state.wait_for_spell_ready) or mq.TLO.Me.SpellReady(state.memSpell.Name)() then
             logger.info('Finished memorizing: \ag%s\ax', state.memSpell.Name)

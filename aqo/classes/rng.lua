@@ -574,7 +574,11 @@ end
 function Ranger:aggroClass()
     if (mq.TLO.Me.PctAggro() or 0) > 95 then
         -- Pause attacking if aggro is too high
-        mq.cmd('/multiline ; /attack off ; /autofire off')
+        if mq.TLO.Me.Combat() then
+            mq.cmd('/attack off')
+        elseif mq.TLO.Me.AutoFire() then
+            mq.cmd('/autofire off')
+        end
         mq.delay(5000, function() return mq.TLO.Me.PctAggro() <= 75 end)
         if self:isEnabled('USERANGE') then mq.cmd('/autofire on') else mq.cmd('/attack on') end
     end

@@ -558,6 +558,7 @@ function Ability.swapAndCast(spell, gem, class, skipReadyCheck)
     if not mq.TLO.Me.Gem(spell.Name)() then
         if mq.TLO.Me.Gem(gem)() then
             state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
+            state.restoreGemTimer:reset()
         end
         if not Ability.swapSpell(spell, gem, true) then
             -- failed to mem?
