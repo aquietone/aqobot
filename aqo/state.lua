@@ -33,7 +33,8 @@ local state = {
     rotationUpdated = false,
     rotationRefreshTimer = timer:new(60000, true),
     nuketimer = timer:new(0),
-    sitTimer = timer:new(10000)
+    sitTimer = timer:new(10000),
+    -- ActAsLevel = 70
 }
 
 function state.resetCombatState(debug, caller)

@@ -374,9 +374,9 @@ Magician.SpellLines = {
     -- magic nuke + malo
     {Group='magicmalonuke', Spells={'Memorial Steel Malosinera', 'Carbide Malosinetra', 'Burning Malosinara', 'Arcronite Malosinata', 'Darksteel Malosenete'}, Options={opt='USEMAGICNUKES'}},
     -- targeted AE fire rain
-    {Group='firerain', Spells={'Rain of Molten Dacite', 'Rain of Molten Olivine', 'Rain of Molten Komatiite', 'Rain of Molten Rhyolite', 'Coronal Rain', 'Rain of Lava', 'Rain of Fire'}, Options={opt='USEAOE', Gem=function() return mq.TLO.Me.Level() <= 60 and 4 or nil end}},
+    {Group='firerain', Spells={'Rain of Molten Dacite', 'Rain of Molten Olivine', 'Rain of Molten Komatiite', 'Rain of Molten Rhyolite', 'Coronal Rain', 'Rain of Lava', 'Rain of Fire'}, Options={opt='USEAOE', Gem=function(lvl) return lvl <= 60 and 4 or nil end}},
     -- targeted AE magic rain
-    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses', 'Rain of Spikes', 'Rain of Blades'}, Options={opt='USEAOE', Gem=function() return mq.TLO.Me.Level() <= 60 and 5 or nil end}},
+    {Group='magicrain', Spells={'Rain of Kukris', 'Rain of Falchions', 'Rain of Scimitars', 'Rain of Knives', 'Rain of Cutlasses', 'Rain of Spikes', 'Rain of Blades'}, Options={opt='USEAOE', Gem=function(lvl) return lvl <= 60 and 5 or nil end}},
     {Group='pbaefire', Spells={'Fiery Blast', 'Flaming Blast', 'Burning Blast', 'Searing Blast', 'Flame Flux'}, Options={opt='USEAOE'}},
     {Group='frontalmagic', Spells={'Beam of Kukris', 'Beam of Falchions', 'Beam of Scimitars', 'Beam of Knives'}, Options={opt='USEAOE'}},
     -- pet promised heal
@@ -386,7 +386,7 @@ Magician.SpellLines = {
     -- minion summon clicky 2
     {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
     {Group='dispel', Spells={'Nullify Magic', 'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
-    {Group='mala', Spells={'Malaise'}, Options={debuff=true, opt='USEDEBUFF', Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}}
+    {Group='mala', Spells={'Malaise'}, Options={debuff=true, opt='USEDEBUFF', Gem=function(lvl) return lvl <= 60 and 6 or nil end}}
 }
 
 Magician.compositeNames = {['Ecliptic Companion']=true, ['Composite Companion']=true, ['Dissident Companion']=true, ['Dichotomic Companion']=true}

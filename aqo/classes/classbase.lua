@@ -1045,12 +1045,18 @@ local function lifesupport()
     end
 end
 
+local function findSpellForSlotSub60(slot)
+    
+end
+
 local function findSpellForSlot(slot)
     local spell = nil
     local spellFallback = nil
+    local lvl = mq.TLO.Me.Level()
+    if state.ActAsLevel then lvl = state.ActAsLevel end -- dev hook to mem spells for whatever level
     for _, spellInfo in pairs(base.spells) do
         local gem = spellInfo.Gem
-        if type(gem) == 'function' then gem = gem() end
+        if type(gem) == 'function' then gem = gem(lvl) end
         if gem == slot then
             if not spellInfo.opt and not spell then
                 -- spell assigned to this gem with no related option, default spell for the gem

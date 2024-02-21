@@ -194,7 +194,7 @@ BeastLord.SpellLines = {
     {-- Player heal / Salve of Artikla (Pet heal) Slot 13. Slot 7 if use alliance
         Group='heal',
         Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
-        Options={opt='USEMENDING', Gem=function() return (mq.TLO.Me.Level() <= 60 and 5) or (not BeastLord:isEnabled('USEALLIANCE') and 13) or 7 end, me=75, self=true, heal=true}
+        Options={opt='USEMENDING', Gem=function(lvl) return (lvl <= 60 and 5) or (not BeastLord:isEnabled('USEALLIANCE') and 13) or 7 end, me=75, self=true, heal=true}
     },
     {-- adds extra damage to bst dots + fulmination. Slot 13
         Group='alliance',
@@ -207,7 +207,7 @@ BeastLord.SpellLines = {
     {
         Group='pet',
         Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Lachemit', 'Spirit of Kolos', 'Spirit of Averc', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha', 'Spirit of Yekan', 'Spirit of Herikol', 'Spirit of Keshuval', 'Spirit of Khaliz', 'Spirit of Sharik'},
-        Options={opt='SUMMONPET', Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}
+        Options={opt='SUMMONPET', Gem=function(lvl) return lvl <= 60 and 6 or nil end}
     },
     {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
     {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Yekan\'s Recovery', 'Herikol\'s Soothing', 'Keshuval\'s Rejuvenation', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
@@ -362,7 +362,7 @@ BeastLord.Abilities = {
         Type='Disc',
         Group='furydisc',
         Names={'Savage Rancor', 'Savage Rage', 'Savage Fury', --[[emu cutoff]] 'Empathic Fury', 'Bestial Fury Discipline'},
-        Options={first=function() return mq.TLO.Me.Level() < 102 end, second=function() return mq.TLO.Me.Level() > 101 end}
+        Options={first=function(lvl) return lvl < 102 end, second=function(lvl) return lvl > 101 end}
     },
     {
         Type='AA',

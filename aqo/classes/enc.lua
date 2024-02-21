@@ -113,7 +113,7 @@ Enchanter.SpellLines = {
     {-- 28k nuke. Slot 8
         Group='nuke2',
         Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst', 'Anarchy', 'Chaos Flux', 'Sanity Warp', 'Chaotic Feedback'},
-        Options={opt='USENUKES', Gem=function() return (mq.TLO.Me.Level() <= 60 and 7) or 8 end}
+        Options={opt='USENUKES', Gem=function(lvl) return (lvl <= 60 and 7) or 8 end}
     },
     {-- single target dmg proc buff. Slot 9
         Group='procbuff',
@@ -159,7 +159,7 @@ Enchanter.SpellLines = {
     {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}}, -- mez proc on being hit
 
     {Group='rune', Spells={'Disquieting Rune', 'Marvel\'s Rune'}}, -- 160k rune, self
-    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune III', 'Rune II', 'Rune I'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 or nil end}}, -- 90k rune, single target
+    {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune III', 'Rune II', 'Rune I'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end}}, -- 90k rune, single target
     {Group='dotrune', Spells={'Aegis of Dhakka', 'Aegis of Xetheg'}}, -- absorb DoT dmg
     {Group='guard', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}, Options={selfbuff=true}}, -- spell + melee guard
     {Group='dotmiti', Spells={'Deviser\'s Auspice', 'Transfixer\'s Auspice'}}, -- DoT guard
@@ -184,7 +184,7 @@ Enchanter.SpellLines = {
     {Group='calm', Spells={'Still Mind'}},
     {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex', 'Dyn\'s Dizzying Draught',  'Whirl till you hurl'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
-    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}, {Gem=function() return not Enchanter:get('MEZAE') and mq.TLO.Me.Level() <= 60 and 4 or nil end}},
+    {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}, {Gem=function(lvl) return not Enchanter:get('MEZAE') and lvl <= 60 and 4 or nil end}},
     {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}, Options={selfbuff=true}}, -- self rune, proc ae stun on fade
 
     {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]]  'Aeidorb\'s Animation', 'Boltran\'s Animation', 'Uleen\'s Animation', 'Sagar\'s Animation', 'Sisna\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}, Options={}},
@@ -206,9 +206,9 @@ Enchanter.SpellLines = {
     {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}},
     {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
 
-    {Group='spasm', Spells={'Synapsis Spasm', 'Insipid Weakness', 'Listless Power', 'Feckless Might', 'Disempower', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USEDEBUFF', emu=true, Gem=function() return mq.TLO.Me.Level() <= 60 and 6 or nil end}},
+    {Group='spasm', Spells={'Synapsis Spasm', 'Insipid Weakness', 'Listless Power', 'Feckless Might', 'Disempower', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USEDEBUFF', emu=true, Gem=function(lvl) return lvl <= 60 and 6 or nil end}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Nullify Magic', 'Strip Enchantment', 'Cancel Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
-    {Group='slow', Spells={'Tepid Deeds', 'Languid Pace'}, Options={opt='USESLOW', debuff=true, slow=true, Gem=function() return mq.TLO.Me.Level() <= 60 and 2 or nil end}}
+    {Group='slow', Spells={'Tepid Deeds', 'Languid Pace'}, Options={opt='USESLOW', debuff=true, slow=true, Gem=function(lvl) return lvl <= 60 and 2 or nil end}}
 }
 
 Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforcement']=true,['Dissident Reinforcement']=true,['Dichotomic Reinforcement']=true}

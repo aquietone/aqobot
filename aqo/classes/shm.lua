@@ -119,7 +119,7 @@ Shaman.SpellLines = {
     {-- DPS spellset. Disease DoT. Slot 1
         Group='maladydot',
         Spells={'Uncia\'s Malady', 'Cruor\'s Malady', 'Malvus\'s Malady', 'Hoshkar\'s Malady', 'Sephry\'s Malady', --[[emu cutoff]] 'Scourge', 'Affliction', 'Sicken'},
-        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 60 and 5) or (Shaman:get('SPELLSET') == 'dps' and 1) or nil end}
+        Options={opt='USEDOTS', Gem=function(lvl) return (lvl <= 60 and 5) or (Shaman:get('SPELLSET') == 'dps' and 1) or nil end}
     },
     {-- group HoT. Slot 2
         Group='grouphot',
@@ -154,7 +154,7 @@ Shaman.SpellLines = {
     {-- disease dot. Not used directly, only by combo spell. Combo spell comes in non-level increase expansions. (pendemiccombo)
         Group='breathdot',
         Spells={'Breath of the Hotariton', 'Breath of the Tegi', 'Breath of Bledrek', 'Breath of Elkikatar', 'Breath of Hemocoraxius', 'Breath of Wunshi'},
-        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 70 and 5) or (not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5) or nil end}
+        Options={opt='USEDOTS', Gem=function(lvl) return (lvl <= 70 and 5) or (not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5) or nil end}
     },
     {-- temp hp buff. Slot 6
         Group='growth',
@@ -174,7 +174,7 @@ Shaman.SpellLines = {
     {-- DPS spellset. Slot 7
         Group='poisonnuke',
         Spells={'Red Eye\'s Spear of Venom', 'Fleshrot\'s Spear of Venom', 'Narandi\'s Spear of Venom', 'Nexona\'s Spear of Venom', 'Serisaria\'s Spear of Venom', 'Yoppa\'s Spear of Venom', 'Spear of Torment', 'Shock of the Tainted'},
-        Options={opt='USENUKES', Gem=function() return (mq.TLO.Me.Level() <= 70 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and 7) or nil end}
+        Options={opt='USENUKES', Gem=function(lvl) return (lvl <= 70 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and 7) or nil end}
     },
     {-- Lvl 100+ main heal. Slot 8, 9, 10
         Group='reckless',
@@ -185,7 +185,7 @@ Shaman.SpellLines = {
     {-- Below lvl 100 main heal. Slot 8
         Group='heal',
         Spells={'Krasir\'s Mending', 'Ancient: Wilslik\'s Mending', 'Yoppa\'s Mending', 'Daluda\'s Mending', 'Chloroblast', 'Kragg\'s Salve', 'Superior Healing', 'Spirit Salve', 'Greater Healing', 'Healing', 'Light Healing', 'Minor Healing'},
-        Options={Gem=function() return (mq.TLO.Me.Level() <= 60 and 7) or (mq.TLO.Me.Level() < 105 and 8) or nil end, panic=true, regular=true, tank=true, pet=60}
+        Options={Gem=function(lvl) return (lvl <= 60 and 7) or (lvl < 105 and 8) or nil end, panic=true, regular=true, tank=true, pet=60}
     },
     {-- DPS spellset. combo malo + DoT. Slot 9
         Group='malodot',
@@ -195,12 +195,12 @@ Shaman.SpellLines = {
     {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
         Group='nectardot',
         Spells={'Nectar of Obscurity', 'Nectar of Destitution', 'Nectar of Misery', 'Nectar of Suffering', 'Nectar of Woe', 'Nectar of Pain', --[[emu cutoff]] 'Venom of the Snake', 'Envenomed Breath', 'Tainted Breath'},
-        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 60 and 6) or (mq.TLO.Me.Level() <= 70 and 9) or (not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9) or nil end}
+        Options={opt='USEDOTS', Gem=function(lvl) return (lvl <= 60 and 6) or (lvl <= 70 and 9) or (not Shaman.spells.malodot and Shaman:get('SPELLSET') == 'dps' and 9) or nil end}
     },
     {-- DPS spellset. curse DoT. Slot 10
         Group='cursedot',
         Spells={'Fandrel\'s Curse', 'Lenrel\'s Curse', 'Marlek\'s Curse', 'Erogo\'s Curse', 'Sraskus\' Curse', 'Curse of Sisslak', 'Curse'},
-        Options={opt='USEDOTS', Gem=function() return (mq.TLO.Me.Level() <= 70 and 10) or (Shaman:get('SPELLSET') ~= 'standard' and 10) or nil end}
+        Options={opt='USEDOTS', Gem=function(lvl) return (lvl <= 70 and 10) or (Shaman:get('SPELLSET') ~= 'standard' and 10) or nil end}
     },
     {-- splash, easiest to cast on self, requires los. Slot 11
         Group='splash',
@@ -215,7 +215,7 @@ Shaman.SpellLines = {
     {-- Hybrid spellset. Slot 11
         Group='icenuke',
         Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]]'Winder\'s Roar', 'Frost Strike', 'Spirit Strike', 'Frost Rift', 'Burst of Flame'},
-        Options={opt='USENUKES', Gem=function() return (mq.TLO.Me.Level() <= 60 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11) or nil end}
+        Options={opt='USENUKES', Gem=function(lvl) return (lvl <= 60 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11) or nil end}
     },
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
         Group='composite',
@@ -259,9 +259,9 @@ Shaman.SpellLines = {
     {-- Malo spell line. AA malo is Malosinete
         Group='malo',
         Spells={'Malosinera', 'Malosinetra', 'Malosinara', 'Malosinata', 'Malosenete', --[[emu cutoff]] 'Malaisement', 'Malaise'},
-        Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 1 or nil end, opt='USEDEBUFF', debuff=true}
+        Options={Gem=function(lvl) return lvl <= 60 and 1 or nil end, opt='USEDEBUFF', debuff=true}
     },
-    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Tagar\'s Insects', 'Walking Sleep', 'Drowsy'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 2 or nil end, debuff=true, opt='USESLOW'}},
+    {Group='slow', Spells={'Turgur\'s Insects', 'Togor\'s Insects', 'Tagar\'s Insects', 'Walking Sleep', 'Drowsy'}, Options={Gem=function(lvl) return lvl <= 60 and 2 or nil end, debuff=true, opt='USESLOW'}},
     {Group='slowaoe', Spells={'Rimeclaw\'s Drowse', 'Aten Ha Ra\'s Drowse', 'Amontehepna\'s Drowse', 'Erogo\'s Drowse', 'Sraskus\' Drowse'}, Options={debuff=true, opt='USESLOWAOE'}},
 
     -- Extra DoTs just used by combo spells
@@ -288,8 +288,8 @@ Shaman.SpellLines = {
     {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},
 
     -- Utility
-    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function() return mq.TLO.Me.Level() <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
-    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={Gem=function() return mq.TLO.Me.Level() <= 70 and 12 or nil end, opt='SUMMONPET'}},
+    {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
+    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, opt='SUMMONPET'}},
     {Group='sow', Spells={'Spirit of the Shrew', 'Spirit of Wolf'}, Options={}},
     {Group='shrink', Spells={'Shrink'}, Options={alias='SHRINK'}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
