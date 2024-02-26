@@ -103,9 +103,9 @@ function Magician:init()
     self:addCommonAbilities()
 end
 
-Magician.PetTypes = {Water='waterpet',Earth='earthpet',Air='airpet',Fire='firepet',Monster='monsterpet'}
+Magician.PetTypes = {water='waterpet',earth='earthpet',air='airpet',fire='firepet',monster='monsterpet'}
 function Magician:initClassOptions()
-    self:addOption('PETTYPE', 'Pet Type', 'Water', self.PetTypes, 'The type of pet to be summoned', 'combobox', nil, 'PetType', 'string')
+    self:addOption('PETTYPE', 'Pet Type', 'water', self.PetTypes, 'The type of pet to be summoned', 'combobox', nil, 'PetType', 'string')
     self:addOption('EARTHFORM', 'Elemental Form: Earth', false, nil, 'Toggle use of Elemental Form: Earth', 'checkbox', 'FIREFORM', 'EarthForm', 'bool')
     self:addOption('FIREFORM', 'Elemental Form: Fire', true, nil, 'Toggle use of Elemental Form: Fire', 'checkbox', 'EARTHFORM', 'FireForm', 'bool')
     self:addOption('USEFIRENUKES', 'Use Fire Nukes', true, nil, 'Toggle use of fire nuke line', 'checkbox', nil, 'UseFireNukes', 'bool')
@@ -284,24 +284,30 @@ Magician.SpellLines = {
     {
         Group='waterpet',
         Spells={'Recruitment of Water', 'Conscription of Water', 'Manifestation of Water', 'Embodiment of Water', 'Convocation of Water', --[[emu cutoff]]
-                'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Conjuration: Water',
+                'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Greater Conjuration: Water', 'Conjuration: Water',
                 'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                 'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elemental: Water', 'Elementaling: Water', 'Elementalkin: Water'},
         Options={}
     },
     {
         Group='airpet',
-        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 'Minor Conjuration: Air', 'Greater Summoning: Air', 'Summoning: Air', 'Lesser Summoning: Air', 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
+        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 
+                'Greater Conjuration: Air', 'Conjuration: Air', 'Lesser Conjuration: Air', 'Minor Conjuration: Air', 'Greater Summoning: Air', 'Summoning: Air',
+                'Lesser Summoning: Air', 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
         Options={}
     },
     {
         Group='earthpet',
-        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]] 'Minor Conjuration: Earth', 'Greater Summoning: Earth', 'Summoning: Earth', 'Lesser Summoning: Earth', 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
+        Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]]
+                'Greater Conjuration: Earth', 'Conjuration: Earth', 'Lesser Conjuration: Earth', 'Minor Conjuration: Earth', 'Greater Summoning: Earth', 'Summoning: Earth',
+                'Lesser Summoning: Earth', 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
         Options={}
     },
     {
         Group='firepet',
-        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]] 'Minor Conjuration: Fire', 'Greater Summoning: Fire', 'Summoning: Fire', 'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
+        Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]]
+        'Greater Conjuration: Fire', 'Conjuration: Fire', 'Lesser Conjuration: Fire', 'Minor Conjuration: Fire', 'Greater Summoning: Fire', 'Summoning: Fire',
+        'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
         Options={}
     },
     {
