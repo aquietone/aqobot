@@ -854,8 +854,8 @@ function Magician:pickupWeapon(weaponName)
 end
 
 function Magician:giveOther(petID, spell, toyType)
-    local itemName = petToys[toyType][spell.BaseName]
-    local item = mq.TLO.FindItem('='..itemName)
+    -- local itemName = petToys[toyType][spell.BaseName].foldedBag
+    -- local item = mq.TLO.FindItem('='..itemName)
     --if not item() then
         mq.cmdf('/mqt id %s', petID)
         local summonResult = self:summonItem(spell, petID, false, false)
