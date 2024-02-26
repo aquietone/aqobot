@@ -108,6 +108,7 @@ function Shaman:initClassOptions()
     self:addOption('MEMCUREALL', 'Mem Cure All', false, nil, 'Memorize cure all line of spells', 'checkbox', nil, 'MemCureAll', 'bool')
     self:addOption('USESPLASH', 'Use Splash', true, nil, 'Memorize splash line of spells', 'checkbox', nil, 'UseSplash', 'bool')
     self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
+    self:addOption('USECURES', 'Use Cures', true, nil, 'Toggle use of cures', 'checkbox', nil, 'UseCures', 'bool')
 end
 
 Shaman.SpellLines = {

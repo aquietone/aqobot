@@ -108,6 +108,7 @@ local mq = require 'mq'
 local logger = require('utils.logger')
 local movement = require('utils.movement')
 local timer = require('libaqo.timer')
+local actors = require('actors')
 
 -- Public default settings, also read in from Loot.ini [Settings] section
 local loot = {
@@ -135,6 +136,7 @@ local loot = {
     StackableOnly = false,
     CorpseRotTime = "440s",
     Terminate = true,
+    lootRecord = {},
 }
 loot.state = {
     looting = false,
@@ -250,6 +252,22 @@ end
 
 -- EVENTS
 
+local lootActor = actors.register('aqoloot', function(message)
+    local lootEntry = message()
+    for _,item in ipairs(lootEntry.Items) do
+        table.insert(loot.lootRecord, {Name=item.Name, ID=lootEntry.ID, LootedAt=lootEntry.LootedAt, Action=item.Action, Link=item.Link})
+    end
+    local i = 1
+    while i < #loot.lootRecord do
+        local entry = loot.lootRecord[i]
+        if os.time() - entry.LootedAt > 300 then
+            table.remove(loot.lootRecord, i)
+        else
+            i = i + 1
+        end
+    end
+end)
+
 local itemNoValue = nil
 local function eventNovalue(line, item)
     itemNoValue = item
@@ -326,9 +344,9 @@ end
 ---@param index number @The current index we are looking at in loot window, 1-based.
 ---@param doWhat string @The action to take for the item.
 ---@param button string @The mouse button to use to loot the item. Currently only leftmouseup implemented.
-local function lootItem(index, doWhat, button)
+local function lootItem(index, doWhat, button, allItems)
     logger.debug(logger.flags.common.loot, 'Enter lootItem')
-    if not shouldLootActions[doWhat] then return end
+    if not shouldLootActions[doWhat] then return table.insert(allItems, {Name=mq.TLO.Corpse.Item(index).Name(), Action='Left', Link=mq.TLO.Corpse.Item(index).ItemLink('CLICKABLE')()}) end
     local corpseItemID = mq.TLO.Corpse.Item(index).ID()
     local itemName = mq.TLO.Corpse.Item(index).Name()
     mq.cmdf('/nomodkey /shift /itemnotify loot%s %s', index, button)
@@ -340,7 +358,12 @@ local function lootItem(index, doWhat, button)
     -- The loot window closes if attempting to loot a lore item you already have, but lore should have already been checked for
     if not mq.TLO.Window('LootWnd').Open() then return end
     report('%sing \ay%s\ax', doWhat, itemName)
-    if doWhat == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then mq.cmd('/destroy') end
+    if doWhat == 'Destroy' and mq.TLO.Cursor.ID() == corpseItemID then
+        table.insert(allItems, {Name=mq.TLO.Cursor.Name(), Action='Destroyed', Link=mq.TLO.Cursor.ItemLink('CLICKABLE')()})
+        mq.cmd('/destroy')
+    else
+        table.insert(allItems, {Name=mq.TLO.Cursor.Name(), Action='Looted', Link=mq.TLO.Cursor.ItemLink('CLICKABLE')()})
+    end
     if mq.TLO.Cursor() then checkCursor() end
 end
 
@@ -369,6 +392,7 @@ local function lootCorpse(corpseID)
     if mq.TLO.Window('LootWnd').Open() and items > 0 then
         local noDropItems = {}
         local loreItems = {}
+        local allItems = {}
         for i=1,items do
             local freeSpace = mq.TLO.Me.FreeInventory()
             local corpseItem = mq.TLO.Corpse.Item(i)
@@ -377,17 +401,23 @@ local function lootCorpse(corpseID)
                 local freeStack = corpseItem.FreeStack()
                 local lootRule = getRule(corpseItem)
                 if corpseItem.NoDrop() then
-                    if shouldLootActions[lootRule] then table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')()) end
+                    if shouldLootActions[lootRule] then
+                        table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')())
+                        table.insert(allItems, {Name=corpseItem.Name(), Action='Left', Link=corpseItem.ItemLink('CLICKABLE')()})
+                    end
                 elseif corpseItem.Lore() then
                     local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
                     local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
                     if haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots then
-                        if shouldLootActions[lootRule] then table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')()) end
+                        if shouldLootActions[lootRule] then
+                            table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')())
+                            table.insert(allItems, {Name=corpseItem.Name(), Action='Left', Link=corpseItem.ItemLink('CLICKABLE')()})
+                        end
                     else
-                        lootItem(i, lootRule, 'leftmouseup')
+                        lootItem(i, lootRule, 'leftmouseup', allItems)
                     end
                 elseif freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0) then
-                    lootItem(i, lootRule, 'leftmouseup')
+                    lootItem(i, lootRule, 'leftmouseup', allItems)
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
@@ -402,6 +432,7 @@ local function lootCorpse(corpseID)
             end
             mq.cmdf(skippedItems, corpseName, corpseID)
         end
+        lootActor:send({mailbox='aqoloot'}, {ID=corpseID, Items=allItems, LootedAt=os.time()})
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
     loot.state.lootingCorpse = nil

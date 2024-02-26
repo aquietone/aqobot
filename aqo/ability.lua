@@ -426,7 +426,11 @@ function AA:isReady()
     if mq.TLO.Me.AltAbilityReady(self.Name)() then
         local spell = mq.TLO.AltAbility(self.Name).Spell
         local canUse = Ability.canUseSpell(spell, self)
-        return canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell, false, self.skipTargetCheck) or canUse
+        local result = canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell, false, self.skipTargetCheck) or canUse
+        if self.Name == 'Radiant Cure' then
+            logger.info('Radiant Cure: %s', result)
+        end
+        return result
     else
         return IsReady.NOT_READY
     end

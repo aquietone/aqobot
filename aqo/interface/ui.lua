@@ -8,6 +8,7 @@ local widgets = require('libaqo.widgets')
 local camp = require('routines.camp')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
+local lootutils = require('utils.lootutils')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
@@ -19,6 +20,7 @@ local spellRotationUIOpen, shouldDrawSpellRotationUI = false, false
 local abilityGUIOpen, shouldDrawAbilityGUI = false, false
 local clickyManagerOpen, shouldDrawClickyManager = false, false
 local helpGUIOpen, shouldDrawHelpGUI= false, false
+local lootGUIOpen, lootGUIShow = false, false
 
 -- UI constants
 local MINIMUM_WIDTH = 430
@@ -246,8 +248,12 @@ local function drawDebugTab()
     if ImGui.Button(icons.FA_DOWNLOAD..' Update AQO', buttonWidth, BUTTON_HEIGHT) then
         os.execute('start https://github.com/aquietone/aqobot/archive/refs/heads/emu.zip')
     end
-    if ImGui.Button('View State Inspector', x, BUTTON_HEIGHT) then
+    if ImGui.Button('View State Inspector', buttonWidth, BUTTON_HEIGHT) then
         stateGUIOpen = true
+    end
+    ImGui.SameLine()
+    if ImGui.Button('View Loot', buttonWidth, BUTTON_HEIGHT) then
+        lootGUIOpen = true
     end
     ImGui.TextColored(YELLOW, 'Mode:')
     ImGui.SameLine()
@@ -800,6 +806,50 @@ local function drawHelpWindow()
     end
 end
 
+local function drawLootWindow()
+    if not lootGUIOpen then return end
+    lootGUIOpen, lootGUIShow = ImGui.Begin('Loot##aqoloot', lootGUIOpen)
+    if lootGUIShow then
+        if ImGui.Button('Clear') then lootutils.lootRecord = {} end
+        ImGui.SameLine()
+        if ImGui.Button('Hide Corpses') then mq.cmd('/hidecorpse looted') end
+        ImGui.SameLine()
+        if ImGui.Button('Unhide Corpses') then mq.cmd('/hidecorpse al') end
+        if ImGui.BeginTable('loottable', 5, TABLE_FLAGS) then
+            ImGui.TableSetupColumn('ID', ImGuiTableColumnFlags.None, 1)
+            ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.None, 3)
+            ImGui.TableSetupColumn('Action', ImGuiTableColumnFlags.None, 1)
+            ImGui.TableSetupColumn('Timestamp', ImGuiTableColumnFlags.None, 2)
+            ImGui.TableSetupColumn('##navtocorpse', ImGuiTableColumnFlags.None, 1)
+            ImGui.TableSetupScrollFreeze(0,1)
+            ImGui.TableHeadersRow()
+
+            local loot = lootutils.lootRecord
+            if loot and #loot > 0 then
+                for i=#loot,1,-1 do
+                    local entry = loot[i]
+                    ImGui.TableNextRow()
+                    ImGui.TableNextColumn()
+                    ImGui.Text('%s', entry.ID)
+                    ImGui.TableNextColumn()
+                    ImGui.TextColored(1, 0, 1, 1, '%s', entry.Name)
+                    if ImGui.IsItemHovered() and ImGui.IsMouseReleased(ImGuiMouseButton.Left) then
+                        mq.cmdf('/squelch /execute %s', entry.Link)
+                    end
+                    ImGui.TableNextColumn()
+                    ImGui.Text('%s', entry.Action)
+                    ImGui.TableNextColumn()
+                    ImGui.Text('%s',  os.date('%I:%M:%S', entry.LootedAt))
+                    ImGui.TableNextColumn()
+                    if ImGui.Button('Nav To##'..entry.ID..entry.Name) then mq.cmdf('/nav id %s', entry.ID) end
+                end
+            end
+            ImGui.EndTable()
+        end
+    end
+    ImGui.End()
+end
+
 -- ImGui main function for rendering the UI window
 function ui.main()
     if not openGUI then return end
@@ -825,6 +875,7 @@ function ui.main()
     drawStateInspector()
     drawClickyManager()
     drawHelpWindow()
+    drawLootWindow()
     popStyles()
 end
 

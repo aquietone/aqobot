@@ -180,7 +180,7 @@ end
 
 function base:addCommonAbilities()
     self.tranquil = self:addAA('Tranquil Blessings')
-    self.radiant = self:addAA('Radiant Cure', {all=true, alias='RC', cure=true})
+    self.radiant = self:addAA('Radiant Cure', {all=true, ignoreCounters=true, alias='RC', cure=true})
     if self.radiant then self:addAbilityToLists(self.radiant) end
     -- table.insert(self.cures, self.radiant)
     self.silent = self:addAA('Silent Casting', {first=true})

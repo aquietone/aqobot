@@ -60,6 +60,8 @@ function status.send(class)
             table.insert(buffs, buffData)
         end
     end
+    -- table.insert(buffs, {Name='testing', Duration=15, CounterNumber=3, CounterType='Curse'})
+    -- table.insert(buffs, {Name='testing', Duration=15, CounterType='Curse'})
     local songs = {}
     for i=1,20 do
         local aSong = mq.TLO.Me.Song(i)

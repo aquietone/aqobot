@@ -59,17 +59,13 @@ local function cureEnabled(options, key)
     return options[key] == nil or options[key].value
 end
 
-local function getCure(cures, cureType, whoToCure, options)
+local function getCure(cures, cureType, cureCounters, options)
     for _,cureAbility in ipairs(cures) do
-        if (cureAbility[cureType] or cureAbility.all) and cureEnabled(options, cureAbility.opt) then
+        if ((cureCounters and cureAbility[cureType]) or (cureCounters and cureAbility.all) or cureAbility.ignoreCounters) and cureEnabled(options, cureAbility.opt) then
             if cureAbility.CastType == abilities.Types.Spell then
                 if mq.TLO.Me.SpellReady(cureAbility.Name)() then
                     return cureAbility
                 end
-                -- local spell = mq.TLO.Spell(cureAbility.Name)
-                -- if abilities.canUseSpell(spell, cureAbility) == abilities.IsReady.CAN_CAST then
-                --     return cureAbility
-                -- end
             elseif cureAbility.CastType == abilities.Types.AA then
                 if mq.TLO.Me.AltAbilityReady(cureAbility.Name)() then
                     return cureAbility
@@ -80,13 +76,14 @@ local function getCure(cures, cureType, whoToCure, options)
 end
 
 function cure:doCures(base)
+    if not base:isEnabled('USECURES') then return end
     for name, charState in pairs(state.actors) do
         local buffs = charState.Buffs
         if buffs then
             for _,buff in ipairs(buffs) do
                 if mq.TLO.Spawn(('pc =%s'):format(name)).Distance3D() or 300 <= 100 then
                     local originalTarget = mq.TLO.Target.ID()
-                    local cureAbility = getCure(base.cures, buff.CounterType, name, base.options)
+                    local cureAbility = getCure(base.cures, buff.CounterType, buff.CounterNumber, base.options)
                     if cureAbility then
                         logger.info('%s needs cure for %s counterType=%s counterNumber=%s, using %s', name, buff.Name, buff.CounterType, buff.CounterNumber, cureAbility.Name)
                         mq.cmdf('/squelch /mqt pc =%s', name)
