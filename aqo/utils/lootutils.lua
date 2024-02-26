@@ -432,7 +432,9 @@ local function lootCorpse(corpseID)
             end
             mq.cmdf(skippedItems, corpseName, corpseID)
         end
-        lootActor:send({mailbox='aqoloot'}, {ID=corpseID, Items=allItems, LootedAt=os.time()})
+        if #allItems > 0 then
+            lootActor:send({mailbox='aqoloot'}, {ID=corpseID, Items=allItems, LootedAt=os.time()})
+        end
     end
     mq.cmd('/nomodkey /notify LootWnd LW_DoneButton leftmouseup')
     loot.state.lootingCorpse = nil
