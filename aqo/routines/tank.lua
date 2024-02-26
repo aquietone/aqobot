@@ -1,4 +1,5 @@
 local mq = require 'mq'
+local actor = require('interface.actor')
 local config = require('interface.configuration')
 local camp = require('routines.camp')
 local helpers = require('utils.helpers')
@@ -10,11 +11,29 @@ local state = require('state')
 
 local tank = {}
 
-function tank.init() end
+function tank.init()
+    actor.register('tanking', tank.callback)
+end
 
 local campBuffer = 20
 
 --- Tank Functions
+
+function tank.isTank()
+    return mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')
+end
+
+function tank.callback(message)
+    if message.content.tankID == mq.TLO.Me.ID() then return end
+    state.actorAssistID = message.content.tankMobID
+    state.actorTankID = message.content.tankID
+end
+
+function tank.broadcastTankMob()
+    local header = {script = 'aqo'}
+    local tankingMessage = {id='tanking', tankMobID=state.tankMobID, tankID=mq.TLO.Me.ID()}
+    actor.actor:send(header, tankingMessage)
+end
 
 ---Iterate through mobs in the common.TARGETS table and find a mob in camp to begin tanking.
 ---Sets common.tankMobID to the ID of the mob to tank.
@@ -162,6 +181,7 @@ function tank.tankMob()
         if state.tankMobID ~= tankAnnounced then
             logger.info('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID)
             tankAnnounced = state.tankMobID
+            tank.broadcastTankMob()
         end
         -- /stick snaproll front moveback
         -- /stick mod -2
@@ -176,6 +196,18 @@ function tank.tankMob()
         mq.cmd('/squelch /stick front loose moveback 10')
         stickTimer:reset()
     end]]
+end
+
+function tank.callAssist()
+    if state.tankMobID ~= tankAnnounced then
+        logger.info('Tanking \at%s\ax (\at%s\ax)', mq.TLO.Target.CleanName(), state.tankMobID)
+        tankAnnounced = state.tankMobID
+        tank.broadcastTankMob()
+    end
+    -- /stick snaproll front moveback
+    -- /stick mod -2
+    state.resists = {}
+    stickTimer:reset(0)
 end
 
 function tank.stickToMob()

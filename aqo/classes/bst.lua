@@ -193,8 +193,8 @@ BeastLord.SpellLines = {
     },
     {-- Player heal / Salve of Artikla (Pet heal) Slot 13. Slot 7 if use alliance
         Group='heal',
-        Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Trushar\'s Mending', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
-        Options={opt='USEMENDING', Gem=function(lvl) return (lvl <= 60 and 5) or (not BeastLord:isEnabled('USEALLIANCE') and 13) or 7 end, me=75, self=true, heal=true}
+        Spells={'Thornhost\'s Mending', 'Korah\'s Mending', 'Bethun\'s Mending', 'Deltro\'s Mending', 'Sabhattin\'s Mending', 'Jaerol\'s Mending', 'Yurv\'s Mending', 'Wilap\'s Mending', --[[emu cutoff]] 'Muada\'s Mending', 'Trushar\'s Mending', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'},
+        Options={opt='USEMENDING', Gem=function(lvl) return (lvl <= 70 and 5) or (not BeastLord:isEnabled('USEALLIANCE') and 13) or 7 end, me=75, self=true, heal=true}
     },
     {-- adds extra damage to bst dots + fulmination. Slot 13
         Group='alliance',
@@ -211,8 +211,8 @@ BeastLord.SpellLines = {
     },
     {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
     {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Yekan\'s Recovery', 'Herikol\'s Soothing', 'Keshuval\'s Rejuvenation', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
-    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity', 'Yekan\'s Quickening'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor}}, -- pet haste
-    {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic', 'Spirit of the Scorpion', 'Spirit of Inferno', 'Spirit of the Blizzard', 'Spirit of Lightning'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor}}, -- pet buff
+    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity', 'Yekan\'s Quickening'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor, Gem=function(lvl) return lvl <= 70 and 3 end}}, -- pet haste
+    {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic', 'Spirit of the Scorpion', 'Spirit of Inferno', 'Spirit of the Blizzard', 'Spirit of Lightning'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor, Gem=function(lvl) return lvl <= 70 and 2 end}}, -- pet buff
     {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression', 'Plakt\'s Aggression', 'Mea\'s Aggression', 'Neivr\'s Aggression', --[[emu cutoff]] }, Options={swap=true}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
 
@@ -226,7 +226,7 @@ BeastLord.SpellLines = {
     {
         Group='groupregen',
         Spells={'Spiritual Enduement', 'Spiritual Erudition', 'Spiritual Elaboration', 'Spiritual Empowerment', 'Spiritual Insight', 'Spiritual Evolution', 'Spiritual Enrichment', 'Spiritual Enhancement', --[[emu cutoff]] 'Spiritual Edification', 'Spiritual Epiphany', 'Spiritual Enlightenment', 'Spiritual Rejuvenation', 'Spiritual Ascendance', 'Spiritual Dominion', 'Spiritual Purity', 'Spiritual Radiance', 'Spiritual Light'},
-        Options={swap=true, alias='SE', selfbuff=function() return not BeastLord.spells.groupunity and true or false end}
+        Options={swap=true, alias='SE', selfbuff=function() return not BeastLord.spells.groupunity and true or false end, Gem=function(lvl) return lvl <= 70 and 10 end}
     }, -- group buff
     {
         Group='grouphp',
@@ -362,7 +362,7 @@ BeastLord.Abilities = {
         Type='Disc',
         Group='furydisc',
         Names={'Savage Rancor', 'Savage Rage', 'Savage Fury', --[[emu cutoff]] 'Empathic Fury', 'Bestial Fury Discipline'},
-        Options={first=function(lvl) return lvl < 102 end, second=function(lvl) return lvl > 101 end}
+        Options={first=function() return mq.TLO.Me.Level() < 102 end, second=function() return mq.TLO.Me.Level() > 101 end}
     },
     {
         Type='AA',

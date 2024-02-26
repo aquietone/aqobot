@@ -48,7 +48,7 @@ local Cleric = class:new()
 ]]
 function Cleric:init()
     self.spellRotations = {standard={},custom={}}
-    self.classOrder = {'heal', 'rez', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest'}
+    self.classOrder = {'heal', 'cure', 'rez', 'assist', 'debuff', 'mash', 'cast', 'burn', 'recover', 'buff', 'rest'}
     self:initBase('CLR')
 
     self:initClassOptions()
@@ -68,6 +68,7 @@ function Cleric:initClassOptions()
     -- HoTs only mem'd in BYOS
     self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
     self:addOption('USESTUN', 'Use Stun', true, nil, 'Toggle use of stuns', 'checkbox', nil, 'UseStun', 'bool')
+    self:addOption('USENUKES', 'Use Nukes', false, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
     -- use mark if mem'd in BYOS, otherwise use retort line to apply reverse DS with USERETORT
     --self:addOption('USEDEBUFF', 'Use Reverse DS', true, nil, 'Toggle use of Mark reverse DS', 'checkbox', nil, 'UseDebuff', 'bool')
     self:addOption('USESYMBOL', 'Use Symbol', false, nil, 'Toggle use of Symbol buff line', 'checkbox', nil, 'UseSymbol', 'bool')
@@ -166,7 +167,7 @@ Cleric.SpellLines = {
     {-- large proc heal on near death. Slot 6
         Group='di',
         Spells={'Divine Interference', 'Divine Mediation', 'Divine Intermediation', 'Divine Imposition', 'Divine Indemnification', 'Divine Interposition', 'Divine Invocation', 'Divine Intercession', --[[emu cutoff]] 'Divine Intervention'},
-        Options={Gem=6, alias='DI'}
+        Options={Gem=6, alias='DI', classes={WAR=true,SHD=true,PAL=true}, nodmz=true}
     },
     {-- Large quick heal, heals more the lower the targets hp. Slot 7
         Group='seventeenth',
@@ -190,24 +191,24 @@ Cleric.SpellLines = {
     },
     {-- Group heal with cure component. Slot 8
         Group='grouphealcure',
-        Spells={'Word of Greater Vivification', 'Word of Greater Rejuvenation', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation', 'Word of Reformation', 'Word of Rehabilitation', 'Word of Resurgence', --[[emu cutoff]] },
-        Options={opt='USECURES', Gem=function() return Cleric:isEnabled('USESPLASH') and 8 or nil end, threshold=3, regular=true, single=true, group=true, pct=70, cure=true, all=true}
+        Spells={'Word of Greater Vivification', 'Word of Greater Rejuvenation', 'Word of Greater Replenishment', 'Word of Greater Restoration', 'Word of Greater Reformation', 'Word of Reformation', 'Word of Rehabilitation', 'Word of Resurgence', --[[emu cutoff]] 'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'},
+        Options={Gem=function(lvl) return (lvl <= 70 and 8) or (Cleric:isEnabled('USESPLASH') and 8) or nil end, threshold=3, regular=true, single=true, group=true, pct=70, cure=true, all=true}
     },
     {-- Regular group heal. Slot 9
         Group='grouphealquick',
-        Spells={'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', 'Syllable of Renewal', --[[emu cutoff]] 'Word of Vivification', 'Word of Replenishment', 'Word of Redemption'},
-        Options={Gem=9, threshold=3, regular=true, single=true, group=true, pct=70}
+        Spells={'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', 'Syllable of Renewal', --[[emu cutoff]]},
+        Options={Gem=8, threshold=3, regular=true, single=true, group=true, pct=70}
     },
     {-- Slot 10
         Group='composite',
         Spells={'Ecliptic Blessing', 'Composite Blessing', 'Dissident Blessing', 'Undying Life'},
         Options={Gem=10, tank=true, panic=true}
     },
-    -- {-- TODO: when to use? maybe lower levels? slower heal. Slot 11
-    --     Group='renewal',
-    --     Spells={'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'},
-    --     Options={Gem=5, tank=true, panic=true}
-    -- },
+    {-- TODO: when to use? maybe lower levels? slower heal. Slot 11
+        Group='renewal',
+        Spells={'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'},
+        Options={Gem=function(lvl) return lvl <= 70 and 5 or nil end, tank=true, panic=true}
+    },
     {-- Heal proc on target + reverse DS on targets target. Slot 11
         Group='retort',
         Spells={'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort', 'Olsif\'s Retort', 'Galvos\' Retort', 'Fintar\'s Retort', --[[emu cutoff]] },
@@ -269,7 +270,7 @@ Cleric.SpellLines = {
     },
     {Group='armor', Spells={'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'}, Options={}},
     -- Group buff, cast on self when down, damage absorb then heal proc on fade. absorbs 4x non-greater version. Swap gem
-    {Group='bigvie', Spells={'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie', --[[emu cutoff]] }, Options={opt='USEVIE'}},
+    {Group='bigvie', Spells={'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie', --[[emu cutoff]] 'Panoply of Vie'}, Options={opt='USEVIE', alias='VIE', selfbuff=true, Gem=function(lvl) return lvl <= 70 and 4 or nil end}},
     -- Just use greater line instead
     -- {Group='vie', Spells={'Rallied Citadel of Vie', 'Rallied Sanctuary of Vie'}, Options={opt='USEVIE'}},
 
@@ -281,17 +282,18 @@ Cleric.SpellLines = {
         Options={opt='USENUKES'}
     },
     {Group='grouphotcure', Spells={'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', --[[emu cutoff]] }, Options={opt='USEHOTGROUP', grouphot=true}},
-    {Group='grouphot', Spells={'Elixir of Realization', 'Elixir of Benevolence', 'Elixir of Transcendence', 'Elixir of Wulthan', 'Elixir of the Seas', --[[emu cutoff]] 'Elixir of Divinity'}, Options={opt='USEHOTGROUP', grouphot=true}},
-    {Group='hottank', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTTANK', hot=true}},
+    {Group='grouphot', Spells={'Elixir of Realization', 'Elixir of Benevolence', 'Elixir of Transcendence', 'Elixir of Wulthan', 'Elixir of the Seas', --[[emu cutoff]] 'Elixir of Divinity'}, Options={Gem=function(lvl) return lvl <= 70 and 7 or nil end, opt='USEHOTGROUP', grouphot=true}},
+    {Group='hottank', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={Gem=function(lvl) return lvl <= 70 and 3 or nil end, opt='USEHOTTANK', hot=true}},
     {Group='hotdps', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTDPS', hot=true}},
     {Group='issuance', Spells={'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit', --[[emu cutoff]] }}, -- stationary ward heal, requires enemy on target
-    {Group='mark', Spells={'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, Options={opt='USEDEBUFF', debuff=true}},
+    {Group='mark', Spells={'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'}, Options={opt='USEDEBUFF', debuff=true, Gem=function(lvl) return lvl <= 70 and 9 or nil end}},
     {Group='yaulp', Spells={'Yaulp VI'}, Options={combat=true, ooc=false, opt='USEYAULP', selfbuff=true}},
-    {Group='hammerpet', Spells={'Unswerving Hammer of Justice'}, Options={Gem=11, opt='USEHAMMER'}},
-    {Group='rgc', Spells={'Remove Greater Curse'}, Options={cure=true,curse=true}},
-    {Group='stun', Spells={'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Holy Might', 'Stun'}, Options={opt='USESTUN'}},
+    {Group='hammerpet', Spells={'Unswerving Hammer of Justice'}, Options={Gem=function(lvl) return lvl <= 70 and not Cleric:isEnabled('USESTUN') and 11 or nil end, opt='USEHAMMER'}},
+    {Group='rgc', Spells={'Remove Greater Curse'}, Options={cure=true,Curse=true, Gem=function(lvl) return lvl <= 70 and 12 or nil end}},
+    {Group='stun', Spells={'Vigilant Condemnation', 'Sound of Divinity', 'Shock of Wonder', 'Holy Might', 'Stun'}, Options={opt='USESTUN', Gem=11}},
     {Group='aestun', Spells={'Silent Dictation'}},
     {Group='da', Spells={'Divine Bulwark', 'Divine Keep', 'Divine Indemnity', 'Divine Haven', 'Divine Fortitude', 'Divine Eminence', 'Divine Destiny', 'Divine Custody', --[[emu cutoff]] 'Divine Barrier', 'Divine Aura'}},
+    {Group='nuke', Spells={'Ancient: Pious Conscience'}, Options={opt='USENUKES', Gem=function(lvl) return lvl <= 70 and 10 or nil end}}
 }
 
 Cleric.compositeNames = {['Ecliptic Blessing']=true, ['Composite Blessing']=true, ['Dissident Blessing']=true, ['Undying Life']=true}

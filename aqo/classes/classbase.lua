@@ -308,13 +308,16 @@ local flagToTableMap = {
     preburn = 'preburn',
 }
 
+local exclude_keys = {['Gem']=true}
 function base:addAbilityToLists(ability)
     if ability.key and not self[ability.key] then self[ability.key] = ability end
     if ability.alias and not self.requestAliases[ability.alias] then self.requestAliases[ability.alias] = ability end
     for flag,abilityTableName in pairs(flagToTableMap) do
-        if type(ability[flag]) == 'function' then ability[flag] = ability[flag]() end
-        if ability[flag] == true then
-            table.insert(self[abilityTableName], ability)
+        if not exclude_keys[flag] then
+            if type(ability[flag]) == 'function' then ability[flag] = ability[flag]() end
+            if ability[flag] == true then
+                table.insert(self[abilityTableName], ability)
+            end
         end
     end
     if ability.rez then self.rezAbility = ability end
@@ -571,7 +574,7 @@ function base:cure()
             end
         end
     end
-    curing.doCures(self)
+    curing:doCures(self)
 end
 
 function base:doCombatLoop(list, burn_type)
@@ -618,7 +621,7 @@ function base:mash()
     if state.medding and config.get('MEDCOMBAT') then return end
     if assist.isFighting() then
         if self.mashClass then self:mashClass() end
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
+        if tank.isTank() then
             if self.useCommonListProcessor then
                 common.processList(self.tankAbilities, self, false)--true)
             else
@@ -639,7 +642,7 @@ function base:ae()
     if state.medding and config.get('MEDCOMBAT') then return end
     if not self:isEnabled('USEAOE') then return end
     if assist.isFighting() then
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
+        if tank.isTank() then
             if self.aeClass then self.aeClass() end
             if self.useCommonListProcessor then
                 common.processList(self.AETankAbilities, self, false)--true)
@@ -664,7 +667,7 @@ function base:burn()
     if common.isBurnConditionMet() then
         if self.burnClass then self:burnClass() end
 
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then
+        if tank.isTank() then
             if self.useCommonListProcessor then
                 common.processList(self.tankBurnAbilities, self, true)
             else
@@ -716,7 +719,8 @@ end
 function base:cast()
     if mq.TLO.Me.SpellInCooldown() or self:isEnabled('DONTCAST') or mq.TLO.Me.Invis() then return end
     if state.medding and config.get('MEDCOMBAT') then return end
-    if assist.isFighting() and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
+    --if assist.isFighting() and mq.TLO.Target.ID() ~= mq.TLO.Me.ID() then
+    if assist.isFighting() and (mq.TLO.Target.ID() == state.assistMobID or mq.TLO.Target.ID() == state.tankMobID or mode.currentMode:isManualMode()) then
         if state.nuketimer:expired() then
             for _,clicky in ipairs(self.castClickies) do
                 if clicky.enabled and self:isAbilityEnabled(clicky.opt) and (clicky.DurationTotalSeconds == 0 or not mq.TLO.Target.Buff(clicky.CheckFor)()) and not mq.TLO.Me.Moving() then
@@ -820,7 +824,7 @@ end
 
 function base:mez()
     -- don't try to mez in manual mode
-    if mode.currentMode:isManualMode() or mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') then return end
+    if mode.currentMode:isManualMode() or tank.isTank() then return end
     if self:isEnabled('MEZAE') and self.spells.mezae then
         if mez.doAE(self.spells.mezae, self:get('MEZAECOUNT')) then state.actionTaken = true end
     end
@@ -830,7 +834,7 @@ function base:mez()
 end
 
 function base:aggro()
-    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK') or mode.currentMode:isManualMode() then return end
+    if mode.currentMode:isManualMode() or tank.isTank() then return end
     local pctAggro = mq.TLO.Me.PctAggro() or 0
     -- 1. Am i on aggro? Use fades or defensives immediately
     if mq.TLO.Target() and mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() and mq.TLO.Target.Named() then
@@ -1149,6 +1153,15 @@ function base:mainLoop()
             -- tank check may determine pull return interrupted / ended early for some reason, and put us back
             -- into pull return to try to get back to camp
             if state.pullStatus then return end
+        elseif mode.currentMode:isManualMode() and config.get('MAINTANK') then
+            local targetID = mq.TLO.Target.ID()
+            if state.tankMobID > 0 and targetID ~= state.tankMobID then
+                if targetID == mq.TLO.Me.ID() then
+                    tank.broadcastTankMob()
+                elseif mq.TLO.Target.Type() == 'NPC' then
+                    tank.broadcastTankMob()
+                end
+            end
         end
         if self.checkSpellSet then self:checkSpellSet() else self:checkMemmedSpells() end
         if not self:hold() then

@@ -1,6 +1,7 @@
 local mq = require('mq')
 local class = require('classes.classbase')
 local conditions = require('routines.conditions')
+local tank = require('routines.tank')
 local timer = require('libaqo.timer')
 local common = require('common')
 local mode = require('mode')
@@ -152,12 +153,12 @@ Paladin.SpellLines = {
     {
         Group='curepoison',
         Spells={'Counteract Poison', 'Cure Poison'},
-        Options={cure=true, poison=true}
+        Options={cure=true, Poison=true}
     },
     {
         Group='curedisease',
         Spells={'Counteract Disease', 'Cure Disease'},
-        Options={cure=true, disease=true}
+        Options={cure=true, Disease=true}
     },
     {
         Group='Yaulp',
@@ -172,7 +173,7 @@ Paladin.SpellLines = {
     {
         Group='rgc',
         Spells={'Remove Lesser Curse', 'Remove Minor Curse'},
-        Options={cure=true, curse=true}
+        Options={cure=true, Curse=true}
     },
     {
         Group='dispel',
@@ -380,7 +381,7 @@ function Paladin:mashClass()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if tank.isTank() then
         -- hate's attraction
         if self.attraction and self:isEnabled(self.attraction.opt) and mobhp and mobhp > 95 then
             self.attraction:use()

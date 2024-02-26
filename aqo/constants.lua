@@ -6,6 +6,7 @@ constants.commandHelp = {
     {command='show', tip='Display the UI window'},
     {command='hide', tip='Hide the UI window'},
     {command='mode [mode]', tip='Set the current mode of the script. Valid Modes:\n\t\t0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank'},
+    {command='assistme', tip='Set the current target ID to the tank mob ID. Useful for manual mode to trigger tanking behavior'},
     {command='resetcamp', tip='Reset the centerpoint of the camp to your current X,Y,Z coordinates'},
     {command='burnnow', tip='Activate burn abilities'},
     {command='preburn', tip='Activate pre-burn abilities, like to use glyph in guild hall'},
@@ -149,6 +150,8 @@ constants.buffs = {
         REPTILE = true,
         DMF = true,
         DS = true,
+        DI = true,
+        VIE = true,
     },
     SHD = {
         AEGO = true,
@@ -164,6 +167,8 @@ constants.buffs = {
         REPTILE = true,
         DMF = true,
         DS = true,
+        DI = true,
+        VIE = true,
     },
     WAR = {
         AEGO = function(allBuffs) return not allBuffs.SKIN end,
@@ -180,6 +185,8 @@ constants.buffs = {
         REPTILE = true,
         DMF = true,
         DS = true,
+        DI = true,
+        VIE = true,
     },
 
     ENC = {
@@ -290,7 +297,7 @@ constants.deleteWhenDead = {
     ['Large Modulation Shard']=true,
 }
 
-constants.assists = {group=1,raid1=1,raid2=1,raid3=1,manual=1}
+constants.assists = {group=1,raid1=1,raid2=1,raid3=1,actor=1,manual=1}
 constants.groupWatchOptions = {healer=1,self=1,none=1}
 constants.pullWith = {melee=1,ranged=1,spell=1,item=1,custom=1}
 constants.pullStates = {NOT='NOT',SCAN='SCAN',APPROACHING='APPROACHING',ENGAGING='ENGAGING',WAIT_FOR_AGGRO='WAIT_FOR_AGGRO',RETURNING='RETURNING',WAITING='WAITING',PULLED='PULLED'}

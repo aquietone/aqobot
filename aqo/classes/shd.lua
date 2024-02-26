@@ -1,6 +1,7 @@
 local mq = require 'mq'
 local class = require('classes.classbase')
 local conditions = require('routines.conditions')
+local tank = require('routines.tank')
 local timer = require('libaqo.timer')
 local abilities = require('ability')
 local common = require('common')
@@ -89,7 +90,7 @@ ShadowKnight.SpellLines = {
     {-- ST increase hate by 1. Slot 6
         Group='terror',
         Spells={'Terror of Tarantis', 'Terror of Ander', 'Terror of Discord', 'Terror of Terris',  'Terror of Death', 'Terror of Darkness'},
-        Options={tanking=true, Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 6 or nil end}
+        Options={Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 6 or nil end}
     },
     -- DPS spellset. poison dot. Slot 6
     {
@@ -328,6 +329,11 @@ ShadowKnight.Abilities = {
         Name='Reaver\'s Bargain',
         Options={tankburn=true}
     },
+    {
+        Type='AA',
+        Name='Fundament: Third Spire of the Reaver',
+        Options={tankburn=true}
+    },
 
     -- DPS
     {
@@ -352,6 +358,11 @@ ShadowKnight.Abilities = {
         Options={dps=true}
     },
 
+    {
+        Type='AA',
+        Name='Fundament: Second Spire of the Reaver',
+        Options={first=true}
+    },
     { -- 2hs attack
         Type='Disc',
         Group='2hblade',
@@ -419,13 +430,26 @@ ShadowKnight.Abilities = {
         Name='Voice of Thule',
         Options={selfbuff=true, opt='USEVOICEOFTHULE'}
     },
+
+    {
+        Type='Disc',
+        Group='soulshield',
+        Names={'Soul Shield', 'Ichor Guard'},
+        Options={},
+    },
+    {
+        Type='Disc',
+        Group='rampart',
+        Names={'Rampart Discipline'},
+        Options={},
+    },
 }
 
 function ShadowKnight:mashClass()
     local target = mq.TLO.Target
     local mobhp = target.PctHPs()
 
-    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if tank.isTank() then
         -- hate's attraction
         if self.attraction and self:isEnabled(self.attraction.opt) and mobhp and mobhp > 95 then
             self.attraction:use()
@@ -434,7 +458,7 @@ function ShadowKnight:mashClass()
 end
 
 function ShadowKnight:burnClass()
-    if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+    if tank.isTank() then
         if self.mantle then self.mantle:use() end
         if self.carapace then self.carapace:use() end
         if self.guardian then self.guardian:use() end
@@ -445,7 +469,7 @@ end
 
 function ShadowKnight:ohshit()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if tank.isTank() then
             if self.flash and mq.TLO.Me.AltAbilityReady(self.flash.Name)() then
                 self.flash:use()
             elseif self.deflection and self:isEnabled(self.deflection.opt)  then

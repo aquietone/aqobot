@@ -368,7 +368,7 @@ function common.rest()
     if state.mobCount > 0 and (mode.currentMode:isTankMode() or mq.TLO.Group.MainTank() == mq.TLO.Me.CleanName() or config.get('MAINTANK')) then return end
     -- try to avoid just constant stand/sit, mainly for dumb bard sitting between every song
     if state.sitTimer:expired() then
-        if mq.TLO.Group.MainAssist.State() == 'SIT' and not mq.TLO.Me.Sitting() then
+        if (mq.TLO.Group.MainAssist.State() == 'SIT' or (config.get('ASSIST') == 'actor' and mq.TLO.Spawn(('id %s'):format(state.actorTankID)).State() == 'SIT')) and not mq.TLO.Me.Sitting() then
             mq.cmd('/sit')
         end
         if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') then

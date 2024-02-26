@@ -1,5 +1,6 @@
 local mq = require('mq')
 local logger = require('utils.logger')
+local abilities = require('ability')
 local state = require('state')
 
 local cure = {}
@@ -54,12 +55,47 @@ function cure.groupCure(spell)
     end
 end
 
+local function cureEnabled(options, key)
+    return options[key] == nil or options[key].value
+end
+
+local function getCure(cures, cureType, whoToCure, options)
+    for _,cureAbility in ipairs(cures) do
+        if (cureAbility[cureType] or cureAbility.all) and cureEnabled(options, cureAbility.opt) then
+            if cureAbility.CastType == abilities.Types.Spell then
+                if mq.TLO.Me.SpellReady(cureAbility.Name)() then
+                    return cureAbility
+                end
+                -- local spell = mq.TLO.Spell(cureAbility.Name)
+                -- if abilities.canUseSpell(spell, cureAbility) == abilities.IsReady.CAN_CAST then
+                --     return cureAbility
+                -- end
+            elseif cureAbility.CastType == abilities.Types.AA then
+                if mq.TLO.Me.AltAbilityReady(cureAbility.Name)() then
+                    return cureAbility
+                end
+            end
+        end
+    end
+end
+
 function cure:doCures(base)
     for name, charState in pairs(state.actors) do
-        local buffs = charState.buffs
+        local buffs = charState.Buffs
         if buffs then
             for _,buff in ipairs(buffs) do
-                logger.info('%s needs cure for %s counterType=%s counterNumber=%s', name, buff.Name, buff.CounterType, buff.CounterNumber)
+                if mq.TLO.Spawn(('pc =%s'):format(name)).Distance3D() or 300 <= 100 then
+                    local originalTarget = mq.TLO.Target.ID()
+                    local cureAbility = getCure(base.cures, buff.CounterType, name, base.options)
+                    if cureAbility then
+                        logger.info('%s needs cure for %s counterType=%s counterNumber=%s, using %s', name, buff.Name, buff.CounterType, buff.CounterNumber, cureAbility.Name)
+                        mq.cmdf('/squelch /mqt pc =%s', name)
+                        if cureAbility:use() then
+                            state.queuedAction = function() if originalTarget and originalTarget > 0 then mq.cmdf('/mqt id %s', originalTarget) end end
+                            return true
+                        end
+                    end
+                end
             end
         end
     end

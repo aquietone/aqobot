@@ -243,7 +243,7 @@ Shaman.SpellLines = {
     {Group='selfprocheal', Spells={'Watchful Spirit', 'Attentive Spirit', 'Responsive Spirit'}, Options={selfbuff=true}},
     -- Cures
     {Group='cure', Spells={'Blood of Nadox'}, Options={cure=true, all=true}},
-    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
+    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, Curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
     {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT'}},
@@ -300,12 +300,12 @@ Shaman.SpellLines = {
     {
         Group='curepoison',
         Spells={'Counteract Poison', 'Cure Poison'},
-        Options={cure=true, poison=true}
+        Options={cure=true, Poison=true}
     },
     {
         Group='curedisease',
         Spells={'Counteract Disease', 'Cure Disease'},
-        Options={cure=true, disease=true}
+        Options={cure=true, Disease=true}
     },
     {-- single dex buff
         Group='singledex',

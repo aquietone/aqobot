@@ -66,6 +66,8 @@ function assist.getAssistID()
         assist_id = mq.TLO.Raid.MainAssist(2).ID()
     elseif assistValue == 'raid3' then
         assist_id = mq.TLO.Raid.MainAssist(3).ID()
+    elseif assistValue == 'actor' then
+        assist_id = state.actorTankID
     end
     return assist_id
 end
@@ -82,6 +84,8 @@ function assist.getAssistSpawn()
         assist_target = mq.TLO.Me.RaidAssistTarget(2)
     elseif assistValue == 'raid3' then
         assist_target = mq.TLO.Me.RaidAssistTarget(3)
+    elseif assistValue == 'actor' then
+        assist_target = mq.TLO.Spawn(('id %s'):format(state.actorAssistID))
     else
         assist_target = -1
     end

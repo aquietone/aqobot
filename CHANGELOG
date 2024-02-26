@@ -1,3 +1,8 @@
+# 2024/02/25
+- implement cures maybe
+- some spell updates
+- some manual casting fixes
+
 # 2024/02/03
 - Move all init* ability list initializers to one initAbilities based off Abilities table because reasons
 

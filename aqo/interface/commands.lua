@@ -3,6 +3,7 @@ local config = require('interface.configuration')
 local ui = require('interface.ui')
 local assist = require('routines.assist')
 local camp = require('routines.camp')
+local tank = require('routines.tank')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local loot = require('utils.lootutils')
@@ -266,6 +267,9 @@ function commands.commandHandler(...)
         end
     elseif opt == 'ARMPETS' then
         class:armPets()
+    elseif opt == 'ASSISTME' then
+        state.tankMobID = mq.TLO.Target.ID()
+        tank.callAssist()
     else
         commands.classSettingsHandler(opt, new_value)
     end

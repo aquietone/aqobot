@@ -113,10 +113,10 @@ Druid.SpellLines = {
     {Group='healtot', Spells={'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}}, -- Heal tot, dec atk, dec AC
     {Group='tcnuke', Spells={'Sunbliss Blessing', 'Sunwarmth Blessing', 'Sunrake Blessing', 'Sunflash Blessing', 'Sunfire Blessing', 'Sunburst Blessing'}, Options={opt='USENUKES'}},
     {Group='harvest', Spells={'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}}, -- self return 10k mana
-    {Group='cure', Spells={'Sanctified Blood'}, Options={cure=true, all=true}}, -- cure dis/poi/cor/cur
-    {Group='curedisease', Spells={'Counteract Disease', 'Cure Disease'}, Options={cure=true, disease=true}},
-    {Group='curepoison', Spells={'Counteract Poison', 'Cure Poison'}, Options={cure=true, poison=true}},
-    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, curse=true}},
+    {Group='cure', Spells={'Sanctified Blood'}, Options={Cure=true, all=true}}, -- cure dis/poi/cor/cur
+    {Group='curedisease', Spells={'Counteract Disease', 'Cure Disease'}, Options={cure=true, Disease=true}},
+    {Group='curepoison', Spells={'Counteract Poison', 'Cure Poison'}, Options={cure=true, Poison=true}},
+    {Group='rgc', Spells={'Remove Greater Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, Curse=true}},
     {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET'}},
     {Group='petbuff', Spells={'Feral Spirit'}, Options={opt='USEPET', petbuff=true}},
 

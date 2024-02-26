@@ -68,8 +68,13 @@ local function getHurt(options)
         logger.debug(logger.flags.routines.heal, 'i need healing')
         if myHP < config.get('HEALPCT') then numHurt = numHurt + 1 end
     end
-    local tank = mq.TLO.Group.MainTank
-    if not tank() and config.get('PRIORITYTARGET'):len() > 0 then
+    local tank
+    if mq.TLO.Group.MainTank() then
+        tank = mq.TLO.Group.MainTank
+    elseif state.actorTankID then
+        tank = mq.TLO.Spawn(('id %s'):format(state.actorTankID))
+    end
+    if (not tank or not tank()) and config.get('PRIORITYTARGET'):len() > 0 then
         tank = mq.TLO.Spawn('='..config.get('PRIORITYTARGET'))
     end
     if tank() and not tank.Dead() then
@@ -96,7 +101,7 @@ local function getHurt(options)
                 local memberHP = member.PctHPs() or 100
                 local distance = member.Distance3D() or 300
                 if memberHP < config.get('HOTHEALPCT') and distance < 200 then
-                    if memberHP < mostHurtPct then
+                    if memberHP < mostHurtPct or not mostHurtClass then
                         mostHurtName = member.CleanName()
                         mostHurtID = member.ID()
                         mostHurtPct = memberHP
@@ -144,11 +149,11 @@ local function getHurt(options)
                 local xtargetHP = xtarSpawn.PctHPs() or 100
                 local xtarDistance = xtarSpawn.Distance3D() or 300
                 if xtargetHP < config.get('HOTHEALPCT') and xtarDistance < 200 then
-                    if xtargetHP < mostHurtPct then
+                    if xtargetHP < mostHurtPct or not mostHurtClass then
                         mostHurtName = xtarSpawn.CleanName()
                         mostHurtID = xtarSpawn.ID()
                         mostHurtPct = xtargetHP
-                        mostHurtClass = xtarSpawn.Class.ShortName()
+                        mostHurtClass = xtarType == 'PC' and xtarSpawn.Class.ShortName() or nil
                         mostHurtDistance = xtarDistance
                     end
                 end

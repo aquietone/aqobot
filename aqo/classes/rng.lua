@@ -132,7 +132,7 @@ Ranger.SpellLines = {
     {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
     {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs', --[[emu cutoff]] 'Riftwood\'s Protection'}}, -- Cloak of Rimespurs
-    {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}, Options={alias='PREDATOR', selfbuff=true, Gem=function(lvl) return lvl <= 70 and 9 or nil end}}, -- Frostroar of the Predator
+    {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}, Options={alias='SHOUT', selfbuff=true, Gem=function(lvl) return lvl <= 70 and 9 or nil end}}, -- Frostroar of the Predator
     {Group='strength', Spells={'Strength of the Fernstalker', 'Strength of the Dusksage Stalker', 'Strength of the Hunter', 'Strength of Tunare', --[[emu cutoff]] 'Strength of Earth'}, Options={Gem=function(lvl) return lvl <= 70 and 8 or nil end, alias='STRENGTH', selfbuff=true}}, -- Strength of the Arbor Stalker
     -- Unity AA Buffs
     {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}, Options={selfbuff=true}}, -- Protection of the Wakening Land

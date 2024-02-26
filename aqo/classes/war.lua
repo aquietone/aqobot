@@ -3,6 +3,7 @@ local class = require('classes.classbase')
 local common = require('common')
 local config = require('interface.configuration')
 local conditions = require('routines.conditions')
+local tank = require('routines.tank')
 local mode = require('mode')
 local state = require('state')
 
@@ -367,7 +368,7 @@ Warrior.Abilities = {
 function Warrior:ohShitClass()
     if mq.TLO.Me.PctHPs() < 35 and mq.TLO.Me.CombatState() == 'COMBAT' then
         if self.resurgence then self.resurgence:use() end
-        if mode.currentMode:isTankMode() or mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
+        if tank.isTank() then
             if self.flash and mq.TLO.Me.CombatAbilityReady(self.flash.Name)() then
                 self.flash:use()
             elseif self.fortitude and self:isEnabled(self.fortitude.opt) then
