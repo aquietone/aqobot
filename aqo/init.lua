@@ -178,6 +178,10 @@ local function main()
     local delay = 500
     -- Main Loop
     while true do
+        if state.restart then
+            mq.cmd('/timed 5 /lua run aqo')
+            return
+        end
         local loopStart = mq.gettime()
         if state.debug and debugTimer:expired() then
             logger.debug(logger.flags.aqo.main, 'Start Main Loop')

@@ -75,7 +75,10 @@ function commands.commandHandler(...)
     if opt == 'HELP' then
         showHelp()
     elseif opt == 'RESTART' then
-        mq.cmd('/multiline ; /lua stop aqo ; /timed 5 /lua run aqo')
+        state.restart = true
+    elseif opt == 'SAVE' then
+        class:saveSettings()
+        logger.info('Saved settings')
     elseif opt == 'DEBUG' then
         local section = args[2]
         local subsection = args[3]
@@ -296,6 +299,11 @@ function commands.classSettingsHandler(opt, new_value)
             if class.AURAS[new_value] then
                 logger.info('Setting %s to: %s', opt, new_value)
                 class:set('AURA2', new_value)
+            end
+        elseif opt == 'PETTYPE' and class:get('PETTYPE') then
+            if class.PetTypes[new_value] then
+                logger.info('Setting %s to %s', opt, new_value)
+                class:set('PETTYPE', new_value)
             end
         elseif type(class:get(opt)) == 'boolean' then
             if constants.booleans[new_value] == nil then return end

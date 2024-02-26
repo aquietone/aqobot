@@ -5,6 +5,7 @@ constants.commandHelp = {
     {command='pause [on|1|off|0]', tip='Pause or resume the script'},
     {command='show', tip='Display the UI window'},
     {command='hide', tip='Hide the UI window'},
+    {command='save', tip='Save current settings'},
     {command='mode [mode]', tip='Set the current mode of the script. Valid Modes:\n\t\t0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank'},
     {command='assistme', tip='Set the current target ID to the tank mob ID. Useful for manual mode to trigger tanking behavior'},
     {command='resetcamp', tip='Reset the centerpoint of the camp to your current X,Y,Z coordinates'},
