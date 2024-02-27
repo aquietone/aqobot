@@ -77,7 +77,7 @@ local function getHurt(options)
     if (not tank or not tank()) and config.get('PRIORITYTARGET'):len() > 0 then
         tank = mq.TLO.Spawn('='..config.get('PRIORITYTARGET'))
     end
-    if tank() and not tank.Dead() then
+    if tank and tank() and not tank.Dead() then
         local tankHP = tank.PctHPs() or 100
         local distance = tank.Distance3D() or 300
         if tankHP < config.get('PANICHEALPCT') and distance < 200 then return tank.ID(), HEAL_TYPES.PANIC end

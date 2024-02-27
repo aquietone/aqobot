@@ -134,6 +134,7 @@ function state.resetMemSpellState()
 end
 
 state.casting = false
+state.castAttempts = 0
 
 function state.handleCastingState()
     if state.casting then
@@ -141,12 +142,23 @@ function state.handleCastingState()
         mq.delay(300)
         mq.doevents()
         if not mq.TLO.Me.Casting() then
-            if state.fizzled then
-                logger.info('Fizzled casting %s', state.casting.Name)
-            elseif state.interrupted then
-                logger.info('Interrupted casting %s', state.casting.Name)
-            --else
-            --    logger.info('Finished casting %s', state.casting.Name)
+            if state.fizzled or state.interrupted then
+                logger.info('Casting \ag%s\ax failed (Attempt %s)', state.casting.Name, state.castAttempts + 1)
+                local casting = state.casting
+                if state.castAttempts < 2 then
+                    state.castAttempts = state.castAttempts + 1
+                    casting.timer:reset(0)
+                    local tmpQueuedAction = state.queuedAction
+                    state.queuedAction = function()
+                        mq.delay(1000, function() return not mq.TLO.Me.SpellInCooldown() end)
+                        casting:use()
+                        return tmpQueuedAction
+                    end
+                else
+                    state.castAttempts = 0
+                end
+            else
+                state.castAttempts = 0
             end
             state.resetCastingState()
             return true
@@ -175,7 +187,6 @@ function state.setCastingState(ability)
         state.casting = ability
         state.actionTaken = true
     end
-    --state[ability.Name] = timer:new(2000)
     ability.timer:reset()
 end
 
