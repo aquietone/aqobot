@@ -1,0 +1,34 @@
+name: Deploy Nightly
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+    #- cron: '0 2 * * *' # run at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    name: Deploy nightly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive --depth=1
+
+      - name: Copy changelog to zip folder
+        run: |
+          cp CHANGELOG aqo/CHANGELOG
+
+      - uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r aqo.zip aqo
+
+      - name: Create release
+        uses: WebFreak001/deploy-nightly@v3.1.0
+        with:
+          upload_url: https://uploads.github.com/repos/aquietone/aqobot/releases/142904635/assets{?name,label} # find out this value by opening https://api.github.com/repos/<owner>/<repo>/releases in your browser and copy the full "upload_url" value including the {?name,label} part
+          release_id: 142904635 # same as above (id can just be taken out the upload_url, it's used to find old releases)
+          asset_path: ./aqo.zip # path to archive to upload
+          asset_name: aqo-nightly-$$.zip # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
+          asset_content_type: application/zip # required by GitHub API
+          max_releases: 5 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
