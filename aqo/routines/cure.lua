@@ -82,13 +82,15 @@ function cure:doCures(base)
         if buffs then
             for _,buff in ipairs(buffs) do
                 if mq.TLO.Spawn(('pc =%s'):format(name)).Distance3D() or 300 <= 100 then
-                    local originalTarget = mq.TLO.Target.ID()
+                    --local originalTarget = mq.TLO.Target.ID()
                     local cureAbility = getCure(base.cures, buff.CounterType, buff.CounterNumber, base.options)
                     if cureAbility then
-                        logger.info('%s needs cure for %s counterType=%s counterNumber=%s, using %s', name, buff.Name, buff.CounterType, buff.CounterNumber, cureAbility.Name)
-                        mq.cmdf('/squelch /mqt pc =%s', name)
+                        --logger.info('%s needs cure for %s counterType=%s counterNumber=%s, using %s', name, buff.Name, buff.CounterType, buff.CounterNumber, cureAbility.Name)
+                        if cureAbility.TargetType == 'Single' then
+                            mq.cmdf('/squelch /mqt pc =%s', name)
+                        end
                         if cureAbility:use() then
-                            state.queuedAction = function() if originalTarget and originalTarget > 0 then mq.cmdf('/mqt id %s', originalTarget) end end
+                            --state.queuedAction = function() if originalTarget and originalTarget > 0 then mq.cmdf('/mqt id %s', originalTarget) end end
                             return true
                         end
                     end
