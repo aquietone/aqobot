@@ -10,8 +10,6 @@ local logger = {
     timestamps = false,
 }
 
-local log_prefix = '\a-t[\ax\ayAQOBot\ax\a-t]\ax \aw'
-
 local console = nil
 function logger.setConsole(_console)
     console = _console
@@ -28,7 +26,7 @@ end
 
 function logger.logLine(...)
     local timestampPrefix = logger.timestamps and '\a-w['..os.date('%X')..']\ax' or ''
-    return string.format(timestampPrefix..log_prefix..string.format(...)..'\ax')
+    return string.format(timestampPrefix..string.format(...)..'\ax')
 end
 
 function logger.putLogData(message, key, value, separator)
