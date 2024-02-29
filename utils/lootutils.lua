@@ -153,7 +153,7 @@ local cantLootID = 0
 local spawnSearch = '%s radius %d zradius 25'
 -- If you want destroy to actually loot and destroy items, change Destroy=false to Destroy=true.
 -- Otherwise, destroy behaves the same as ignore.
-local shouldLootActions = {Keep=true, Bank=true, Sell=true, Destroy=false, Ignore=false}
+local shouldLootActions = {Keep=true, Bank=true, Sell=true, Quest=true, Destroy=false, Ignore=false}
 local validActions = {keep='Keep',bank='Bank',sell='Sell',ignore='Ignore',destroy='Destroy'}
 local saveOptionTypes = {string=1,number=1,boolean=1}
 
@@ -399,9 +399,13 @@ local function lootCorpse(corpseID)
             if corpseItem() then
                 local stackable = corpseItem.Stackable()
                 local freeStack = corpseItem.FreeStack()
-                local lootRule = getRule(corpseItem)
+                local lootRule = split(getRule(corpseItem))
+                local ruleAction = lootRule[1] -- what to do with the item
+                local ruleAmount = lootRule[2] -- how many of the item should be kept
+                local currentItemAmount = mq.TLO.FindItemCount(corpseItem)()
                 if corpseItem.NoDrop() then
-                    if shouldLootActions[lootRule] then
+                    --Loot quest items up to set amount
+                    if shouldLootActions[ruleAction] or (ruleAction == 'Quest' and currentItemAmount < ruleAmount) then
                         table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')())
                         table.insert(allItems, {Name=corpseItem.Name(), Action='Left', Link=corpseItem.ItemLink('CLICKABLE')()})
                     end
@@ -409,15 +413,15 @@ local function lootCorpse(corpseID)
                     local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
                     local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
                     if haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots then
-                        if shouldLootActions[lootRule] then
+                        if shouldLootActions[ruleAction] then
                             table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')())
                             table.insert(allItems, {Name=corpseItem.Name(), Action='Left', Link=corpseItem.ItemLink('CLICKABLE')()})
                         end
                     else
-                        lootItem(i, lootRule, 'leftmouseup', allItems)
+                        lootItem(i, ruleAction, 'leftmouseup', allItems)
                     end
                 elseif freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0) then
-                    lootItem(i, lootRule, 'leftmouseup', allItems)
+                    lootItem(i, ruleAction, 'leftmouseup', allItems)
                 end
             end
             if not mq.TLO.Window('LootWnd').Open() then break end
