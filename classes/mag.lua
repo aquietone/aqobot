@@ -46,7 +46,7 @@ local Magician = class:new()
     Burns
     table.insert(self.burnAbilities, self:addAA('Heart of Skyfire')) --Glyph of Destruction
     table.insert(self.burnAbilities, self:addAA('Focus of Arcanum'))
-    
+
     table.insert(self.burnAbilities, self:addAA('Host of the Elements'))
     table.insert(self.burnAbilities, self:addAA('Servant of Ro'))
 
@@ -291,23 +291,26 @@ Magician.SpellLines = {
     },
     {
         Group='airpet',
-        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]] 
-                'Greater Conjuration: Air', 'Conjuration: Air', 'Lesser Conjuration: Air', 'Minor Conjuration: Air', 'Greater Summoning: Air', 'Summoning: Air',
+        Spells={'Recruitment of Air', 'Conscription of Air', 'Manifestation of Air', 'Embodiment of Air', 'Convocation of Air', --[[emu cutoff]]
+                'Child of Wind', 'Ward of Xegony', 'Greater Vocaration: Air', 'Vocarate: Air', 'Greater Conjuration: Air', 'Conjuration: Air',
+                'Lesser Conjuration: Air', 'Minor Conjuration: Air', 'Greater Summoning: Air', 'Summoning: Air',
                 'Lesser Summoning: Air', 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
         Options={}
     },
     {
         Group='earthpet',
         Spells={'Recruitment of Earth', 'Conscription of Earth', 'Manifestation of Earth', 'Embodiment of Earth', 'Convocation of Earth', --[[emu cutoff]]
-                'Greater Conjuration: Earth', 'Conjuration: Earth', 'Lesser Conjuration: Earth', 'Minor Conjuration: Earth', 'Greater Summoning: Earth', 'Summoning: Earth',
+                'Child of Earth', 'Rathe\'s Son', 'Greater Vocaration: Earth', 'Vocarate: Earth', 'Greater Conjuration: Earth', 'Conjuration: Earth',
+                'Lesser Conjuration: Earth', 'Minor Conjuration: Earth', 'Greater Summoning: Earth', 'Summoning: Earth',
                 'Lesser Summoning: Earth', 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
         Options={}
     },
     {
         Group='firepet',
         Spells={'Recruitment of Fire', 'Conscription of Fire', 'Manifestation of Fire', 'Embodiment of Fire', 'Convocation of Fire', --[[emu cutoff]]
-        'Greater Conjuration: Fire', 'Conjuration: Fire', 'Lesser Conjuration: Fire', 'Minor Conjuration: Fire', 'Greater Summoning: Fire', 'Summoning: Fire',
-        'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
+            'Child of Fire', 'Child of Ro', 'Greater Vocaration: Fire', 'Vocarate: Fire', 'Greater Conjuration: Fire', 'Conjuration: Fire',
+            'Lesser Conjuration: Fire', 'Minor Conjuration: Fire', 'Greater Summoning: Fire', 'Summoning: Fire',
+            'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
         Options={}
     },
     {
@@ -387,7 +390,7 @@ Magician.SpellLines = {
     {Group='frontalmagic', Spells={'Beam of Kukris', 'Beam of Falchions', 'Beam of Scimitars', 'Beam of Knives'}, Options={opt='USEAOE'}},
     -- pet promised heal
     {Group='pethealpromise', Spells={'Promised Reconstitution', 'Promised Relief', 'Promised Healing', 'Promised Alleviation', 'Promised Invigoration'}, Options={opt='HEALPET'}},
-    -- random chance to heal all pets in area 
+    -- random chance to heal all pets in area
     {Group='chaoticheal', Spells={'Chaotic Magnanimity', 'Chaotic Largesse', 'Chaotic Bestowal', 'Chaotic Munificence', 'Chaotic Benefaction'}, Options={opt='HEALPET'}},
     -- minion summon clicky 2
     {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
