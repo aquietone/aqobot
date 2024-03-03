@@ -147,6 +147,11 @@ Monk.Abilities = {
         Names={'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'},
         Options={first=true}
     },
+    { -- laz specific
+        Type='AA',
+        Name='Zan Fi\'s Thunderous Whistle',
+        Options={first=true}
+    },
     { -- chance to inc melee dmg + nuke
         Type='AA',
         Name='Infusion of Thunder',

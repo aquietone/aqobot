@@ -1,6 +1,8 @@
 local mq = require('mq')
+local config = require('interface.configuration')
 local abilities = require('ability')
 local constants = require('constants')
+local state = require('state')
 
 local class
 local debuff = {}
@@ -27,7 +29,9 @@ end
 
 function debuff.findNextDebuff(opt)
     for _,ability in ipairs(class.debuffs) do
-        if ability.opt == opt and debuff.shouldUseDebuff(ability) then
+        local resistCount = state.resists[ability.Name] or 0
+        local resistStopCount = config.get('RESISTSTOPCOUNT')
+        if (resistStopCount == 0 or resistCount < resistStopCount) and ability.opt == opt and debuff.shouldUseDebuff(ability) then
             if abilities.use(ability) then return true end
         end
     end

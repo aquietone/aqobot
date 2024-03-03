@@ -370,6 +370,7 @@ function common.rest()
     if state.sitTimer:expired() then
         if (mq.TLO.Group.MainAssist.State() == 'SIT' or (config.get('ASSIST') == 'actor' and mq.TLO.Spawn(('id %s'):format(state.actorTankID)).State() == 'SIT')) and not mq.TLO.Me.Sitting() then
             mq.cmd('/sit')
+            state.sitTimer:reset()
         end
         if mq.TLO.Me.PctHPs() < config.get('MEDHPSTART') then
             state.medding = true

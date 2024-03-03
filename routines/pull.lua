@@ -363,7 +363,8 @@ local function pullEngage(pull_spawn)
             if mq.TLO.Me.SpellReady(class.pullSpell.CastName)() then
                 movement.stop()
                 -- mq.delay(50)
-                abilities.use(class.pullSpell, class)
+                -- abilities.use(class.pullSpell, class)
+                class.pullSpell:execute()
                 state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
             end
         elseif pullWith == 'custom' and class.pullCustom then

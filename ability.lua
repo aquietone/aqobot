@@ -127,6 +127,7 @@ function Ability:new(spellData, type)
     -- Prefer the type which was passed in over detecting the type
     if not ability.CastType then ability:setSpellType() end
     ability:setSpellData()
+    ability.timer = timer:new(1000) -- prevent spam, ready checks should be fine once the ability is actually on cd
     ability.timer:reset(0)
     return ability
 end
@@ -622,7 +623,7 @@ function Ability:setSpellData()
         if itemRef.Clicky.RecastType() then
             self.RecastTime = itemRef.Clicky.TimerID()*1000
         end
-        self.timer = timer:new(self.RecastTime)
+        -- self.timer = timer:new(self.RecastTime)
 
         self.SpellName = itemSpellRef.Name()
         self.CastID = itemRef.ID()
@@ -632,7 +633,7 @@ function Ability:setSpellData()
         self:setCommonSpellData(aaSpellRef)
 
         self.RecastTime = aaRef.ReuseTime()*1000
-        self.timer = timer:new(self.RecastTime)
+        -- self.timer = timer:new(self.RecastTime)
         self.SpellName = aaSpellRef.Name()
         self.CastID = aaRef.ID()
     elseif self.CastType == AbilityTypes.Spell then
@@ -649,7 +650,7 @@ function Ability:setSpellData()
         self.CastID = self.SpellID
     elseif self.CastType == AbilityTypes.Skill then
         -- nothing to do
-        self.timer = timer:new(2000)
+        -- self.timer = timer:new(2000)
     end
 
     if self.CheckFor then
@@ -669,7 +670,8 @@ function Ability:setCommonSpellData(spellRef)
     self.DurationTotalSeconds = spellRef.Duration.TotalSeconds()
     self.MyCastTime = spellRef.MyCastTime()
     self.RecastTime = spellRef.RecastTime()
-    self.timer = timer:new(self.RecastTime)
+    -- self.timer = timer:new(self.RecastTime)
+    -- self.SpamTimer = timer:new(1000)
     self.RecoveryTime = spellRef.RecoveryTime()
     self.AERange = spellRef.AERange()
     self.MyRange = spellRef.MyRange()

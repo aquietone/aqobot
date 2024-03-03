@@ -668,17 +668,17 @@ function base:burn()
         if self.burnClass then self:burnClass() end
 
         if tank.isTank() then
-            if self.useCommonListProcessor then
-                common.processList(self.tankBurnAbilities, self, true)
-            else
+            -- if self.useCommonListProcessor then
+            --     if common.processList(self.tankBurnAbilities, self, true) then return true end
+            -- else
                 self:doCombatLoop(self.tankBurnAbilities, state.burn_type)
-            end
+            -- end
         end
-        if self.useCommonListProcessor then
-            common.processList(self.burnAbilities, self, true)
-        else
+        -- if self.useCommonListProcessor then
+        --     if common.processList(self.burnAbilities, self, true) then return true end
+        -- else
             self:doCombatLoop(self.burnAbilities, state.burn_type)
-        end
+        -- end
         if config.get('USEGLYPH') and self.intensity and self.glyph then
             if not mq.TLO.Me.Song(self.intensity.Name)() and mq.TLO.Me.Buff('heretic\'s twincast')() then
                 self.glyph:use()

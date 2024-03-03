@@ -156,7 +156,7 @@ local spawnSearch = '%s radius %d zradius 25'
 local shouldLootActions = {Keep=true, Bank=true, Sell=true, Destroy=false, Ignore=false}
 local validActions = {keep='Keep',bank='Bank',sell='Sell',ignore='Ignore',destroy='Destroy'}
 local saveOptionTypes = {string=1,number=1,boolean=1}
-
+local beeploots = {['Upper Runic Fragment']=true, ['Center Runic Fragment']=true, ['Lower Runic Fragment']=true, ['A Placid Void']=true, ['A Radiant Morsel']=true, ['Research Jar']=true, ['Bone Joint Compound']=true, ['Jonas Dagmire\'s Forefinger Distal Phalanx']=true}
 -- FORWARD DECLARATIONS
 
 local eventForage, eventSell, eventCantLoot
@@ -400,6 +400,7 @@ local function lootCorpse(corpseID)
                 local stackable = corpseItem.Stackable()
                 local freeStack = corpseItem.FreeStack()
                 local lootRule = getRule(corpseItem)
+                if beeploots[corpseItem.Name()] then mq.cmd('/beep') end
                 if corpseItem.NoDrop() then
                     if shouldLootActions[lootRule] then
                         table.insert(loreItems, corpseItem.ItemLink('CLICKABLE')())

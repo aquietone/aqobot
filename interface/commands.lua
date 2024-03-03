@@ -92,6 +92,8 @@ function commands.commandHandler(...)
         state.burnNow = true
         if constants.burns[new_value] then
             state.burn_type = new_value
+        elseif not new_value then
+            state.burn_type = nil
         end
     elseif opt == 'PREBURN' then
         if class.preburn then class:preburn() end
