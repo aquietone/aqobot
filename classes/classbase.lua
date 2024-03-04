@@ -713,7 +713,10 @@ function base:findNextSpell()
 end
 
 function base:debuff()
-    debuff.castDebuffs()
+    if mq.TLO.Target.ID() == mq.TLO.Me.ID() then return end
+    if assist.isFighting() then
+        debuff.castDebuffs()
+    end
 end
 
 function base:cast()

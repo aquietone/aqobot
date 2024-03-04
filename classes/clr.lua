@@ -301,6 +301,11 @@ Cleric.allDPSSpellGroups = {'rebuke', 'contravention', 'stun', 'aestun'}
 
 Cleric.Abilities = {
     {
+        Type='Item',
+        Name='Water Sprinkler of Nem Ankh',
+        Options={rez=true}
+    },
+    {
         Type='AA',
         Name='Blessing of Resurrection',
         Options={rez=true}
