@@ -3,6 +3,7 @@ local config = require('interface.configuration')
 local ui = require('interface.ui')
 local assist = require('routines.assist')
 local camp = require('routines.camp')
+local pull = require('routines.pull')
 local tank = require('routines.tank')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
@@ -137,6 +138,8 @@ function commands.commandHandler(...)
         logger.timestamps = config.get(configName)
     elseif configName then
         config.getOrSetOption(opt, config.get(configName), new_value, configName)
+        local pullSettings = config.getByCategory('Pull')
+        for _,v in ipairs(pullSettings) do if v == opt then pull.clearPullVars('configupdate') end end
     elseif opt == 'IGNORE' then
         local zone = mq.TLO.Zone.ShortName()
         if new_value then

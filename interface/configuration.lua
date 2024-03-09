@@ -528,7 +528,7 @@ local config = {
 }
 
 function config.get(key)
-    return config[key].value
+    return config[key] and config[key].value
 end
 
 function config.set(key, value)

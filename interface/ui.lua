@@ -6,6 +6,7 @@ local config = require('interface.configuration')
 local customAbilities = require('interface.customabilityui')
 local widgets = require('libaqo.widgets')
 local camp = require('routines.camp')
+local pull = require('routines.pull')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
 local lootutils = require('utils.lootutils')
@@ -217,6 +218,7 @@ local function drawPullTab()
     drawConfigurationForCategory(config.getByCategory('Pull'))
 
     if current_radius ~= config.get('PULLRADIUS') or current_pullarc ~= config.get('PULLARC') then
+        pull.clearPullVars('configupdate')
         camp.setCamp()
     end
 end
