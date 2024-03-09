@@ -187,7 +187,7 @@ Necromancer.SpellLines = {
     {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
     {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={opt='USEPUSTULES', classes={WAR=true,PAL=true,SHD=true}, singlebuff=true, alias='NECROTIC'}},
     {Group='reflect', Spells={'Mirror'}},
-    {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}}, -- pre-unity
+    {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=false}}, -- pre-unity, dont use, prefer shm buffs
     {Group='dmf', Spells={'Dead Men Floating'}, Options={opt='USEDMF', alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
     -- Pet spells
     {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous', 'Invoke Shadow', 'Haunting Corpse', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse', 'Cavorting Bones'}},

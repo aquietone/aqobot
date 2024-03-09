@@ -515,6 +515,7 @@ function Magician:getPetSpell()
 end
 
 function Magician:pullCustom()
+    if (mq.TLO.Target.Distance3D() or 300) > 175 then return end
     movement.stop()
     mq.cmd('/pet attack')
     mq.cmd('/pet swarm')

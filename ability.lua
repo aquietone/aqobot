@@ -262,12 +262,13 @@ end
 ---@param theAbility Spell|AA|Disc|Item|Skill # The ability to be used
 ---@param class? base # The AQO Class
 ---@param doSwap? boolean # Indicate whether it is ok to swap spells if necessary to use the spell
----@param skipReadyCheck? boolean # Indicates whether to fail if the ability does not pass its ready checks
-function Ability.use(theAbility, class, doSwap, skipReadyCheck)
+---@param skipShouldUseCheck? boolean # Indicates whether to call isReady or canUse. isReady calls both canUseSpell and shouldUseSpell. canUse just calls canUseSpell.
+function Ability.use(theAbility, class, doSwap, skipShouldUseCheck)
     local result = false
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
     if theAbility.swap ~= nil then doSwap = theAbility.swap end
-    local isReady = (skipReadyCheck and IsReady.SHOULD_CAST) or theAbility:isReady()
+    local canUseResult = theAbility:canUse()
+    local isReady = (skipShouldUseCheck and canUseResult == IsReady.CAN_CAST and IsReady.SHOULD_CAST) or (skipShouldUseCheck and canUseResult) or theAbility:isReady()
     -- ability is ready or needs to be mem'd and swapping is enabled
     -- ability has no condition or condition is met
     -- ability has no associated config option or the config option is enabled
@@ -275,7 +276,7 @@ function Ability.use(theAbility, class, doSwap, skipReadyCheck)
     if (isReady == IsReady.SHOULD_CAST or (isReady == IsReady.NOT_MEMMED and doSwap)) and (not theAbility.condition or theAbility:condition()) and (not class or class:isAbilityEnabled(theAbility.opt)) and (theAbility.enabled == nil or theAbility.enabled) then
         if theAbility.CastType == AbilityTypes.Spell and doSwap and not mq.TLO.Me.Gem(theAbility.CastName)() then
             -- swappings enabled for this spell so memorize it so it can be cast
-            result = Ability.swapAndCast(theAbility, state.swapGem, class, skipReadyCheck)
+            result = Ability.swapAndCast(theAbility, state.swapGem, class, skipShouldUseCheck)
         else
             -- if precast defined, use that first and queue up the spell to be used
             if theAbility.precast then
@@ -308,6 +309,8 @@ function Ability.use(theAbility, class, doSwap, skipReadyCheck)
     return result
 end
 
+function Ability.canUse() end
+
 ---@class Spell : Ability
 local Spell = {}
 
@@ -328,6 +331,11 @@ function Spell:isReady()
     local spellData = mq.TLO.Spell(self.Name)
     local canUse = Ability.canUseSpell(spellData, self)
     return (canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spellData)) or canUse
+end
+
+function Spell:canUse()
+    local spellData = mq.TLO.Spell(self.Name)
+    return Ability.canUseSpell(spellData, self)
 end
 
 function Spell:execute()
@@ -374,6 +382,17 @@ function Disc:isReady()
         local spell = mq.TLO.Spell(self.Name)
         local canUse = Ability.canUseSpell(spell, self)
         return canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell) or canUse
+    else
+        return IsReady.NOT_READY
+    end
+end
+
+---Determine whether a disc is ready, including checking whether the character is currently capable.
+---@return string # Returns IsReady.SHOULD_CAST if the disc is ready to be used, otherwise returns another IsReady value.
+function Disc:canUse()
+    if mq.TLO.Me.CombatAbilityReady(self.Name)() then
+        local spell = mq.TLO.Spell(self.Name)
+        return Ability.canUseSpell(spell, self)
     else
         return IsReady.NOT_READY
     end
@@ -428,10 +447,18 @@ function AA:isReady()
         local spell = mq.TLO.AltAbility(self.Name).Spell
         local canUse = Ability.canUseSpell(spell, self)
         local result = canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell, false, self.skipTargetCheck) or canUse
-        if self.Name == 'Radiant Cure' then
-            logger.info('Radiant Cure: %s', result)
-        end
         return result
+    else
+        return IsReady.NOT_READY
+    end
+end
+
+---Determine whether an AA is ready, including checking whether the character is currently capable.
+---@return string # Returns IsReady.SHOULD_CAST if the AA is ready to be used, otherwise returns another IsReady value.
+function AA:canUse()
+    if mq.TLO.Me.AltAbilityReady(self.Name)() then
+        local spell = mq.TLO.AltAbility(self.Name).Spell
+        return Ability.canUseSpell(spell, self)
     else
         return IsReady.NOT_READY
     end
@@ -485,6 +512,21 @@ function Item:isReady(item)
     end
 end
 
+---Determine whether an item is ready, including checking whether the character is currently capable.
+---@return string # Returns IsReady.SHOULD_CAST if the item is ready to be used, otherwise returns another IsReady value.
+function Item:canUse(item)
+    if not item then
+        item = mq.TLO.FindItem(self.ID)
+    end
+    if state.subscription ~= 'GOLD' and item.Prestige() then return IsReady.CANT_USE_PRESTIGE end
+    local spell = item.Clicky.Spell
+    if spell() and item.Timer.TotalSeconds() == 0 then
+        return Ability.canUseSpell(spell, self)
+    else
+        return IsReady.NOT_READY
+    end
+end
+
 function Item:execute()
     logger.debug(logger.flags.ability.item, 'ENTER item:execute \ag%s\ax', self.Name)
     if state.class == 'BRD' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
@@ -518,6 +560,10 @@ end
 
 function Skill:isReady()
     return mq.TLO.Me.AbilityReady(self.Name)() and mq.TLO.Me.Skill(self.Name)() > 0 and IsReady.SHOULD_CAST
+end
+
+function Skill:canUse()
+    return self:isReady()
 end
 
 function Skill:execute()
@@ -741,6 +787,7 @@ end
 return {
     Types=AbilityTypes,
     IsReady=IsReady,
+    canUse=Ability.canUse,
     canUseSpell=Ability.canUseSpell,
     use=Ability.use,
     swapAndCast=Ability.swapAndCast,

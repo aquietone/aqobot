@@ -3,6 +3,7 @@ local class = require('classes.classbase')
 local conditions = require('routines.conditions')
 local tank = require('routines.tank')
 local timer = require('libaqo.timer')
+local movement = require('utils.movement')
 local abilities = require('ability')
 local common = require('common')
 local mode = require('mode')
@@ -480,8 +481,8 @@ function ShadowKnight:ohshit()
     end
 end
 
---[[self.pullCustom = function()
-    if self.spells.challenge then
+function ShadowKnight:pullCustom()
+    if self.spells.challenge and (mq.TLO.Target.Distance3D() or 300) < 175 then
         movement.stop()
         for _=1,3 do
             if mq.TLO.Me.SpellReady(self.spells.terror.Name)() then
@@ -491,6 +492,6 @@ end
             mq.delay(100)
         end
     end
-end]]
+end
 
 return ShadowKnight
