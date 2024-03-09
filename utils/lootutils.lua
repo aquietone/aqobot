@@ -840,7 +840,11 @@ function loot.markTradeSkillAsBank()
 end
 
 local function bankItem(itemName, bag, slot)
-    mq.cmdf('/nomodkey /shiftkey /itemnotify "%s" leftmouseup', itemName)
+    if not slot or slot == -1 then
+        mq.cmdf('/shift /itemnotify %s leftmouseup', bag)
+    else
+        mq.cmdf('/shift /itemnotify in pack%s %s leftmouseup', bag, slot)
+    end
     mq.delay(100, function() return mq.TLO.Cursor() end)
     mq.cmd('/notify BigBankWnd BIGB_AutoButton leftmouseup')
     mq.delay(100, function() return not mq.TLO.Cursor() end)
