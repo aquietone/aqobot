@@ -150,7 +150,7 @@ Cleric.SpellLines = {
     },
     {-- emu or before remedies standard heal. Slot 2, otherwise slot 11
         Group='lightheal',
-        Spells={'Avowed Light', 'Fervent Light', 'Sincere Light', 'Merciful Light', 'Ardent Light', 'Reverent Light', 'Zealoud Light', 'Earnest Light', 'Devout Light', --[[emu cutoff]] 'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Healing', 'Light Healing', 'Minor Healing'},
+        Spells={'Avowed Light', 'Fervent Light', 'Sincere Light', 'Merciful Light', 'Ardent Light', 'Reverent Light', 'Zealoud Light', 'Earnest Light', 'Devout Light', --[[emu cutoff]] 'Ancient: Hallowed Light', 'Pious Light', 'Holy Light', 'Divine Light', 'Healing Light', 'Superior Healing', 'Greater Healing', 'Healing', 'Light Healing', 'Minor Healing'},
         Options={Gem=function(lvl) return lvl < 101 and 2 or 11 end, tank=true, panic=true, regular=true}
     },
     {-- Heal target + nuke targets target. Slot 3, 4
