@@ -32,6 +32,7 @@ end
 function Necromancer:initClassOptions()
     self:addOption('STOPPCT', 'DoT Stop Pct', 0, nil, 'Percent HP to stop refreshing DoTs on mobs', 'inputint', nil, 'StopPct', 'int')
     self:addOption('USEDEBUFF', 'Debuff', true, nil, 'Debuff targets with scent', 'checkbox', nil, 'UseDebuff', 'bool')
+    self:addOption('USESNARE', 'Use snare', true, nil, 'User snare spell', 'checkbox', nil, 'UseSnare', 'bool')
     self:addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox', nil, 'UseBuffShield', 'bool')
     self:addOption('USEMANATAP', 'Mana Drain', false, nil, 'Use group mana drain dot. Replaces Ignite DoT.', 'checkbox', nil, 'UseManaTap', 'bool')
     self:addOption('USEREZ', 'Use Rez', true, nil, 'Use Convergence AA to rez group members', 'checkbox', nil, 'UseRez', 'bool')
@@ -53,7 +54,7 @@ end
 Necromancer.SpellLines = {
     {-- strongest fire dot. Slot 1
         Group='pyreshort',
-        Spells={'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador', 'Boil Blood', 'Heat Blood'},
+        Spells={'Pyre of Illandrin', 'Pyre of Va Xakra', 'Pyre of Klraggek', 'Pyre of the Shadewarden', 'Pyre of Jorobb', 'Pyre of Marnek', 'Pyre of Hazarak', 'Pyre of Nos', 'Soul Reaper\'s Pyre', 'Dread Pyre', 'Funeral Pyre of Kelador', 'Ignite Blood', 'Boil Blood', 'Heat Blood'},
         Options={opt='USEDOTS', Gem=1, precast=function() if Necromancer.tcclick and not mq.TLO.Me.Buff('Heretic\'s Twincast')() then Necromancer.tcclick:use() end end}
     },
     {-- main magic dot. Slot 2
@@ -156,12 +157,12 @@ Necromancer.SpellLines = {
     },
 
     -- TODO: need to work these in when combo is an expansion behind
-    {Group='decay', Spells={'Goremand\'s Decay', 'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague', 'Scourge', 'Heart Flutter'}, Options={opt='USEDOTS', Gem=function(lvl) return lvl <= 60 and 2 or nil end}},
+    {Group='decay', Spells={'Goremand\'s Decay', 'Fleshrot\'s Decay', 'Danvid\'s Decay', 'Mourgis\' Decay', 'Livianus\' Decay', 'Wuran\'s Decay', 'Ulork\'s Decay', 'Folasar\'s Decay', 'Megrima\'s Decay', 'Chaos Plague', 'Dark Plague', 'Asystole', 'Scourge', 'Heart Flutter'}, Options={opt='USEDOTS', Gem=function(lvl) return lvl <= 60 and 2 or nil end}},
     {Group='grip', Spells={'Grip of Terrastride', 'Grip of Quietus', 'Grip of Zorglim', 'Grip of Kraz', 'Grip of Jabaum', 'Grip of Zalikor', 'Grip of Zargo', 'Grip of Mori'}, Options={opt='USEDOTS'}},
     {Group='aedisease', Spells={'Infectious Cloud', 'Disease Cloud'}, Options={opt='USEDOTS'}},
     -- Lifetaps
     {Group='tapee', Spells={'Soullash', 'Soulflay', 'Soulgouge', 'Soulsiphon', 'Soulrend', 'Soulrip', 'Soulspike'}}, -- unused
-    {Group='tap', Spells={'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak', 'Spirit Tap', 'Siphon Life', 'Lifedraw', 'Lifespike', 'Lifetap'}, Options={Gem=function(lvl) return lvl <= 60 and 7 or nil end}}, -- unused
+    {Group='tap', Spells={'Maraud Essence', 'Draw Essence', 'Consume Essence', 'Hemorrhage Essence', 'Plunder Essence', 'Bleed Essence', 'Divert Essence', 'Drain Essence', 'Ancient: Touch of Orshilak', 'Drain Soul', 'Drain Spirit', 'Spirit Tap', 'Siphon Life', 'Lifedraw', 'Lifespike', 'Lifetap'}, Options={Gem=function(lvl) return lvl <= 60 and 7 or nil end}}, -- unused
     {Group='tapsummon', Spells={'Vollmondnacht Orb', 'Dusternacht Orb', 'Dunkelnacht Orb', 'Finsternacht Orb', 'Shadow Orb'}}, -- unused
     -- Wounds proc
     {Group='proliferation', Spells={'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'}},
@@ -171,13 +172,13 @@ Necromancer.SpellLines = {
     {Group='sphere', Spells={'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}}, -- unused
     {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
     -- Nukes
-    {Group='venin', Spells={'Necrotizing Venin', 'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin', 'Torbas Acid Blast', 'Shock of Poison'}, Options={opt='USENUKES', Gem=function(lvl) return lvl <= 60 and 5 or nil end}},
+    {Group='venin', Spells={'Necrotizing Venin', 'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin', 'Torbas\' Acid Blast', 'Shock of Poison'}, Options={opt='USENUKES', Gem=function(lvl) return lvl <= 60 and 5 or nil end}},
     {Group='undeadnuke', Spells={'Dismiss Undead', 'Expulse Undead', 'Ward Undead'}, Options={opt='USENUKES'}},
     {Group='pbaenuke', Spells={'Word of Spirit', 'Word of Shadow'}, Options={opt='USEAOE'}},
     -- Debuffs
     {Group='scentterris', Spells={'Scent of Terris'}}, -- AA only
     {Group='scentmortality', Spells={'Scent of The Realm', 'Scent of The Grave', 'Scent of Mortality', 'Scent of Extinction', 'Scent of Dread', 'Scent of Nightfall', 'Scent of Doom', 'Scent of Gloom', 'Scent of Midnight', 'Scent of Shadow', 'Scent of Dusk'}},
-    {Group='snare', Spells={'Afflicted Darkness', 'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness', 'Dooming Darkness', 'Engulfing Darkness', 'Clinging Darkness'}, Options={opt='USESNARE', Gem=function(lvl) return lvl <= 60 and 4 or nil end}}, -- unused
+    {Group='snare', Spells={'Afflicted Darkness', 'Harrowing Darkness', 'Tormenting Darkness', 'Gnawing Darkness', 'Grasping Darkness', 'Clutching Darkness', 'Viscous Darkness', 'Tenuous Darkness', 'Clawing Darkness', 'Desecrating Darkness', 'Cascading Darkness', 'Dooming Darkness', 'Engulfing Darkness', 'Clinging Darkness'}, Options={opt='USESNARE', Gem=function(lvl) return lvl <= 60 and 4 or nil end}}, -- unused
     -- {Group='undeadslow', Spells={'Shackle of Bone'}, Options={opt='USESLOW', debuff=true,}},
 
     -- Buffs
@@ -190,7 +191,7 @@ Necromancer.SpellLines = {
     {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=false}}, -- pre-unity, dont use, prefer shm buffs
     {Group='dmf', Spells={'Dead Men Floating'}, Options={opt='USEDMF', alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
     -- Pet spells
-    {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous', 'Invoke Shadow', 'Haunting Corpse', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse', 'Cavorting Bones'}},
+    {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous', 'Invoke Shadow', 'Emissary of Thule', 'Servant of Bones', 'Minion of Shadows', 'Invoke Death', 'Cackling Bones', 'Malignant Dead', 'Summon Dead', 'Haunting Corpse', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse', 'Cavorting Bones'}},
     {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness', 'Augment Death', 'Intensify Death', 'Focus Death'}, Options={petbuff=true}},
     {Group='petheal', Spells={'Bracing Revival', 'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve', 'Renew Bones', 'Mend Bones'}}, -- unused
     {Group='petaegis', Spells={'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}}, -- unused
