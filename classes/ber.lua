@@ -244,6 +244,11 @@ Berserker.Abilities = {
         Name='Raging Taelosian Alloy Axe',
         Options={opt='USEEPIC', third=true, first=true, second=true, epicburn=true}
     },
+    { -- only click outside burns
+        Type='Item',
+        Name='Ancient Taelosian Blood Axe',
+        Options={opt='USEEPIC', third=true, first=true, second=true, epicburn=true}
+    },
     -- extra burns
     { -- Timer 21 with Mangling, Increase Chance to Critical Hit with all weapon skills by 53%, Increase Chance to Critical Hit with Frenzy by 53%, Increase Base Hit Damage by 11%
         Type='Disc',

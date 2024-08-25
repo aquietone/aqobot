@@ -19,7 +19,7 @@ local Ranger = class:new()
     https://forums.eqfreelance.net/index.php?topic=16647.0
 ]]
 function Ranger:init()
-    self.classOrder = {'assist', 'aggro', 'debuff', 'cast', 'mash', 'burn', 'heal', 'recover', 'buff', 'rest', 'rez'}
+    self.classOrder = {'assist', 'aggro', 'debuff', 'heal', 'cast', 'mash', 'burn', 'recover', 'buff', 'rest', 'rez'}
     self.spellRotations = {standard={},custom={}}
     self:initBase('RNG')
 
@@ -185,8 +185,12 @@ function Ranger:initSpellRotations()
 
     -- entries in the combat_heal_spells table are pairs of {spell id, spell name} in priority order
     self.combat_heal_spells = {}
-    table.insert(self.combat_heal_spells, self.spells.healtot)
-    table.insert(self.combat_heal_spells, self.spells.healtot2) -- replacing in main spell lineup with self rune buff
+    -- if state.emu then
+    --     table.insert(self.combat_heal_spells, self.spells.heal)
+    -- else
+        table.insert(self.combat_heal_spells, self.spells.healtot)
+        table.insert(self.combat_heal_spells, self.spells.healtot2) -- replacing in main spell lineup with self rune buff
+    -- end
 end
 
 Ranger.Abilities = {
@@ -346,7 +350,7 @@ Ranger.Abilities = {
         Type='Disc',
         Group='trueshot',
         Names={'Trueshot Discipline'},
-        Options={emu=true, combatbuff=true}
+        Options={emu=true, first=true}
     },
     {
         Type='AA',

@@ -49,7 +49,6 @@ function BeastLord:initClassOptions()
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox', nil, 'UseFD', 'bool')
     self:addOption('USESLOW', 'Use Slow', false, nil, 'Toggle casting slow on mobs', 'checkbox', nil, 'UseSlow', 'bool')
-    self:addOption('USESWARMPETS', 'Use Swarm Pets', true, nil, 'Toggle use of swarm pets', 'checkbox', nil, 'UseSwarmPets', 'bool')
     self:addOption('USEMENDING', 'Use Mending', false, nil, 'Toggle use of Mending line of heal spells', 'checkbox', nil, 'UseMending', 'bool')
     -- swarm pet, sow, snare, roar of thunder, mending, haste, focus
 end
@@ -208,7 +207,7 @@ BeastLord.SpellLines = {
     {
         Group='pet',
         Spells={'Spirit of Shae', 'Spirit of Panthea', 'Spirit of Blizzent', 'Spirit of Akalit', 'Spirit of Avalit', 'Spirit of Lachemit', 'Spirit of Kolos', 'Spirit of Averc', --[[emu cutoff]] 'Spirit of Rashara', 'Spirit of Alladnu', 'Spirit of Sorsha', 'Spirit of Yekan', 'Spirit of Herikol', 'Spirit of Keshuval', 'Spirit of Khaliz', 'Spirit of Sharik'},
-        Options={opt='SUMMONPET', Gem=function(lvl) return lvl <= 60 and 6 or nil end}
+        Options={opt='SUMMONPET', Gem=function(lvl) return lvl <= 60 and 6 or nil end, postcast=function() common.petClicky() end}
     },
     {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
     {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Yekan\'s Recovery', 'Herikol\'s Soothing', 'Keshuval\'s Rejuvenation', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
@@ -393,7 +392,7 @@ BeastLord.Abilities = {
     {
         Type='AA',
         Name='Attack of the Warders',
-        Options={first=true, delay=1500}
+        Options={first=true, delay=1500, opt='USESWARMPETS'}
     },
     -- Second burns
     {

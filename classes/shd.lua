@@ -57,7 +57,6 @@ function ShadowKnight:initClassOptions()
     self:addOption('USELIFETAP', 'Use Lifetap', true, nil, 'Toggle use of lifetap spells', 'checkbox', nil, 'UseLifetap', 'bool')
     self:addOption('USEVOICEOFTHULE', 'Use Voice of Thule', false, nil, 'Toggle use of Voice of Thule buff', 'checkbox', nil, 'UseVoiceOfThule', 'bool')
     self:addOption('USETORRENT', 'Use Torrent', true, nil, 'Toggle use of torrent', 'checkbox', nil, 'UseTorrent', 'bool')
-    self:addOption('USESWARM', 'Use Snare', true, nil, 'Toggle use of swarm pets', 'checkbox', nil, 'UseSwarm', 'bool')
     self:addOption('USEDEFLECTION', 'Use Deflection', false, nil, 'Toggle use of deflection discipline', 'checkbox', nil, 'UseDeflection', 'bool')
     self:addOption('USEDEFENSIVE', 'Use Defensive', false, nil, 'Toggle use of other defensive disciplines', 'checkbox', nil, 'UseDefensive', 'bool')
     self:addOption('DONTCAST', 'Don\'t Cast', false, nil, 'Don\'t cast spells in combat', 'checkbox', nil, 'DontCast', 'bool')
@@ -173,7 +172,7 @@ ShadowKnight.SpellLines = {
     {Group='disruption', Spells={'Confluent Disruption', 'Scream of Death'}}, -- lifetap proc on heal
     --['']={'Impertinent Influence'}), -- ac buff, 20% dmg mitigation, lifetap proc, is this upgraded by xetheg's carapace? stacks?
     -- Pet
-    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}, Options={Gem=function(lvl) return lvl <= 60 and 8 end}}, -- pet
+    {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}, Options={Gem=function(lvl) return lvl <= 60 and 8 end, postcast=function() common.petClicky() end}}, -- pet
     {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death', 'Strengthen Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
     {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={Gem=function(lvl) return lvl <= 70 and 11 or nil end, swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
@@ -406,7 +405,7 @@ ShadowKnight.Abilities = {
     { -- 10min CD, swarm pet
         Type='AA',
         Name='Chattering Bones',
-        Options={first=true, opt='USESWARM'}
+        Options={first=true, opt='USESWARMPETS'}
     },
     { -- 12min CD, dot dmg burn
         Type='AA',

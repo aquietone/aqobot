@@ -208,6 +208,11 @@ Bard.Abilities = {
         Name='Blade of Vesagran',
         Options={key='epic', epicburn=true}
     },
+    { -- Epic 2.0
+        Type='Item',
+        Name='Ancient Blade of Vesagran',
+        Options={key='epic', epicburn=true}
+    },
     { -- Epic 1.5
         Type='Item',
         Name='Prismatic Dragon Blade',

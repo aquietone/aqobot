@@ -220,6 +220,11 @@ Monk.Abilities = {
         Options={combatbuff=true, delay=1000}
     },
     {
+        Type='Item',
+        Name='Ancient Fistwraps of Immortality',
+        Options={combatbuff=true, delay=1000}
+    },
+    {
         Type='Disc',
         Group='wu',
         Names={'Fists of Wu'},

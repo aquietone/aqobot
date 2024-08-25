@@ -191,7 +191,7 @@ Necromancer.SpellLines = {
     {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=false}}, -- pre-unity, dont use, prefer shm buffs
     {Group='dmf', Spells={'Dead Men Floating'}, Options={opt='USEDMF', alias='DMF', selfbuff=function() return not mq.TLO.Me.AltAbility('Dead Men Floating')() and not mq.TLO.Me.AltAbility('Perfected Dead Men Floating')() end}},
     -- Pet spells
-    {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous', 'Invoke Shadow', 'Emissary of Thule', 'Servant of Bones', 'Minion of Shadows', 'Invoke Death', 'Cackling Bones', 'Malignant Dead', 'Summon Dead', 'Haunting Corpse', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse', 'Cavorting Bones'}},
+    {Group='pet', Spells={'Merciless Assassin', 'Unrelenting Assassin', 'Restless Assassin', 'Reliving Assassin', 'Revived Assassin', 'Unearthed Assassin', 'Reborn Assassin', 'Raised Assassin', 'Unliving Murderer', 'Dark Assassin', 'Child of Bertoxxulous', 'Invoke Shadow', 'Emissary of Thule', 'Servant of Bones', 'Minion of Shadows', 'Invoke Death', 'Cackling Bones', 'Malignant Dead', 'Summon Dead', 'Haunting Corpse', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse', 'Cavorting Bones'}, Options={postcast=function() common.petClicky() end}},
     {Group='pethaste', Spells={'Sigil of Putrefaction', 'Sigil of Undeath', 'Sigil of Decay', 'Sigil of the Arcron', 'Sigil of the Doomscale', 'Sigil of the Sundered', 'Sigil of the Preternatural', 'Sigil of the Moribund', 'Glyph of Darkness', 'Augment Death', 'Intensify Death', 'Focus Death'}, Options={petbuff=true}},
     {Group='petheal', Spells={'Bracing Revival', 'Frigid Salubrity', 'Icy Revival', 'Algid Renewal', 'Icy Mending', 'Algid Mending', 'Chilled Mending', 'Gelid Mending', 'Icy Stitches', 'Dark Salve', 'Renew Bones', 'Mend Bones'}}, -- unused
     {Group='petaegis', Spells={'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}}, -- unused
@@ -292,7 +292,7 @@ Necromancer.Abilities = {
     { -- song, Duskfall Empowerment, 10 minute CD
         Type='AA',
         Name='Gathering Dusk',
-        Options={alias='DUSK'}
+        Options={alias='DUSK', first=true}
     },
     { -- 10 minute CD
         Type='AA',
@@ -307,17 +307,17 @@ Necromancer.Abilities = {
     { -- 10 minute CD
         Type='AA',
         Name='Rise of Bones',
-        Options={first=true, delay=1500}
+        Options={first=true, delay=1500, opt='USESWARMPETS'}
     },
     { -- 9 minute CD
         Type='AA',
         Name='Swarm of Decay',
-        Options={first=true, delay=1500}
+        Options={first=true, delay=1500, opt='USESWARMPETS'}
     },
     { -- 3 minute CD
         Type='AA',
         Name='Wake the Dead',
-        Options={key='wakethedead'}
+        Options={key='wakethedead', opt='USESWARMPETS'}
     },
     { -- song, 20 minute CD
         Type='AA',
@@ -547,7 +547,7 @@ function Necromancer:burnClass()
     local fierce_eye = mq.TLO.Me.Song('Fierce Eye')()
     if fierce_eye then base_crit = base_crit + 15 end
 
-    if mq.TLO.SpawnCount('corpse radius 150')() > 0 and self.wakethedead then
+    if self:isEnabled('USESWARMPETS') and mq.TLO.SpawnCount('corpse radius 150')() > 0 and self.wakethedead then
         self.wakethedead:use()
         mq.delay(1500)
     end

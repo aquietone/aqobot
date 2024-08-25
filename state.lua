@@ -149,11 +149,11 @@ function state.handleCastingState(class)
         mq.doevents()
         if not mq.TLO.Me.Casting() then
             mq.cmd('/stick unpause')
-            if state.casting.clickyType and mq.TLO.Me.ItemReady(state.casting.name)() then state.casting.timer:reset(0) end
+            if state.casting and state.casting.clickyType and mq.TLO.Me.ItemReady(state.casting.name)() and state.casting.timer then state.casting.timer:reset(0) end
             if state.fizzled or state.interrupted then
                 logger.info('Casting \ag%s\ax failed (Attempt %s)', state.casting.Name, state.castAttempts + 1)
                 local casting = state.casting
-                casting.timer:reset(0)
+                if casting.timer then casting.timer:reset(0) end
                 if state.castAttempts < 2 then
                     state.castAttempts = state.castAttempts + 1
                     local tmpQueuedAction = state.queuedAction
@@ -186,14 +186,14 @@ function state.handleCastingState(class)
                     return true
                 end
             elseif constants.healClasses[state.class] then
-                if state.healTarget == mq.TLO.Target.ID() and (mq.TLO.Target.PctHPs() or 0) > 95 then
+                if config.get('INTERRUPTFULLHP') and state.healTarget == mq.TLO.Target.ID() and (mq.TLO.Target.PctHPs() or 0) > 95 then
                     mq.cmd('/stopcast')
                     state.resetCastingState()
                     state.resetHealState()
                     return true
                 end
                 -- if not state.casting.cure and not state.casting.debuff then
-                if state.canIterrupt then
+                if state.canIterrupt and config.get('INTERRUPTFORHEALS') then
                     -- evaluate interrupting cast for a emergency heal
                     local panic = mq.TLO.Group.Injured(config.get('PANICHEALPCT'))() or 0
                     local regular = mq.TLO.Group.Injured(config.get('HEALPCT'))() or 0

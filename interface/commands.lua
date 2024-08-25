@@ -92,27 +92,28 @@ function commands.commandHandler(...)
     elseif opt == 'SELL' and not new_value then
         loot.sellStuff()
     elseif opt == 'BURNNOW' then
-        logger.info('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
-        state.burnNow = true
-        if constants.burns[new_value] then
+        if new_value then
+        -- if constants.burns[new_value] then
             state.burn_type = new_value
         elseif not new_value then
             state.burn_type = nil
         end
+        state.burnNow = true
+        logger.info('\arActivating Burns (on demand%s)\ax', state.burn_type and ' - '..state.burn_type or '')
     elseif opt == 'PREBURN' then
         if class.preburn then class:preburn() end
     elseif opt == 'PAUSE' then
         if not new_value then
+            state.resetCombatState()
             state.paused = not state.paused
             if state.paused then
-                state.resetCombatState()
                 mq.cmd('/stopcast')
             end
         else
             if constants.booleans[new_value] == nil then return end
+            if state.paused ~= constants.booleans[new_value] then state.resetCombatState() end
             state.paused = constants.booleans[new_value]
             if state.paused then
-                state.resetCombatState()
                 mq.cmd('/stopcast')
             else
                 camp.setCamp()

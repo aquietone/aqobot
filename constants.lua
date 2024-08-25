@@ -48,6 +48,7 @@ constants.bufflines = {
     {key='SKIN', label='Skin (Druid HP)', category='Standard', exclusivewith='AEGO'},
     {key='FOCUS', label='Focus (Shaman HP)', category='Standard'},
     {key='HASTE', label='Haste', category='Standard'},
+    {key='EPICHASTE', label='Enc Epic Haste', category='Standard'},
     {key='KEI', label='Clarity', category='Standard'},
     {key='SHOUT', label='Shout (Ranger Atk)', category='Standard'},
     {key='STRENGTH', label='Strength (Ranger HP)', category='Standard', exclusivewith='BRELLS,SV'},
@@ -210,6 +211,7 @@ constants.buffs = {
         AEGO = true,
         SKIN = false,
         HASTE = true,
+        EPICHASTE = true,
         KEI = true,
         SHOUT = true,
         STRENGTH = false,
@@ -233,6 +235,7 @@ constants.buffs = {
         AEGO = true,
         SKIN = false,
         HASTE = true,
+        EPICHASTE = true,
         KEI = true,
         BRELLS = true,
         SHOUT = true,
@@ -258,6 +261,7 @@ constants.buffs = {
         SYMBOL = true,
         SKIN = true,
         HASTE = true,
+        EPICHASTE = true,
         KEI = true,
         BRELLS = true,
         STRENGTH = false,
@@ -403,6 +407,7 @@ constants.manaClasses = {CLR=true,DRU=true,SHM=true,ENC=true,MAG=true,NEC=true,W
 constants.petClasses = {BST=true,MAG=true,NEC=true,DRU=true,ENC=true,SHD=true,SHM=true}
 constants.buffClasses = {CLR=true,DRU=true,SHM=true,ENC=true,MAG=true,NEC=true,RNG=true,BST=true}
 constants.healClasses = {CLR=true,DRU=true,SHM=true,PAL=true}
+constants.hybridHealClasses = {RNG=true,BST=true}
 constants.tankClasses = {PAL=true,SHD=true,WAR=true}
 constants.meleeClasses = {BER=true,BRD=true,BST=true,MNK=true,RNG=true,ROG=true}
 constants.nukeClasses = {BST=true,CLR=true,DRU=true,ENC=true,MAG=true,NEC=true,RNG=true,SHM=true,WIZ=true}

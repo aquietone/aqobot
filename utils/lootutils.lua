@@ -630,7 +630,7 @@ local function lootCorpse(corpseID)
                     local haveItem = mq.TLO.FindItem(('=%s'):format(corpseItem.Name()))()
                     local haveItemBank = mq.TLO.FindItemBank(('=%s'):format(corpseItem.Name()))()
                     if haveItem or haveItemBank or freeSpace <= loot.SaveBagSlots then
-                        table.insert(loreItems, itemLink)
+                        if shouldLootActions[itemRule] then table.insert(loreItems, itemLink) end
                         lootItem(i,'Ignore','leftmouseup', 0, allItems)
                     elseif corpseItem.NoDrop() then
                         if loot.LootNoDrop then
@@ -638,7 +638,7 @@ local function lootCorpse(corpseID)
                                 lootItem(i, itemRule, 'leftmouseup', qKeep, allItems)
                             end
                         else
-                            table.insert(noDropItems, itemLink)
+                            if shouldLootActions[itemRule] then table.insert(noDropItems, itemLink) end
                             lootItem(i, 'Ignore', 'leftmouseup', 0, allItems)
                         end
                     else
@@ -650,7 +650,7 @@ local function lootCorpse(corpseID)
                             lootItem(i, itemRule, 'leftmouseup', qKeep, allItems)
                         end
                     else
-                        table.insert(noDropItems, itemLink)
+                        if shouldLootActions[itemRule] then table.insert(noDropItems, itemLink) end
                         lootItem(i,'Ignore','leftmouseup',0, allItems)
                     end
                 elseif freeSpace > loot.SaveBagSlots or (stackable and freeStack > 0) then

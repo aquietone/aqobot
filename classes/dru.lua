@@ -53,6 +53,7 @@ function Druid:initClassOptions()
     self:addOption('USEREPTILE', 'Use Reptile Buff', false, nil, 'Use Skin of the Reptile proc buff', 'checkbox', nil, 'UseReptile', 'bool')
     self:addOption('USEDS', 'Use DS', false, nil, 'Use Damage Shield', 'checkbox', nil, 'UseDS', 'bool')
     self:addOption('USECURES', 'Use Cures', true, nil, 'Toggle use of cure spells', 'checkbox', nil, 'UseCures', 'bool')
+    self:addOption('USECHEETAH', 'Use Cheetah', true, nil, 'Toggle use of group cheetah AA', 'checkbox', nil, 'UseCheetah', 'bool')
 end
 
 -- Blessing of Oak
@@ -119,7 +120,7 @@ Druid.SpellLines = {
     {Group='curedisease', Spells={'Counteract Disease', 'Cure Disease'}, Options={cure=true, Disease=true}},
     {Group='curepoison', Spells={'Counteract Poison', 'Cure Poison'}, Options={cure=true, Poison=true}},
     {Group='rgc', Spells={'Remove Greater Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, Curse=true}},
-    {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET'}},
+    {Group='pet', Spells={'Nature Wanderer\'s Behest'}, Options={opt='USEPET', postcast=function() common.petClicky() end}},
     {Group='petbuff', Spells={'Feral Spirit'}, Options={opt='USEPET', petbuff=true}},
 
     -- Buffs
@@ -181,7 +182,7 @@ Druid.Abilities = {
     {
         Type='AA',
         Name='Spirits of Nature',
-        Options={first=true, delay=1500}
+        Options={first=true, delay=1500, opt='USESWARMPETS'}
     },
     { -- on emu, maybe live renamed this to great wolf?
         Type='AA',
@@ -258,6 +259,11 @@ Druid.Abilities = {
     },
 
     -- Buffs
+    {
+        Type='AA',
+        Name='Communion of the Cheetah',
+        Options={opt='USECHEETAH', selfbuff=true, condition=function() return mq.TLO.Me.CombatState() ~= 'COMBAT' end},
+    },
     {
         Type='AA',
         Name='Wrath of the Wild',

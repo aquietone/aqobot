@@ -12,7 +12,6 @@ local mez        = require('routines.mez')
 local pull       = require('routines.pull')
 local tank       = require('routines.tank')
 
-local conditions = require('routines.conditions')
 local helpers    = require('utils.helpers')
 local logger     = require('utils.logger')
 local movement   = require('utils.movement')
@@ -188,6 +187,7 @@ function base:addCommonOptions()
         self:addOption('USEHOTDPS', 'Use HoT (All)', false, nil, 'Toggle use of heal over time on everyone', 'checkbox', nil, 'UseHoTDPS', 'bool')
         self:addOption('XTARGETBUFF', 'Buff XTarget', false, nil, 'Toggle buffing of PCs on XTarget', 'checkbox', nil, 'XTargetBuff', 'bool')
     end
+    self:addOption('USESWARMPETS', 'Use Swarm Pets', true, nil, 'Toggle use of swarm pet abilities', 'checkbox', nil, 'UseSwarmPets', 'bool')
 end
 
 function base:addCommonAbilities()
@@ -426,13 +426,11 @@ function base:getTableForClicky(clickyType)
 end
 
 function base:addClicky(clicky)
-    -- self.clickies[clicky.name] = {clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled, alias=clicky.alias, condition=clicky.condition, usebelowpct=clicky.usebelowpct}
     self.clickies[clicky.name] = clicky
     local item = mq.TLO.FindItem('='..clicky.name)
     if item.Clicky() then
         local t = self:getTableForClicky(clicky.clickyType)
         if t then
-            -- table.insert(t, common.getItem(clicky.name, {summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled, condition=conditions[clicky.condition], alias=clicky.alias, usebelowpct=clicky.usebelowpct}))
             table.insert(t, common.getItem(clicky.name, clicky))
         end
         logger.info('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
@@ -497,7 +495,7 @@ function base:getRequestAliases()
     local aliases = {}
     for name,ability in pairs(self.requestAliases) do
         if self.availableBuffs[name] then
-            aliases[name] = ability.CastName
+            aliases[name] = ability.CastType == abilities.Types.Item and ability.SpellName or ability.CastName
         end
     end
     if self.requestAliases.HOT and self:isEnabled('USEHOTTANK') then
@@ -611,7 +609,7 @@ function base:tank()
 end
 
 function base:heal()
-    if constants.healClasses[self.class] then
+    if constants.healClasses[self.class] or constants.hybridHealClasses[self.class] then
         healing.heal(self.healAbilities, self.options)
     elseif constants.petClasses[self.class] then
         healing.healPetOrSelf(self.healAbilities, self.options)
@@ -1045,7 +1043,8 @@ end
 function base:managepet()
     local petSpell = self.getPetSpell and self:getPetSpell() or self.spells.pet
     if not self:isEnabled('SUMMONPET') or not petSpell then return end
-    if mq.TLO.Pet.ID() > 0 and (mq.TLO.Pet.Level() == 1 or mq.TLO.Pet.CleanName():lower():find('familiar')) then
+    local petName = mq.TLO.Pet.CleanName()
+    if mq.TLO.Pet.ID() > 0 and (mq.TLO.Pet.Level() == 1 or (petName and petName:lower():find('familiar'))) then
         logger.info('Removing familiar')
         mq.cmdf('/squelch /pet get lost')
         mq.delay(50)
@@ -1057,9 +1056,14 @@ function base:managepet()
     abilities.swapAndCast(petSpell, state.swapGem, self)
     if state.queuedAction then
         local tempQueuedAction = state.queuedAction
-        state.queuedAction = function() mq.cmd('/pet ghold on') return tempQueuedAction end
+        state.queuedAction = function()
+            mq.cmd('/pet ghold on')
+            return tempQueuedAction
+        end
     else
-        state.queuedAction = function() mq.cmd('/pet ghold on') end
+        state.queuedAction = function()
+            mq.cmd('/pet ghold on')
+        end
     end
     state.queuedActionTimer:reset()
     state.queuedActionTimer.expiration = 20000

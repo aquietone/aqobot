@@ -102,6 +102,7 @@ function Shaman:initClassOptions()
     self:addOption('USECRIPPLE', 'Use Cripple', true, nil, 'Toggle use of single target cripple ability', 'checkbox', nil, 'UseCripple', 'bool')
     self:addOption('USESLOW', 'Use Slow', true, nil, 'Toggle casting slow on mobs', 'checkbox', nil, 'UseSlow', 'bool')
     self:addOption('USESLOWAOE', 'Use Slow AOE', true, nil, 'Toggle casting AOE slow on mobs', 'checkbox', nil, 'UseSlowAOE', 'bool')
+    self:addOption('USESLOWPROC', 'Use Slow Proc', true, nil, 'Toggle casting slow proc buff on tanks', 'checkbox', nil, 'UseSlowProc', 'bool')
     self:addOption('SLOWALL', 'Slow All Mobs', false, nil, 'Toggle casting slow on all mobs', 'checkbox', nil, 'SlowAll', 'bool')
     self:addOption('USENUKES', 'Use Nukes', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
@@ -118,7 +119,7 @@ Shaman.SpellLines = {
     {-- proc buff slow + heal, 240 charges. Slot 1
         Group='slowproc',
         Spells={'Moroseness', 'Melancholy', 'Ennui', 'Incapacity', 'Sluggishness', 'Lingering Sloth'},
-        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 1 or nil end, alias='SLOWPROC', singlebuff=true, classes={WAR=true,PAL=true,SHD=true}}
+        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 1 or nil end, alias='SLOWPROC', singlebuff=true, classes={WAR=true,PAL=true,SHD=true}, opt='USESLOWPROC'}
     },
     {-- DPS spellset. Disease DoT. Slot 1
         Group='maladydot',
@@ -159,7 +160,7 @@ Shaman.SpellLines = {
     {-- disease dot. Not used directly, only by combo spell. Combo spell comes in non-level increase expansions. (pendemiccombo)
         Group='breathdot',
         Spells={'Breath of the Hotariton', 'Breath of the Tegi', 'Breath of Bledrek', 'Breath of Elkikatar', 'Breath of Hemocoraxius', 'Breath of Wunshi'},
-        Options={opt='USEDOTS', Gem=function(lvl) return (not Shaman:get('USEDISPEL') and lvl <= 70 and 5) or (not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5) or nil end}
+        Options={opt='USEDOTS', Gem=function(lvl) return (not Shaman:get('USEDISPEL') and lvl <= 70 and 5) or (lvl <= 70 and 12) or (not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5) or nil end}
     },
     {-- temp hp buff. Slot 6
         Group='growth',
@@ -235,7 +236,7 @@ Shaman.SpellLines = {
     {-- greater poison dot. Not used directly. only by combo spell. (chaotic)
         Group='blooddot',
         Spells={'Caustic Blood', 'Desperate Vampyre Blood', 'Restless Blood', 'Scorpikis Blood', 'Reef Crawler Blood', 'Blood of Yoppa'},
-        Options={opt='USEDOTS', Gem=function(lvl) return (mq.TLO.FindItem('Forsaken Jaundiced Bone Bracer')() and 2) or (not Shaman:get('USECRIPPLE') and lvl == 70 and 6) or (not Shaman.spells.chaotic and (Shaman:get('SPELLSET') == 'standard' or not Shaman:isEnabled('USEALLIANCE')) and 13) or (not Shaman.spells.chaotic and Shaman:get('SPELLSET') == 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6) or nil end}
+        Options={opt='USEDOTS', Gem=function(lvl) return (not Shaman:get('USECRIPPLE') and lvl == 70 and 6) or (not Shaman.spells.chaotic and (Shaman:get('SPELLSET') == 'standard' or not Shaman:isEnabled('USEALLIANCE')) and 13) or (not Shaman.spells.chaotic and Shaman:get('SPELLSET') == 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6) or nil end}
     },
     {-- keep up on tank, proc ae heal from target. Slot 13
         Group='alliance',
@@ -255,7 +256,7 @@ Shaman.SpellLines = {
     {Group='hot', Spells={'Celestial Health', 'Celestial Remedy'}, Options={}},
     {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', debuff=true, condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true, Gem=function(lvl) return Shaman:isEnabled('USEDISPEL') and lvl <= 70 and 5 or nil end}},
-    {Group='debuff', Spells={'Crippling Spasm', 'Listless Power', 'Disempower'}, Options={opt='USECRIPPLE', debuff=true, Gem=function(lvl) return state.emu and 6 or nil end, condition=function() return mq.TLO.SpawnCount('pc class enchanter radius 100')() == 0 and mq.TLO.Target.Named() end}},
+    {Group='debuff', Spells={'Crippling Spasm', 'Listless Power', 'Disempower'}, Options={opt='USECRIPPLE', debuff=true, Gem=function(lvl) return state.emu and Shaman:isEnabled('USECRIPPLE') and 6 or nil end, condition=function() return mq.TLO.SpawnCount('pc class enchanter radius 100')() == 0 and mq.TLO.Target.Named() end}},
     {Group='disdebuff', Spells={'Insidious Malady', 'Insidious Fever'}, Options={opt='USEDEBUFF', debuff=true}},
     -- EMU special: Ice Age nuke has 25% chance to proc slow
     {Group='slownuke', Spells={'Ice Age'}, Options={opt='USENUKES', Gem=function(lvl) return mq.TLO.FindItem('Forsaken Jaundiced Bone Bracer')() and 2 or nil end}},
@@ -294,7 +295,7 @@ Shaman.SpellLines = {
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
-    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, opt='SUMMONPET', postcast=function() if Shaman.spells.pet.CastName == 'Commune with the Wild' and not PET_RACES[mq.TLO.Pet.Race.Name()] then mq.cmd('/pet leave') end end}},
+    {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={opt='SUMMONPET', postcast=function() if Shaman.spells.pet.CastName == 'Commune with the Wild' and not PET_RACES[mq.TLO.Pet.Race.Name()] then mq.cmd('/pet leave') else common.petClicky() end end}},
     {Group='sow', Spells={'Spirit of the Shrew', 'Spirit of Wolf'}, Options={}},
     {Group='shrink', Spells={'Shrink'}, Options={alias='SHRINK'}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
@@ -378,11 +379,16 @@ Shaman.SpellLines = {
         Spells={'Gale of Poison', 'Poison Storm'},
         Options={opt='USEAOE'}
     },
+    {
+        Group='conenuke',
+        Spells={'Breath of Antraygus'},
+        Options={opt='USEAOE', Gem=function(lvl) return not Shaman:isEnabled('USESLOWPROC') and 1 or nil end}
+    }
 }
 
 Shaman.compositeNames = {['Ecliptic Roar']=true,['Composite Roar']=true,['Dissident Roar']=true,['Roar of the Lion']=true}
 Shaman.allDPSSpellGroups = {'maladydot', 'bitenuke', 'tcnuke', 'slownuke', 'pandemiccombo', 'breathdot', 'poisonnuke', 'malodot', 'nectardot', 'cursedot',
-    'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot', 'aedot', 'rain'}
+    'icenuke', 'chaotic', 'blooddot', 'pandemicdot', 'afflictiondot', 'aedot', 'conenuke', 'rain'}
 
 function Shaman:initSpellRotations()
     self:initBYOSCustom()
@@ -400,6 +406,7 @@ function Shaman:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.nectardot)
     table.insert(self.spellRotations.standard, self.spells.cursedot)
     table.insert(self.spellRotations.standard, self.spells.tcnuke1)
+    table.insert(self.spellRotations.standard, self.spells.conenuke)
     table.insert(self.spellRotations.standard, self.spells.poisonnuke)
     table.insert(self.spellRotations.standard, self.spells.bitenuke)
     table.insert(self.spellRotations.standard, self.spells.tcnuke2)
@@ -409,8 +416,9 @@ function Shaman:initSpellRotations()
     table.insert(self.spellRotations.hybrid, self.spells.nectardot)
     table.insert(self.spellRotations.hybrid, self.spells.cursedot)
     table.insert(self.spellRotations.hybrid, self.spells.tcnuke1)
-    table.insert(self.spellRotations.hybrid, self.spells.bitenuke)
     table.insert(self.spellRotations.hybrid, self.spells.tcnuke2)
+    table.insert(self.spellRotations.hybrid, self.spells.conenuke)
+    table.insert(self.spellRotations.hybrid, self.spells.bitenuke)
     table.insert(self.spellRotations.hybrid, self.spells.poisonnuke)
     table.insert(self.spellRotations.hybrid, self.spells.icenuke)
 
@@ -421,6 +429,7 @@ function Shaman:initSpellRotations()
     table.insert(self.spellRotations.dps, self.spells.malodot)
     table.insert(self.spellRotations.dps, self.spells.cursedot)
     table.insert(self.spellRotations.dps, self.spells.tcnuke1)
+    table.insert(self.spellRotations.dps, self.spells.conenuke)
     table.insert(self.spellRotations.dps, self.spells.bitenuke)
     table.insert(self.spellRotations.dps, self.spells.poisonnuke)
     table.insert(self.spellRotations.dps, self.spells.icenuke)
@@ -470,7 +479,7 @@ Shaman.Abilities = {
     {
         Type='AA',
         Name='Spirit Call',
-        Options={first=true, delay=1500}
+        Options={first=true, delay=1500, opt='USESWARMPETS'}
     },
     {
         Type='AA',

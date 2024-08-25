@@ -160,6 +160,11 @@ Rogue.Abilities = {
         Options={opt='USEEPIC', first=true, epicburn=true} -- combatbuff=true, 
     },
     {
+        Type='Item',
+        Name='Nightshade, Blade of Ancient Entropy',
+        Options={opt='USEEPIC', first=true, epicburn=true} -- combatbuff=true, 
+    },
+    {
         Type='AA',
         Name='Envenomed Blades',
         Options={combatbuff=true}

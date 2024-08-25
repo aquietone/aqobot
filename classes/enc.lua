@@ -53,6 +53,7 @@ function Enchanter:initClassOptions()
     self:addOption('USECRIPPLE', 'Use Cripple', true, nil, 'Toggle use of single target cripple ability', 'checkbox', nil, 'UseCripple', 'bool')
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
     self:addOption('DEBUFFONPULL', 'Debuff on Pull', true, nil, 'Debuff mobs immediately', 'checkbox', nil, 'DebuffOnPull', 'bool')
+    self:addOption('USEKEI', 'Buff KEI', false, nil, 'Toggle casting of KEI buff line', 'checkbox', nil, 'UseKEI', 'bool')
 end
 --[[
     edict of tashan
@@ -189,14 +190,14 @@ Enchanter.SpellLines = {
     {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex', 'Dyn\'s Dizzying Draught',  'Whirl till you hurl'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
     {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}, {Gem=function(lvl) return not Enchanter:get('MEZAE') and lvl <= 60 and 4 or nil end}},
-    {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}, Options={selfbuff=true}}, -- self rune, proc ae stun on fade
+    {Group='stunaerune', Spells={'Polyluminous Rune', 'Polycascading Rune', 'Polyfluorescent Rune', 'Ethereal Rune', 'Arcane Rune'}, Options={selfbuff=true, condition=function() return not mq.TLO.FindItem('Mindreaver\'s Leggings of Coercion')() end}}, -- self rune, proc ae stun on fade
 
-    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]] 'Salik\'s Animation', 'Aeidorb\'s Animation', 'Boltran\'s Animation', 'Uleen\'s Animation', 'Sagar\'s Animation', 'Sisna\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}, Options={}},
+    {Group='pet', Spells={'Flariton\'s Animation', 'Constance\'s Animation', 'Omica\'s Animation', 'Nureya\'s Animation', 'Gordianus\' Animation', 'Xorlex\'s Animation', 'Seronvall\'s Animation', 'Novak\'s Animation', --[[emu cutoff]] 'Salik\'s Animation', 'Aeidorb\'s Animation', 'Boltran\'s Animation', 'Uleen\'s Animation', 'Sagar\'s Animation', 'Sisna\'s Animation', 'Shalee\'s Animation', 'Kilan\'s Animation', 'Myrcil\'s Animation', 'Juli\'s Animation', 'Pendril\'s Animation'}, Options={postcast=function() common.petClicky() end}},
     {Group='pethaste', Spells={'Invigorated Minion'}, Options={petbuff=true}},
     -- buffs
     -- {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI', selfbuff=true}},
     {Group='resmagicgroup', Spells={'Group Resist Magic'}, Options={alias='RESMAGIC', selfbuff=true}},
-    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Unified Alacrity', 'Voice of Clairvoyance', 'Voice of Quellious', 'Koadic\'s Endless Intellect'}, Options={alias='KEI', selfbuff=true}},
+    {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Unified Alacrity', 'Voice of Clairvoyance', 'Voice of Quellious', 'Koadic\'s Endless Intellect'}, Options={alias='KEI', selfbuff=true, opt='USEKEI'}},
     {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Clairovoyance', 'Clarity', 'Breeze'}, Options={alias='SINGLEKEI', selfbuff=function() return not Enchanter.spells.keigroup and true or false end}},
     {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar', 'Hastening of Milyex', 'Hastening of Prokev', 'Hastening of Sviir', 'Hastening of Aransir', 'Hastening of Novak', 'Unified Alacrity', 'Hastening of Salik', 'Vallon\'s Quickening', 'Speed of the Brood'}, Options={alias='HASTE'}}, -- group haste
     {Group='haste', Spells={'Speed of Margator', 'Speed of Itzal', 'Speed of Cekenar', 'Speed of Milyex', 'Speed of Prokev', 'Speed of Sviir', 'Speed of Aransir', 'Speed of Novak', 'Visions of Grandeur', 'Augmentation', 'Alacrity', 'Quickness'}, Options={alias='SINGLEHASTE'}}, -- single target buff
@@ -222,6 +223,13 @@ Enchanter.compositeNames = {['Ecliptic Reinforcement']=true,['Composite Reinforc
 Enchanter.allDPSSpellGroups = {'dot1', 'dot2', 'mindnuke1', 'mindnuke2', 'nuke1', 'nuke2', 'nuke3', 'manadot', 'nukerune', 'debuffdot', 'stunst', 'stunae', 'stunpbae', 'stunaerune'}
 
 Enchanter.Abilities = {
+    -- DPS
+    { -- just a DD click on laz at least?
+        Type='Item',
+        Name='Staff of Eternal Eloquence',
+        Options={dps=true}
+    },
+
     -- Burns
     {
         Type='Item',
@@ -366,8 +374,8 @@ Enchanter.Abilities = {
     },
     {
         Type='Item',
-        Name='Staff of Eternal Eloquence',
-        Options={classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}, singlebuff=true}
+        Name='Staff of the Serpent',
+        Options={singlebuff=true, alias='EPICHASTE'}
     },
     {
         Type='AA',

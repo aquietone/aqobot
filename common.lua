@@ -395,6 +395,14 @@ function common.rest()
     end
 end
 
+function common.petClicky()
+    if mq.TLO.FindItem('Codex of Minion\'s Materiel')() then
+        mq.cmd('/useitem "Codex of Minion\'s Materiel"')
+        mq.delay(50)
+        mq.delay(5000, function() return not mq.TLO.Me.Casting() end)
+    end
+end
+
 -- keep cursor clear for spell swaps and such
 local autoInventoryTimer = timer:new(15000)
 ---Autoinventory an item if it has been on the cursor for 15 seconds.

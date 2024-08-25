@@ -1,3 +1,18 @@
+# 2024/08/25
+- Add 2.5s for some classes
+- Add codex clicky on pet summon for pet classes
+- Move USESWARMPETS to common class options
+- Add USESWARMPETS to all swarm pet abilities
+- Add druid usecheetah option
+- Add enc toggle for buffing KEI
+- Various paladin updates
+- Add normal heals to rng
+- Rearrange some shm dots
+- Remove mana blaze from wiz
+- Add some more buff begging aliases
+- Add interrupt heals if full hp and interrupt cast for emergency heals options
+
+
 # 2024/07/18
 - Kill familiars in managepet routine
 - Timer fixes for clicky items to avoid thinking a clicky was used when it was really not

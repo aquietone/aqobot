@@ -363,6 +363,7 @@ local function drawHeader()
     if state.paused then
         if ImGui.Button(icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
             camp.setCamp()
+            state.resetCombatState()
             state.paused = false
         end
     else
@@ -761,11 +762,12 @@ local function drawClickyManager()
     if clickyManagerOpen then
         clickyManagerOpen, shouldDrawClickyManager = ImGui.Begin(('AQO Clickies##AQOBOTUI%s'):format(state.class), clickyManagerOpen)
         if shouldDrawClickyManager then
-            if ImGui.BeginTable('clickies', 4) then
+            if ImGui.BeginTable('clickies', 5) then
                 ImGui.TableSetupColumn('Enabled', ImGuiTableColumnFlags.None, 1)
                 ImGui.TableSetupColumn('Type', ImGuiTableColumnFlags.None, 1)
                 ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.None, 3)
                 ImGui.TableSetupColumn('Effect', ImGuiTableColumnFlags.None, 3)
+                ImGui.TableSetupColumn('Options', ImGuiTableColumnFlags.None, 3)
                 ImGui.TableHeadersRow()
                 for clickyName, clicky in pairs(class.clickies) do
                     ImGui.TableNextRow()
@@ -781,6 +783,11 @@ local function drawClickyManager()
                     ImGui.Text(clickyName)
                     ImGui.TableNextColumn()
                     ImGui.Text('%s', mq.TLO.FindItem(clickyName).Clicky() or mq.TLO.FindItemBank(clickyName).Clicky())
+                    ImGui.TableNextColumn()
+                    local opts = ''
+                    if clicky.opt then opts = opts .. 'Opt: ' .. clicky.opt end
+                    if clicky.condition then opts = opts .. ' Condition: ' .. clicky.condition end
+                    ImGui.Text('%s', opts)
                 end
                 ImGui.EndTable()
             end

@@ -428,12 +428,12 @@ Magician.Abilities = {
     {
         Type='AA',
         Name='Host of the Elements',
-        Options={first=true, delay=1500}
+        Options={first=true, delay=1500, opt='USESWARMPETS'}
     },
     {
         Type='AA',
         Name='Servant of Ro',
-        Options={first=true, delay=500}
+        Options={first=true, delay=500, opt='USESWARMPETS'}
     },
     {
         Type='AA',

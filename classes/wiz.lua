@@ -23,6 +23,7 @@ end
 
 function Wizard:initClassOptions()
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
+    self:addOption('USEHARVEST', 'Use Harvest', true, nil, 'Toggle use of Harvest spell/AA', 'checkbox', nil, 'UseHarvest', 'bool')
 end
 -- circle of thunder, jyll's wave of heat, jyll's static pulse (pbae)
 -- scepter of incantations, molten orb, aged shissar elementalist's staff
@@ -47,7 +48,7 @@ Wizard.SpellLines = {
     {Group='pbaeice', Spells={--[['Winds of Gelid', ]]'Jyll\'s Zephyr of Ice', 'Numbing Cold'}, Options={opt='USEAOE', Gem=7, condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}},
     {Group='pbaefire', Spells={--[['Circle of Fire', ]]'Jyll\'s Wave of Heat', 'Fingers of Fire'}, Options={opt='USEAOE', Gem=8, condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}},
 
-    {Group='harvest', Spells={'Harvest'}, Options={Gem=9}},
+    {Group='harvest', Spells={'Harvest'}, Options={Gem=9, opt='USEHARVEST', condition=function() return not state.burn_active end}},
     {Group='rune', Spells={'Ether Skin'}, Options={selfbuff=true, Gem=10}},
     {Group='dispel', Spells={'Annul Magic', 'Nullify Magic', 'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL',}},-- Gem=11}},
     {Group='hpbuff', Spells={'Ether Shield', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true, Gem=12}},
@@ -101,11 +102,11 @@ Wizard.Abilities = {
         Name='Fundament: Second Spire of Arcanum',
         Options={first=true}
     },
-    {
-        Type='AA',
-        Name='Mana Blaze',
-        Options={first=true}
-    },
+    -- {
+    --     Type='AA',
+    --     Name='Mana Blaze',
+    --     Options={first=true}
+    -- },
     {
         Type='AA',
         Name='Improved Twincast',
@@ -144,7 +145,7 @@ Wizard.Abilities = {
     {
         Type='AA',
         Name='Harvest of Druzzil',
-        Options={recover=true}
+        Options={recover=true, opt='USEHARVEST', condition=function() return not state.burn_active end}
     }
 }
 function Wizard:initSpellRotations()

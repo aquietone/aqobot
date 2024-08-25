@@ -1,5 +1,6 @@
 local mq = require('mq')
 local class = require('classes.classbase')
+local config = require('interface.configuration')
 local conditions = require('routines.conditions')
 local tank = require('routines.tank')
 local timer = require('libaqo.timer')
@@ -59,7 +60,7 @@ function Paladin:init()
     self:initAbilities()
     self:addCommonAbilities()
 
-    state.nukeTimer = timer:new(2000)
+    state.nukeTimer = timer:new(500)
     self.useCommonListProcessor = true
 end
 
@@ -73,7 +74,7 @@ Paladin.SpellLines = {
     {
         Group='stun1',
         Spells={'Force of Marr', --[[emu cutoff]] 'Ancient: Force of Jeron', 'Force of Piety', 'Stun', 'Desist', 'Cease'},
-        Options={Gem=1},
+        Options={Gem=function(lvl) return state.emu and 8 or 1 end},
     },
     {
         Group='stun2',
@@ -88,17 +89,17 @@ Paladin.SpellLines = {
     {
         Group='stunaoenuke',
         Spells={'The Silent Command'},
-        Options={Gem=3, opt='USEAOE'}
+        Options={Gem=function(lvl) return state.emu and 6 or 3 end, opt='USEAOE'}
     },
     {
         Group='twincast',
-        Spells={'Glorious Exoneration'},
+        Spells={'Glorious Exoneration', --[[emu cutoff]] 'Justice of Marr'},
         Options={Gem=function(lvl) return lvl > 100 and 4 end},
     },
     {
         Group='stunaoe',
         Spells={'Stun Command'},
-        Options={Gem=4, function(lvl) return lvl <= 100 and 4 end}
+        Options={Gem=function(lvl) return state.emu and 5 or 4 end, function(lvl) return lvl <= 100 and 4 end}
     },
     {
         Group='healtot',
@@ -112,8 +113,9 @@ Paladin.SpellLines = {
     },
     {
         Group='groupheal',
-        Spells={'Wave of Penitence'},
-        Options={Gem=7, threshold=2, heal=true, group=true},
+        NumToPick=3,
+        Spells={'Wave of Penitence', --[[emu cutoff]] 'Wave of Piety', 'Wave of Trushar', 'Wave of Marr'},
+        Options={Gem=function(lvl) return state.emu and 7 or nil end, Gems=state.emu and {1,2,3} or {7}, threshold=2, heal=true, group=true},
     },
     {
         Group='grouphealfast',
@@ -132,13 +134,13 @@ Paladin.SpellLines = {
     },
     {
         Group='growth',
-        Spells={'Stubborn Stance'},
-        Options={Gem=11, combatbuff=true},
+        Spells={'Stubborn Stance', --[[emu cutoff]] 'Ward of Tunare'},
+        Options={Gem=function(lvl) return lvl <= 70 and 7 or 11 end, combatbuff=true},
     },
     {
         Group='procbuff',
-        Spells={'Preservation of Marr', 'Instrument of Nife'},
-        Options={Gem=function(lvl) return lvl <= 60 and 7 or 12 end, selfbuff=true},
+        Spells={'Preservation of Marr', 'Instrument of Nife', --[[emu cutoff]] 'Pious Fury'},
+        Options={Gem=function(lvl) return lvl <= 70 and 11 or 12 end, combatbuff=true},
     },
     {-- same stats as cleric aego
         Group='aego',
@@ -148,11 +150,11 @@ Paladin.SpellLines = {
     {
         Group='brells',
         Spells={'Brell\'s Tellurian Rampart', 'Divine Vidor'},
-        Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end, alias='BRELLS', selfbuff=true},
+        Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, alias='BRELLS', selfbuff=true},
     },
     {
         Group='selfarmor',
-        Spells={'Armor of Implacable Faith'},
+        Spells={'Armor of Implacable Faith', --[[emu cutoff]] 'Armor of the Champion'},
         Options={selfbuff=true},
     },
     -- {
@@ -189,7 +191,12 @@ Paladin.SpellLines = {
         Group='dispel',
         Spells={'Cancel Magic'},
         Options={debuff=true}
-    }
+    },
+    {
+        Group='aura',
+        Spells={'Blessed Aura',},
+        Options={aura=true, aurabuff=true,}
+    },
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
 Paladin.allDPSSpellGroups = {'stun1', 'stun2', 'stun3', 'stunaoenuke', 'stunaoe'}
@@ -284,7 +291,7 @@ Paladin.Abilities = {
     { -- DD + agro + interrupt, mash
         Type='AA',
         Name='Disruptive Persecution',
-        Options={dps=true}
+        Options={dps=true, condition=function() return not config.get('MAINTANK') end}
     },
 
     -- Burn
@@ -325,6 +332,11 @@ Paladin.Abilities = {
         Name='Spire of Chivalry',
         Options={first=true}
     },
+    { -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
+        Type='AA',
+        Name='Fundament: First Spire of Holiness',
+        Options={first=true}
+    },
     { -- inc dmg of spells and crit chance, 9m cd, timer 17
         Type='AA',
         Name='Thunder of Karana',
@@ -333,6 +345,12 @@ Paladin.Abilities = {
     { -- inc base melee dmg and crits, 20m cd, timer 75
         Type='AA',
         Name='Valorous Rage',
+        Options={first=true}
+    },
+    {
+        Type='Disc',
+        Group='hallowforge',
+        Names={'Hallowforge Discipline'},
         Options={first=true}
     },
 
