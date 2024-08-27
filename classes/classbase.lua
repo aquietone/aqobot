@@ -401,7 +401,7 @@ function base:getTableForClicky(clickyType)
         return self.castClickies
     elseif clickyType == 'heal' then
         return self.healAbilities
-    elseif clickyType == 'mana' then
+    elseif clickyType == 'mana' or clickyType == 'recover' then
         return self.recoverAbilities
     elseif clickyType == 'dispel' then
     elseif clickyType == 'cure' then
@@ -429,6 +429,16 @@ function base:addClicky(clicky)
     self.clickies[clicky.name] = clicky
     local item = mq.TLO.FindItem('='..clicky.name)
     if item.Clicky() then
+        if clicky.clickyType == 'begbuff' then
+            -- clicky with buff alias not added to any normal ability table
+            logger.info('Added \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, clicky.name)
+            local item = common.getItem(clicky.name, clicky)
+            self[item.alias] = item
+            self.requestAliases[item.alias] = item
+            self.availableBuffs[item.alias] = true
+            -- printf('%s - %s', self.requestAliases[item.alias].Name, self.availableBuffs[item.alias])
+            return
+        end
         local t = self:getTableForClicky(clicky.clickyType)
         if t then
             table.insert(t, common.getItem(clicky.name, clicky))
@@ -447,6 +457,11 @@ function base:removeClicky(itemName)
     if type(clicky) ~= 'table' then
         clicky = {clickyType=clicky}
     end
+    if clicky.clickyType == 'begbuff' then
+        self.clickies[itemName] = nil
+        logger.info('Removed \ay%s\ax clicky: \ag%s\ax', clicky.clickyType, itemName)
+        return
+    end
     local t = self:getTableForClicky(clicky.clickyType)
     if not t then return end
     for i,entry in ipairs(t) do
@@ -462,6 +477,9 @@ end
 function base:enableClicky(itemName)
     local clicky = self.clickies[itemName]
     if not clicky then
+        return
+    end
+    if clicky.clickyType == 'begbuff' then
         return
     end
     local t = self:getTableForClicky(clicky.clickyType)
@@ -480,6 +498,9 @@ function base:disableClicky(itemName)
     if not clicky then
         return
     end
+    if clicky.clickyType == 'begbuff' then
+        return
+    end
     local t = self:getTableForClicky(clicky.clickyType)
     if not t then return end
     for i,entry in ipairs(t) do
@@ -495,7 +516,12 @@ function base:getRequestAliases()
     local aliases = {}
     for name,ability in pairs(self.requestAliases) do
         if self.availableBuffs[name] then
-            aliases[name] = ability.CastType == abilities.Types.Item and ability.SpellName or ability.CastName
+            if ability.CastType == abilities.Types.Spell or (ability.CastType == abilities.Types.Item and mq.TLO.Me.ItemReady(ability.Name)()) or 
+                    (ability.CastType == abilities.Types.AA and mq.TLO.Me.AltAbilityReady(ability.Name)()) then
+                    -- (ability.CastType == abilities.Types.Spell and mq.TLO.Me.SpellReady(ability.Name)()) then
+                aliases[name] = ability.CastType == abilities.Types.Item and ability.SpellName or ability.CastName
+            end
+            -- printf('%s - %s', name, aliases[name])
         end
     end
     if self.requestAliases.HOT and self:isEnabled('USEHOTTANK') then
@@ -521,9 +547,10 @@ function base:loadSettings()
     if settings.clickies then
         for clickyName,clicky in pairs(settings.clickies) do
             if type(clicky) == 'string' then
-                clicky = {clickyType=clicky}
+                clicky = {name=clickyName, clickyType=clicky, enabled=true}
             end
-            base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled})
+            clicky.name = clickyName
+            base:addClicky(clicky)
         end
     end
     self.petWeapons = settings.petWeapons or nil
@@ -888,17 +915,44 @@ function base:wantBuffs()
             end
         end
     end
+    -- Special cases because of lazarus clicky buffs
+    if constants.tankClasses[mq.TLO.Me.Class.ShortName()] and mq.TLO.Me.Combat() and allBuffs.DG and not mq.TLO.Me.Buff('Divine Intervention')() and not mq.TLO.Me.Buff('Divine Guardian')() then
+        table.insert(request, 'DG')
+        allBuffs.DI = nil
+        allBuffs.DG = nil
+        allBuffs.DG2 = nil
+    end
+    if constants.tankClasses[mq.TLO.Me.Class.ShortName()] and mq.TLO.Me.Combat() and not allBuffs.DG and allBuffs.DG2 and not mq.TLO.Me.Buff('Divine Intervention')() and not mq.TLO.Me.Buff('Divine Guardian')() then
+        table.insert(request, 'DG2')
+        allBuffs.DI = nil
+        allBuffs.DG = nil
+        allBuffs.DG2 = nil
+    end
+    if self.desiredBuffs['RECURSION'] and allBuffs.RECURSION and not mq.TLO.Me.Buff(allBuffs.RECURSION)() then
+        table.insert(request, 'RECURSION')
+        if mq.TLO.Me.Buff(allBuffs.MANAPROC)() then
+            mq.cmdf('/removebuff "%s"', allBuffs.MANAPROC)
+        end
+        allBuffs.MANAPROC = nil
+        allBuffs.RECURSION = nil
+    end
+    if mq.TLO.Me.Buff('Void Recursion')() then
+        allBuffs.MANAPROC = nil
+        allBuffs.RECURSION = nil
+    end
+    -- Normal buff beg checks
     for desiredBuff,enabled in pairs(self.desiredBuffs) do
-        if enabled and desiredBuff ~= 'FPARAGON' then
-            if (not mq.TLO.Me.Buff(allBuffs[desiredBuff])() or (mq.TLO.Me.Buff(allBuffs[desiredBuff]).Duration() or 0) < 60000)
+        if enabled and desiredBuff ~= 'FPARAGON' and allBuffs[desiredBuff] then
+            if not mq.TLO.Me.BlockedBuff(allBuffs[desiredBuff])() and (not mq.TLO.Me.Buff(allBuffs[desiredBuff])() or (mq.TLO.Me.Buff(allBuffs[desiredBuff]).Duration() or 0) < 60000)
                     and (mq.TLO.Spell(allBuffs[desiredBuff]).WillLand() or 0) > 0 then
                 -- edge case for frantic flames tiered style buff
-                if not allBuffs[desiredBuff]:find('Flames') or not mq.TLO.Me.Buff('Flames')() then
+                if desiredBuff ~= 'DG' and desiredBuff ~= 'DG2' and (not allBuffs[desiredBuff]:find('Flames') or not mq.TLO.Me.Buff('Flames')()) then
                     table.insert(request, desiredBuff)
                 end
             end
         end
     end
+    -- Special cases for begging for short duration combat things
     if constants.tankClasses[mq.TLO.Me.Class.ShortName()] and mq.TLO.Me.Combat() and allBuffs.HOT and (not mq.TLO.Me.Song(allBuffs.HOT)() or (mq.TLO.Me.Song(allBuffs.HOT).Duration() or 0) < 6000) then
         table.insert(request, 'HOT')
     end

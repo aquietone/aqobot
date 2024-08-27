@@ -532,6 +532,7 @@ function Item:canUse(item)
     end
     if state.subscription ~= 'GOLD' and item.Prestige() then return IsReady.CANT_USE_PRESTIGE end
     local spell = item.Clicky.Spell
+    if self.isActiveDisc and mq.TLO.Me.ActiveDisc() then return IsReady.NOT_READY end
     if spell() and item.Timer.TotalSeconds() == 0 then
         return Ability.canUseSpell(spell, self)
     else
@@ -692,6 +693,13 @@ function Ability:setSpellData()
 
         self.SpellName = itemSpellRef.Name()
         self.CastID = itemRef.ID()
+
+        if mq.TLO.Me.CombatAbility(itemSpellRef.Name())() then
+            -- item casts a disc which may be activated..
+            if itemSpellRef.IsSkill() and (tonumber(itemSpellRef.Duration()) or 0) > 0 and itemSpellRef.TargetType() == 'Self' and not itemSpellRef.StacksWithDiscs() then
+                self.isActiveDisc = true
+            end
+        end
     elseif self.CastType == AbilityTypes.AA then
         local aaRef = mq.TLO.Me.AltAbility(self.CastName)
         local aaSpellRef = aaRef.Spell

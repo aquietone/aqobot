@@ -378,6 +378,11 @@ Enchanter.Abilities = {
         Options={singlebuff=true, alias='EPICHASTE'}
     },
     {
+        Type='Item',
+        Name='Mindreaver\'s Eternal Bracer',
+        Options={alias='RECURSION'},
+    },
+    {
         Type='AA',
         Name='Orator\'s Unity',
         Options={CheckFor='Ward of the Beguiler', selfbuff=true}

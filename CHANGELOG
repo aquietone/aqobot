@@ -1,3 +1,8 @@
+# 2024/08/27
+- Handle item clickies which cast combat abilities
+- Allow defining custom burn categories when adding clickies like `/mnk addclicky burn legs/true` then `/mnk burnnow legs`
+- Add special case buff begging for cleric forsaken boots and enchanter fippy bracer (laz specific)
+
 # 2024/08/25
 - Add 2.5s for some classes
 - Add codex clicky on pet summon for pet classes

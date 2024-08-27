@@ -220,18 +220,24 @@ local checkClickiesLoadedTimer = timer:new(300000)
 local function checkClickiesLoaded(base)
     if checkClickiesLoadedTimer:expired() then
         for clickyName,clicky in pairs(base.clickies) do
-            local t = base:getTableForClicky(clicky.clickyType)
-            if t then
-                local found = false
-                for _,clicky in ipairs(t) do
-                    if clicky.CastName == clickyName then
-                        found = true
-                        break
-                    end
-                end
-                if not found then
-                    -- base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled})
+            if clicky.clickyType == 'begbuff' then
+                if not base[clicky.alias] then
                     base:addClicky(clicky)
+                end
+            else
+                local t = base:getTableForClicky(clicky.clickyType)
+                if t then
+                    local found = false
+                    for _,clicky in ipairs(t) do
+                        if clicky.CastName == clickyName then
+                            found = true
+                            break
+                        end
+                    end
+                    if not found then
+                        -- base:addClicky({name=clickyName, clickyType=clicky.clickyType, summonMinimum=clicky.summonMinimum, opt=clicky.opt, enabled=clicky.enabled})
+                        base:addClicky(clicky)
+                    end
                 end
             end
         end

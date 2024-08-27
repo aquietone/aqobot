@@ -421,6 +421,11 @@ Cleric.Abilities = {
         Name='Divine Guardian',
         Options={alias='DG', classes={WAR=true,SHD=true,PAL=true}, nodmz=true, combatbuffothers=true}
     },
+    {
+        Type='Item',
+        Name='Forsaken Donal\'s Boots of Mourning',
+        Options={alias='DG2', classes={WAR=true,SHD=true,PAL=true}, nodmz=true, combatbuffothers=true}
+    },
     -- dps burns
     {
         Type='AA',

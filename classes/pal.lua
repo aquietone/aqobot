@@ -398,7 +398,12 @@ Paladin.Abilities = {
         Type='AA',
         Name='Marr\'s Salvation',
         Options={selfbuff=true}
-    }
+    },
+    { -- self buffs
+        Type='AA',
+        Name='Yaulp',
+        Options={combatbuff=true}
+    },
 }
 -- Sort out these ones
 -- self:addAA('Heroic Leap', {}) -- leap to target + ae agro, 2m cd, timer 9
