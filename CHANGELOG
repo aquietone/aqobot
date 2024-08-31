@@ -1,3 +1,9 @@
+# 2024/08/31
+- Add more classes epic 2.5s for project lazarus
+- Stop and wait for agro after turning on autofire in pull with ranged if in puller/pullertank modes
+- Adjust some queued action logic to handle swapping pet spells with postcast defined
+- Make rez ability a list and add veksar divine rez clicky by default
+
 # 2024/08/27
 - Handle item clickies which cast combat abilities
 - Allow defining custom burn categories when adding clickies like `/mnk addclicky burn legs/true` then `/mnk burnnow legs`
