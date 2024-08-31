@@ -226,7 +226,17 @@ Enchanter.Abilities = {
     -- DPS
     { -- just a DD click on laz at least?
         Type='Item',
+        Name='Staff of Ancient Eloquence',
+        Options={dps=true}
+    },
+    { -- just a DD click on laz at least?
+        Type='Item',
         Name='Staff of Eternal Eloquence',
+        Options={dps=true}
+    },
+    { -- just a DD click on laz at least?
+        Type='Item',
+        Name='Oculus of Persuasian',
         Options={dps=true}
     },
 

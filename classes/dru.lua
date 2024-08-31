@@ -214,6 +214,21 @@ Druid.Abilities = {
         Name='Nature\'s Blessing',
         Options={first=true}
     },
+    {
+        Type='Item',
+        Name='Staff of Ancient Brambles',
+        Options={first=true}
+    },
+    {
+        Type='Item',
+        Name='Staff of Everliving Brambles',
+        Options={first=true}
+    },
+    {
+        Type='Item',
+        Name='Staff of Living Brambles',
+        Options={first=true}
+    },
     -- Second burn
     { -- self only
         Type='AA',

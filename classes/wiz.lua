@@ -114,6 +114,11 @@ Wizard.Abilities = {
     },
     {
         Type='Item',
+        Name='Staff of Ancient Power',
+        Options={first=true, epicburn=true}
+    },
+    {
+        Type='Item',
         Name='Staff of Phenomenal Power',
         Options={first=true, epicburn=true}
     },

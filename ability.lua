@@ -266,7 +266,7 @@ end
 ---@param class? base # The AQO Class
 ---@param doSwap? boolean # Indicate whether it is ok to swap spells if necessary to use the spell
 ---@param skipShouldUseCheck? boolean # Indicates whether to call isReady or canUse. isReady calls both canUseSpell and shouldUseSpell. canUse just calls canUseSpell.
-function Ability.use(theAbility, class, doSwap, skipShouldUseCheck)
+function Ability.use(theAbility, class, doSwap, skipShouldUseCheck, queuedAction)
     local result = false
     logger.debug(logger.flags.ability.all, 'ENTER Ability.use \ag%s\ax', theAbility.Name)
     if theAbility.swap ~= nil then doSwap = theAbility.swap end
@@ -295,7 +295,14 @@ function Ability.use(theAbility, class, doSwap, skipShouldUseCheck)
                             -- may need to wait for GDC after the ability cast before running the postcast
                             if mq.TLO.Me.SpellInCooldown() then return state.queuedAction end
                             theAbility.postcast()
+                            state.queuedActionTimer:reset()
+                            state.queuedActionTimer.expiration = 30000
+                            return queuedAction
                         end
+                    else
+                        state.queuedActionTimer:reset()
+                        state.queuedActionTimer.expiration = 30000
+                        return queuedAction
                     end
                 end
                 state.queuedActionTimer:reset()
@@ -307,9 +314,16 @@ function Ability.use(theAbility, class, doSwap, skipShouldUseCheck)
                     state.queuedAction = function()
                         if mq.TLO.Me.SpellInCooldown() then return state.queuedAction end
                         theAbility.postcast()
+                        state.queuedActionTimer:reset()
+                        state.queuedActionTimer.expiration = 30000
+                        return queuedAction
                     end
                     state.queuedActionTimer:reset()
                     state.queuedActionTimer.expiration = 10000
+                elseif queuedAction then
+                    state.queuedAction = queuedAction
+                    state.queuedActionTimer:reset()
+                    state.queuedActionTimer.expiration = 30000
                 end
             end
         end
@@ -517,6 +531,8 @@ function Item:isReady(item)
     if state.subscription ~= 'GOLD' and item.Prestige() then return IsReady.CANT_USE_PRESTIGE end
     local spell = item.Clicky.Spell
     if spell() and item.Timer.TotalSeconds() == 0 then
+        if not spell.Beneficial() and (not mq.TLO.Target() or mq.TLO.Target.ID() == mq.TLO.Me.ID() or (mq.TLO.Target.PctHPs() or 100) >= 99) then return IsReady.NOT_READY end
+        if not spell.Beneficial() and mq.TLO.Target.Master.ID() ~= 0 then return IsReady.NOT_READY end
         local canUse = Ability.canUseSpell(spell, self)
         return canUse == IsReady.CAN_CAST and Ability.shouldUseSpell(spell) or canUse
     else
@@ -621,7 +637,8 @@ end
 ---@param gem number # The spell gem to swap the spell into, if needed
 ---@param class? base # The AQO Class
 ---@param skipReadyCheck? boolean # Whether to skip ready check on the mem'd spell
-function Ability.swapAndCast(spell, gem, class, skipReadyCheck)
+function Ability.swapAndCast(spell, gem, class, skipReadyCheck, queuedAction)
+    if (mq.TLO.Me.CombatState() == 'COMBAT' and state.class ~= 'NEC') or mq.TLO.Me.Moving() then return false end
     if not spell then return false end
     if not mq.TLO.Me.Gem(spell.Name)() then
         if mq.TLO.Me.Gem(gem)() then
@@ -633,12 +650,15 @@ function Ability.swapAndCast(spell, gem, class, skipReadyCheck)
             return false
         end
         state.queuedAction = function()
-            Ability.use(spell, class, false, skipReadyCheck)
+            local reMemQueuedAction = nil
             if state.restore_gem then
-                return function()
+                reMemQueuedAction = function()
+                    if queuedAction then queuedAction() end
                     Ability.swapSpell(state.restore_gem, gem)
                 end
             end
+            Ability.use(spell, class, false, skipReadyCheck, reMemQueuedAction)
+            return state.queuedAction
         end
         state.queuedActionTimer:reset()
         state.queuedActionTimer.expiration = 30000

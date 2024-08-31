@@ -469,6 +469,11 @@ Magician.Abilities = {
     },
     {
         Type='Item',
+        Name='Focus of Ancient Elements',
+        Options={first=true, epicburn=true, CheckFor='Elemental Conjunction'}
+    },
+    {
+        Type='Item',
         Name='Focus of Primal Elements',
         Options={first=true, epicburn=true, CheckFor='Elemental Conjunction'}
     },

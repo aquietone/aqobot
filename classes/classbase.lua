@@ -116,6 +116,7 @@ local base = {
     clickies = {},
     castClickies = {},
     pullClickies = {},
+    rezAbility = {},
     debuffOrder = {'Dispel','DebuffAOE','Debuff','SlowAOE','Slow','Snare'}
 }
 
@@ -199,13 +200,14 @@ function base:addCommonAbilities()
     if self.silent then self:addAbilityToLists(self.silent) end
     -- table.insert(self.burnAbilities, self.silent)
     self.mgb = self:addAA('Mass Group Buff')
-    if not self.rezAbility then self.rezAbility = common.getItem('Token of Resurrection') end
+    table.insert(self.rezAbility, common.getItem('Exalted Glowing Bath Token'))
+    table.insert(self.rezAbility, common.getItem('Token of Resurrection'))
     if not state.emu then
         self.glyph = self:addAA('Mythic Glyph of Ultimate Power V')
-        self.intensity = self:addAA('Intensity of the Resolute')
     else
         self.glyph = self:addAA('Glyph of Courage')
     end
+    self.intensity = self:addAA('Intensity of the Resolute', {condition=function() return not mq.TLO.Me.Song('Illusions of Grandeur')() end})
     if not state.emu then
         table.insert(self.burnAbilities, self:addAA('Focus of Arcanum'))
     else
@@ -352,7 +354,8 @@ function base:addAbilityToLists(ability)
             if ability.combatbuffothers then self.combatbuffothers = true end
         end
     end
-    if ability.rez then self.rezAbility = ability end
+    -- if ability.rez then self.rezAbility = ability end
+    if ability.rez then table.insert(self.rezAbility, ability) end
 end
 
 function base:addAA(name, options)
@@ -1107,20 +1110,7 @@ function base:managepet()
     if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
     if petSpell.Mana > mq.TLO.Me.CurrentMana() then return end
     if petSpell.ReagentID and mq.TLO.FindItemCount(petSpell.ReagentID)() < petSpell.ReagentCount then return end
-    abilities.swapAndCast(petSpell, state.swapGem, self)
-    if state.queuedAction then
-        local tempQueuedAction = state.queuedAction
-        state.queuedAction = function()
-            mq.cmd('/pet ghold on')
-            return tempQueuedAction
-        end
-    else
-        state.queuedAction = function()
-            mq.cmd('/pet ghold on')
-        end
-    end
-    state.queuedActionTimer:reset()
-    state.queuedActionTimer.expiration = 20000
+    abilities.swapAndCast(petSpell, state.swapGem, self, function() mq.cmd('/pet ghold on') end)
 end
 
 function base:hold()

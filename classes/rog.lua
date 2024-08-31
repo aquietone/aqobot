@@ -156,13 +156,18 @@ Rogue.Abilities = {
 
     {
         Type='Item',
+        Name='Nightshade, Blade of Ancient Entropy',
+        Options={opt='USEEPIC', first=true, epicburn=true} -- combatbuff=true, 
+    },
+    {
+        Type='Item',
         Name='Nightshade, Blade of Entropy',
         Options={opt='USEEPIC', first=true, epicburn=true} -- combatbuff=true, 
     },
     {
         Type='Item',
-        Name='Nightshade, Blade of Ancient Entropy',
-        Options={opt='USEEPIC', first=true, epicburn=true} -- combatbuff=true, 
+        Name='Fatestealer',
+        Options={CheckFor='Assassin\'s Taint', combatbuff=true}
     },
     {
         Type='AA',
@@ -174,11 +179,6 @@ Rogue.Abilities = {
         Group='eyes',
         Names={'Brigand\'s Gaze', 'Thief\'s Eyes'},
         Options={combatbuff=true}
-    },
-    {
-        Type='Item',
-        Name='Fatestealer',
-        Options={CheckFor='Assassin\'s Taint', combatbuff=true}
     },
     {
         Type='AA',

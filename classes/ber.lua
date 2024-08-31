@@ -222,11 +222,6 @@ Berserker.Abilities = {
     --     Name='Cry of Battle',
     --     Options={emu=true, second=true}
     -- },
-    {
-        Type='Item',
-        Name='Vengeful Taelosian Blood Axe',
-        Options={second=true}
-    },
     -- Tertiary Burn - Avenging Flurry, Vehement Rage, Shaman Epic, Epic 2.0
     { -- Increase Chance of Additional 2H Attack by 125%, Increase Chance to Double Attack by 10000%, Decrease Weapon Delay by 20.3%, Increase Chance to Flurry by 16%
         Type='Disc',

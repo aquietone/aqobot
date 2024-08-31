@@ -462,6 +462,11 @@ BeastLord.Abilities = {
     },
     {
         Type='Item',
+        Name='Spiritcaller Totem of the Ancients',
+        Options={first=true, epicburn=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor}
+    },
+    {
+        Type='Item',
         Name='Spiritcaller Totem of the Feral',
         Options={first=true, epicburn=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor}
     },

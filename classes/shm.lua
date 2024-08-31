@@ -453,6 +453,11 @@ Shaman.Abilities = {
     },
     {
         Type='Item',
+        Name='Ancient Spiritstaff of the Heyokah',
+        Options={first=true, epicburn=true, opt='USEEPIC'}
+    },
+    {
+        Type='Item',
         Name='Blessed Spiritstaff of the Heyokah',
         Options={first=true, epicburn=true, opt='USEEPIC'}
     },

@@ -353,6 +353,21 @@ Paladin.Abilities = {
         Names={'Hallowforge Discipline'},
         Options={first=true}
     },
+    {
+        Type='Item',
+        Name='Nightbane, Sword of the Ancients',
+        Options={first=true}
+    },
+    {
+        Type='Item',
+        Name='Nightbane, Sword of the Valiant',
+        Options={first=true}
+    },
+    {
+        Type='Item',
+        Name='Redemption',
+        Options={first=true}
+    },
 
     -- Heals
     { -- large aoe heal + hot, 24m cd, timer 38

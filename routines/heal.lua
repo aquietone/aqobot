@@ -395,22 +395,41 @@ local function doRezFor(rezAbility)
     end
 end
 
+local function isRezAbilityReady(rezAbility)
+    if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.CastName)() then
+        return false
+    elseif rezAbility.CastType == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.CastName)() then
+        if rezAbility.CastName == 'Convergence' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return false end
+        return false
+    elseif rezAbility.CastType == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.CastName)() then
+        if rezAbility.CastName == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return false end
+        return false
+    end
+    return true
+end
+
 local rezCheckTimer = timer:new(5000)
 function healing.rez(rezAbility)
     if (mq.TLO.Zone.ShortName() ~= 'poknowledge' and not rezCheckTimer:expired()) or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
-    if rezAbility.CastType == abilities.Types.AA and not mq.TLO.Me.AltAbilityReady(rezAbility.CastName)() then
-        return
-    elseif rezAbility.CastType == abilities.Types.Spell and not mq.TLO.Me.SpellReady(rezAbility.CastName)() then
-        return
-    elseif rezAbility.CastType == abilities.Types.Item and not mq.TLO.Me.ItemReady(rezAbility.CastName)() then
-        return
+    local rezToUse = nil
+    if type(rezAbility) == 'table' then
+        for _,rez in ipairs(rezAbility) do
+            if isRezAbilityReady(rez) then
+                rezToUse = rez
+                break
+            end
+        end
+    else
+        if not isRezAbilityReady(rezAbility) then
+            return
+        end
+        rezToUse = rezAbility
     end
-    if mq.TLO.Me.Class.ShortName() == 'NEC' and mq.TLO.FindItemCount('=Essence Emerald')() == 0 then return end
-    if rezAbility.CastName == 'Token of Resurrection' and (mq.TLO.FindItemCount('=Token of Resurrection')() == 0 or mq.TLO.Me.CombatState() ~= 'COMBAT') then return end
+    if not rezToUse then return end
     if reztimer:expired() and mq.TLO.Alert(0)() then mq.cmd('/squelch /alert clear 0') newCorpses = {} end
-    return doRezFor(rezAbility)
+    return doRezFor(rezToUse)
 end
 
 return healing

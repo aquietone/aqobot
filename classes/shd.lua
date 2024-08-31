@@ -238,6 +238,11 @@ ShadowKnight.Abilities = {
     },
     {
         Type='Item',
+        Name='Innoruuk\'s Ancient Blessing',
+        Options={key='epic'}
+    },
+    {
+        Type='Item',
         Name='Innoruuk\'s Dark Blessing',
         Options={key='epic'}
     },

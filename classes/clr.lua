@@ -53,6 +53,7 @@ function Cleric:init()
 
     self:initClassOptions()
     self:loadSettings()
+    table.insert(self.rezAbility, common.getItem('Exalted Glowing Bath Token'))
     self:initSpellLines()
     self:initSpellRotations()
     self:initAbilities()
@@ -341,6 +342,11 @@ Cleric.Abilities = {
     },
     {
         Type='Item',
+        Name='Aegis of Ancient Divinity',
+        Options={heal=true, panic=true, grouppanic=true}
+    },
+    {
+        Type='Item',
         Name='Aegis of Superior Divinity',
         Options={heal=true, panic=true, grouppanic=true}
     },
@@ -364,7 +370,7 @@ Cleric.Abilities = {
     {
         Type='AA',
         Name='Celestial Regeneration',
-        Options={alias='CR'}
+        Options={alias='CR', condition=function() return not mq.TLO.Me.Song('Celestial Regeneration')() end}
     },
     {
         Type='AA',

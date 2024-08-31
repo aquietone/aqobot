@@ -216,12 +216,17 @@ Monk.Abilities = {
     },
     {
         Type='Item',
-        Name='Fistwraps of Celestial Discipline',
+        Name='Ancient Fistwraps of Immortality',
         Options={combatbuff=true, delay=1000}
     },
     {
         Type='Item',
-        Name='Ancient Fistwraps of Immortality',
+        Name='Transcended Fistwraps of Immortality',
+        Options={combatbuff=true, delay=1000}
+    },
+    {
+        Type='Item',
+        Name='Fistwraps of Celestial Discipline',
         Options={combatbuff=true, delay=1000}
     },
     {
