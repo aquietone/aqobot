@@ -366,6 +366,10 @@ local function pullEngage(pull_spawn)
                 if not mq.TLO.Me.AutoFire() then
                     mq.cmd('/autofire on')
                 end
+                if mode.currentMode:isReturnToCampMode() then
+                    movement.stop()
+                    mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or mq.TLO.Me.CombatState() == 'COMBAT' end)
+                end
                 state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
             end
         elseif pullWith == 'spell' then
