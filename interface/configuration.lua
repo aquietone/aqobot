@@ -164,13 +164,22 @@ local config = {
         tlo = 'InterruptFullHP',
         tlotype = 'bool',
     },
-    INTERRUPtFORHEALS = {
+    INTERRUPTFORHEALS = {
         value = true,
         tip = 'Toggle whether to interrupt casts for emergency heals',
         classes = constants.healClasses,
         label = 'Interrupt For Heals',
         type = 'checkbox',
         tlo = 'InterruptForHeals',
+        tlotype = 'bool',
+    },
+    ANNOUNCEHEALS = {
+        value = false,
+        tip = 'Toggle whether to announce heals in group',
+        classes = constants.healClasses,
+        label = 'Announce Heals',
+        type = 'checkbox',
+        tlo = 'AnnounceHeals',
         tlotype = 'bool',
     },
     REZGROUP = {
@@ -591,7 +600,7 @@ local configByCategory = {
     Camp={'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASEPAUSED'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','GROUPSTAYCLOSE','PULLWITH'},
-    Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','XTARGETHEAL','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET'},
+    Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','XTARGETHEAL','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET','INTERRUPTFULLHP','INTERRUPTFORHEALS', 'ANNOUNCEHEALS'},
     Tank={'MAINTANK'},
     Rest={'MEDCOMBAT','RECOVERPCT','MEDHPSTART','MEDHPSTOP','MEDMANASTART','MEDMANASTOP','MEDENDSTART','MEDENDSTOP','MANASTONESTART','MANASTONESTARTHP','MANASTONESTOPHP','MANASTONETIME'},
     Loot={'LOOTMOBS','LOOTCOMBAT'},
@@ -650,7 +659,7 @@ function config.loadSettings()
     local settings = assert(loadfile(settingsFile))()
     if not settings or not settings.common then return settings, false end
     for setting,value in pairs(settings.common) do
-        if config[setting] then config[setting].value = value end
+        if config[setting] then config[setting].value = value end -- printf('loaded config %s value %s', setting, value) 
     end
     modes.currentMode = modes.fromString(config.MODE.value)
     logger.timestamps = config.TIMESTAMPS and config.TIMESTAMPS.value or false

@@ -52,7 +52,7 @@ Warrior.Abilities = {
     {
         Type='Item',
         Name='Kreljnok\'s Sword of Ancient Power',
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=true}
     },
     {
         Type='Item',
@@ -68,7 +68,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='defense',
         Names={'Vigorous Defense', 'Primal Defense'},
-        Options={tanking=true}
+        Options={tanking=true, emu=false}
     },
     {
         Type='Disc',
@@ -92,25 +92,25 @@ Warrior.Abilities = {
         Type='Disc',
         Group='composite',
         Names={'Ecliptic Shield', 'Composite Shield', 'Dissident Shield', 'Dichotomic Shield'},
-        Options={tanking=true}
+        Options={tanking=true, emu=false}
     },
     {
         Type='Disc',
         Group='dmgabsorb',
         Names={'End of the Line', 'Finish the Fight'},
-        Options={tanking=true}
+        Options={tanking=true, emu=false}
     },
     {
         Type='Disc',
         Group='phantom',
         Names={'Phantom Aggressor'},
-        Options={tanking=true, opt='USEPHANTOM'}
+        Options={tanking=true, opt='USEPHANTOM', emu=false}
     },
     {
         Type='Disc',
         Group='precision',
         Names={'Confluent Precision'},
-        Options={tanking=true, opt='USEPRECISION'}
+        Options={tanking=true, opt='USEPRECISION', emu=false}
     },
     {
         Type='AA',
@@ -120,12 +120,12 @@ Warrior.Abilities = {
     {
         Type='AA',
         Name='Blade Guardian',
-        Options={tanking=true}
+        Options={tanking=true, emu=false}
     },
     {
         Type='AA',
         Name='Brace for Impact',
-        Options={tanking=true}
+        Options={tanking=true, emu=false}
     },
     {
         Type='AA',
@@ -148,19 +148,19 @@ Warrior.Abilities = {
         Type='Disc',
         Group='roar',
         Names={'Roar of Challenge'},
-        Options={aetank=true, threshold=2, condition=conditions.aboveMobThreshold}
+        Options={aetank=true, threshold=2, condition=conditions.aboveMobThreshold, emu=false}
     },
     {
         Type='Disc',
         Group='expanse',
         Names={'Confluent Expanse'},
-        Options={aetank=true, opt='USEEXPANSE', threshold=2, condition=conditions.aboveMobThreshold}
+        Options={aetank=true, opt='USEEXPANSE', threshold=2, condition=conditions.aboveMobThreshold, emu=false}
     },
     {
         Type='Disc',
         Group='aewade',
         Names={'Wade into Battle'},
-        Options={aetank=true, threshold=4, condition=conditions.aboveMobThreshold}
+        Options={aetank=true, threshold=4, condition=conditions.aboveMobThreshold, emu=false}
     },
     {
         Type='AA',
@@ -191,13 +191,13 @@ Warrior.Abilities = {
         Type='Disc',
         Group='armorrunes',
         Names={'Armor of Rallosian Runes', 'Armor of Akhevan Runes'},
-        Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil}
+        Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil, emu=false}
     },
     {
         Type='Disc',
         Group='defenseburn',
         Names={'Levincrash Defense Discipline'},
-        Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil}
+        Options={tankburn=true, overwritedisc=Warrior.defense and Warrior.defense.Name or nil, emu=false}
     },
     { -- big taunt
         Type='AA',
@@ -237,18 +237,18 @@ Warrior.Abilities = {
     {
         Type='AA',
         Name='Spire of the Warlord',
-        Options={tankburn=true}
+        Options={tankburn=true, emu=false}
     },
     {
         Type='AA',
         Name='Fundament: Third Spire of the Warlord',
-        Options={tankburn=true}
+        Options={tankburn=true, emu=true}
     },
     {
         Type='Disc',
         Group='resolve',
         Names={'Warrior\'s Resolve', 'Warrior\'s Aegis'},
-        Options={tankburn=true}
+        Options={tankburn=true, emu=false}
     },
     { -- 10m cd, proc every swing for 12s
         Type='AA',
@@ -260,7 +260,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='attraction',
         Names={'Forceful Attraction'},
-        Options={opt='USEATTRACTION'}
+        Options={opt='USEATTRACTION', emu=false}
     },
     {
         Type='Disc',
@@ -272,7 +272,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='flash',
         Names={'Flash of Anger'},
-        Options={}
+        Options={emu=false}
     },
     { -- 10min cd, 60k heal
         Type='AA',
@@ -306,7 +306,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='shieldbreak',
         Names={'Shield Splinter'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
     {
         Type='Disc',
@@ -318,7 +318,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='knucklebreak',
         Names={'Knuckle Break'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
     {
         Type='AA',
@@ -334,7 +334,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='strike',
         Names={'Decisive Strike', 'Exploitive Strike'},
-        Options={dps=true, usebelowpct=20, condition=function(ability) return conditions.targetHPBelow(ability) and conditions.withinMeleeDistance(ability) end}
+        Options={dps=true, usebelowpct=20, condition=function(ability) return conditions.targetHPBelow(ability) and conditions.withinMeleeDistance(ability) end, emu=false}
     },
     --table.insert(self.burnAbilities, common.getBestDisc({'Brightfield\'s Onslaught Discipline', 'Brutal Onslaught Discipline', 'Savage Onslaught Discipline'})) -- 15min cd, timer 6, 270% crit chance, 160% crit dmg, crippling blows, increase min dmg
     { -- 4min cd, timer 2, increased offensive capabilities
@@ -386,13 +386,13 @@ Warrior.Abilities = {
     {
         Type='Item',
         Name='Huntsman\'s Ethereal Quiver',
-        Options={summonMinimum=101, condition=conditions.summonMinimum, selfbuff=true}
+        Options={summonMinimum=101, condition=conditions.summonMinimum, selfbuff=true, emu=false}
     },
     {
         Type='Disc',
         Group='voice',
         Names={'Commanding Voice'},
-        Options={combatbuff=not state.emu and true or false}
+        Options={combatbuff=true, emu=false}
     },
 }
 

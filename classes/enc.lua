@@ -30,9 +30,9 @@ end
 function Enchanter:initClassOptions()
     self:addOption('AURA1', 'Aura 1', 'twincast', self.AURAS, 'The first aura to keep up', 'combobox', nil, 'Aura1', 'string')
     self:addOption('AURA2', 'Aura 2', 'combatinnate', self.AURAS, 'The second aura to keep up', 'combobox', nil, 'Aura2', 'string')
-    self:addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, 'Toggle interrupting current spell casts to cast mez', 'checkbox', nil, 'InterruptForMez', 'bool')
+    -- self:addOption('INTERRUPTFORMEZ', 'Interrupt for Mez', false, nil, 'Toggle interrupting current spell casts to cast mez', 'checkbox', nil, 'InterruptForMez', 'bool')
     self:addOption('TASHTHENMEZ', 'Tash Then Mez', true, nil, 'Toggle use of tash prior to attempting to mez mobs', 'checkbox', nil, 'TashThenMez', 'bool')
-    self:addOption('USECHAOTIC', 'Use Chaotic', true, nil, 'Toggle use of Chaotic mez line', 'checkbox', nil, 'UseChaotic', 'bool')
+    if not state.emu then self:addOption('USECHAOTIC', 'Use Chaotic', true, nil, 'Toggle use of Chaotic mez line', 'checkbox', nil, 'UseChaotic', 'bool') end
     self:addOption('USECHARM', 'Use Charm', false, nil, 'Attempt to maintain a charm pet instead of using a regular pet', 'checkbox', nil, 'UseCharm', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', true, nil, 'Toggle use of DoTs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEHASTE', 'Buff Haste', true, nil, 'Toggle use of haste buff line', 'checkbox', nil, 'UseHaste', 'bool')
@@ -40,14 +40,14 @@ function Enchanter:initClassOptions()
     self:addOption('MEZAE', 'Use AE Mez', true, nil, 'Use AE Mez if 3 or more mobs are within camp radius', 'checkbox', nil, 'MezAE', 'bool')
     self:addOption('MEZAECOUNT', 'AE Mez Count', 3, nil, 'Threshold to use AE Mez ability', 'inputint', nil, 'MezAECount', 'bool')
     self:addOption('USEMINDOVERMATTER', 'Use Mind Over Matter', true, nil, 'Toggle use of Mind over Matter', 'checkbox', nil, 'UseMindOverMatter', 'bool')
-    self:addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, 'Toggle use of Nights Terror buff line', 'checkbox', nil, 'UseNDT', 'bool')
+    if not state.emu then self:addOption('USENIGHTSTERROR', 'Buff Nights Terror', true, nil, 'Toggle use of Nights Terror buff line', 'checkbox', nil, 'UseNDT', 'bool') end
     self:addOption('USENUKES', 'Use Nuke', true, nil, 'Toggle use of nukes', 'checkbox', nil, 'UseNukes', 'bool')
-    self:addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, 'Toggle use of Phantasmal', 'checkbox', nil, 'UsePhantasmal', 'bool')
-    self:addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, 'Toggle use of Replication buff line', 'checkbox', nil, 'UseReplication', 'bool')
-    self:addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, 'Toggle use of Shield of Fate', 'checkbox', nil, 'UseShieldOfFate', 'bool')
+    -- self:addOption('USEPHANTASMAL', 'Use Phantasmal', true, nil, 'Toggle use of Phantasmal', 'checkbox', nil, 'UsePhantasmal', 'bool')
+    -- self:addOption('USEREPLICATION', 'Buff Mana Proc', true, nil, 'Toggle use of Replication buff line', 'checkbox', nil, 'UseReplication', 'bool')
+    -- self:addOption('USESHIELDOFFATE', 'Use Shield of Fate', true, nil, 'Toggle use of Shield of Fate', 'checkbox', nil, 'UseShieldOfFate', 'bool')
     self:addOption('USESLOW', 'Use Slow', false, nil, 'Toggle use of single target slow ability', 'checkbox', nil, 'UseSlow', 'bool')
     self:addOption('USESLOWAOE', 'Use Slow AOE', true, nil, 'Toggle use of AOE slow ability', 'checkbox', nil, 'UseSlowAOE', 'bool')
-    self:addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, 'Toggle use of Spell Guard', 'checkbox', nil, 'UseSpellGuard', 'bool')
+    -- self:addOption('USESPELLGUARD', 'Use Spell Guard', true, nil, 'Toggle use of Spell Guard', 'checkbox', nil, 'UseSpellGuard', 'bool')
     self:addOption('USEDEBUFF', 'Use Tash', false, nil, 'Toggle use of single target tash ability', 'checkbox', nil, 'UseDebuff', 'bool')
     self:addOption('USEDEBUFFAOE', 'Use Tash AOE', true, nil, 'Toggle use of AOE tash ability', 'checkbox', nil, 'UseDebuffAOE', 'bool')
     self:addOption('USECRIPPLE', 'Use Cripple', true, nil, 'Toggle use of single target cripple ability', 'checkbox', nil, 'UseCripple', 'bool')
@@ -86,7 +86,7 @@ Enchanter.SpellLines = {
     {-- 6 tick mez + twincast on next spell. Slot 3
         Group='meznoblur',
         Spells={'Chaotic Conundrum', 'Chaotic Puzzlement', 'Chaotic Deception', 'Chaotic Delusion', 'Chaotic Bewildering', 'Chaotic Confounding', 'Chaotic Confusion', 'Chaotic Baffling', --[[emu cutoff]] },
-        Options={opt='USECHAOTIC', Gem=3}
+        Options={opt='USECHAOTIC', Gem=3, emu=false}
     },
     {-- 9 ticks. Slot 3
         Group='mezst',
@@ -123,7 +123,7 @@ Enchanter.SpellLines = {
     {-- single target dmg proc buff. Slot 9
         Group='procbuff',
         Spells={'Mana Reproduction', 'Mana Rebirth', 'Mana Replication', 'Mana Repetition', 'Mana Reciprocation', 'Mana Reverberation', 'Mana Repercussion', 'Mana Reiteration', --[[emu cutoff]] 'Mana Recursion', 'Mana Flare'},
-        Options={alias='MANAPROC', swap=false, Gem=9, singlebuff=true, selfbuff=true, classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}}
+        Options={alias='MANAPROC', swap=false, Gem=9, singlebuff=true, combatbuffothers=true, selfbuff=true, classes={MAG=true,WIZ=true,NEC=true,ENC=true,RNG=true}}
     },
     {-- extra dot. Slot 10
         Group='dot2',
@@ -133,60 +133,60 @@ Enchanter.SpellLines = {
     {-- 24k. when use dots off. Slot 10
         Group='nuke3',
         Spells={'Cognitive Appropriation', 'Psychological Appropriation', 'Ideological Appropriation', 'Psychic Appropriation', 'Intellectual Appropriation', 'Mental Appropriation', --[[emu cutoff]]},
-        Options={opt='USENUKES', Gem=function() return not Enchanter:isEnabled('USEDOTS') and 10 or nil end}
+        Options={opt='USENUKES', Gem=function() return not Enchanter:isEnabled('USEDOTS') and 10 or nil end, emu=false}
     },
     {-- restore mana, add dmg proc, inc dmg. Slot 11
         Group='composite',
         Spells={'Ecliptic Reinforcement', 'Composite Reinforcement', 'Dissident Reinforcement', 'Dichotomic Reinforcement'},
-        Options={Gem=11}
+        Options={Gem=11, emu=false}
     },
     {-- mez proc on being hit. Slot 12
         Group='unity',
         Spells={'Esoteric Unity', 'Marvel\'s Unity', 'Deviser\'s Unity', 'Transfixer\'s Unity', 'Enticer\'s Unity', 'Phantasmal Unity', 'Arcane Unity', 'Spectral Unity', --[[emu cutoff]]},
-        Options={Gem=12}
+        Options={Gem=12, emu=false}
     },
     {-- melee attack proc. Slot 13 or 2
         Group='nightsterror',
         Spells={'Night\'s Perpetual Terror', 'Night\'s Endless Terror', --[[emu cutoff]]},
-        Options={opt='USENIGHTSTERROR', Gem=function() return (not Enchanter:isEnabled('USEALLIANCE') and 13) or (not Enchanter:isEnabled('USECHARM') and 2) or nil end}
+        Options={opt='USENIGHTSTERROR', Gem=function() return (not Enchanter:isEnabled('USEALLIANCE') and 13) or (not Enchanter:isEnabled('USECHARM') and 2) or nil end, emu=false}
     },
     {-- Slot 13
         Group='alliance',
         Spells={'Chromatic Conjunction', 'Chromatic Coalition', 'Chromatic Covenant', 'Chromatic Alliance'},
-        Options={opt='USEALLIANCE', Gem=13}
+        Options={opt='USEALLIANCE', Gem=13, emu=false}
     },
 
-    {Group='mezst2', Spells={'Flummoxing Flash', 'Addling Flash'}}, -- 6 ticks
-    {Group='mezae', Spells={'Stupefying Wave', 'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}}, -- targeted AE mez
-    {Group='mezaehate', Spells={'Vexing Glance', 'Confounding Glance'}}, -- targeted AE mez + 100% hate reduction
-    {Group='mezpbae', Spells={'Wonderment', 'Bewilderment'}},
-    {Group='mezpbae2', Spells={'Perilous Confounding', 'Perilous Bewilderment'}}, -- lvl 120
-    {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}}, -- mez proc on being hit
+    {Group='mezst2', Spells={'Flummoxing Flash', 'Addling Flash'}, Options={emu=false}}, -- 6 ticks
+    {Group='mezae', Spells={'Stupefying Wave', 'Bewildering Wave', 'Neutralizing Wave', 'Bliss of the Nihil'}, Options={emu=false}}, -- targeted AE mez
+    {Group='mezaehate', Spells={'Vexing Glance', 'Confounding Glance'}, Options={emu=false}}, -- targeted AE mez + 100% hate reduction
+    {Group='mezpbae', Spells={'Wonderment', 'Bewilderment'}, Options={emu=false}},
+    {Group='mezpbae2', Spells={'Perilous Confounding', 'Perilous Bewilderment'}, Options={emu=false}}, -- lvl 120
+    {Group='mezshield', Spells={'Ward of the Stupefier', 'Ward of the Beguiler', 'Ward of the Deviser'}, Options={emu=false}}, -- mez proc on being hit
 
     {Group='rune', Spells={'Disquieting Rune', 'Marvel\'s Rune'}}, -- 160k rune, self
     {Group='rune2', Spells={'Rune of Zoraxmen', 'Rune of Tearc', 'Rune III', 'Rune II', 'Rune I'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end}}, -- 90k rune, single target
-    {Group='dotrune', Spells={'Aegis of Dhakka', 'Aegis of Xetheg'}}, -- absorb DoT dmg
+    {Group='dotrune', Spells={'Aegis of Dhakka', 'Aegis of Xetheg'}, Options={emu=false}}, -- absorb DoT dmg
     {Group='guard', Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order'}, Options={selfbuff=true}}, -- spell + melee guard
-    {Group='dotmiti', Spells={'Deviser\'s Auspice', 'Transfixer\'s Auspice'}}, -- DoT guard
-    {Group='spellmiti', Spells={'Aegis of Elmara', 'Aegis of Sefra'}}, -- 20% spell mitigation
+    {Group='dotmiti', Spells={'Deviser\'s Auspice', 'Transfixer\'s Auspice'}, Options={emu=false}}, -- DoT guard
+    {Group='spellmiti', Spells={'Aegis of Elmara', 'Aegis of Sefra'}, Options={emu=false}}, -- 20% spell mitigation
 
-    {Group='meleemiti', Spells={'Gloaming Auspice', 'Eclipsed Auspice'}}, -- melee guard, + hate
-    {Group='absorbbuff', Spells={'Brimstone Stability', 'Brimstone Endurance'}}, -- increase absorb dmg, + hate
-    {Group='aggrorune', Spells={'Esoteric Rune', 'Ghastly Rune'}}, -- single target rune + hate increase
+    {Group='meleemiti', Spells={'Gloaming Auspice', 'Eclipsed Auspice'}, Options={emu=false}}, -- melee guard, + hate
+    {Group='absorbbuff', Spells={'Brimstone Stability', 'Brimstone Endurance'}, Options={emu=false}}, -- increase absorb dmg, + hate
+    {Group='aggrorune', Spells={'Esoteric Rune', 'Ghastly Rune'}, Options={emu=false}}, -- single target rune + hate increase
     -- Polyradiant Rune -- hate mod rune, stun proc on fade
 
-    {Group='groupdotrune', Spells={'Legion of Dhakka', 'Legion of Xetheg', 'Legion of Cekenar'}},
+    {Group='groupdotrune', Spells={'Legion of Dhakka', 'Legion of Xetheg', 'Legion of Cekenar'}, Options={emu=false}},
     {Group='groupspellrune', Spells={'Legion of Ogna', 'Legion of Liako', 'Legion of Kildrukaun', --[[emu cutoff]] 'Circle of Alendar'}, Options={alias='SPELLRUNE'}},
     {Group='groupaggrorune', Spells={'Gloaming Rune', 'Eclipsed Rune', --[[emu cutoff]] 'Rune of Rikkukin'}, Options={alias='MELEERUNE'}}, -- group rune + big nuke/aggro reduction proc
 
-    {Group='debuffdot', Spells={'Dismaying Constriction', 'Perplexing Constriction', 'Confounding Constriction', 'Confusing Constriction', 'Baffling Constriction'}}, -- debuff + nuke + dot
-    {Group='manadot', Spells={'Tears of Kasha', 'Tears of Xenacious'}}, -- hp + mana DoT
-    {Group='nukerune', Spells={'Chromatic Spike', 'Chromatic Flare'}}, -- 18k nuke + self rune
+    {Group='debuffdot', Spells={'Dismaying Constriction', 'Perplexing Constriction', 'Confounding Constriction', 'Confusing Constriction', 'Baffling Constriction'}, Options={emu=false}}, -- debuff + nuke + dot
+    {Group='manadot', Spells={'Tears of Kasha', 'Tears of Xenacious'}, Options={emu=false}}, -- hp + mana DoT
+    {Group='nukerune', Spells={'Chromatic Spike', 'Chromatic Flare'}, Options={emu=false}}, -- 18k nuke + self rune
 
     {Group='nuke1', Spells={'Polyradiant Assault', 'Polyluminous Assault', 'Colored Chaos'}, Options={Gem=function(lvl) return lvl == 70 and 7 or nil end}}, -- 35k nuke
-    {Group='aenuke', Spells={'Gravity Roil'}}, -- 23k targeted ae nuke
+    {Group='aenuke', Spells={'Gravity Roil'}, Options={emu=false}}, -- 23k targeted ae nuke
 
-    {Group='calm', Spells={'Still Mind'}},
+    {Group='calm', Spells={'Still Mind'}, Options={emu=false}},
     {Group='stunst', Spells={'Dizzying Spindle', 'Dizzying Vortex', 'Dyn\'s Dizzying Draught',  'Whirl till you hurl'}}, -- single target stun
     {Group='stunae', Spells={'Remote Color Calibration', 'Remote Color Conflagration'}},
     {Group='stunpbae', Spells={'Color Calibration', 'Color Conflagration', 'Color Shift', 'Color Flux'}, {Gem=function(lvl) return not Enchanter:get('MEZAE') and lvl <= 60 and 4 or nil end}},
@@ -210,7 +210,7 @@ Enchanter.SpellLines = {
     -- 'Runic Scintillation Aura' -- rune aura
     -- unity buffs
     {Group='shield', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}},
-    {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}},
+    {Group='ward', Spells={'Ward of the Beguiler', 'Ward of the Transfixer'}, Options={emu=false}},
 
     {Group='spasm', Spells={'Synaptic Seizure', 'Synapsis Spasm', 'Insipid Weakness', 'Listless Power', 'Feckless Might', 'Disempower', 'Ebbing Strength', 'Enfeeblement', 'Weaken'}, Options={debuff=true, opt='USECRIPPLE', emu=true, Gem=function(lvl) return (lvl <= 60 and 6) or (lvl == 70 and 2) or nil end}},--, condition=function() return mq.TLO.Target.Named() end}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Recant Magic', 'Nullify Magic', 'Strip Enchantment', 'Cancel Magic', 'Taper Enchantment'}, Options={opt='USEDISPEL'}},
@@ -227,7 +227,7 @@ Enchanter.Abilities = {
     { -- just a DD click on laz at least?
         Type='Item',
         Name='Staff of Ancient Eloquence',
-        Options={dps=true}
+        Options={dps=true, emu=true}
     },
     { -- just a DD click on laz at least?
         Type='Item',
@@ -264,12 +264,12 @@ Enchanter.Abilities = {
     { -- buff, 7:30 minute CD
         Type='AA',
         Name='Spire of Enchantment',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     {
         Type='AA',
         Name='Fundament: Second Spire of Enchantment',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     { -- 15min CD
         Type='AA',
@@ -390,7 +390,7 @@ Enchanter.Abilities = {
     {
         Type='Item',
         Name='Mindreaver\'s Eternal Bracer',
-        Options={alias='RECURSION'},
+        Options={alias='RECURSION', combatbuffothers=true},
     },
     {
         Type='AA',

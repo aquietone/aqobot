@@ -34,19 +34,21 @@ function Ranger:init()
 end
 
 function Ranger:initClassOptions()
-    self:addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA', 'UseUnityAzia', 'bool')
-    self:addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA', 'UseUnityBeza', 'bool')
+    if not state.emu then
+        self:addOption('USEUNITYAZIA', 'Use Unity (Azia)', true, nil, 'Use Azia Unity Buff', 'checkbox', 'USEUNITYBEZA', 'UseUnityAzia', 'bool')
+        self:addOption('USEUNITYBEZA', 'Use Unity (Beza)', false, nil, 'Use Beza Unity Buff', 'checkbox', 'USEUNITYAZIA', 'UseUnityBeza', 'bool')
+    end
     self:addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox', nil, 'UseRange', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox', nil, 'UseDoTs', 'bool')
     self:addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW', 'UsePoisonArrow', 'bool')
     self:addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW', 'UseFireArrow', 'bool')
-    self:addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox', nil, 'BuffGroup', 'bool')
-    self:addOption('DSTANK', 'DS Tank', false, nil, 'DS Tank', 'checkbox', nil, 'DSTank', 'bool')
+    -- self:addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox', nil, 'BuffGroup', 'bool')
+    -- self:addOption('DSTANK', 'DS Tank', false, nil, 'DS Tank', 'checkbox', nil, 'DSTank', 'bool')
     self:addOption('USENUKES', 'Use Nukes', false, nil, 'Cast nukes on all mobs', 'checkbox', nil, 'UseNukes', 'bool')
     self:addOption('USEARROWSPELLS', 'Use Arrow Spells', true, nil, 'Cast arrow spells', 'checkbox', nil, 'UseArrowSpells', 'bool')
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Entropy AA', 'checkbox', nil, 'UseDispel', 'bool')
     self:addOption('USEREGEN', 'Use Regen', false, nil, 'Buff regen on self', 'checkbox', nil, 'UseRegen', 'bool')
-    self:addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox', nil, 'UseComposite', 'bool')
+    if not state.emu then self:addOption('USECOMPOSITE', 'Use Composite', true, nil, 'Cast composite as its available', 'checkbox', nil, 'UseComposite', 'bool') end
     self:addOption('USESNARE', 'Use Snare', true, nil, 'Cast snare on mobs', 'checkbox', nil, 'UseSnare', 'bool')
     self:addOption('USEFADE', 'Use Fade', true, nil, 'Use Cover Tracks AA to reduce aggro', 'checkbox', nil, 'UseFade', 'bool')
     self:addOption('USEWS', 'Use Weapon Shield', false, nil, 'Use Weapon Shield on aggro', 'checkbox', nil, 'UseWS', 'bool')
@@ -72,7 +74,7 @@ Ranger.SpellLines = {
     {-- heal ToT, Meltwater Spring, slow cast. Slot 3
         Group='healtot2',
         Spells={'Elizerain Spring', 'Darkflow Spring'},
-        Options={Gem=3}
+        Options={Gem=3, emu=false}
     },
     {-- consume class 3 wood silver tip arrow, strong vs animal/humanoid, magic bow shot, Heartruin. Slot 4
         Group='heart',
@@ -92,12 +94,12 @@ Ranger.SpellLines = {
     {-- heal ToT, Desperate Meltwater, fast cast, long cd. Slot 7
         Group='healtot',
         Spells={'Desperate Quenching', 'Desperate Geyser'},
-        Options={Gem=7}
+        Options={Gem=7, emu=false}
     },
     {-- target or tot splash heal + cure. Slot 8
         Group='balm',
         Spells={'Lunar Balm'},
-        Options={Gem=8, poison=true, disease=true, curse=true}
+        Options={Gem=8, poison=true, disease=true, curse=true, emu=false}
     },
     {-- 4x archery attacks + dmg buff to archery attacks for 18s, Marked Shots. Slot 9
         Group='shots',
@@ -117,21 +119,21 @@ Ranger.SpellLines = {
     {-- double bow shot and fire+ice nuke. Slot 12
         Group='composite',
         Spells={'Composite Fusillade'},
-        Options={Gem=12}
+        Options={Gem=12, emu=false}
     },
     {-- Slot 13
         Group='alliance',
         Spells={'Arbor Stalker\'s Coalition'},
-        Options={Gem=13}
+        Options={Gem=13, emu=false}
     },
 
     {Group='opener', Spells={'Stealthy Shot'}, Options={opt='USEARROWSPELLS'}}, -- consume class 3 wood silver tip arrow, strong bow shot opener, OOC only
     -- summers == 2x nuke, fire and ice. flash boon == buff fire nuke, frost boon == buff ice nuke. laurion ash == normal fire nuke. gelid wind == normal ice nuke
-    {Group='firenuke3', Spells={'Laurion Ash'}}, -- fire + ice nuke, Summer's Sleet
+    {Group='firenuke3', Spells={'Laurion Ash'}, Options={emu=false}}, -- fire + ice nuke, Summer's Sleet
     {Group='coldnuke2', Spells={'Gelid Wind', 'Frost Wind'}, Options={Gem=function(lvl) return lvl <= 70 and 2 end}}, -- 
     {Group='rain', Spells={'Invoke Lightning'}, Options={Gem=function(lvl) return lvl <= 60 and 3 or nil end, opt='USEAOE'}},
     {Group='dmgbuff', Spells={'Arbor Stalker\'s Enrichment', --[[emu cutoff]] 'Nature\'s Precision', 'Firefist'}, Options={selfbuff=true}}, -- inc base dmg of skill attacks, Arbor Stalker's Enrichment
-    {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
+    {Group='buffs', Spells={'Shout of the Fernstalker', 'Shout of the Dusksage Stalker'}, Options={selfbuff=true, emu=false}}, -- cloak of rimespurs, frostroar of the predator, strength of the arbor stalker, Shout of the Arbor Stalker
     -- Shout of the X Stalker Buffs
     {Group='cloak', Spells={'Cloak of Needlespikes', 'Cloak of Bloodbarbs', --[[emu cutoff]] 'Riftwood\'s Protection'}}, -- Cloak of Rimespurs
     {Group='predator', Spells={'Shriek of the Predator', 'Bay of the Predator', 'Howl of the Predator', 'Spirit of the Predator'}, Options={alias='SHOUT', selfbuff=true, Gem=function(lvl) return lvl <= 70 and 9 or nil end}}, -- Frostroar of the Predator
@@ -139,7 +141,7 @@ Ranger.SpellLines = {
     -- Unity AA Buffs
     -- {Group='protection', Spells={'Protection of Pal\'Lomen', 'Protection of the Valley', 'Ward of the Hunter', 'Protection of the Wild'}, Options={selfbuff=true}}, -- Protection of the Wakening Land
     {Group='eyes', Spells={'Eyes of the Phoenix', 'Eyes of the Senshali', 'Eyes of the Hawk', 'Eyes of the Owl'}, Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, selfbuff=true}}, -- Eyes of the Visionary
-    {Group='hunt', Spells={'Engulfed by the Hunt', 'Steeled by the Hunt'}}, -- Provoked by the Hunt
+    {Group='hunt', Spells={'Engulfed by the Hunt', 'Steeled by the Hunt'}, Options={emu=false}}, -- Provoked by the Hunt
     {Group='coat', Spells={'Needlespike Coat', 'Moonthorn Coat', --[[emu cutoff]] 'Bramblecoat', 'Barbcoat'}}, -- Rimespur Coat
     {Group='sow', Spells={'Spirit of Wolf'}, Options={}},
     -- Unity Azia only
@@ -147,7 +149,7 @@ Ranger.SpellLines = {
     -- Unity Beza only
     {Group='blades', Spells={'Arcing Blades', 'Vociferous Blades', 'Call of Lightning', 'Sylvan Call'}, Options={Gem=function(lvl) return lvl <= 70 and 11 or nil end, selfbuff=true}}, -- Howling Blades
     {Group='ds', Spells={'Shield of Needlespikes', 'Shield of Shadethorns'}}, -- DS
-    {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true}}, -- self rune + debuff proc
+    {Group='rune', Spells={'Shalowain\'s Crucible Cloak', 'Luclin\'s Darkfire Cloak'}, Options={selfbuff=true, emu=false}}, -- self rune + debuff proc
     {Group='regen', Spells={'Dusksage Stalker\'s Vigor'}}, -- regen
     {Group='snare', Spells={'Ensnare', 'Snare', 'Tangling Weeds'}, Options={Gem=function(lvl) return lvl <= 60 and 2 or nil end, opt='USESNARE', debuff=true}},
     {Group='dispel', Spells={'Nature\'s Balance', --[[emu cutoff]] 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true}},
@@ -229,12 +231,12 @@ Ranger.Abilities = {
     { -- 7.5min CD
         Type='AA',
         Name='Spire of the Pathfinders',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- 7.5min CD
         Type='AA',
         Name='Fundament: First Spire of the Pathfinders',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     {
         Type='AA',
@@ -334,7 +336,7 @@ Ranger.Abilities = {
     {
         Type='AA',
         Name='Wildstalker\'s Unity (Azia)',
-        Options={selfbuff=true, opt='USEUNITYAZIE', CheckFor='Devastating Barrage'}
+        Options={selfbuff=true, opt='USEUNITYAZIA', CheckFor='Devastating Barrage', emu=false}
     },
     --Slot 1: 	Vociferous Blades
     --Slot 2: 	Steeled by the Hunt
@@ -344,7 +346,7 @@ Ranger.Abilities = {
     {
         Type='AA',
         Name='Wildstalker\'s Unity (Beza)',
-        Options={selfbuff=true, opt='USEUNITYBEZA', CheckFor='Vociferous Blades'}
+        Options={selfbuff=true, opt='USEUNITYBEZA', CheckFor='Vociferous Blades', emu=false}
     },
     {
         Type='Disc',

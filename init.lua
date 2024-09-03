@@ -112,6 +112,14 @@ local function checkTarget()
     end
 end
 
+local function resetClearTargets()
+    if state.cleartargets and not mq.TLO.Spawn('npc radius 60').Aggressive() then
+        state.cleartargets = false
+        config.getOrSetOption('MODE', config.get('MODE'), state.previousmode, 'MODE')
+        state.previousmode = nil
+    end
+end
+
 local function checkFD()
     if mq.TLO.Me.Feigning() and (not constants.fdClasses[state.class] or not state.didFD) then
         mq.cmd('/stand')
@@ -220,6 +228,7 @@ local function main()
                 if state.reacquireTargetID then mq.cmdf('/mqtar id %s', state.reacquireTargetID) state.reacquireTargetID = nil end
                 aqo.camp.cleanTargets()
                 checkTarget()
+                resetClearTargets()
                 if not mq.TLO.Me.Invis() and not common.isBlockingWindowOpen() then
                     -- do active combat assist things when not paused and not invis
                     checkFD()

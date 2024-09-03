@@ -73,7 +73,7 @@ Rogue.Abilities = {
     { -- lazarus specific clicky pickpocket
         Type='Item',
         Name='Forgotten Mugger\'s Sap',
-        Options={dps=true, condition=function() return (mq.TLO.Target.Distance() or 100) < 50 and mq.TLO.Target.Body() == 'Humanoid' end}
+        Options={dps=true, condition=function() return (mq.TLO.Target.Distance() or 100) < 50 and mq.TLO.Target.Body() == 'Humanoid' end, emu=true}
     },
     {
         Type='Skill',
@@ -146,7 +146,7 @@ Rogue.Abilities = {
     {
         Type='AA',
         Name='Fundament: Third Spire of the Rake',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     {
         Type='AA',
@@ -157,7 +157,7 @@ Rogue.Abilities = {
     {
         Type='Item',
         Name='Nightshade, Blade of Ancient Entropy',
-        Options={opt='USEEPIC', first=true, epicburn=true} -- combatbuff=true, 
+        Options={opt='USEEPIC', first=true, epicburn=true, emu=true} -- combatbuff=true, 
     },
     {
         Type='Item',

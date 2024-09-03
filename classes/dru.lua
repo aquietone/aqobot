@@ -68,7 +68,7 @@ Druid.SpellLines = {
     {
         Group='heal2',
         Spells={'Adrenaline Fury', 'Adrenaline Spate', 'Adrenaline Deluge', 'Adrenaline Barrage', 'Adrenaline Torrent'},
-        Options={Gem=2, panic=true, regular=true, tank=true, pet=60}
+        Options={Gem=2, panic=true, regular=true, tank=true, pet=60, emu=false}
     }, -- healing spam on cd
     {
         Group='groupheal1',
@@ -78,7 +78,7 @@ Druid.SpellLines = {
     {
         Group='groupheal2',
         Spells={'Survival of the Heroic', 'Survival of the Unrelenting', 'Survival of the Favored', 'Survival of the Auspicious', 'Survival of the Serendipitous'},
-        Options={Gem=4, group=true}
+        Options={Gem=4, group=true, emu=false}
     }, -- group heal
     {
         Group='dot1',
@@ -91,7 +91,7 @@ Druid.SpellLines = {
         Options={Gem=6, opt='USEDOTS'}
     },
     {Group='dot3', Spells={'Sunscald', 'Sunpyre', 'Sunshock', 'Sunflame', 'Sunflash', 'Vengeance of the Sun'}, Options={opt='USEDOTS', Gem=function(lvl) return lvl > 65 and 7 or nil end}},
-    {Group='dot5', Spells={'Searing Sunray', 'Tenebrous Sunray', 'Erupting Sunray', 'Overwhelming Sunray', 'Consuming Sunray'}, Options={opt='USEDOTS'}}, -- inc spell dmg taken, dot, dec fire resist, dec AC
+    {Group='dot5', Spells={'Searing Sunray', 'Tenebrous Sunray', 'Erupting Sunray', 'Overwhelming Sunray', 'Consuming Sunray'}, Options={opt='USEDOTS', emu=false}}, -- inc spell dmg taken, dot, dec fire resist, dec AC
     --{Group='', Spells={'Mythical Moonbeam', 'Onyx Moonbeam', 'Opaline Moonbeam', 'Pearlescent Moonbeam', 'Argent Moonbeam'}}, -- sunray but cold resist
     {
         Group='nuke1',
@@ -100,22 +100,22 @@ Druid.SpellLines = {
     }, -- nuke + heal tot
     {Group='nuke2', Spells={'Winter\'s Wildgale', 'Winter\'s Wildbrume', 'Winter\'s Wildshock', 'Winter\'s Wildblaze', 'Winter\'s Wildflame', 'Ancient: Glacier Frost', 'Fury of Air'}, Options={opt='USENUKES'}},
     {Group='nuke3', Spells={'Summer Sunscald', 'Summer Sunpyre', 'Summer Sunshock', 'Summer Sunflame', 'Summer Sunfire', 'Dawnstrike', 'Sylvan Fire', 'Wildfire', 'Scoriae', 'Firestrike'}, Options={opt='USENUKES', Gem=function(lvl) return lvl > 65 and 2 end}},
-    {Group='nuke4', Spells={'Tempest Roar', 'Bloody Roar', 'Typhonic Roar', 'Cyclonic Roar', 'Anabatic Roar'}, Options={opt='USENUKES'}},
+    {Group='nuke4', Spells={'Tempest Roar', 'Bloody Roar', 'Typhonic Roar', 'Cyclonic Roar', 'Anabatic Roar'}, Options={opt='USENUKES', emu=false}},
 
-    {Group='composite', Spells={'Ecliptic Winds', 'Composite Winds', 'Dichotomic Winds'}},
-    {Group='alliance', Spells={'Arbor Tender\'s Coalition', 'Bosquetender\'s Alliance'}},
-    {Group='unity', Spells={'Wildtender\'s Unity', 'Copsetender\'s Unity'}},
+    {Group='composite', Spells={'Ecliptic Winds', 'Composite Winds', 'Dichotomic Winds'}, Options={emu=false}},
+    {Group='alliance', Spells={'Arbor Tender\'s Coalition', 'Bosquetender\'s Alliance'}, Options={emu=false}},
+    {Group='unity', Spells={'Wildtender\'s Unity', 'Copsetender\'s Unity'}, Options={emu=false}},
 
     -- Other spells
-    {Group='dot4', Spells={'Chill of the Ferntender', 'Chill of the Dusksage Tender', 'Chill of the Arbor Tender', 'Chill of the Wildtender', 'Chill of the Copsetender'}, Options={opt='USEDOTS'}},
-    {Group='heal3', Spells={'Vivavida', 'Clotavida', 'Viridavida', 'Curavida', 'Panavida'}, Options={panic=true, regular=true, tank=true, pet=60}}, -- healing spam if other heals on cd
-    {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}},
+    {Group='dot4', Spells={'Chill of the Ferntender', 'Chill of the Dusksage Tender', 'Chill of the Arbor Tender', 'Chill of the Wildtender', 'Chill of the Copsetender'}, Options={opt='USEDOTS', emu=false}},
+    {Group='heal3', Spells={'Vivavida', 'Clotavida', 'Viridavida', 'Curavida', 'Panavida'}, Options={panic=true, regular=true, tank=true, pet=60, emu=false}}, -- healing spam if other heals on cd
+    {Group='growth', Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'}, Options={emu=false}},
     {Group='snare', Spells={'Ensnare', 'Snare'}, Options={opt='USESNARE', debuff=true}},
 
     --{Group='hot', Spells={'Celestial Remedy'}, Options={}},
-    {Group='healtot', Spells={'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}}, -- Heal tot, dec atk, dec AC
+    {Group='healtot', Spells={'Mythic Frost', 'Primal Frost', 'Restless Frost', 'Glistening Frost', 'Moonbright Frost'}, Options={emu=false}}, -- Heal tot, dec atk, dec AC
     {Group='tcnuke', Spells={'Sunbliss Blessing', 'Sunwarmth Blessing', 'Sunrake Blessing', 'Sunflash Blessing', 'Sunfire Blessing', 'Sunburst Blessing'}, Options={opt='USENUKES'}},
-    {Group='harvest', Spells={'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}}, -- self return 10k mana
+    {Group='harvest', Spells={'Emboldened Growth', 'Bolstered Growth', 'Sustaining Growth', 'Nourishing Growth'}, Options={recover=true, emu=false}}, -- self return 10k mana
     {Group='cure', Spells={'Sanctified Blood'}, Options={Cure=true, all=true}}, -- cure dis/poi/cor/cur
     {Group='curedisease', Spells={'Counteract Disease', 'Cure Disease'}, Options={cure=true, Disease=true}},
     {Group='curepoison', Spells={'Counteract Poison', 'Cure Poison'}, Options={cure=true, Poison=true}},

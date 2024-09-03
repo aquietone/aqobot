@@ -47,24 +47,24 @@ Monk.Abilities = {
         Type='Disc',
         Group='synergy',
         Names={'Fatewalker\'s Synergy', 'Bloodwalker\'s Synergy', 'Icewalker\'s Synergy', 'Firewalker\'s Synergy', 'Doomwalker\'s Synergy'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
     { -- 3x tiger claw + monk synergy proc
         Type='Disc',
         Group='fists',
         Names={'Flurry of Fists', 'Buffeting of Fists', 'Barrage of Fists', 'Firestorm of Fists', 'Torrent of Fists'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
     { -- inc dmg from DS
         Type='Disc',
         Group='curse',
         Names={'Curse of Sixteen Shadows', 'Curse of Fifteen Strikes', 'Curse of Fourteen Fists', 'Curse of the Thirteen Fingers'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
     { -- a nuke?
         Type='Disc',
         Group='fang',
-        Names={'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang', 'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'},
+        Names={'Uncia\'s Fang', 'Zlexak\'s Fang', 'Hoshkar\'s Fang', 'Zalikor\'s Fang', --[[emu cutoff]] 'Dragon Fang', 'Clawstriker\'s Flurry', 'Leopard Claw'},
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
     -- { -- free flying kick + a stun, emu only?
@@ -75,7 +75,7 @@ Monk.Abilities = {
     { -- free tiger claw, emu only?
         Type='AA',
         Name='Eye Gouge',
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=true}
     },
     {
         Type='Skill',
@@ -101,31 +101,26 @@ Monk.Abilities = {
         Type='Disc',
         Group='precision',
         Names={'Bloodwalker\'s Precision Strike', 'Icewalker\'s Precision Strike', 'Firewalker\'s Precision Strike', 'Doomwalker\'s Precision Strike'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
     {
         Type='Disc',
         Group='alliance',
         Names={'Bloodwalker\'s Conjunction', 'Icewalker\'s Coalition', 'Firewalker\'s Covenant', 'Doomwalker\'s Alliance'},
-        Options={dps=true, condition=conditions.withinMeleeDistance}
-    },
-    { -- emu only?
-        Type='AA',
-        Name='Eye Gouge',
-        Options={dps=true, condition=conditions.withinMeleeDistance}
+        Options={dps=true, condition=conditions.withinMeleeDistance, emu=false}
     },
 
     -- Burns
     { -- double dmg taken from special punches, doesn't stack across monks
         Type='AA',
         Name='Two-Finger Wasp Touch',
-        Options={first=true}
+        Options={first=true, third=true, emu=false}
     },
     { -- defensive
         Type='Disc',
         Group='reflexes',
         Names={'Disciplined Reflexes', 'Decisive Reflexes', 'Rapid Reflexes', 'Nimble Reflexes'},
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- inc melee dmg
         Type='Disc',
@@ -136,18 +131,18 @@ Monk.Abilities = {
     {  -- inc chance for wep procs
         Type='AA',
         Name='Spire of the Sensei',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     {
         Type='AA',
         Name='Fundament: Second Spire of the Sensei',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     { -- adds extra attacks
         Type='Disc',
         Group='poise',
         Names={'Tiger\'s Symmetry', 'Dragon\'s Poise', 'Eagle\'s Poise', 'Tiger\'s Poise', 'Dragon\'s Balance'},
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- laz specific
         Type='AA',
@@ -158,7 +153,7 @@ Monk.Abilities = {
         Type='Disc',
         Group='stance',
         Names={'Crane Stance'},
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- doubles attack speed
         Type='Disc',
@@ -181,7 +176,7 @@ Monk.Abilities = {
     { -- doubles number of primary hand attacks
         Type='AA',
         Name='Focused Destructive Force',
-        Options={second=true}
+        Options={second=true, emu=false}
     },
     { -- doubles number of primary hand attacks
         Type='AA',
@@ -195,16 +190,11 @@ Monk.Abilities = {
         Names={'Heel of Zagali', 'Heel of Kai', 'Heel of Kanji'},
         Options={third=true, condition=function() return (not Monk.palm or not mq.TLO.Me.CombatAbilityReady(Monk.palm.Name)()) and (not Monk.speedfocus or not mq.TLO.Me.CombatAbilityReady(Monk.speedfocus.Name)()) end}
     },
-    { -- inc dmg from melee, inc min dmg
-        Type='AA',
-        Name='Two-Finger Wasp Touch',
-        Options={third=true}
-    },
     { -- inc dmg, inc min dmg
         Type='Disc',
         Group='eyeofthestorm',
         Names={'Eye of the Storm'},
-        Options={third=true}
+        Options={third=true, emu=false}
     },
 
     -- Buffs
@@ -249,7 +239,7 @@ Monk.Abilities = {
         Type='Disc',
         Group='composite',
         Names={'Ecliptic Form', 'Composite Form', 'Dissident Form', 'Dichotomic Form'},
-        Options={combatbuff=true}
+        Options={combatbuff=true, emu=false}
     },
     {
         Type='Item',
@@ -273,7 +263,7 @@ Monk.Abilities = {
         Type='Disc',
         Group='earthforce',
         Names={'Earthforce Discipline'},
-        Options={defensive=true}
+        Options={defensive=true, emu=false}
     },
     {
         Type='Skill',

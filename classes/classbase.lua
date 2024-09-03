@@ -286,10 +286,12 @@ end
 
 function base:initSpellLines()
     for _,line in ipairs(self.SpellLines) do
-        if line.NumToPick then
-            self:addNSpells(line.Group, line.NumToPick, line.Spells, line.Options)
-        else
-            self:addSpell(line.Group, line.Spells, line.Options)
+        if not line.Options or line.Options.emu == nil or (line.Options.emu and state.emu) or (line.Options.emu == false and not state.emu) then
+            if line.NumToPick then
+                self:addNSpells(line.Group, line.NumToPick, line.Spells, line.Options)
+            else
+                self:addSpell(line.Group, line.Spells, line.Options)
+            end
         end
     end
 end
@@ -366,7 +368,7 @@ end
 
 function base:initAbilities()
     for _,ability in ipairs(self.Abilities) do
-        if (ability.Options and ability.Options.emu and state.emu) or (not ability.Options or not ability.Options.emu) then
+        if not ability.Options or ability.Options.emu == nil or (ability.Options.emu and state.emu) or (ability.Options.emu == false and not state.emu) then
             local foundAbility = nil
             if ability.Type == 'AA' then
                 foundAbility = self:addAA(ability.Name, ability.Options)
@@ -650,8 +652,10 @@ end
 
 function base:emergencyHeal()
     local whoToHeal, typeOfHeal, inGroup = healing.getHurt(self.options)
+    -- if whoToHeal then mq.cmdf('/g %s needs emergency heal', mq.TLO.Spawn('id '..whoToHeal).CleanName()) end
     -- if whoToHeal then printf('needs emergency healing %s %s %s', whoToHeal, typeOfHeal, inGroup) end
     local healToUse = healing.getHeal(self.healAbilities, typeOfHeal, whoToHeal, self.options, inGroup, true)
+    -- if healToUse then mq.cmdf('/g emergency heal %s', healToUse.CastName) end
     -- if healToUse then printf('use emergency heal %s %s %s', healToUse.CastName, healToUse.MyCastTime, mq.TLO.Me.CastTimeLeft()) end
     if healToUse and (not state.healToUse or healToUse.CastName ~= state.healToUse.CastName) and (healToUse.MyCastTime < mq.TLO.Me.CastTimeLeft() or not state.healToUse) then
         -- printf('should emergency heal')
@@ -661,6 +665,7 @@ function base:emergencyHeal()
         end
         mq.cmd('/stopcast')
         mq.delay(50)
+        if config.get('ANNOUNCEHEALS') then mq.cmdf('/g Interrupted %s to cast %s on >>> %s <<<', state.casting and state.casting.CastName, healToUse.CastName, mq.TLO.Target.CleanName()) end
         if abilities.use(healToUse) then state.setHealState(whoToHeal, typeOfHeal, healToUse) return true end
     end
 end
@@ -1376,7 +1381,7 @@ function base:mainLoop()
             end
         end
         -- check whether we need to return to camp, only while not assisting
-        if not state.assistMobID or state.assistMobID == 0 then camp.checkCamp() end
+        if state.mobCount == 0 then camp.checkCamp() end --  not state.assistMobID or state.assistMobID == 0
         -- check whether we need to go chasing after the chase target, may happen while fighting
         common.checkChase()
     end

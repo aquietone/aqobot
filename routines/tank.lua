@@ -53,31 +53,37 @@ function tank.findMobToTank()
     logger.debug(logger.flags.routines.tank, 'Find mob to tank')
     local highestlvl = 0
     local highestlvlid = 0
-    local lowesthp = 100
+    local lowesthp = 98
     local lowesthpid = 0
     local firstid = 0
+    local firstname = nil
     for id,_ in pairs(state.targets) do
         -- loop through for named, highest level, unmezzed, lowest hp
         local mob = mq.TLO.Spawn(id)
         if mob() then
-            if firstid == 0 then firstid = mob.ID() end
+            local name = mob.CleanName() or ''
+            if firstid == 0 then firstid = mob.ID() firstname = name end
             if mob.Named() then
                 logger.debug(logger.flags.routines.tank, 'Selecting Named mob to tank next (%s)', mob.ID())
                 state.tankMobID = mob.ID()
                 return true
             else--if not mob.Mezzed() then -- TODO: mez check requires targeting
-                if (mob.Level() or 0) > highestlvl then
+                if firstname and firstname:find('scarab') and not name:find('scarab') then
+                    firstid = mob.ID()
+                    firstname = mob.CleanName()
+                end
+                if (mob.Level() or 0) > highestlvl and not name:find('scarab') then
                     highestlvlid = id
                     highestlvl = mob.Level()
                 end
-                if (mob.PctHPs() or 100) < lowesthp then
+                if (mob.PctHPs() or 100) < lowesthp and not name:find('scarab') then
                     lowesthpid = id
                     lowesthp = mob.PctHPs()
                 end
             end
         end
     end
-    if lowesthpid ~= 0 and lowesthp < 100 then
+    if lowesthpid ~= 0 and lowesthp < 98 then
         logger.debug(logger.flags.routines.tank, 'Selecting lowest HP mob to tank next (%s)', lowesthpid)
         state.tankMobID = lowesthpid
         return true

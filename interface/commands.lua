@@ -28,6 +28,42 @@ function commands.init(_class)
     actor.register('commands', commands.callback)
 end
 
+local function printMDTable(columns, rows, keys, valueFormatter)
+    local tbl = ''
+    for _,col in ipairs(columns) do
+        tbl = tbl .. '|' .. col
+    end
+    tbl = tbl .. '|\n'
+    for _,_ in ipairs(columns) do
+        tbl = tbl .. '|---'
+    end
+    tbl = tbl .. '|\n'
+    if type(rows) == 'function' then
+        tbl = rows(tbl)
+    else
+        for _,row in ipairs(rows) do
+            if keys then
+                for i,key in ipairs(keys) do
+                    tbl = tbl .. '|' .. row[key]
+                end
+            elseif valueFormatter then
+                tbl = tbl .. (valueFormatter(row) or '')
+            else
+                for i,val in ipairs(row) do
+                    tbl = tbl .. '|' .. val
+                end
+            end
+            tbl = tbl .. '|\n'
+        end
+    end
+    tbl = tbl .. '\n'
+    printf(tbl)
+end
+
+local function printMD()
+    
+end
+
 ---Display help information for the script.
 local function showHelp()
     local prefix = '\n- /'..state.class..' '
@@ -36,6 +72,7 @@ local function showHelp()
     for _,command in ipairs(constants.commandHelp) do
         output = output .. prefix .. command.command .. ' -- ' .. command.tip
     end
+    -- printMDTable({'Command', 'Description'}, constants.commandHelp, {'command', 'tip'})
     output = output .. '\n- /nowcast [name] alias <targetID> -- Tells the named character or yourself to cast a spell on the specified target ID.'
     for _,category in ipairs(config.categories()) do
         output = output .. '\n\ay' .. category .. ' configuration:\aw'
@@ -45,6 +82,12 @@ local function showHelp()
                 output = output .. prefix .. key .. ' <' .. type(cfg.value) .. '> -- '..cfg.tip
             end
         end
+        -- printMDTable({'Command', 'Description'}, config.getByCategory(category), nil, function(key)
+        --     local cfg = config[key]
+        --     if type(cfg) == 'table' and (not cfg.classes or cfg.classes[state.class]) then
+        --         return '|/' .. state.class .. ' ' .. key .. ' <' .. type(cfg.value) .. '>|' .. cfg.tip
+        --     end
+        -- end)
     end
     output = output .. '\n\ayClass Configuration\aw'
     for key,value in pairs(class.options) do
@@ -54,6 +97,16 @@ local function showHelp()
             if value.tip then output = output .. ' -- '..value.tip end
         end
     end
+    -- printMDTable({'Command', 'Description'}, function(tbl)
+    --     for key,value in pairs(class.options) do
+    --         local valueType = type(value.value)
+    --         if valueType == 'string' or valueType == 'number' or valueType == 'boolean' then
+    --             tbl = tbl .. '|/' .. state.class .. ' ' .. key .. ' <' .. valueType .. '>|'
+    --             if value.tip then tbl = tbl .. value.tip .. '|\n' else tbl = tbl .. '|\n' end
+    --         end
+    --     end
+    --     return tbl
+    -- end)
     output = output .. '\n\ayGear Check:\aw /tell <name> gear <slotname> -- Slot Names: ' .. constants.slotList
     output = output .. '\n\ayBuff Begging:\aw /tell <name> <alias> -- Aliases: '
     for alias,_ in pairs(class.requestAliases) do
@@ -310,15 +363,21 @@ function commands.commandHandler(...)
             mq.cmdf('/blockspell add me %s', 5415) -- talisman of wunshi, use caster self shield buff
         end
     elseif opt == 'REZ' then
-        mq.delay(3000, function() return not mq.TLO.Me.Casting() end)
-        if class.rezAbility and not mq.TLO.Me.Casting() then
-            mq.cmdf('/squelch /mqt pccorpse =%s', args[2])
-            class.rezAbility:use()
-        end
+        -- mq.delay(3000, function() return not mq.TLO.Me.Casting() end)
+        -- if class.rezAbility and not mq.TLO.Me.Casting() then
+        --     mq.cmdf('/squelch /mqt pccorpse =%s', args[2])
+        --     class.rezAbility:use()
+        -- end
     elseif opt == 'REZALL' then
         class.massRez()
     elseif opt == 'REBUFF' then
         state.rebuff = true
+    elseif opt == 'CLEARTARGETS' then
+        state.cleartargets = true
+        state.previousmode = config.get('MODE')
+        local newmode = mode.nameFromString('tank')
+        config.getOrSetOption('MODE', config.get('MODE'), newmode, 'MODE')
+        camp.setCamp()
     elseif opt == 'TIMERS' then
         local header = {script = 'aqo', server = mq.TLO.EverQuest.Server()}
         actor.actor:send(header, {id='commands', })

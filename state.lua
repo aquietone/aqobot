@@ -186,6 +186,7 @@ function state.handleCastingState(class)
                     return true
                 end
             elseif constants.healClasses[state.class] then
+                -- printf('%s %s %s', state.canInterrupt, state.casting.CastName, config.get('INTERRUPTFORHEALS'))
                 if config.get('INTERRUPTFULLHP') and state.healTarget == mq.TLO.Target.ID() and (mq.TLO.Target.PctHPs() or 0) > 95 then
                     mq.cmd('/stopcast')
                     state.resetCastingState()
@@ -193,7 +194,7 @@ function state.handleCastingState(class)
                     return true
                 end
                 -- if not state.casting.cure and not state.casting.debuff then
-                if state.canIterrupt and config.get('INTERRUPTFORHEALS') then
+                if state.canInterrupt and config.get('INTERRUPTFORHEALS') then
                     -- evaluate interrupting cast for a emergency heal
                     local panic = mq.TLO.Group.Injured(config.get('PANICHEALPCT'))() or 0
                     local regular = mq.TLO.Group.Injured(config.get('HEALPCT'))() or 0

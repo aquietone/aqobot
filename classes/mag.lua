@@ -115,10 +115,12 @@ function Magician:initClassOptions()
     self:addOption('USEDS', 'Use Group DS', true, nil, 'Toggle casting of group damage shield', 'checkbox', nil, 'UseDS', 'bool')
     self:addOption('USETEMPDS', 'Use Temp DS', true, nil, 'Toggle casting of temporary damage shield', 'checkbox', nil, 'UseTempDS', 'bool')
     self:addOption('USESERVANT', 'Use Servant', true, nil, 'Toggle use of Servant line of spells', 'checkbox', nil, 'UseServant', 'bool')
-    self:addOption('USEVEILDS', 'Use Veil DS', false, nil, 'Toggle use of veil DS line of spells', 'checkbox', nil, 'UseVeilDS', 'bool')
-    self:addOption('USESKINDS', 'Use Skin DS', false, nil, 'Toggle use of skin DS line of spells', 'checkbox', nil, 'UseSkinDS', 'bool')
-    self:addOption('USEPARADOX', 'Use Paradox', true, nil, 'Toggle summoning and use of Paradox item to use in combat', 'checkbox', nil, 'UseParadox', 'bool')
-    self:addOption('USEMINION', 'Use Minion', false, nil, 'Toggle summoning and use of minion item to use in combat', 'checkbox', nil, 'UseMinion', 'bool')
+    if state.emu then
+        self:addOption('USESKINDS', 'Use Skin DS', false, nil, 'Toggle use of skin DS line of spells', 'checkbox', nil, 'UseSkinDS', 'bool')
+        self:addOption('USEVEILDS', 'Use Veil DS', false, nil, 'Toggle use of veil DS line of spells', 'checkbox', nil, 'UseVeilDS', 'bool')
+        self:addOption('USEPARADOX', 'Use Paradox', true, nil, 'Toggle summoning and use of Paradox item to use in combat', 'checkbox', nil, 'UseParadox', 'bool')
+        self:addOption('USEMINION', 'Use Minion', false, nil, 'Toggle summoning and use of minion item to use in combat', 'checkbox', nil, 'UseMinion', 'bool')
+    end
     self:addOption('USEGATHER', 'Use Gather', false, nil, 'Toggle use of gather line of spells in combat', 'checkbox', nil, 'UseGather', 'bool')
     self:addOption('USEMODRODS', 'Use Mod Rods', false, nil, 'Toggle summoning of mod rods', 'checkbox', nil, 'UseModRods', 'bool')
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
@@ -218,7 +220,7 @@ Magician.SpellLines = {
     {-- Large nuke based on # of summoned pets. Slot 5
         Group='ofmany',
         Spells={'Fusillade of Many', 'Barrage of Many', 'Shockwave of Many', 'Volley of Many', 'Storm of Many', --[[emu cutoff]] },
-        Options={Gem=5}
+        Options={Gem=5, emu=false}
     },
     {-- Main magic nuke. Slot 6
         Group='shock',
@@ -233,7 +235,7 @@ Magician.SpellLines = {
     {-- Large DS 10 minutes. Slot 8
         Group='veilds',
         Spells={'Igneous Veil', 'Volcanic Veil', 'Exothermic Veil', 'Skyfire Veil', --[[emu cutoff]]},
-        Options={opt='USEVEILDS', Gem=function(lvl) return lvl >= 100 and 9 or nil end}
+        Options={opt='USEVEILDS', Gem=function(lvl) return lvl >= 100 and 9 or nil end, emu=false}
     },
     {-- Regular group DS. Slot 9
         Group='groupds',
@@ -243,7 +245,7 @@ Magician.SpellLines = {
     {-- 30 seconds, 4 charges large DS. Slot 9
         Group='skinds',
         Spells={'Boiling Skin', 'Scorching Skin', 'Burning Skin', 'Blistering Skin', 'Corona Skin', --[[emu cutoff]]},
-        Options={opt='USESKINDS', Gem=8}
+        Options={opt='USESKINDS', Gem=8, emu=false}
     },
     {-- Twincast next spell. Slot 10
         Group='twincast',
@@ -253,22 +255,22 @@ Magician.SpellLines = {
     {-- Recover mana, long cast time. Slot 11
         Group='gather',
         Spells={'Gather Zeal', 'Gather Vigor', 'Gather Potency', 'Gather Capability'},
-        Options={Gem=11, recover=true}
+        Options={Gem=11, recover=true, opt='USEGATHER'}
     },
     {-- Strong pet buff. Slot 12
         Group='composite',
         Spells={'Ecliptic Companion', 'Composite Companion', 'Dissident Companion', 'Dichotomic Companion'},
-        Options={Gem=12}
+        Options={Gem=12, emu=false}
     },
     {-- Another clicky nuke. Slot 13
         Group='paradox',
         Spells={'Grant Voidfrost Paradox', 'Grant Frostbound Paradox'},
-        Options={opt='USEPARADOX', Gem=function() return not Magician:isEnabled('USEALLIANCE') and 13 or nil end, summonMinimum=1, nodmz=true, pause=true}
+        Options={opt='USEPARADOX', Gem=function() return not Magician:isEnabled('USEALLIANCE') and 13 or nil end, summonMinimum=1, nodmz=true, pause=true, emu=false}
     },
     {-- Slot 13
         Group='alliance',
         Spells={'Firebound Conjunction', 'Firebound Coalition', 'Firebound Covenant', 'Firebound Alliance'},
-        Options={opt='USEALLIANCE', Gem=13}
+        Options={opt='USEALLIANCE', Gem=13, emu=false}
     },
     --if state.emu and not mq.TLO.FindItem('Glyphwielder\'s Sleeves of the Summoner')() then
     {
@@ -279,7 +281,7 @@ Magician.SpellLines = {
     {
         Group='minion',
         Spells={'Summon Valorous Servant', 'Summon Forbearing Servant', 'Summon Imperative Servant', 'Summon Insurgent Servant', 'Summon Mutinous Servant'},
-        Options={opt='USEMINION', summonMinimum=1, nodmz=true, pause=true}
+        Options={opt='USEMINION', summonMinimum=1, nodmz=true, pause=true, emu=false}
     },
     {
         Group='waterpet',
@@ -357,7 +359,7 @@ Magician.SpellLines = {
 
     -- old emu stuff
     {Group='petstrbuff', Spells={'Rathe\'s Strength', 'Earthen Strength'}, Options={skipifbuff='Champion', petbuff=true, Checkfor='Rathe\'s Strength Effect'}},
-    {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', alias='TEMPDS', singlebuff=true, classes={WAR=true,SHD=true,PAL=true}, Gem=function(lvl) return lvl <= 70 and 9 or nil end}},
+    {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', alias='TEMPDS', combatbuffothers=true, singlebuff=true, classes={WAR=true,SHD=true,PAL=true}, Gem=function(lvl) return lvl <= 70 and 9 or nil end}},
     -- Chance to increase spell power of next nuke
     {Group='prenuke', Spells={'Fickle Conflagration', --[[emu cutoff]] 'Fickle Fire'}, Options={opt='USEFIRENUKES'}},
 
@@ -393,7 +395,7 @@ Magician.SpellLines = {
     -- random chance to heal all pets in area
     {Group='chaoticheal', Spells={'Chaotic Magnanimity', 'Chaotic Largesse', 'Chaotic Bestowal', 'Chaotic Munificence', 'Chaotic Benefaction'}, Options={opt='HEALPET'}},
     -- minion summon clicky 2
-    {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION'}},
+    {Group='minion2', Spells={'Summon Valorous Minion', 'Summon Forbearing Minion', 'Summon Imperative Minion', 'Summon Insurgent Minion', 'Summon Mutinous Minion'}, Options={opt='USEMINION', emu=false}},
     {Group='dispel', Spells={'Nullify Magic', 'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
     {Group='mala', Spells={'Malaise'}, Options={debuff=true, opt='USEDEBUFF', Gem=function(lvl) return lvl <= 60 and 6 or nil end}}
 }
@@ -416,14 +418,14 @@ Magician.Abilities = {
     {
         Type='Item',
         Name='Glyphwielder\'s Eternal Bracer',
-        Options={alias='NUKEORB2', summonMinimum=1, nodmz=true, pause=true, selfbuff=true,}
+        Options={alias='NUKEORB2', summonMinimum=1, nodmz=true, pause=true, selfbuff=true, combatbuff=true, combatbuffothers=true, emu=true}
     },
 
     -- Burns
     {
         Type='AA',
         Name='Fundament: First Spire of the Elements',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     {
         Type='AA',

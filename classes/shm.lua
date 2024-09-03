@@ -129,12 +129,12 @@ Shaman.SpellLines = {
     {-- group HoT. Slot 2
         Group='grouphot',
         Spells={'Reverie of Renewal', 'Spirit of Renewal', 'Spectre of Renewal', 'Cloud of Renewal', 'Shear of Renewal', 'Ghost of Renewal'},
-        Options={opt='USEHOTGROUP', Gem=2, grouphot=true}
+        Options={opt='USEHOTGROUP', Gem=2, grouphot=true, emu=false}
     },
     {-- poison nuke. Slot 3
         Group='bitenuke',
         Spells={'Oka\'s Bite', 'Ander\'s Bite', 'Direfang\'s Bite', 'Mawmun\'s Bite', 'Reefmaw\'s Bite'},
-        Options={opt='USENUKES', Gem=3}
+        Options={opt='USENUKES', Gem=3, emu=false}
     },
     {-- tot nuke, cast on MA/MT, next two heals twincast, use with spiritual shower. Slot 4
         Group='tcnuke',
@@ -150,27 +150,27 @@ Shaman.SpellLines = {
     {-- group heal, lower hp == stronger heal. Slot 5
         Group='intervention',
         Spells={'Immortal Intervention', 'Antediluvian Intervention', 'Primordial Intervention', 'Prehistoric Intervention', 'Historian\'s Intervention'},
-        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 5 or nil end, group=true}
+        Options={Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and 5 or nil end, group=true, emu=false}
     },
     {-- DPS spellset. Combo disease DoT. Slot 5
         Group='pandemiccombo',
         Spells={'Tegi Pandemic', 'Bledrek\'s Pandemic', 'Elkikatar\'s Pandemic', 'Hemocoraxius\' Pandemic'},
-        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 5 or nil end}
+        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 5 or nil end, emu=false}
     },
     {-- disease dot. Not used directly, only by combo spell. Combo spell comes in non-level increase expansions. (pendemiccombo)
         Group='breathdot',
-        Spells={'Breath of the Hotariton', 'Breath of the Tegi', 'Breath of Bledrek', 'Breath of Elkikatar', 'Breath of Hemocoraxius', 'Breath of Wunshi'},
+        Spells={'Breath of the Hotariton', 'Breath of the Tegi', 'Breath of Bledrek', 'Breath of Elkikatar', 'Breath of Hemocoraxius', --[[emu cutoff]] 'Breath of Wunshi'},
         Options={opt='USEDOTS', Gem=function(lvl) return (not Shaman:get('USEDISPEL') and lvl <= 70 and 5) or (lvl <= 70 and 12) or (not Shaman.spells.pandemiccombo and Shaman:get('SPELLSET') == 'dps' and 5) or nil end}
     },
     {-- temp hp buff. Slot 6
         Group='growth',
         Spells={'Overwhelming Growth', 'Fervent Growth', 'Frenzied Growth', 'Savage Growth', 'Ferocious Growth'},
-        Options={opt='USEGROWTH', Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6 or nil end}
+        Options={opt='USEGROWTH', Gem=function() return Shaman:get('SPELLSET') ~= 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6 or nil end, emu=false}
     },
     {-- cure all. Slot 6
         Group='cureall',
         Spells={'Blood of Mayong', 'Blood of Tevik', 'Blood of Rivans'},
-        Options={cure=true, all=true, opt='MEMCUREALL', Gem=6}
+        Options={cure=true, all=true, opt='MEMCUREALL', Gem=6, emu=false}
     },
     {-- group heal. Slot 7
         Group='recourse',
@@ -186,7 +186,7 @@ Shaman.SpellLines = {
         Group='reckless',
         NumToPick=3,
         Spells={'Reckless Reinvigoration', 'Reckless Resurgence', 'Reckless Renewal', 'Reckless Rejuvenation', 'Reckless Regeneration'},
-        Options={Gems={8,function() return Shaman:get('SPELLSET') ~= 'dps' and 9 or nil end,function() return Shaman:get('SPELLSET') == 'standard' and 10 or nil end}, panic=true, regular=true, tank=true}
+        Options={Gems={8,function() return Shaman:get('SPELLSET') ~= 'dps' and 9 or nil end,function() return Shaman:get('SPELLSET') == 'standard' and 10 or nil end}, panic=true, regular=true, tank=true, emu=false}
     },
     {-- Below lvl 100 main heal. Slot 8
         Group='heal',
@@ -196,7 +196,7 @@ Shaman.SpellLines = {
     {-- DPS spellset. combo malo + DoT. Slot 9
         Group='malodot',
         Spells={'Krizad\'s Malosinera', 'Txiki\'s Malosinara', 'Svartmane\'s Malosinara', 'Rirwech\'s Malosinata', 'Livio\'s Malosenia'},
-        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 9 or nil end}
+        Options={opt='USEDOTS', Gem=function() return Shaman:get('SPELLSET') == 'dps' and 9 or nil end, emu=false}
     },
     {-- lesser poison dot. Not used directly. only by combo spell. (chaotic)
         Group='nectardot',
@@ -211,7 +211,7 @@ Shaman.SpellLines = {
     {-- splash, easiest to cast on self, requires los. Slot 11
         Group='splash',
         Spells={'Spiritual Shower', 'Spiritual Squall', 'Spiritual Swell'},
-        Options={opt='USESPLASH', Gem=11, group=true}
+        Options={opt='USESPLASH', Gem=11, group=true, emu=false}
     },
     {-- single HoT. Slot 11
         Group='singlehot',
@@ -226,12 +226,12 @@ Shaman.SpellLines = {
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
         Group='composite',
         Spells={'Ecliptic Roar', 'Composite Roar', 'Dissident Roar', 'Roar of the Lion'},
-        Options={Gem=12}
+        Options={Gem=12, emu=false}
     },
     {-- Combo 2x DoTs + 1-2 nukes. Slot 13 (heal) or 6 (dps)
         Group='chaotic',
         Spells={'Chaotic Toxin', 'Chaotic Venin', 'Chaotic Poison', 'Chaotic Venom'},
-        Options={Gem=function() return ((Shaman:get('SPELLSET') == 'standard' or not Shaman:isEnabled('USEALLIANCE')) and 13) or (Shaman:get('SPELLSET') == 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6) or nil end}
+        Options={Gem=function() return ((Shaman:get('SPELLSET') == 'standard' or not Shaman:isEnabled('USEALLIANCE')) and 13) or (Shaman:get('SPELLSET') == 'dps' and not Shaman:isEnabled('MEMCUREALL') and 6) or nil end, emu=false}
     },
     {-- greater poison dot. Not used directly. only by combo spell. (chaotic)
         Group='blooddot',
@@ -241,7 +241,7 @@ Shaman.SpellLines = {
     {-- keep up on tank, proc ae heal from target. Slot 13
         Group='alliance',
         Spells={'Ancient Conjunction', 'Ancient Coalition', 'Ancient Covenant', 'Ancient Alliance'},
-        Options={opt='USEALLIANCE', Gem=13}
+        Options={opt='USEALLIANCE', Gem=13, emu=false}
     },
 
     -- TODO: Need to work these spells into places they can be used

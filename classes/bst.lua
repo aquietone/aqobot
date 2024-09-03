@@ -404,12 +404,12 @@ BeastLord.Abilities = {
     {
         Type='AA',
         Name='Spire of the Savage Lord',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     {
         Type='AA',
         Name='Fundament: Third Spire of the Savage Lord',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     -- Third burns
     {
@@ -463,7 +463,7 @@ BeastLord.Abilities = {
     {
         Type='Item',
         Name='Spiritcaller Totem of the Ancients',
-        Options={first=true, epicburn=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor}
+        Options={first=true, epicburn=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor, emu=true}
     },
     {
         Type='Item',

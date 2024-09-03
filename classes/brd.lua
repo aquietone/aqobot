@@ -139,7 +139,7 @@ Bard.SpellLines = {
     {-- small heal hp, mana, end. Slot 10
         Group='crescendo',
         Spells={'Regar\'s Lively Crescendo', 'Zelinstein\'s Lively Crescendo', 'Zburator\'s Lively Crescendo', 'Jembel\'s Lively Crescendo', 'Silisia\'s Lively Crescendo', --[[emu cutoff]] },
-        Options={Gem=10}
+        Options={Gem=10, emu=false}
     },
     {-- heal focus + regen. Slot 11
         Group='pulse',
@@ -149,7 +149,7 @@ Bard.SpellLines = {
     {-- DD+melee dmg bonus + small heal. Slot 12
         Group='composite',
         Spells={'Ecliptic Psalm', 'Composite Psalm', 'Dissident Psalm', 'Dichotomic Psalm'},
-        Options={Gem=12}
+        Options={Gem=12, emu=false}
     },
     {-- spell+melee dmg mitigation. Slot 13
         Group='dirge',
@@ -159,7 +159,7 @@ Bard.SpellLines = {
 
     {Group='aura', Spells={'Aura of Tenisbre', 'Aura of Pli Xin Liako', 'Aura of Margidor', 'Aura of Begalru', 'Aura of Maetanrus', --[[emu cutoff]] 'Aura of the Muse', 'Aura of Insight'}, Options={aurabuff=true, Gem=function(lvl) return state.emu and 12 or nil end}}, -- spell dmg, overhaste, flurry, triple atk
     {Group='insultpushback', Spells={'Eoreg\'s Insult', 'Sogran\'s Insult', 'Omorden\'s Insult', 'Travenro\'s Insult', 'Fjilnauk\'s Insult', --[[emu cutoff]] }, Options={opt='USEINSULTS'}}, -- synergy DD 2
-    {Group='alliance', Spells={'Conjunction of Sticks and Stones', 'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}},
+    {Group='alliance', Spells={'Conjunction of Sticks and Stones', 'Coalition of Sticks and Stones', 'Covenant of Sticks and Stones', 'Alliance of Sticks and Stones'}, Options={emu=false}},
 
     -- resonating barrier, new defensive stun proc?
     -- Fatesong of Zoraxmen, increase cold nuke dmg
@@ -211,7 +211,7 @@ Bard.Abilities = {
     { -- Epic 2.0
         Type='Item',
         Name='Ancient Blade of Vesagran',
-        Options={key='epic', epicburn=true}
+        Options={key='epic', epicburn=true, emu=true}
     },
     { -- Epic 1.5
         Type='Item',
@@ -250,7 +250,7 @@ Bard.Abilities = {
         Type='Disc',
         Group='reflexive',
         Names={'Reflexive Rebuttal'},
-        Options={dps=true}
+        Options={dps=true, emu=false}
     },
     {
         Type='Skill',
@@ -299,12 +299,12 @@ Bard.Abilities = {
     {
         Type='AA',
         Name='Spire of the Minstrels',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     {
         Type='AA',
         Name='Third Spire of the Minstrels',
-        Options={emu=true, first=true}
+        Options={emu=true, first=true, emu=true}
     },
     {
         Type='AA',
@@ -398,7 +398,7 @@ Bard.Abilities = {
     {
         Type='AA',
         Name='Rallying Call',
-        Options={recover=true}
+        Options={opt='RALLYGROUP', recover=true, emu=false}
     },
 }
 

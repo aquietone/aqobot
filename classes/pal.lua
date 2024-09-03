@@ -330,12 +330,12 @@ Paladin.Abilities = {
     { -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
         Type='AA',
         Name='Spire of Chivalry',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- inc incoming instant duration heal effectiveness for group, 10m cd, timer 40
         Type='AA',
         Name='Fundament: First Spire of Holiness',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     { -- inc dmg of spells and crit chance, 9m cd, timer 17
         Type='AA',

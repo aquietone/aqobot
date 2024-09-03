@@ -151,7 +151,7 @@ Berserker.Abilities = {
     { -- Increase Chance to Hit with Throwing by 50%, Increase Min Throwing Damage by 60%, Increase Throwing Damage Bonus by 120, 7:30 cd, timer 40
         Type='AA',
         Name='Spire of Savagery',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- emu only. enhance melee capabilities for group
         Type='AA',
@@ -242,7 +242,7 @@ Berserker.Abilities = {
     { -- only click outside burns
         Type='Item',
         Name='Ancient Taelosian Blood Axe',
-        Options={opt='USEEPIC', third=true, first=true, second=true, epicburn=true}
+        Options={opt='USEEPIC', third=true, first=true, second=true, epicburn=true, emu=true}
     },
     -- extra burns
     { -- Timer 21 with Mangling, Increase Chance to Critical Hit with all weapon skills by 53%, Increase Chance to Critical Hit with Frenzy by 53%, Increase Base Hit Damage by 11%

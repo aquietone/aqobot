@@ -63,7 +63,7 @@ end
 
 function Cleric:initClassOptions()
     self:addOption('USEYAULP', 'Use Yaulp', false, nil, 'Toggle use of Yaulp', 'checkbox', nil, 'UseYaulp', 'bool')
-    self:addOption('USESPLASH', 'Use Splash', true, nil, 'Toggle use of splash heal + twincast nuke', 'checkbox', nil, 'UseSplash', 'bool')
+    if not state.emu then self:addOption('USESPLASH', 'Use Splash', true, nil, 'Toggle use of splash heal + twincast nuke', 'checkbox', nil, 'UseSplash', 'bool') end
     self:addOption('USEVIE', 'Use Vie', true, nil, 'Toggle use of Vie spell line', 'checkbox', nil, 'UseVie', 'bool')
     self:addOption('USEHAMMER', 'Use Hammer', false, nil, 'Toggle use of summoned hammer pet', 'checkbox', nil, 'UseHammer', 'bool')
     -- HoTs only mem'd in BYOS
@@ -159,12 +159,12 @@ Cleric.SpellLines = {
         Group='intervention',
         NumToPick=2,
         Spells={'Avowed Intervention', 'Atoned Intervention', 'Sincere Intervention', 'Merciful Intervention', 'Mystical Intervention', 'Virtuous Intervention', 'Elysian Intervention', 'Celestial Intervention', --[[emu cutoff]] },
-        Options={Gems={3,4}, tank=true, regular=true}
+        Options={Gems={3,4}, tank=true, regular=true, emu=false}
     },
     {-- Large heal after 18 seconds. Slot 5
         Group='promised',
         Spells={'Promised Redediation', 'Promised Reclamation', 'Promised Redemption', 'Promised Remedy', 'Promised Rehabilitation', 'Promised Reformation',  'Promised Restitution', 'Promised Resurgence', --[[emu cutoff]] },
-        Options={Gem=5, tank=true}
+        Options={Gem=5, tank=true, emu=false}
     },
     {-- large proc heal on near death. Slot 6
         Group='di',
@@ -174,22 +174,22 @@ Cleric.SpellLines = {
     {-- Large quick heal, heals more the lower the targets hp. Slot 7
         Group='seventeenth',
         Spells={'Eighteenth Rejuvenation', 'Seventeenth Rejuvenation', 'Sixteenth Serenity', 'Fifteenth Emblem', 'Fourteenth Catalyst', 'Thirteenth Salve', --[[emu cutoff]] },
-        Options={Gem=7,tank=true,}
+        Options={Gem=7,tank=true,emu=false}
     },
     {-- targeted aoe heal. Slot 7
         Group='splash',
         Spells={'Acceptance Splash', 'Refreshing Splash', 'Restoring Splash', 'Mending Splash', 'Convalescent Splash', 'Reforming Splash', 'Rejuvenating Splash', 'Healing Splash', --[[emu cutoff]] },
-        Options={opt='USESPLASH', Gem=7, tank=true, group=true, threshold=3, --[[condition=function() check for twincast end]]}
+        Options={opt='USESPLASH', Gem=7, tank=true, group=true, threshold=3, emu=false, --[[condition=function() check for twincast end]]}
     },
     {-- Single target cure all. Slot 7
         Group='cureall',
         Spells={'Sanctified Blood', 'Expurgated Blood', 'Unblemished Blood', 'Cleansed Blood', 'Perfected Blood', 'Purged Blood', --[[emu cutoff]] },
-        Options={opt='USECURES',Gem=function() return not Cleric:isEnabled('USESPLASH') and 7 or nil end,cure=true,all=true},
+        Options={opt='USECURES',Gem=function() return not Cleric:isEnabled('USESPLASH') and 7 or nil end,cure=true,all=true,emu=false},
     },
     {-- Regular group heal, slower than syllable. Slot 8
         Group='groupheal',
         Spells={'Word of Acceptance', 'Word of Redress', 'Word of Soothing', 'Word of Mending', 'Word of Convalescence', 'Word of Renewal', 'Word of Recuperation', 'Word of Awakening', --[[emu cutoff]] },
-        Options={Gem=8, threshold=3, group=true},
+        Options={Gem=8, threshold=3, group=true, emu=false},
     },
     {-- Group heal with cure component. Slot 8
         Group='grouphealcure',
@@ -199,57 +199,57 @@ Cleric.SpellLines = {
     {-- Regular group heal. Slot 9
         Group='grouphealquick',
         Spells={'Syllable of Acceptance', 'Syllable of Invigoration', 'Syllable of Soothing', 'Syllable of Mending', 'Syllable of Convalescence', 'Syllable of Renewal', --[[emu cutoff]]},
-        Options={Gem=8, threshold=3, regular=true, single=true, group=true, pct=70}
+        Options={Gem=8, threshold=3, regular=true, single=true, group=true, pct=70, emu=false}
     },
     {-- Slot 10
         Group='composite',
         Spells={'Ecliptic Blessing', 'Composite Blessing', 'Dissident Blessing', 'Undying Life'},
-        Options={Gem=10, tank=true, panic=true}
+        Options={Gem=10, tank=true, panic=true, emu=false}
     },
     {-- TODO: when to use? maybe lower levels? slower heal. Slot 11
         Group='renewal',
         Spells={'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'},
-        Options={Gem=function(lvl) return lvl <= 70 and 5 or nil end, panic=true}
+        Options={Gem=function(lvl) return lvl <= 70 and 5 or nil end, panic=true, emu=false}
     },
     {-- Heal proc on target + reverse DS on targets target. Slot 11
         Group='retort',
         Spells={'Axoeviq\'s Retort', 'Jorlleag\'s Retort', 'Curate\'s Retort', 'Vicarum\'s Retort', 'Olsif\'s Retort', 'Galvos\' Retort', 'Fintar\'s Retort', --[[emu cutoff]] },
-        Options={Gem=function() return not Cleric:isEnabled('USESPLASH') and 11 or nil end, opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}, singlebuff=true}
+        Options={Gem=function() return not Cleric:isEnabled('USESPLASH') and 11 or nil end, opt='USERETORT', classes={WAR=true,SHD=true,PAL=true}, singlebuff=true, emu=false}
     },
     {-- twincast nuke, only use with splash. Slot 11
         Group='rebuke',
         Spells={'Unyielding Admonition', 'Unyielding Rebuke', 'Unyielding Censure', 'Unyielding Judgement', 'Glorious Rebuke', 'Rebuke', --[[emu cutoff]] },
-        Options={opt='USESPLASH', Gem=11, condition=function() mq.TLO.Me.SpellReady(Cleric.spells.splash.Name)() end}
+        Options={opt='USESPLASH', Gem=11, condition=function() mq.TLO.Me.SpellReady(Cleric.spells.splash.Name)() end, emu=false}
     },
     {-- heals on break, Slot 12
         Group='ward',
         Spells={'Ward of Commitment', 'Ward of Persistence', 'Ward of Righteousness', 'Ward of Assurance', 'Ward of Surety', --[[emu cutoff]] },
-        Options={Gem=12, tank=true, regular=true}
+        Options={Gem=12, tank=true, regular=true, emu=false}
     },
     {-- Slot 12
         Group='alliance',
         Spells={'Sincere Coalition', 'Divine Alliance'},
-        Options={opt='USEALLIANCE', Gem=12, tank=true, regular=true}
+        Options={opt='USEALLIANCE', Gem=12, tank=true, regular=true, emu=false}
     },
     {-- dmg absorb, proc heal on wearer and stun on wearers target. 72 charges. Slot 13
         Group='shining',
         Spells={'Shining Steel', 'Shining Fortitude', 'Shining Aegis', 'Shining Fortress', 'Shining Bulwark', --[[emu cutoff]] },
-        Options={Gem=13, classes={CLR=true,WAR=true,SHD=true,PAL=true}, singlebuff=true},
+        Options={Gem=13, classes={CLR=true,WAR=true,SHD=true,PAL=true}, singlebuff=true, emu=false},
     },
     {-- Don't keep mem'd, 12 charges. Group heal proc on big aoe. Same as consequence but not part of the stacking group. Swap gem
         Group='response',
         Spells={'Divine Response', --[[emu cutoff]] },
-        Options={swap=true, selfbuff=true}
+        Options={swap=true, selfbuff=true, emu=false}
     },
     {-- Don't keep mem'd, 12 charges. Group heal proc on big aoe. Swap gem
         Group='consequence',
         Spells={'Divine Contingency', 'Divine Consequence', 'Divine Reaction', --[[emu cutoff]] },
-        Options={opt='USERESPONSE', swap=true, selfbuff=true}
+        Options={opt='USERESPONSE', swap=true, selfbuff=true, emu=false}
     },
 
     -- Buffs
     {Group='aura', Spells={'Bastion of Divinity', 'Aura of Divinity'}, Options={aura=true, aurabuff=true, condition=function() return not state.emu or not mq.TLO.Me.AltAbility('Spirit Mastery')() end}},
-    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Hand of Will', --[[emu cutoff]] 'Aura of Devotion'}, Options={selfbuff=true, classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, alias='SPELLHASTE'}},
+    {Group='spellhaste', Spells={'Hand of Devotion', 'Hand of Devoutness', 'Hand of Reverence', 'Hand of Sanctity', 'Hand of Zeal', 'Hand of Will', --[[emu cutoff]]}, Options={selfbuff=true, classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, alias='SPELLHASTE', emu=false}},
     {
         Group='groupaego',
         Spells={'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Reliance', --[[emu cutoff]] 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'},
@@ -270,7 +270,7 @@ Cleric.SpellLines = {
         Spells={'Symbol of Ealdun', --[[emu cutoff]] 'Symbol of Balikor', 'Symbol of Kazad', 'Symbol of Marzin', 'Symbol of Naltron', 'Symbol of Pinzarn', 'Symbol of Ryltan', 'Symbol of Transal'},
         Options={opt='USESYMBOL', classes={CLR=true,DRU=true,SHM=true,MAG=true,ENC=true,WIZ=true,NEC=true}, condition=function() return mq.TLO.SpawnCount('pc group class druid')() > 0 end, alias='SINGLESYMBOL'}
     },
-    {Group='armor', Spells={'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', 'Armor of the Pious', 'Armor of the Zealot'}, Options={selfbuff=true}},
+    {Group='armor', Spells={'Armor of the Avowed', 'Armor of Penance', 'Armor of Sincerity', 'Armor of the Merciful', 'Armor of the Ardent', --[[emu cutoff]] 'Armor of the Pious', 'Armor of the Zealot'}, Options={selfbuff=true}},
     -- Group buff, cast on self when down, damage absorb then heal proc on fade. absorbs 4x non-greater version. Swap gem
     {Group='bigvie', Spells={'Rallied Greater Aegis of Vie', 'Rallied Greater Blessing of Vie', 'Rallied Greater Protection of Vie', 'Rallied Greater Guard of Vie', 'Rallied Greater Ward of Vie', --[[emu cutoff]] 'Panoply of Vie'}, Options={opt='USEVIE', alias='VIE', selfbuff=true, Gem=function(lvl) return lvl <= 70 and 4 or nil end}},
     -- Just use greater line instead
@@ -281,16 +281,16 @@ Cleric.SpellLines = {
         Group='contravention',
         NumToPick=2,
         Spells={'Avowed Contavention', 'Atoned Contavention', 'Sincere Contavention', 'Merciful Contavention', 'Mystical Contavention', --[[emu cutoff]] },
-        Options={opt='USENUKES'}
+        Options={opt='USENUKES', emu=false}
     },
-    {Group='grouphotcure', Spells={'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', --[[emu cutoff]] }, Options={opt='USEHOTGROUP', grouphot=true}},
+    {Group='grouphotcure', Spells={'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', --[[emu cutoff]] }, Options={opt='USEHOTGROUP', grouphot=true, emu=false}},
     {Group='grouphot', Spells={'Elixir of Realization', 'Elixir of Benevolence', 'Elixir of Transcendence', 'Elixir of Wulthan', 'Elixir of the Seas', --[[emu cutoff]] 'Elixir of Divinity'}, Options={Gem=function(lvl) return lvl <= 70 and 7 or nil end, opt='USEHOTGROUP', grouphot=true}},
     {Group='hottank', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={Gem=function(lvl) return lvl <= 70 and 3 or nil end, opt='USEHOTTANK', hot=true}},
     {Group='hotdps', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTDPS', hot=true}},
-    {Group='issuance', Spells={'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit', --[[emu cutoff]] }}, -- stationary ward heal, requires enemy on target
+    {Group='issuance', Spells={'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit', --[[emu cutoff]] }, Options={emu=false}}, -- stationary ward heal, requires enemy on target
     {
         Group='mark',
-        Spells={'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'},
+        Spells={'Mark of Thormir', 'Mark of Ezra', 'Mark of Wenglawks', 'Mark of Shandral', 'Mark of the Vicarum', --[[emu cutoff]] 'Mark of the Blameless', 'Mark of the Righteous', 'Mark of Kings', 'Mark of Karn', 'Mark of Retribution'},
         Options={opt='USEDEBUFF', debuff=true, Gem=function(lvl) return lvl <= 70 and 9 or nil end, condition=function() return mq.TLO.Target.Named() end}
     },
     {Group='yaulp', Spells={'Yaulp VI'}, Options={combat=true, ooc=false, opt='USEYAULP', selfbuff=true}},
@@ -365,7 +365,7 @@ Cleric.Abilities = {
     {
         Type='AA',
         Name='Spirit Mastery',
-        Options={aurabuff=true, CheckFor='Aura of Pious Divinity'}
+        Options={aurabuff=true, CheckFor='Aura of Pious Divinity', emu=true}
     },
     {
         Type='AA',
@@ -404,12 +404,12 @@ Cleric.Abilities = {
     {
         Type='AA',
         Name='Spire of the Vicar',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     {
         Type='AA',
         Name='Fundament: Third Spire of Divinity',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     { -- twincast heals
         Type='AA',
@@ -430,7 +430,7 @@ Cleric.Abilities = {
     {
         Type='Item',
         Name='Forsaken Donal\'s Boots of Mourning',
-        Options={alias='DG2', classes={WAR=true,SHD=true,PAL=true}, nodmz=true, combatbuffothers=true}
+        Options={alias='DG2', classes={WAR=true,SHD=true,PAL=true}, nodmz=true, combatbuffothers=true, emu=true}
     },
     -- dps burns
     {
@@ -444,7 +444,6 @@ Cleric.Abilities = {
         Options={first=true}
     },
     -- table.insert(self.burnAbilities, self:addAA('Divine Avatar'))
-    -- table.insert(self.burnAbilities, self:addAA('Battle Frenzy'))
     -- table.insert(self.burnAbilities, self:addAA('Celestial Hammer'))
 }
 

@@ -206,16 +206,18 @@ function pull.pullRadar()
     pullRadarTimer:reset()
     local pull_radius_count
     local pull_radius = config.get('PULLRADIUS')
+    -- local max_radius = math.max(pull_radius, math.max(config.get('PULLHIGH'), config.get('PULLLOW')))
+    local max_radius = pull_radius
     if not pull_radius then return 0 end
     if camp.Active then
-        pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(camp.X, camp.Y, pull_radius))()
-        logger.debug(logger.flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count_camp:format(camp.X, camp.Y, pull_radius)))
+        pull_radius_count = mq.TLO.SpawnCount(pull_count_camp:format(camp.X, camp.Y, max_radius))()
+        logger.debug(logger.flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count_camp:format(camp.X, camp.Y, max_radius)))
     else
-        pull_radius_count = mq.TLO.SpawnCount(pull_count:format(pull_radius))()
+        pull_radius_count = mq.TLO.SpawnCount(pull_count:format(max_radius))()
         -- error here
-        logger.debug(logger.flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count:format(pull_radius)))
+        logger.debug(logger.flags.routines.pull, ('%s: %s'):format(pull_radius_count or 0, pull_count:format(max_radius)))
     end
-    local shortest_path = pull_radius
+    local shortest_path = max_radius
     local pull_id = 0
     if pull_radius_count > 0 then
         local zone_sn = mq.TLO.Zone.ShortName()
@@ -224,9 +226,9 @@ function pull.pullRadar()
             if i > 100 then break end
             local mob
             if camp.Active then
-                mob = mq.TLO.NearestSpawn(pull_spawn_camp:format(i, camp.X, camp.Y, pull_radius))
+                mob = mq.TLO.NearestSpawn(pull_spawn_camp:format(i, camp.X, camp.Y, max_radius))
             else
-                mob = mq.TLO.NearestSpawn(pull_spawn:format(i, pull_radius))
+                mob = mq.TLO.NearestSpawn(pull_spawn:format(i, max_radius))
             end
             if validatePull(mob, 0, zone_sn) then
                 local path_len = checkPathLength(mob)
@@ -342,36 +344,45 @@ local function pullEngage(pull_spawn)
             -- mq.delay(100)
         end
         local pullWith = config.get('PULLWITH')
-        if pullWith == 'item' then
-            local pull_item = nil
+        local pull_item = nil
+        if pullWith == 'spell' and not class.pullSpell then pullWith = 'melee'
+        elseif pullWith == 'item' then
+            if #class.pullClickies == 0 then pullWith = 'melee' end
             for _,clicky in ipairs(class.pullClickies) do
-                if clicky.enabled and mq.TLO.Me.ItemReady(clicky.CastName)() then
+                local reagentCount = mq.TLO.FindItem(clicky.CastName).Clicky.Spell.ReagentCount(1)()
+                local reagentID = mq.TLO.FindItem(clicky.CastName).Clicky.Spell.ReagentID(1)()
+                if clicky.enabled and mq.TLO.Me.ItemReady(clicky.CastName)() and 
+                        (reagentCount == -1 or mq.TLO.FindItemCount(reagentID)() > 0) then
                     pull_item = clicky
                     break
                 end
             end
-            if pull_item then
-                movement.stop()
-                -- mq.delay(50)
-                abilities.use(pull_item, class)
-                state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
-            end
+            if not pull_item then pullWith = 'melee' end
         elseif pullWith == 'ranged' then
             local ranged_item = mq.TLO.InvSlot('ranged').Item
             local ammo_item = mq.TLO.InvSlot('ammo').Item
-            if ranged_item() and ranged_item.Damage() > 0 and ammo_item() and ammo_item.Damage() > 0 then
-                mq.cmd('/squelch /face fast')
-                mq.cmd('/autofire on')
-                -- mq.delay(1000)
-                if not mq.TLO.Me.AutoFire() then
-                    mq.cmd('/autofire on')
-                end
-                if mode.currentMode:isReturnToCampMode() then
-                    movement.stop()
-                    mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or mq.TLO.Me.CombatState() == 'COMBAT' end)
-                end
-                state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
+            if not ranged_item() or (ranged_item.Damage() or 0) == 0 or not ammo_item() or (ammo_item.Damage() or 0) == 0 then
+                pullWith = 'melee'
             end
+        elseif pullWith == 'custom' and not class.pullCustom then pullWith = 'melee'
+        end
+        if pullWith == 'item' and pull_item then
+            movement.stop()
+            -- mq.delay(50)
+            abilities.use(pull_item, class)
+            state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
+        elseif pullWith == 'ranged' then
+            mq.cmd('/squelch /face fast')
+            mq.cmd('/autofire on')
+            -- mq.delay(1000)
+            if not mq.TLO.Me.AutoFire() then
+                mq.cmd('/autofire on')
+            end
+            if mode.currentMode:isReturnToCampMode() then
+                movement.stop()
+                mq.delay(1000, function() return mq.TLO.Me.TargetOfTarget.ID() == mq.TLO.Me.ID() or mq.TLO.Me.CombatState() == 'COMBAT' end)
+            end
+            state.pullStatus = constants.pullStates.WAIT_FOR_AGGRO
         elseif pullWith == 'spell' then
             if mq.TLO.Me.SpellReady(class.pullSpell.CastName)() then
                 movement.stop()
@@ -382,7 +393,7 @@ local function pullEngage(pull_spawn)
             end
         elseif pullWith == 'custom' and class.pullCustom then
             class:pullCustom()
-        elseif config.get('PULLWITH') == 'melee' then
+        elseif pullWith == 'melee' then
             state.pullStatus = constants.pullStates.APPROACHING
             pullNavToMob(pull_spawn, false)
             return false

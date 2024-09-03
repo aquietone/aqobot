@@ -239,6 +239,7 @@ function healing.heal(healAbilities, options)
             mq.TLO.Spawn('id '..whoToHeal).DoTarget()
         end
         if abilities.use(healToUse) then
+            if config.get('ANNOUNCEHEALS') then mq.cmdf('/g Healing >>> %s <<< with %s', mq.TLO.Target.CleanName(), healToUse.CastName) end
             state.setHealState(whoToHeal, typeOfHeal, healToUse)
             if typeOfHeal == HEAL_TYPES.REGULAR then state.canInterrupt = true end
             return true
@@ -413,6 +414,7 @@ function healing.rez(rezAbility)
     if (mq.TLO.Zone.ShortName() ~= 'poknowledge' and not rezCheckTimer:expired()) or not rezAbility then return end
     rezCheckTimer:reset()
     if not config.get('REZINCOMBAT') and mq.TLO.Me.CombatState() == 'COMBAT' then return end
+    if not config.get('REZGROUP') and not config.get('REZRAID') then return end
     local rezToUse = nil
     if type(rezAbility) == 'table' then
         for _,rez in ipairs(rezAbility) do

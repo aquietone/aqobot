@@ -33,11 +33,11 @@ function Necromancer:initClassOptions()
     self:addOption('STOPPCT', 'DoT Stop Pct', 0, nil, 'Percent HP to stop refreshing DoTs on mobs', 'inputint', nil, 'StopPct', 'int')
     self:addOption('USEDEBUFF', 'Debuff', true, nil, 'Debuff targets with scent', 'checkbox', nil, 'UseDebuff', 'bool')
     self:addOption('USESNARE', 'Use snare', true, nil, 'User snare spell', 'checkbox', nil, 'UseSnare', 'bool')
-    self:addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox', nil, 'UseBuffShield', 'bool')
+    if not state.emu then self:addOption('USEBUFFSHIELD', 'Buff Shield', false, nil, 'Keep shield buff up. Replaces corruption DoT.', 'checkbox', nil, 'UseBuffShield', 'bool') end
     self:addOption('USEMANATAP', 'Mana Drain', false, nil, 'Use group mana drain dot. Replaces Ignite DoT.', 'checkbox', nil, 'UseManaTap', 'bool')
     self:addOption('USEREZ', 'Use Rez', true, nil, 'Use Convergence AA to rez group members', 'checkbox', nil, 'UseRez', 'bool')
     self:addOption('USEFD', 'Feign Death', true, nil, 'Use FD AA\'s to reduce aggro', 'checkbox', nil, 'UseFD', 'bool')
-    self:addOption('USEINSPIRE', 'Inspire Ally', true, nil, 'Use Inspire Ally pet buff', 'checkbox', nil, 'UseInspire', 'bool')
+    if not state.emu then self:addOption('USEINSPIRE', 'Inspire Ally', true, nil, 'Use Inspire Ally pet buff', 'checkbox', nil, 'UseInspire', 'bool') end
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
     self:addOption('USEWOUNDS', 'Use Wounds', true, nil, 'Use wounds DoT', 'checkbox', nil, 'UseWounds', 'bool')
     self:addOption('MULTIDOT', 'Multi DoT', false, nil, 'DoT all mobs', 'checkbox', nil, 'MultiDoT', 'bool')
@@ -90,37 +90,37 @@ Necromancer.SpellLines = {
     {-- Damage absorb shield. Slot 8
         Group='shield',
         Spells={'Shield of Inescapability', 'Shield of Inevitability', 'Shield of Destiny', 'Shield of Order', 'Shield of Consequence', 'Shield of Fate'},
-        Options={opt='USESHIELD', Gem=8, selfbuff=true}
+        Options={opt='USESHIELD', Gem=8, selfbuff=true, emu=false}
     },
     {-- Alliance. Slot 9
         Group='alliance',
         Spells={'Malevolent Conjunction', 'Malevolent Coalition', 'Malevolent Covenant', 'Malevolent Alliance'},
-        Options={opt='USEALLIANCE', Gem=9, condition = function() return Necromancer.neccount > 1 and not mq.TLO.Target.Buff(Necromancer.spells.alliance.Name)() and mq.TLO.Spell(Necromancer.spells.alliance.Name).StacksTarget() end}
+        Options={opt='USEALLIANCE', Gem=9, condition = function() return Necromancer.neccount > 1 and not mq.TLO.Target.Buff(Necromancer.spells.alliance.Name)() and mq.TLO.Spell(Necromancer.spells.alliance.Name).StacksTarget() end, emu=false}
     },
     {-- manadrain dot. Slot 7/8/9 if any of alliance or shield or manatap are disabled.
         Group='ignite',
         Spells={'Ignite Remembrance', 'Ignite Cognition', 'Ignite Intellect', 'Ignite Memories', 'Ignite Synapses', 'Ignite Thoughts', 'Ignite Potential', 'Thoughtburn', 'Ignite Energy'},
-        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and 7) or (not Necromancer:isEnabled('USEALLIANCE') and 9) or (not Necromancer:isEnabled('USEBUFFSHIELD') and 8) end}
+        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and 7) or (not Necromancer:isEnabled('USEALLIANCE') and 9) or (not Necromancer:isEnabled('USEBUFFSHIELD') and 8) end, emu=false}
     },
     {-- Slot 8/9 if any of alliance or shield are disabled
         Group='scourge',
         Spells={'Scourge of Destiny', 'Scourge of Fates', 'Eternities Torment'},
-        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and 9) or (Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or nil end}
+        Options={opt='USEDOTS', Gem=function() return (not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and 9) or (Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8) or nil end, emu=false}
     },
     {-- Slot 9 when none of mana tap, alliance or shield enabled
         Group='corruption',
         Spells={'Deterioration', 'Decomposition', 'Miasma', 'Effluvium', 'Liquefaction', 'Dissolution', 'Mortification', 'Fetidity', 'Putrescence'},
-        Options={opt='USEDOTS', Gem=function() return not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8 or nil end}
+        Options={opt='USEDOTS', Gem=function() return not Necromancer:isEnabled('USEMANATAP') and not Necromancer:isEnabled('USEALLIANCE') and not Necromancer:isEnabled('USEBUFFSHIELD') and 8 or nil end, emu=false}
     },
     {-- Slot 10
         Group='composite',
         Spells={'Ecliptic Paroxysm', 'Composite Paroxysm', 'Dissident Paroxysm', 'Dichotomic Paroxysm'},
-        Options={opt='USEDOTS', Gem=10}
+        Options={opt='USEDOTS', Gem=10, emu=false}
     },
     {-- Slot 11
         Group='combodisease',
         Spells={'Fleshrot\'s Grip of Decay', 'Danvid\'s Grip of Decay', 'Mourgis\' Grip of Decay', 'Livianus\' Grip of Decay'},
-        Options={opt='USEDOTS', Gem=11, condition = function()
+        Options={opt='USEDOTS', Gem=11, emu=false, condition = function()
             return (not common.isTargetDottedWith(Necromancer.spells.decay.ID, Necromancer.spells.decay.Name) or not common.isTargetDottedWith(Necromancer.spells.grip.ID, Necromancer.spells.grip.Name)) and mq.TLO.Me.SpellReady(Necromancer.spells.combodisease.Name)() end}
     },
     {-- Slot 12
@@ -141,7 +141,7 @@ Necromancer.SpellLines = {
     {-- Slot 12 no wounds, group spells
         Group='swarm',
         Spells={'Call Skeleton Thrall', 'Call Skeleton Mass', 'Call Skeleton Horde', 'Call Skeleton Army', 'Call Skeleton Mob', 'Call Skeleton Throng', 'Call Skeleton Host', 'Call Skeleton Crush', 'Call Skeleton Swarm'},
-        Options={opt='USESWARMPETS', Gem=function() return not Necromancer:isEnabled('USEWOUNDS') and Necromancer:get('SPELLSET') == 'short' and 12 or nil end}
+        Options={opt='USESWARMPETS', Gem=function() return not Necromancer:isEnabled('USEWOUNDS') and Necromancer:get('SPELLSET') == 'short' and 12 or nil end, emu=false}
     },
     {-- Slot 13
         Group='synergy',
@@ -167,9 +167,9 @@ Necromancer.SpellLines = {
     -- Wounds proc
     {Group='proliferation', Spells={'Infected Proliferation', 'Septic Proliferation', 'Cyclotoxic Proliferation', 'Violent Proliferation', 'Violent Necrosis'}},
     -- combo dots
-    {Group='chaotic', Spells={'Chaotic Fetor', 'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}, Options={opt='USEDOTS'}}, -- unused
+    {Group='chaotic', Spells={'Chaotic Fetor', 'Chaotic Acridness', 'Chaotic Miasma', 'Chaotic Effluvium', 'Chaotic Liquefaction', 'Chaotic Corruption', 'Chaotic Contagion'}, Options={opt='USEDOTS', emu=false}}, -- unused
     -- sphere
-    {Group='sphere', Spells={'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}}, -- unused
+    {Group='sphere', Spells={'Remote Sphere of Rot', 'Remote Sphere of Withering', 'Remote Sphere of Blight', 'Remote Sphere of Decay', 'Echo of Dissolution', 'Sphere of Dissolution', 'Sphere of Withering', 'Sphere of Blight', 'Withering Decay'}, Options={emu=false}}, -- unused
     {Group='dispel', Spells={'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL'}},
     -- Nukes
     {Group='venin', Spells={'Necrotizing Venin', 'Embalming Venin', 'Searing Venin', 'Effluvial Venin', 'Liquefying Venin', 'Dissolving Venin', 'Decaying Venin', 'Blighted Venin', 'Withering Venin', 'Acikin', 'Neurotoxin', 'Torbas\' Acid Blast', 'Shock of Poison'}, Options={opt='USENUKES', Gem=function(lvl) return lvl <= 60 and 5 or nil end}},
@@ -183,9 +183,9 @@ Necromancer.SpellLines = {
 
     -- Buffs
     {Group='lich', Spells={'Realmside', 'Lunaside', 'Gloomside', 'Contraside', 'Forgottenside', 'Forsakenside', 'Shadowside', 'Darkside', 'Netherside', 'Ancient: Allure of Extinction', 'Dark Possession', 'Grave Pact', 'Ancient: Seduction of Chaos', 'Call of Bones', 'Allure of Death', 'Dark Pact'}, Options={opt='USELICH', nodmz=true, selfbuff=true}},
-    {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}},
+    {Group='flesh', Spells={'Flesh to Toxin', 'Flesh to Venom', 'Flesh to Poison'}, Options={emu=false}},
     {Group='rune', Spells={'Golemskin', 'Carrion Skin', 'Frozen Skin', 'Ashen Skin', 'Deadskin', 'Zombieskin', 'Ghoulskin', 'Grimskin', 'Corpseskin', 'Dull Pain'}}, -- unused
-    {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}}, -- unused
+    {Group='tapproc', Spells={'Bestow Ruin', 'Bestow Rot', 'Bestow Dread', 'Bestow Relife', 'Bestow Doom', 'Bestow Mortality', 'Bestow Decay', 'Bestow Unlife', 'Bestow Undeath'}, Options={emu=false}}, -- unused
     {Group='defensiveproc', Spells={'Necrotic Cysts', 'Necrotic Sores', 'Necrotic Boils', 'Necrotic Pustules'}, Options={opt='USEPUSTULES', classes={WAR=true,PAL=true,SHD=true}, singlebuff=true, alias='NECROTIC', combatbuffothers=true}},
     {Group='reflect', Spells={'Mirror'}},
     {Group='hpbuff', Spells={'Shield of Memories', 'Shadow Guard', 'Shield of Maelin', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=false}}, -- pre-unity, dont use, prefer shm buffs
@@ -197,7 +197,7 @@ Necromancer.SpellLines = {
     {Group='petaegis', Spells={'Aegis of Valorforged', 'Aegis of Rumblecrush', 'Aegis of Orfur', 'Aegis of Zeklor', 'Aegis of Japac', 'Aegis of Nefori', 'Phantasmal Ward', 'Bulwark of Calliav'}}, -- unused
     {Group='petshield', Spells={'Cascading Runeshield', 'Cascading Shadeshield', 'Cascading Dreadshield', 'Cascading Deathshield', 'Cascading Doomshield', 'Cascading Boneshield', 'Cascading Bloodshield', 'Cascading Deathshield'}}, -- unused
     {Group='petillusion', Spells={'Form of Mottled Bone'}},
-    {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}, Options={petbuff=true}},
+    {Group='inspire', Spells={'Instill Ally', 'Inspire Ally', 'Incite Ally', 'Infuse Ally', 'Imbue Ally', 'Sanction Ally', 'Empower Ally', 'Energize Ally', 'Necrotize Ally'}, Options={petbuff=true, emu=false}},
 }
 
 Necromancer.compositeNames = {['Ecliptic Paroxysm']=true, ['Composite Paroxysm']=true, ['Dissident Paroxysm']=true, ['Dichotomic Paroxysm']=true}
@@ -272,12 +272,12 @@ Necromancer.Abilities = {
     { -- buff
         Type='AA',
         Name='Spire of Necromancy',
-        Options={first=true}
+        Options={first=true, emu=false}
     },
     { -- buff, 7:30 minute CD
         Type='AA',
         Name='Fundament: Third Spire of Necromancy',
-        Options={emu=true, first=true}
+        Options={emu=true, first=true, emu=true}
     },
     {
         Type='AA',
@@ -287,7 +287,7 @@ Necromancer.Abilities = {
     { -- song, 8:30 minute CD
         Type='AA',
         Name='Hand of Death',
-        Options={}
+        Options={emu=false}
     },
     { -- song, Duskfall Empowerment, 10 minute CD
         Type='AA',
@@ -329,7 +329,7 @@ Necromancer.Abilities = {
     {
         Type='AA',
         Name='Mortifier\'s Unity',
-        Options={selfbuff=true}
+        Options={selfbuff=true, emu=false}
     },
     {
         Type='AA',

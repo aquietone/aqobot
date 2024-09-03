@@ -437,6 +437,7 @@ function Disc:execute()
         else
             mq.cmdf('/disc %s', self.Name)
         end
+        if self:isActive() then mq.delay(250, function() return mq.TLO.Me.ActiveDisc() end) end
         state.setCastingState(self)
         return true
     else
@@ -561,6 +562,10 @@ function Item:execute()
     if state.class == 'BRD' and mq.TLO.Me.Casting() and self.MyCastTime > 500 then mq.cmd('/stopcast') mq.delay(250) end
     if logger.flags.announce.item then logger.info('Use Item: \ag%s\ax%s', self.Name, self.TargetType == 'Single' and (' on \at%s\ax'):format(mq.TLO.Target.CleanName()) or '') end
     mq.cmdf('/useitem "%s"', self.Name)
+    if self.isActiveDisc then
+        mq.delay(1000, function() return not mq.TLO.Me.ItemReady(self.Name)() and mq.TLO.Me.ActiveDisc() end)
+        return not mq.TLO.Me.ItemReady(self.Name)()
+    end
     if self.MyCastTime < 500 then
         mq.delay(500, function() return not mq.TLO.Me.ItemReady(self.Name)() end)
         return not mq.TLO.Me.ItemReady(self.Name)()

@@ -50,9 +50,11 @@ end
 function ShadowKnight:initClassOptions()
     self:addOption('USEATTRACTION', 'Use Hate\'s Attraction', true, nil, 'Toggle use of Hates Attraction AA', 'checkbox', nil, 'UseAttraction', 'bool')
     self:addOption('USEPROJECTION', 'Use Projection', true, nil, 'Toggle use of Projection AA', 'checkbox', nil, 'UseProjection', 'bool')
-    self:addOption('USEAZIA', 'Use Unity Azia', true, nil, 'Toggle use of Unity (Azia) AA', 'checkbox', 'USEBEZA', 'UseAzia', 'bool')
-    self:addOption('USEBEZA', 'Use Unity Beza', false, nil, 'Toggle use of Unity (Beza) AA', 'checkbox', 'USEAZIA', 'UseBeza', 'bool')
-    self:addOption('USEDISRUPTION', 'Use Disruption', true, nil, 'Toggle use of Disruption', 'checkbox', nil, 'UseDisruption', 'bool')
+    if not state.emu then
+        self:addOption('USEAZIA', 'Use Unity Azia', true, nil, 'Toggle use of Unity (Azia) AA', 'checkbox', 'USEBEZA', 'UseAzia', 'bool')
+        self:addOption('USEBEZA', 'Use Unity Beza', false, nil, 'Toggle use of Unity (Beza) AA', 'checkbox', 'USEAZIA', 'UseBeza', 'bool')
+    end
+    -- self:addOption('USEDISRUPTION', 'Use Disruption', true, nil, 'Toggle use of Disruption', 'checkbox', nil, 'UseDisruption', 'bool')
     self:addOption('USEINSIDIOUS', 'Use Insidious', false, nil, 'Toggle use of Insidious', 'checkbox', nil, 'UseInsidious', 'bool')
     self:addOption('USELIFETAP', 'Use Lifetap', true, nil, 'Toggle use of lifetap spells', 'checkbox', nil, 'UseLifetap', 'bool')
     self:addOption('USEVOICEOFTHULE', 'Use Voice of Thule', false, nil, 'Toggle use of Voice of Thule buff', 'checkbox', nil, 'UseVoiceOfThule', 'bool')
@@ -84,7 +86,7 @@ ShadowKnight.SpellLines = {
     {-- big lifetap. Slot 4
         Group='composite',
         Spells={'Ecliptic Fang', 'Composite Fang', 'Dissident Fang', 'Dichotomic Fang'},
-        Options={Gem=4}
+        Options={Gem=4, emu=false}
     },
     {-- poison nuke. Slot 5
         Group='spear',
@@ -110,7 +112,7 @@ ShadowKnight.SpellLines = {
     {-- AE lifetap + aggro. Slot 7
         Group='aetap',
         Spells={'Insidious Repudiation', 'Insidious Renunciation'},
-        Options={aetank=true, opt='USEINSIDIOUS', Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 7 or nil end, threshold=2}
+        Options={aetank=true, opt='USEINSIDIOUS', Gem=function() return ShadowKnight:get('SPELLSET') == 'standard' and 7 or nil end, threshold=2, emu=false}
     },
     {-- DPS spellset. disease dot. Slot 7
         Group='disease',
@@ -130,16 +132,16 @@ ShadowKnight.SpellLines = {
     {-- DPS spellset. corruption dot. Slot 9
         Group='corruption',
         Spells={'Vitriolic Blight', 'Unscrupulous Blight'},
-        Options={opt='USEDOTS', Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 9 or nil end}
+        Options={opt='USEDOTS', Gem=function() return ShadowKnight:get('SPELLSET') == 'dps' and 9 or nil end, emu=false}
     },
     {-- ac debuff. Slot 10
         Group='acdebuff',
-        Spells={'Torrent of Desolation', 'Torrent of Melancholy', 'Theft of Agony', --[[emu cutoff]] 'Shroud of Hate', 'Despair', 'Siphon Strength'},
+        Spells={'Torrent of Desolation', 'Torrent of Melancholy', --[[emu cutoff]] 'Theft of Agony', 'Shroud of Hate', 'Despair', 'Siphon Strength'},
         Options={opt='USETORRENT', Gem=function(lvl) return (lvl <= 60 and 7) or 10 end}
     },
     {-- temp HP buff, 2.5min. Slot 11
         Group='stance',
-        Spells={'Unwavering Stance', 'Adamant Stance', 'Vampiric Embrace'},
+        Spells={'Unwavering Stance', 'Adamant Stance'},
         Options={Gem=function(lvl) return lvl > 70 and 11 end}
     },
     {-- Xenacious' Skin proc, 5min buff. Slot 12
@@ -149,13 +151,8 @@ ShadowKnight.SpellLines = {
     },
     {-- lifetap with hp/mana recourse. Slot 13
         Group='bitetap',
-        Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Ancient: Bite of Muram', 'Zevfeer\'s Bite', 'Inruku\'s Bite'},
-        Options={Gem=function(lvl) return (lvl <= 70 and 4) or (ShadowKnight:isEnabled('USETORRENT') and 13) or 10 end}
-    },
-    {-- lifetap with hp/mana recourse. Slot 13
-        Group='bitetap2',
-        Spells={'Inruku\'s Bite'},
-        Options={Gem=function(lvl) return lvl <= 70 and 12 end}
+        Spells={'Charka\'s Bite', 'Cruor\'s Bite', 'Inruku\'s Bite', 'Zevfeer\'s Bite'}, -- 'Ancient: Bite of Muram', 
+        Options={Gem=function(lvl) return lvl <= 70 and 4 or (ShadowKnight:isEnabled('USETORRENT') and 13) or 10 end} -- if state.emu then return nil else 
     },
     {-- Slot 13
         Group='tap3',
@@ -163,7 +160,7 @@ ShadowKnight.SpellLines = {
         Options={Gem=13}
     },
 
-    {Group='alliance', Spells={'Bloodletting Conjunction', 'Bloodletting Coalition', 'Bloodletting Covenant', 'Bloodletting Alliance'}}, -- alliance
+    {Group='alliance', Spells={'Bloodletting Conjunction', 'Bloodletting Coalition', 'Bloodletting Covenant', 'Bloodletting Alliance'}, Options={emu=false}}, -- alliance
     --['']={'Oppressor\'s Audacity', 'Usurper\'s Audacity'}), -- increase hate by a lot, does this get used?
 
     {Group='acdis', Spells={'Dire Squelch', 'Dire Seizure'}, Options={opt='USEDOTS'}}, -- disease + ac dot
@@ -205,7 +202,6 @@ function ShadowKnight:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.largetap)
     table.insert(self.spellRotations.standard, self.spells.tap1)
     table.insert(self.spellRotations.standard, self.spells.tap2)
-    table.insert(self.spellRotations.standard, self.spells.bitetap2)
     table.insert(self.spellRotations.standard, self.spells.dottap)
     table.insert(self.spellRotations.standard, self.spells.acdebuff)
     table.insert(self.spellRotations.standard, self.spells.tap3)
@@ -220,7 +216,6 @@ function ShadowKnight:initSpellRotations()
     table.insert(self.spellRotations.dps, self.spells.dottap)
     table.insert(self.spellRotations.dps, self.spells.disease)
     table.insert(self.spellRotations.dps, self.spells.bitetap)
-    table.insert(self.spellRotations.dps, self.spells.bitetap2)
     table.insert(self.spellRotations.dps, self.spells.acdebuff)
     table.insert(self.spellRotations.dps, self.spells.tap3)
 end
@@ -239,7 +234,7 @@ ShadowKnight.Abilities = {
     {
         Type='Item',
         Name='Innoruuk\'s Ancient Blessing',
-        Options={key='epic'}
+        Options={key='epic', emu=true}
     },
     {
         Type='Item',
@@ -342,7 +337,7 @@ ShadowKnight.Abilities = {
     {
         Type='AA',
         Name='Fundament: Third Spire of the Reaver',
-        Options={tankburn=true}
+        Options={tankburn=true, emu=true}
     },
 
     -- DPS
@@ -365,13 +360,13 @@ ShadowKnight.Abilities = {
     { -- 7m30s CD, dmg,crit,parry,avoidance buff
         Type='AA',
         Name='Spire of the Reavers',
-        Options={dps=true}
+        Options={dps=true, emu=false}
     },
 
     {
         Type='AA',
         Name='Fundament: Second Spire of the Reaver',
-        Options={first=true}
+        Options={first=true, emu=true}
     },
     { -- 2hs attack
         Type='Disc',
@@ -428,12 +423,12 @@ ShadowKnight.Abilities = {
     { -- dark lord's unity azia X -- shroud of zelinstein, brightfield's horror, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
         Type='AA',
         Name='Dark Lord\'s Unity (Azia)',
-        Options={selfbuff=true}
+        Options={selfbuff=true, emu=false, opt='USEAZIA'}
     },
     { -- dark lord's unity beza X -- shroud of zelinstein, mental anguish, drape of the akheva, remorseless demeanor, tekuel skin, aten ha ra's covenant, penumbral call
         Type='AA',
         Name='Dark Lord\'s Unity (Beza)',
-        Options={selfbuff=true, opt='USEBEZA'}
+        Options={selfbuff=true, opt='USEBEZA', emu=false}
     },
     { -- aggro mod buff
         Type='AA',

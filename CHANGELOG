@@ -1,3 +1,10 @@
+# 2024/09/03
+- Fix typo in INTERRUPTFORHEALS setting and in canInterrupt check
+- Add some small delays for active discs to become active to try and avoid discs being wasted
+- Mark a bunch of abilities and class options with emu=true or emu=false to remove some clutter
+- Add an e3-like `/aqo cleartargets` command which temporarily enters tank mode til nearby mobs are dead
+- Add Announce Heals option to announce heals/interrupts for heals in group
+
 # 2024/08/31
 - Add more classes epic 2.5s for project lazarus
 - Stop and wait for agro after turning on autofire in pull with ranged if in puller/pullertank modes
