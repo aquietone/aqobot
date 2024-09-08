@@ -2,6 +2,9 @@
 - Add force option to returnToCamp so that UI returnToCamp button always does something
 - Change returnToCamp: if in combat, return if > campradius+15 away to allow fighting near edge of camp radius. if not in combat, return to camp if > campradius/2 away from camp center
 - Add ChaseStopDistance config
+- Add `/aqo return` command to return to camp
+- Add new minimize button top left to minimize AQO UI into a button similar to the EQ button (borrowed idea from grimmier)
+- Add config option StartMinimized to toggle startup behavior of UI
 
 # 2024/09/03
 - Fix typo in INTERRUPTFORHEALS setting and in canInterrupt check

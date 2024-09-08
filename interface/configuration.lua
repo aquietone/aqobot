@@ -546,6 +546,14 @@ local config = {
         tlo = 'Locked',
         tlotype = 'boolean',
     },
+    STARTMINIMIZED = {
+        value = true,
+        tip = 'Toggle ehether the AQO UI should start minimized',
+        label = 'Start Minimized',
+        type = 'checkbox',
+        tlo = 'StartMinimized',
+        tlotype = 'boolean',
+    },
     WINDOWPOSX = {
         value = 200,
         tip = '',

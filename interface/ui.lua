@@ -15,7 +15,7 @@ local mode = require('mode')
 local state = require('state')
 
 -- UI Control variables
-local openGUI, shouldDrawGUI, minimize = true, true, false
+local openGUI, shouldDrawGUI, minimize = true, true, true
 local stateGUIOpen, shouldDrawStateGUI = false, false
 local spellRotationUIOpen, shouldDrawSpellRotationUI = false, false
 local abilityGUIOpen, shouldDrawAbilityGUI = false, false
@@ -43,11 +43,12 @@ local GOLD = ImVec4(.7, .5, 0, 1)
 local class
 local ui = {}
 
--- local aqoImg = mq.CreateTexture(mq.luaDir .. "/aqo/aqo.png")
+local aqoImg = mq.CreateTexture(mq.luaDir .. "/aqo/aqo.png")
 
 function ui.init(_class)
     class = _class
     mq.imgui.init('AQO Bot 1.0', ui.main)
+    minimize = config.get('STARTMINIMIZED')
 end
 
 function ui.toggleGUI(open)
@@ -326,6 +327,7 @@ end
 local function drawDisplayTab()
     config.THEME.value = widgets.ComboBox('Theme', config.THEME.value, constants.uiThemes, true, 'Pick a UI color scheme', item_width)
     config.OPACITY.value = widgets.SliderInt('Opacity', config.OPACITY.value, 'Set the window opacity', 0, 100, item_width)
+    config.STARTMINIMIZED.value = widgets.CheckBox(config.STARTMINIMIZED.label, config.STARTMINIMIZED.value, config.STARTMINIMIZED.tip)
 end
 
 local uiTabs = {
@@ -359,11 +361,14 @@ local function drawBody()
     end
 end
 
+local fullSize = nil
 local function drawHeader()
+    if ImGui.Button(icons.MD_FULLSCREEN_EXIT) then
+        minimize = true
+        fullSize = ImGui.GetWindowSizeVec()
+    end
+    ImGui.SameLine()
     local x, y = ImGui.GetContentRegionAvail()
-    -- if ImGui.Button('Minimize') then
-    --     minimize = true
-    -- end
     local buttonWidth = (x / 2) - 37--22
     if state.paused then
         if ImGui.Button(icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
@@ -403,7 +408,7 @@ local function drawHeader()
     end
     ImGui.Text('Bot Status: ')
     ImGui.SameLine()
-    ImGui.SetCursorPosX(buttonWidth+16)
+    ImGui.SetCursorPosX(buttonWidth+42)
     local status = 'Running'
     local statusColor = GREEN
     if state.paused then
@@ -423,7 +428,7 @@ local function drawHeader()
     ImGui.TextColored(statusColor, status)
     local current_mode = config.get('MODE')
     ImGui.PushItemWidth(item_width)
-    mid_x = buttonWidth+15
+    mid_x = buttonWidth+42
     config.MODE.value = widgets.ComboBoxLeftText('Mode', 'Mode', config.get('MODE'), mode.mode_names, false, config.MODE.tip, item_width, nil, nil, mid_x)
     mode.currentMode = mode.fromString(config.get('MODE'))
     mid_x = 140
@@ -906,38 +911,54 @@ end
 function ui.main()
     if not openGUI then return end
     pushStyle(config.THEME.value)
-    local flags = 0--ImGuiWindowFlags.NoTitleBar
+    local flags = ImGuiWindowFlags.NoTitleBar
     if config.get('LOCKED') then
-        flags = bit32.bor(ImGuiWindowFlags.NoMove, ImGuiWindowFlags.NoResize)
+        flags = bit32.bor(flags, ImGuiWindowFlags.NoMove, ImGuiWindowFlags.NoResize)
     end
     local posX, posY = config.get('WINDOWPOSX'), config.get('WINDOWPOSY')
-    local width, height = config.get('WINDOWWIDTH'), config.get('WINDOWHEIGHT')
+    -- local width, height = config.get('WINDOWWIDTH'), config.get('WINDOWHEIGHT')
     if posX and posY then ImGui.SetNextWindowPos(ImVec2(posX, posY), ImGuiCond.Once) end
-    if width and height then ImGui.SetNextWindowSize(ImVec2(width, height), ImGuiCond.Once) end
+    -- if width and height then ImGui.SetNextWindowSize(ImVec2(width, height), ImGuiCond.Once) end
+    if minimize then ImGui.SetNextWindowSize(-1,-1) end
     openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, flags)
     if shouldDrawGUI then
-        -- if not minimize then
+        if not minimize then
             drawHeader()
             drawBody()
             local x, y = ImGui.GetWindowSize()
             if x < MINIMUM_WIDTH then ImGui.SetWindowSize(MINIMUM_WIDTH, y) end
-        -- else
-        --     if state.paused then
-        --         if ImGui.ImageButton('AQOButton',aqoImg:GetTextureID(), ImVec2(30, 30),ImVec2(0.0,0.0), ImVec2(1, 1), ImVec4(0,0,0,0),ImVec4(1,0,0,1)) then
-        --             minimize = false
-        --         end
-        --         if ImGui.IsItemHovered() then
-        --             ImGui.SetTooltip("AQO is Paused")
-        --         end
-        --     else
-        --         if ImGui.ImageButton('AQOButton',aqoImg:GetTextureID(), ImVec2(30, 30)) then
-        --             minimize = false
-        --         end
-        --         if ImGui.IsItemHovered() then
-        --             ImGui.SetTooltip("AQO is Running")
-        --         end
-        --     end
-        -- end
+        else
+            ImGui.SetWindowSize(-1, -1)
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, 0, 0)
+            ImGui.PushStyleColor(ImGuiCol.Button, 0,0,0,0)
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0,0,0,0)
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0,0,0,0)
+            if state.paused then
+                if ImGui.ImageButton('AQOButton', aqoImg:GetTextureID(), ImVec2(40, 40),ImVec2(0.0, 0.0), ImVec2(0.62, 0.62), ImVec4(0,0,0,0),ImVec4(1,0,0,1)) then
+                    minimize = false
+                end
+                if ImGui.IsItemHovered() then
+                    ImGui.SetTooltip("AQO is Paused")
+                end
+            else
+                if ImGui.ImageButton('AQOButton', aqoImg:GetTextureID(), ImVec2(40, 40),ImVec2(0.0,0.0), ImVec2(0.62, 0.62)) then
+                    minimize = false
+                end
+                if ImGui.IsItemHovered() then
+                    ImGui.SetTooltip("AQO is Running")
+                end
+            end
+            ImGui.PopStyleColor(3)
+            ImGui.PopStyleVar()
+            if not minimize then
+                if fullSize then
+                    ImGui.SetWindowSize(fullSize.x, fullSize.y)
+                else
+                    -- ImGui.SetWindowSize(630, 260)
+                    ImGui.SetWindowSize(config.get('WINDOWWIDTH'), config.get('WINDOWHEIGHT'))
+                end
+            end
+        end
     end
     ImGui.End()
     drawSpellRotationUI()
