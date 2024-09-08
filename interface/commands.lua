@@ -187,6 +187,8 @@ function commands.commandHandler(...)
         end
     elseif opt == 'RESETCAMP' then
         camp.setCamp(true)
+    elseif opt == 'RETURN' then
+        camp.returnToCamp(true)
     elseif opt == 'CAMPRADIUS' or opt == 'RADIUS' or opt == 'PULLARC' then
         config.getOrSetOption(opt, config.get(configName), new_value, configName)
         camp.setCamp()

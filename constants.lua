@@ -10,6 +10,7 @@ constants.commandHelp = {
     {command='mode [mode]', tip='Set the current mode of the script. Valid Modes:\n\t\t0|manual|1|assist|2|chase|3|vorpal|4|tank|5|pullertank|6|puller|7|huntertank'},
     {command='assistme', tip='Set the current target ID to the tank mob ID. Useful for manual mode to trigger tanking behavior'},
     {command='resetcamp', tip='Reset the centerpoint of the camp to your current X,Y,Z coordinates'},
+    {command='return', tip='Return to camp'},
     {command='burnnow', tip='Activate burn abilities'},
     {command='preburn', tip='Activate pre-burn abilities, like to use glyph in guild hall'},
     {command='addclicky <mash|cast|burn|buff|petbuff|heal|defensive|mana|summon|debuff|pull> [key/value]', tip='Adds the currently held item to the clicky group specified'},
