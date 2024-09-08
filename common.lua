@@ -222,7 +222,7 @@ function common.checkChase()
     end
     if helpers.distance(me_x, me_y, chase_x, chase_y) > (config.get('CHASEDISTANCE')^2) then
         if mq.TLO.Me.Sitting() then mq.cmd('/stand') end
-        if not movement.navToSpawn('pc ='..config.get('CHASETARGET'), 'dist=20') then
+        if not movement.navToSpawn('pc ='..config.get('CHASETARGET'), 'dist='..config.get('CHASESTOPDISTANCE')) then
             local chaseSpawn = mq.TLO.Spawn('pc '..config.get('CHASETARGET'))
             if not mq.TLO.Navigation.Active() and chaseSpawn.LineOfSight() then
                 mq.cmdf('/moveto id %s', chaseSpawn.ID())

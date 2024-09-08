@@ -208,8 +208,8 @@ Cleric.SpellLines = {
     },
     {-- TODO: when to use? maybe lower levels? slower heal. Slot 11
         Group='renewal',
-        Spells={'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', 'Desperate Renewal'},
-        Options={Gem=function(lvl) return lvl <= 70 and 5 or nil end, panic=true, emu=false}
+        Spells={'Heroic Renewal', 'Determined Renewal', 'Dire Renewal', 'Furial Renewal', 'Fervid Renewal', --[[emu cutoff]] 'Desperate Renewal'},
+        Options={Gem=function(lvl) return lvl <= 70 and 5 or nil end, panic=true, emu=true}
     },
     {-- Heal proc on target + reverse DS on targets target. Slot 11
         Group='retort',

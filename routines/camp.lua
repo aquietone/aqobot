@@ -109,26 +109,35 @@ function camp.cleanTargets()
     end
 end
 
-function camp.returnToCamp()
-    if helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > config.get('CAMPRADIUS')^2 then
-        movement.navToLoc(camp.X, camp.Y, camp.Z)
+function camp.returnToCamp(force)
+    if state.mobCount > 0 then
+        -- allow some buffer to campradius when checking returntocamp with mobs in camp.. allow to keep fighting stuff near the edge.
+        -- if toons are any further out maybe they were summoned out of camp or something.
+        if force or helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')+15)^2 then
+            movement.navToLoc(camp.X, camp.Y, camp.Z)
+        end
+    else
+        -- otherwise if camp is empty, move back in if more than halfway out from camp center.
+        if force or helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')/2)^2 then
+            movement.navToLoc(camp.X, camp.Y, camp.Z)
+        end
     end
 end
 
 ---Return to camp if alive and in a camp mode and not currently fighting and more than 15ft from the camp center location.
 local checkCampTimer = timer:new(2000)
-function camp.checkCamp()
+function camp.checkCamp(force)
     if not mode.currentMode:isReturnToCampMode() or not camp.Active then return end
-    if not checkCampTimer:expired() then return end
+    if not force and not checkCampTimer:expired() then return end
     -- if mq.TLO.Me.CombatState() == 'COMBAT' or mq.TLO.Me.Combat() or mq.TLO.Me.AutoFire() then return end
-    checkCampTimer:reset()
+    if not force then checkCampTimer:reset() end
     if (state.class ~= 'BRD' and mq.TLO.Me.Casting()) then return end-- or not common.clearToBuff() then return end
     if mq.TLO.Zone.ID() ~= camp.ZoneID then
         logger.info('Clearing camp due to zoning.')
         camp.Active = false
         return
     end
-    camp.returnToCamp()
+    camp.returnToCamp(force)
 end
 
 ---Draw a maploc at the given heading on the pull radius circle.

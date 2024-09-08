@@ -325,11 +325,12 @@ Magician.SpellLines = {
         Spells={'Burnout XVI', 'Burnout XV', 'Burnout XIV', 'Burnout XIII', 'Burnout XII', --[[emu cutoff]] 'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'},
         Options={petbuff=true, condition=function() return not mq.TLO.FindItem('Glyphwielder\'s Leggings of the Summoner')() end}
     },
-    {
-        Group='petds',
-        Spells={'Iceflame Pallisade', 'Iceflame Barricade', 'Iceflame Rampart', 'Iceflame Keep', 'Iceflame Armaments', --[[emu cutoff]] 'Iceflame Guard'},
-        Options={petbuff=true}
-    },
+    -- having some issues?
+    -- {
+    --     Group='petds',
+    --     Spells={'Iceflame Pallisade', 'Iceflame Barricade', 'Iceflame Rampart', 'Iceflame Keep', 'Iceflame Armaments', --[[emu cutoff]] 'Iceflame Guard'},
+    --     Options={petbuff=true, Checkfor=''}
+    -- },
     {
         Group='petheal',
         Spells={'Renewal of Shoru', 'Renewal of Iilivina', 'Renewal of Evreth', 'Renewal of Ioulin', 'Renewal of Calix', --[[emu cutoff]] 'Planar Renewal', 'Refresh Summoning', 'Renew Summoning', 'Renew Elements'},

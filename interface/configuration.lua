@@ -33,6 +33,14 @@ local config = {
         tlo = 'ChaseDistance',
         tlotype = 'int',
     },
+    CHASESTOPDISTANCE = {
+        value = 20,
+        tip = 'Distance away from chase target to stop chasing at (/nav dist= argument)',
+        label = 'Chase Stop Distance',
+        type = 'inputint',
+        tlo = 'ChaseStopDistance',
+        tlotype = 'int',
+    },
     CHASEPAUSED = {
         value = false,
         tip = 'Chase the chase target while paused',
@@ -597,7 +605,7 @@ end
 
 local configByCategory = {
     Assist={'MODE','ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','STICKCOMMAND','RESISTSTOPCOUNT','NUKEMANAMIN','DOTMANAMIN'},
-    Camp={'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASEPAUSED'},
+    Camp={'CAMPRADIUS','CHASETARGET','CHASEDISTANCE','CHASESTOPDISTANCE','CHASEPAUSED'},
     Burn={'BURNALWAYS','BURNALLNAMED','BURNCOUNT','BURNPCT','USEGLYPH','USEINTENSITY'},
     Pull={'PULLRADIUS','PULLLOW','PULLHIGH','PULLMINLEVEL','PULLMAXLEVEL','PULLARC','GROUPWATCHWHO','GROUPSTAYCLOSE','PULLWITH'},
     Heal={'HEALPCT','PANICHEALPCT','HOTHEALPCT','GROUPHEALPCT','GROUPHEALMIN','XTARGETHEAL','REZGROUP','REZRAID','REZINCOMBAT','PRIORITYTARGET','INTERRUPTFULLHP','INTERRUPTFORHEALS', 'ANNOUNCEHEALS'},

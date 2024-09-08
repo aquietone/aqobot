@@ -15,7 +15,7 @@ local mode = require('mode')
 local state = require('state')
 
 -- UI Control variables
-local openGUI, shouldDrawGUI = true, true
+local openGUI, shouldDrawGUI, minimize = true, true, false
 local stateGUIOpen, shouldDrawStateGUI = false, false
 local spellRotationUIOpen, shouldDrawSpellRotationUI = false, false
 local abilityGUIOpen, shouldDrawAbilityGUI = false, false
@@ -42,6 +42,8 @@ local GOLD = ImVec4(.7, .5, 0, 1)
 
 local class
 local ui = {}
+
+-- local aqoImg = mq.CreateTexture(mq.luaDir .. "/aqo/aqo.png")
 
 function ui.init(_class)
     class = _class
@@ -105,7 +107,7 @@ end
 -- Combine Assist and Camp categories
 local assistTabConfigs = {
     'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','CAMPRADIUS',
-    'STICKCOMMAND','CHASETARGET','CHASEDISTANCE','CHASEPAUSED','RESISTSTOPCOUNT',
+    'STICKCOMMAND','CHASETARGET','CHASEDISTANCE','CHASESTOPDISTANCE','CHASEPAUSED','RESISTSTOPCOUNT',
     'NUKEMANAMIN','DOTMANAMIN','MAINTANK','LOOTMOBS','LOOTCOMBAT',
 }
 local function drawAssistTab()
@@ -115,7 +117,7 @@ local function drawAssistTab()
     end
     ImGui.SameLine()
     if ImGui.Button('Return to Camp', x/2, BUTTON_HEIGHT) then
-        camp.returnToCamp()
+        camp.returnToCamp(true)
     end
     local current_camp_radius = config.get('CAMPRADIUS')
 
@@ -359,6 +361,9 @@ end
 
 local function drawHeader()
     local x, y = ImGui.GetContentRegionAvail()
+    -- if ImGui.Button('Minimize') then
+    --     minimize = true
+    -- end
     local buttonWidth = (x / 2) - 37--22
     if state.paused then
         if ImGui.Button(icons.FA_PLAY, buttonWidth, BUTTON_HEIGHT) then
@@ -901,7 +906,7 @@ end
 function ui.main()
     if not openGUI then return end
     pushStyle(config.THEME.value)
-    local flags = 0
+    local flags = 0--ImGuiWindowFlags.NoTitleBar
     if config.get('LOCKED') then
         flags = bit32.bor(ImGuiWindowFlags.NoMove, ImGuiWindowFlags.NoResize)
     end
@@ -911,10 +916,28 @@ function ui.main()
     if width and height then ImGui.SetNextWindowSize(ImVec2(width, height), ImGuiCond.Once) end
     openGUI, shouldDrawGUI = ImGui.Begin(string.format('AQO Bot 1.0 - %s###AQOBOTUI%s', state.class, state.class), openGUI, flags)
     if shouldDrawGUI then
-        drawHeader()
-        drawBody()
-        local x, y = ImGui.GetWindowSize()
-        if x < MINIMUM_WIDTH then ImGui.SetWindowSize(MINIMUM_WIDTH, y) end
+        -- if not minimize then
+            drawHeader()
+            drawBody()
+            local x, y = ImGui.GetWindowSize()
+            if x < MINIMUM_WIDTH then ImGui.SetWindowSize(MINIMUM_WIDTH, y) end
+        -- else
+        --     if state.paused then
+        --         if ImGui.ImageButton('AQOButton',aqoImg:GetTextureID(), ImVec2(30, 30),ImVec2(0.0,0.0), ImVec2(1, 1), ImVec4(0,0,0,0),ImVec4(1,0,0,1)) then
+        --             minimize = false
+        --         end
+        --         if ImGui.IsItemHovered() then
+        --             ImGui.SetTooltip("AQO is Paused")
+        --         end
+        --     else
+        --         if ImGui.ImageButton('AQOButton',aqoImg:GetTextureID(), ImVec2(30, 30)) then
+        --             minimize = false
+        --         end
+        --         if ImGui.IsItemHovered() then
+        --             ImGui.SetTooltip("AQO is Running")
+        --         end
+        --     end
+        -- end
     end
     ImGui.End()
     drawSpellRotationUI()
