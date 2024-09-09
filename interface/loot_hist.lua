@@ -181,14 +181,14 @@ local function writeSettings(file, settings)
 	mq.pickle(file, settings)
 end
 
-local function loadTheme()
-	if File_Exists(themeFile) then
-		theme = dofile(themeFile)
-		else
-		theme = require('themes')
-	end
-	ThemeName = theme.LoadTheme or 'notheme'
-end
+-- local function loadTheme()
+-- 	if File_Exists(themeFile) then
+-- 		theme = dofile(themeFile)
+-- 		else
+-- 		theme = require('themes')
+-- 	end
+-- 	ThemeName = theme.LoadTheme or 'notheme'
+-- end
 
 local function loadSettings()
 	local temp = {}
@@ -206,7 +206,7 @@ local function loadSettings()
 		temp = settings[script]
 	end
     
-	loadTheme()
+	-- loadTheme()
     
 	if settings[script].locked == nil then
 		settings[script].locked = false
@@ -247,45 +247,45 @@ end
 ---comment
 ---@param themeName string -- name of the theme to load form table
 ---@return integer, integer -- returns the new counter values 
-local function DrawTheme(themeName)
-	local StyleCounter = 0
-	local ColorCounter = 0
-	for tID, tData in pairs(theme.Theme) do
-		if tData.Name == themeName then
-			for pID, cData in pairs(theme.Theme[tID].Color) do
-				ImGui.PushStyleColor(pID, ImVec4(cData.Color[1], cData.Color[2], cData.Color[3], cData.Color[4]))
-				ColorCounter = ColorCounter + 1
-			end
-			if tData['Style'] ~= nil then
-				if next(tData['Style']) ~= nil then
+-- local function DrawTheme(themeName)
+-- 	local StyleCounter = 0
+-- 	local ColorCounter = 0
+-- 	for tID, tData in pairs(theme.Theme) do
+-- 		if tData.Name == themeName then
+-- 			for pID, cData in pairs(theme.Theme[tID].Color) do
+-- 				ImGui.PushStyleColor(pID, ImVec4(cData.Color[1], cData.Color[2], cData.Color[3], cData.Color[4]))
+-- 				ColorCounter = ColorCounter + 1
+-- 			end
+-- 			if tData['Style'] ~= nil then
+-- 				if next(tData['Style']) ~= nil then
                     
-					for sID, sData in pairs (theme.Theme[tID].Style) do
-						if sData.Size ~= nil then
-							ImGui.PushStyleVar(sID, sData.Size)
-							StyleCounter = StyleCounter + 1
-							elseif sData.X ~= nil then
-							ImGui.PushStyleVar(sID, sData.X, sData.Y)
-							StyleCounter = StyleCounter + 1
-						end
-					end
-				end
-			end
-		end
-	end
-	return ColorCounter, StyleCounter
-end
+-- 					for sID, sData in pairs (theme.Theme[tID].Style) do
+-- 						if sData.Size ~= nil then
+-- 							ImGui.PushStyleVar(sID, sData.Size)
+-- 							StyleCounter = StyleCounter + 1
+-- 							elseif sData.X ~= nil then
+-- 							ImGui.PushStyleVar(sID, sData.X, sData.Y)
+-- 							StyleCounter = StyleCounter + 1
+-- 						end
+-- 					end
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- 	return ColorCounter, StyleCounter
+-- end
 
 function guiLoot.GUI()
 	if not guiLoot.openGUI then return end
 	local windowName = 'Looted Items##'..mq.TLO.Me.DisplayName()
 	ImGui.SetNextWindowSize(260, 300, ImGuiCond.FirstUseEver)
 	--imgui.PushStyleVar(ImGuiStyleVar.WindowPadding, ImVec2(1, 0));
-	ColorCount, StyleCount = DrawTheme(ThemeName)
+	-- ColorCount, StyleCount = DrawTheme(ThemeName)
 	if guiLoot.imported then windowName = 'Looted Items Local##Imported_'..mq.TLO.Me.DisplayName() end
 	guiLoot.openGUI, show = ImGui.Begin(windowName, nil, guiLoot.winFlags)
 	if not show then
-		if ColorCount > 0 then ImGui.PopStyleColor(ColorCount) end
-		if StyleCount > 0 then ImGui.PopStyleVar(StyleCount) end
+		-- if ColorCount > 0 then ImGui.PopStyleColor(ColorCount) end
+		-- if StyleCount > 0 then ImGui.PopStyleVar(StyleCount) end
 		imgui.End()
 		--imgui.PopStyleVar()
 		-- guiLoot.shouldDrawGUI = false
@@ -447,8 +447,8 @@ function guiLoot.GUI()
 		ImGui.EndTable()
 			
 		ImGui.EndChild()
-		if ColorCount > 0 then ImGui.PopStyleColor(ColorCount) end
-		if StyleCount > 0 then ImGui.PopStyleVar(StyleCount)  end
+		-- if ColorCount > 0 then ImGui.PopStyleColor(ColorCount) end
+		-- if StyleCount > 0 then ImGui.PopStyleVar(StyleCount)  end
 		ImGui.SetWindowFontScale(1)
 		ImGui.End()
 		else
@@ -469,8 +469,8 @@ function guiLoot.GUI()
 
 		guiLoot.console:Render(ImVec2(contentSizeX,0))
 		-- imgui.PopStyleVar(1)
-		if ColorCount > 0 then ImGui.PopStyleColor(ColorCount) end
-		if StyleCount > 0 then ImGui.PopStyleVar(StyleCount)  end
+		-- if ColorCount > 0 then ImGui.PopStyleColor(ColorCount) end
+		-- if StyleCount > 0 then ImGui.PopStyleVar(StyleCount)  end
 		ImGui.SetWindowFontScale(1)
 		ImGui.End()
 	end
@@ -528,7 +528,7 @@ end
 local function lootedReport_GUI()
 --- Report Window
 	if not showReport then return end
-	ColorCountRep, StyleCountRep = DrawTheme(ThemeName)
+	-- ColorCountRep, StyleCountRep = DrawTheme(ThemeName)
 	ImGui.SetNextWindowSize(300,200, ImGuiCond.Appearing)
 	if changed and mq.TLO.Plugin('mq2dannet').IsLoaded() and guiLoot.caller == 'lootnscoot' then
 		mq.cmd('/dgae /lootutils reload')
@@ -536,15 +536,15 @@ local function lootedReport_GUI()
 	end
 	local openRepGUI, showRepGUI = ImGui.Begin("Loot Report##"..script, showReport, bit32.bor( ImGuiWindowFlags.NoCollapse))
 	if not showRepGUI then
-		if ColorCountRep > 0 then ImGui.PopStyleColor(ColorCountRep) end
-		if StyleCountRep > 0 then ImGui.PopStyleVar(StyleCountRep) end
+		-- if ColorCountRep > 0 then ImGui.PopStyleColor(ColorCountRep) end
+		-- if StyleCountRep > 0 then ImGui.PopStyleVar(StyleCountRep) end
 		ImGui.SetWindowFontScale(1)
 		ImGui.End()
 		return showRepGUI
 	end
 	if not openRepGUI then
-		if ColorCountRep > 0 then ImGui.PopStyleColor(ColorCountRep) end
-		if StyleCountRep > 0 then ImGui.PopStyleVar(StyleCountRep) end
+		-- if ColorCountRep > 0 then ImGui.PopStyleColor(ColorCountRep) end
+		-- if StyleCountRep > 0 then ImGui.PopStyleVar(StyleCountRep) end
 		ImGui.SetWindowFontScale(1)
 		ImGui.End()
 		showReport = false
@@ -751,8 +751,8 @@ local function lootedReport_GUI()
 	
 		ImGui.EndTable()
 		
-		if ColorCountRep > 0 then ImGui.PopStyleColor(ColorCountRep) end
-		if StyleCountRep > 0 then ImGui.PopStyleVar(StyleCountRep) end
+		-- if ColorCountRep > 0 then ImGui.PopStyleColor(ColorCountRep) end
+		-- if StyleCountRep > 0 then ImGui.PopStyleVar(StyleCountRep) end
 		ImGui.SetWindowFontScale(1)
 		ImGui.End()
 	end
@@ -760,41 +760,41 @@ end
 
 local function lootedConf_GUI(open)
 	if not openConfigGUI then return end
-	ColorCountConf = 0
-	StyleCountConf = 0
-	ColorCountConf, StyleCountConf = DrawTheme(ThemeName)
+	-- ColorCountConf = 0
+	-- StyleCountConf = 0
+	-- ColorCountConf, StyleCountConf = DrawTheme(ThemeName)
 	open, openConfigGUI = ImGui.Begin("Looted Conf##"..script, open, bit32.bor(ImGuiWindowFlags.None, ImGuiWindowFlags.AlwaysAutoResize, ImGuiWindowFlags.NoCollapse))
 	ImGui.SetWindowFontScale(ZoomLvl)
 	if not openConfigGUI then
 		openConfigGUI = false
 		open = false
-		if StyleCountConf > 0 then ImGui.PopStyleVar(StyleCountConf) end
-		if ColorCountConf > 0 then ImGui.PopStyleColor(ColorCountConf) end
+		-- if StyleCountConf > 0 then ImGui.PopStyleVar(StyleCountConf) end
+		-- if ColorCountConf > 0 then ImGui.PopStyleColor(ColorCountConf) end
 		ImGui.SetWindowFontScale(1)
 		ImGui.End()
 		return open
 	end
-	ImGui.SameLine()
-	ImGui.SeparatorText('Theme')
-	ImGui.Text("Cur Theme: %s", ThemeName)
+	-- ImGui.SameLine()
+	-- ImGui.SeparatorText('Theme')
+	-- ImGui.Text("Cur Theme: %s", ThemeName)
 	-- Combo Box Load Theme
     
-	if ImGui.BeginCombo("Load Theme##"..script, ThemeName) then
-		ImGui.SetWindowFontScale(ZoomLvl)
-		for k, data in pairs(theme.Theme) do
-			local isSelected = data.Name == ThemeName
-			if ImGui.Selectable(data.Name, isSelected) then
-				theme.LoadTheme = data.Name
-				ThemeName = theme.LoadTheme
-				settings[script].LoadTheme = ThemeName
-			end
-		end
-		ImGui.EndCombo()
-	end
+	-- if ImGui.BeginCombo("Load Theme##"..script, ThemeName) then
+	-- 	ImGui.SetWindowFontScale(ZoomLvl)
+	-- 	for k, data in pairs(theme.Theme) do
+	-- 		local isSelected = data.Name == ThemeName
+	-- 		if ImGui.Selectable(data.Name, isSelected) then
+	-- 			theme.LoadTheme = data.Name
+	-- 			ThemeName = theme.LoadTheme
+	-- 			settings[script].LoadTheme = ThemeName
+	-- 		end
+	-- 	end
+	-- 	ImGui.EndCombo()
+	-- end
     
-	if ImGui.Button('Reload Theme File') then
-		loadTheme()
-	end
+	-- if ImGui.Button('Reload Theme File') then
+	-- 	loadTheme()
+	-- end
 	--------------------- Sliders ----------------------
 	ImGui.SeparatorText('Scaling')
 	-- Slider for adjusting zoom level
@@ -817,8 +817,8 @@ local function lootedConf_GUI(open)
         
 		writeSettings(configFile,settings)
 	end
-	if StyleCountConf > 0 then ImGui.PopStyleVar(StyleCountConf) end
-	if ColorCountConf > 0 then ImGui.PopStyleColor(ColorCountConf) end
+	-- if StyleCountConf > 0 then ImGui.PopStyleVar(StyleCountConf) end
+	-- if ColorCountConf > 0 then ImGui.PopStyleColor(ColorCountConf) end
 	ImGui.SetWindowFontScale(1)
 	ImGui.End()
     
