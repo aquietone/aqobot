@@ -124,7 +124,7 @@ Druid.SpellLines = {
     {Group='petbuff', Spells={'Feral Spirit'}, Options={opt='USEPET', petbuff=true}},
 
     -- Buffs
-    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Blessing of Steeloak', 'Blessing of the Nine', 'Protection of Steel', 'Protection of Rock', 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true, condition=function() return mq.TLO.Me.Level() < 70 end}},
+    {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Blessing of Steeloak', 'Blessing of the Nine', 'Protection of Steel', 'Protection of Rock', 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true,}},-- condition=function() return mq.TLO.Me.Level() < 70 end}},
     {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}, Options={selfbuff=true}},
     {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender', --[[emu cutoff]] 'Mask of the Wild'}, Options={selfbuff=true}}, -- self mana regen, part of unity AA
     {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin', --[[emu cutoff]] 'Skin like Steel', 'Skin like Rock', 'Skin like Wood'}},

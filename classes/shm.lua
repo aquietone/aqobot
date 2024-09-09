@@ -291,7 +291,7 @@ Shaman.SpellLines = {
     {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
     {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
     {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale', --[[emu cutoff]] 'Talisman of Attuna', 'Talisman of Tnarg', 'Inner Fire'}, Options={alias='SINGLEFOCUS'}},
-    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS', condition=function() return mq.TLO.Me.Level() < 70 end}},
+    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},--, condition=function() return mq.TLO.Me.Level() < 70 end}},
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
