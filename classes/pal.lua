@@ -60,6 +60,7 @@ function Paladin:init()
     self:initAbilities()
     self:addCommonAbilities()
 
+    state.swapGem = 10
     state.nukeTimer = timer:new(500)
     self.useCommonListProcessor = true
 end
@@ -72,75 +73,75 @@ end
 
 Paladin.SpellLines = {
     {
+        Group='groupheal',
+        NumToPick=3,
+        Spells={'Wave of Penitence', --[[emu cutoff]] 'Wave of Piety', 'Wave of Trushar', 'Wave of Marr'},
+        Options={Gems=state.emu and {1,2,3} or {7}, heal=true, group=true},
+    },
+    { -- Normal no damage stun line
         Group='stun1',
-        Spells={'Force of Marr', --[[emu cutoff]] 'Ancient: Force of Jeron', 'Force of Piety', 'Stun', 'Desist', 'Cease'},
-        Options={Gem=function(lvl) return state.emu and 8 or 1 end},
+        Spells={'Force of Marr', --[[emu cutoff]] 'Force of Piety', 'Force of Akilae', 'Force of Akera', 'Stun', 'Desist', 'Cease'},
+        Options={Gem=4},
     },
-    {
+    { -- Stun line with damage
         Group='stun2',
-        Spells={'Earnest Force', --[[emu cutoff]] --[['Serene Command']]},
-        Options={Gem=2},
+        Spells={'Earnest Force', --[[emu cutoff]] 'Serene Command', 'Quellious\' Word of Serenity', 'Force', 'Holy Might'},
+        Options={Gem=5},
     },
-    {
+    { -- Second no damage stun line
         Group='stun3',
-        Spells={'Lesson of Repentance'},
-        Options={Gem=3},
+        Spells={'Lesson of Repentance', --[[emu cutoff]] 'Ancient: Force of Jeron', 'Ancient: Force of Chaos'},
+        Options={Gem=6},
     },
     {
         Group='stunaoenuke',
         Spells={'The Silent Command'},
-        Options={Gem=function(lvl) return state.emu and 6 or 3 end, opt='USEAOE'}
-    },
-    {
-        Group='twincast',
-        Spells={'Glorious Exoneration', --[[emu cutoff]] 'Justice of Marr'},
-        Options={Gem=function(lvl) return lvl > 100 and 4 end},
+        Options={Gem=7, opt='USEAOE', threshold=2}
     },
     {
         Group='stunaoe',
         Spells={'Stun Command'},
-        Options={Gem=function(lvl) return state.emu and 5 or 4 end, function(lvl) return lvl <= 100 and 4 end}
+        Options={Gem=8}
     },
     {
-        Group='healtot',
-        Spells={'Burst of Daybreak'},
-        Options={Gem=5},
+        Group='twincast',
+        Spells={'Glorious Exoneration', --[[emu cutoff]] 'Justice of Marr'},
+        Options={Gem=9},
     },
-    {
-        Group='ohshitheal',
-        Spells={'Penitence'},
-        Options={Gem=6, panic=true},
-    },
-    {
-        Group='groupheal',
-        NumToPick=3,
-        Spells={'Wave of Penitence', --[[emu cutoff]] 'Wave of Piety', 'Wave of Trushar', 'Wave of Marr'},
-        Options={Gem=function(lvl) return state.emu and 7 or nil end, Gems=state.emu and {1,2,3} or {7}, threshold=2, heal=true, group=true},
-    },
-    {
-        Group='grouphealfast',
-        Spells={'Aurora of Daybreak'},
-        Options={Gem=8, threshold=2, heal=true, group=true},
-    },
-    {
-        Group='challenge',
-        Spells={'Confrontation for Honor'},
-        Options={Gem=9, condition=conditions.lowAggro},
-    },
-    {
-        Group='totshield',
-        Spells={'Protective Devotion'},
-        Options={Gem=10},
-    },
+    -- {
+    --     Group='healtot',
+    --     Spells={'Burst of Daybreak'},
+    --     Options={Gem=5},
+    -- },
+    -- {
+    --     Group='ohshitheal',
+    --     Spells={'Penitence'},
+    --     Options={Gem=6, panic=true},
+    -- },
+    -- {
+    --     Group='grouphealfast',
+    --     Spells={'Aurora of Daybreak'},
+    --     Options={Gem=8, threshold=2, heal=true, group=true},
+    -- },
+    -- {
+    --     Group='challenge',
+    --     Spells={'Confrontation for Honor'},
+    --     Options={Gem=9, condition=conditions.lowAggro},
+    -- },
+    -- {
+    --     Group='totshield',
+    --     Spells={'Protective Devotion'},
+    --     Options={Gem=10},
+    -- },
     {
         Group='growth',
         Spells={'Stubborn Stance', --[[emu cutoff]] 'Ward of Tunare'},
-        Options={Gem=function(lvl) return lvl <= 70 and 7 or 11 end, combatbuff=true},
+        Options={Gem=11, combatbuff=true},
     },
     {
         Group='procbuff',
         Spells={'Preservation of Marr', 'Instrument of Nife', --[[emu cutoff]] 'Pious Fury'},
-        Options={Gem=function(lvl) return lvl <= 70 and 11 or 12 end, combatbuff=true},
+        Options={Gem=12, combatbuff=true},
     },
     {-- same stats as cleric aego
         Group='aego',
@@ -149,8 +150,8 @@ Paladin.SpellLines = {
     },
     {
         Group='brells',
-        Spells={'Brell\'s Tellurian Rampart', 'Divine Vidor'},
-        Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, alias='BRELLS', selfbuff=true},
+        Spells={'Brell\'s Unbreakable Palisade', 'Brell\'s Tenacious Barrier', 'Brell\'s Blessed Barrier', 'Brell\'s Blessed Bastion', 'Brell\'s Stalwart Bulwark', 'Brell\'s Steadfast Bulwark', 'Brell\'s Adamantine Armor', 'Brell\'s Tellurian Rampart', 'Brell\'s Loamy Ward', 'Brell\'s Earthen Aegis', 'Brell\'s Stony Guard', 'Brell\'s Vibrant Barricade', 'Brell\'s Brawny Bulwark', 'Brell\'s Stalwart Shield', 'Brell\'s Mountainous Barrier', 'Brell\'s Steadfast Aegis'},
+        Options={alias='BRELLS', selfbuff=true},--Gem=function(lvl) return lvl <= 70 and 12 or nil end, 
     },
     {
         Group='selfarmor',
@@ -199,7 +200,7 @@ Paladin.SpellLines = {
     },
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
-Paladin.allDPSSpellGroups = {'stun1', 'stun2', 'stun3', 'stunaoenuke', 'stunaoe'}
+Paladin.allDPSSpellGroups = {'stun1', 'stun2', 'stun3', 'stunaoenuke', 'stunaoe', 'twincast'}
 
 --[[ AA's to sort out
 self:addAA('Bestow Divine Aura', {}) -- 
@@ -254,7 +255,7 @@ Paladin.Abilities = {
     { -- agro + interrupt, mash
         Type='AA',
         Name='Force of Disruption',
-        Options={tanking=true}
+        Options={tanking=true, condition=function() return mq.TLO.Me.PctAggro() < 100 end}
     },
     { -- agro generating swarm pet
         Type='AA',
@@ -264,7 +265,7 @@ Paladin.Abilities = {
     { -- pbae stun/agro, 5m cd, timer 30
         Type='AA',
         Name='Beacon of the Righteous',
-        Options={aetank=true, threshold=3}
+        Options={aetank=true, threshold=3, condition=function() return mq.TLO.Me.PctAggro() < 100 end}
     },
     { -- pbae stun/agro, 5m cd, timer 36
         Type='AA',
@@ -291,7 +292,7 @@ Paladin.Abilities = {
     { -- DD + agro + interrupt, mash
         Type='AA',
         Name='Disruptive Persecution',
-        Options={dps=true, condition=function() return not config.get('MAINTANK') end}
+        Options={dps=true, condition=function() return mq.TLO.Me.PctAggro() >= 100 or not config.get('MAINTANK') end}
     },
 
     -- Burn
@@ -378,12 +379,12 @@ Paladin.Abilities = {
     { -- instant group heal, 24m cd, timer 4
         Type='AA',
         Name='Hand of Piety',
-        Options={heal=true}
+        Options={heal=true, grouppanic=true}
     },
     {
         Type='AA',
         Name='Lay on Hands',
-        Options={heal=true}
+        Options={heal=true, panic=true}
     },
     { -- large self hp/mana/end heal, 10m cd, timer 32
         Type='AA',
@@ -409,11 +410,11 @@ Paladin.Abilities = {
         Name='Divine Protector\'s Unity',
         Options={selfbuff=true}
     },
-    { -- reduce groups agro generation, 5m cd, timer 16
-        Type='AA',
-        Name='Marr\'s Salvation',
-        Options={selfbuff=true}
-    },
+    -- { -- reduce groups agro generation, 5m cd, timer 16
+    --     Type='AA',
+    --     Name='Marr\'s Salvation',
+    --     Options={selfbuff=true}
+    -- },
     { -- self buffs
         Type='AA',
         Name='Yaulp',

@@ -253,7 +253,7 @@ Cleric.SpellLines = {
     {
         Group='groupaego',
         Spells={'Unified Hand of Infallibility', 'Unified Hand of Persistence', 'Unified Hand of Righteousness', 'Unified Hand of Assurance', 'Unified Hand of Surety', 'Hand of Reliance', --[[emu cutoff]] 'Hand of Conviction', 'Hand of Virtue', 'Blessing of Aegolism', 'Blessing of Temperance'},
-        Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}, alias='AEGO', selfbuff=true, condition=function() return mq.TLO.Me.Level() < 70 end}
+        Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}, alias='AEGO', selfbuff=true,}-- condition=function() return mq.TLO.Me.Level() < 70 end}
     },
     {
         Group='singleaego',

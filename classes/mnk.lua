@@ -202,7 +202,7 @@ Monk.Abilities = {
         Type='Disc',
         Group='aura',
         Names={'Master\'s Aura', 'Disciple\'s Aura'},
-        Options={aurabuff=true, CheckFor='Disciples Aura'}
+        Options={aurabuff=true, CheckFor='Disciples Aura', condition=function() return not mq.TLO.Me.Song('Master\'s Aura')() and not mq.TLO.Me.Song('Disciple\'s Aura')() end}
     },
     {
         Type='Item',

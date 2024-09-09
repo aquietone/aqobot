@@ -365,7 +365,7 @@ Warrior.Abilities = {
         Type='Disc',
         Group='aura',
         Names={'Champion\'s Aura', 'Myrmidon\'s Aura'},
-        Options={aurabuff=true}
+        Options={aurabuff=true, Checkfor='Champion\'s Aura'}
     },
     {
         Type='Disc',
