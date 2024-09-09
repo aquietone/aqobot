@@ -1,3 +1,8 @@
+# 2024/09/09
+- Remove condition on cleric aego which was mostly just a lazarus specific i don't want to cast this anymore because i have a buff stick
+- Add conditions to war,ber,mnk auras to handle multiple of a class in group with conflicting auras
+- Update pal spells to use more stun lines
+
 # 2024/09/07
 - Add force option to returnToCamp so that UI returnToCamp button always does something
 - Change returnToCamp: if in combat, return if > campradius+15 away to allow fighting near edge of camp radius. if not in combat, return to camp if > campradius/2 away from camp center
