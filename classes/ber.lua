@@ -316,7 +316,7 @@ Berserker.Abilities = {
         Type='Disc',
         Group='aura',
         Names={'Bloodlust Aura', 'Aura of Rage'},
-        Options={aurabuff=true, combat=false}
+        Options={aurabuff=true, combat=false, condition=function() return not mq.TLO.Me.Song('Aura of Rage Effect')() and not mq.TLO.Me.Song('Bloodlust Aura')() end}
     },
     {
         Type='Disc',
