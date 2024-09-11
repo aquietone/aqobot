@@ -60,7 +60,7 @@ constants.bufflines = {
     -- {key='REGEN', label='Regen', category='Standard'},
     -- Stat Buffs
     {key='CHAMPION', label='Champion (Shm)', category='Stats'},
-    {key='FEROCITY', label='Ferocit (Bst)', category='Stats'},
+    {key='FEROCITY', label='Ferocity (Bst)', category='Stats'},
     {key='WOLF', label='Pact of Wolf (Shm)', category='Stats'},
     {key='STR', label='Strength', category='Stats'},
     {key='CHA', label='Charisma', category='Stats'},
@@ -84,6 +84,7 @@ constants.bufflines = {
     {key='SLOWPROC', label='Slow Proc', category='Short Term Buffs'},
     {key='TEMPDS', label='Temporary Damage Shield', category='Short Term Buffs'},
     {key='FPARAGON', label='Focused Paragon', category='Short Term Buffs'},
+    {key='MELEEPROC', label='Melee Proc', category='Short Term Buffs'},
     -- Resist Buffs
     {key='RESFIRE', label='Resist Fire', category='Resists'},
     {key='RESCOLD', label='Resist Cold', category='Resists'},
@@ -112,6 +113,7 @@ constants.buffs = {
         CHAMPION = true,
         WOLF = true,
         FEROCITY = true,
+        MELEEPROC = true,
     },
     BRD = {
         AEGO = false,
@@ -147,6 +149,7 @@ constants.buffs = {
         CHAMPION = true,
         WOLF = true,
         FEROCITY = true,
+        MELEEPROC = true,
     },
     ROG = {
         AEGO = false,
@@ -165,6 +168,7 @@ constants.buffs = {
         CHAMPION = true,
         WOLF = true,
         FEROCITY = true,
+        MELEEPROC = true,
     },
 
     CLR = {

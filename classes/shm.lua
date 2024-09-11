@@ -112,6 +112,7 @@ function Shaman:initClassOptions()
     self:addOption('USESPLASH', 'Use Splash', true, nil, 'Memorize splash line of spells', 'checkbox', nil, 'UseSplash', 'bool')
     self:addOption('USEHOTGROUP', 'Use Group HoT', true, nil, 'Toggle use of group HoT', 'checkbox', nil, 'UseHoTGroup', 'bool')
     self:addOption('USECURES', 'Use Cures', true, nil, 'Toggle use of cures', 'checkbox', nil, 'UseCures', 'bool')
+    self:addOption('USEUNIONOFSPIRITS', 'Use Union of Spirits', true, nil, 'Toggle use of Union of Spirits as a panic heal', 'checkbox', nil, 'UseUnionOfSpirits', 'bool')
 end
 
 local PET_RACES = {['Rhinoceros']=true,['Scorpion']=true,['Mammoth']=true}
@@ -283,9 +284,10 @@ Shaman.SpellLines = {
     },
 
     -- Buffs
-    {Group='proc', Spells={'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}, singlebuff=true}},
+    {Group='proc', Spells={'Spirit of the Panther', 'Spirit of the Leopard', 'Spirit of the Jaguar'}, Options={alias='MELEEPROC', classes={MNK=true,BER=true,ROG=true,BST=true,WAR=true,PAL=true,SHD=true}, singlebuff=true, condition=function() return not mq.TLO.FindItem('Imbued Rune of the Panther')() and not Shaman.spells.panther end}},
+    -- define group panther after normal panther so alias prefers group spell
+    {Group='panther', Spells={'Talisman of the Panther'}, Options={alias='MELEEPROC', selfbuff=function() return not mq.TLO.FindItem('Imbued Rune of the Panther')() and true or false end}},
     {Group='champion', Spells={'Champion', 'Ferine Avatar'}, Options={Gem=function(lvl) return not mq.TLO.FindItem('Forsaken Jaundiced Bone Bracer')() and lvl <= 70 and 2 or nil end, alias=not mq.TLO.FindItem('Forsaken Jaundiced Bone Bracer')() and 'CHAMPION', combatbuffothers=true}},
-    {Group='panther', Spells={'Talisman of the Panther'}, Options={selfbuff=function() return not mq.TLO.FindItem('Imbued Rune of the Panther')() and true or false end}},
     -- {Group='talisman', Spells={'Talisman of Unification'}, Options={group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
     -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
     {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
@@ -512,7 +514,7 @@ Shaman.Abilities = {
     {
         Type='AA',
         Name='Union of Spirits',
-        Options={alias='UNION', panic=true, tank=true, pet=30, heal=true}
+        Options={alias='UNION', panic=true, tank=true, pet=30, heal=true, opt='USEUNIONOFSPIRITS'}
     },
 
     -- Buffs

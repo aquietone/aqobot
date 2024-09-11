@@ -172,12 +172,12 @@ ShadowKnight.SpellLines = {
     {Group='pet', Spells={'Minion of Fandrel', 'Minion of Itzal', 'Son of Decay', 'Invoke Death', 'Cackling Bones', 'Animate Dead', 'Restless Bones', 'Convoke Shadow', 'Bone Walk', 'Leering Corpse'}, Options={Gem=function(lvl) return lvl <= 60 and 8 end, postcast=function() common.petClicky() end}}, -- pet
     {Group='pethaste', Spells={'Gift of Fandrel', 'Gift of Itzal', 'Rune of Decay', 'Augmentation of Death', 'Augment Death', 'Strengthen Death'}, Options={petbuff=true}}, -- pet haste
     -- Unity Buffs
-    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={Gem=function(lvl) return lvl <= 70 and 11 or nil end, swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
+    {Group='shroud', Spells={'Shroud of Rimeclaw', 'Shroud of Zelinstein', 'Shroud of Discord', 'Black Shroud'}, Options={Gem=function(lvl) return not mq.TLO.FindItem('Forsaken Blood Ember Bracer')() and lvl <= 70 and 11 or nil end, swap=false, selfbuff=true}}, -- Shroud of Zelinstein Strike proc
     {Group='bezaproc', Spells={'Mental Wretchedness', 'Mental Anguish', 'Mental Horror'}, Options={opt='USEBEZA', selfbuff=true}}, -- Mental Anguish Strike proc
     {Group='aziaproc', Spells={'Mortimus\' Horror', 'Brightfield\'s Horror'}, Options={opt='USEAZIA'}}, -- Brightfield's Horror Strike proc
     {Group='ds', Spells={'Goblin Skin', 'Tekuel Skin'}}, -- large damage shield self buff
     {Group='lich', Spells={'Kar\'s Covenant', 'Aten Ha Ra\'s Covenant'}, Options={selfbuff=true}}, -- lich mana regen
-    {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}, Options={selfbuff=true}}, -- self buff hp, ac, ds
+    {Group='drape', Spells={'Drape of the Ankexfen', 'Drape of the Akheva', 'Cloak of Discord', 'Cloak of Luclin'}, Options={selfbuff=true, Gem=function(lvl) return mq.TLO.FindItem('Forsaken Blood Ember Bracer')() and lvl <= 70 and 11 or nil end}}, -- self buff hp, ac, ds
     {Group='atkbuff', Spells={'Call of Blight', 'Penumbral Call', 'Dark Temptation', 'Grim Aura'}}, -- atk buff, hp drain on self
     {Group='voice', Spells={'Voice of Innoruuk'}, Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, opt='USEVOICEOFTHULE', selfbuff=true}},
     --['']=common.get_best_spell({'Remorseless Demeanor'})

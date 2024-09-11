@@ -1,3 +1,9 @@
+# 2024/09/10
+- Add DS alias to druid DS spell
+- Add UseUnionOfSpirits option to shaman to toggle use of union of spirits as a panic heal
+- Add spirit of the panther to proc buff spell line for shaman
+- Add MELEEPROC to buff beg for shaman proc spell line
+
 # 2024/09/09
 - Remove condition on cleric aego which was mostly just a lazarus specific i don't want to cast this anymore because i have a buff stick
 - Add conditions to war,ber,mnk auras to handle multiple of a class in group with conflicting auras
