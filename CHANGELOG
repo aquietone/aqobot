@@ -4,6 +4,7 @@
 - Add REGEN buff beg alias
 - Add druid and shaman group regen and group sow to SOW and REGEN alias
 - Add druid Wrath of the Wild AA to TEMPDS buff beg alias
+- Add druid Legacy of Nettles to DS buff beg alias
 - Add cleric aura of devotion to SPELLHASTE buff beg alias
 - Add enchanter Guard of Druzzil to RESMAGIC buff beg alias
 - Add config option to announce tank deaths in /rs
