@@ -122,7 +122,7 @@ self:addAA('Tranquil Blessings')]]
 BeastLord.SpellLines = {
     {-- DD. Slot 1
         Group='nuke1',
-        Spells={'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', 'Nak\'s Maelstrom', 'Bale\'s Maelstrom', 'Kron\'s Maelstrom', --[[emu cutoff]] 'Ancient: Savage Ice', 'Glacier Spear', 'Trushar\'s Frost', 'Spirit Strike', 'Blast of Frost', 'Burst of Frost'},
+        Spells={'Rimeclaw\'s Maelstrom', 'Va Xakra\'s Maelstrom', 'Vkjen\'s Maelstrom', 'Beramos\' Maelstrom', 'Visoracius\' Maelstrom', 'Nak\'s Maelstrom', 'Bale\'s Maelstrom', 'Kron\'s Maelstrom', --[[emu cutoff]] 'Ancient: Savage Ice', 'Trushar\'s Frost', 'Spirit Strike', 'Blast of Frost', 'Burst of Frost'},
         Options={opt='USENUKES', Gem=1}
     },
     {-- DD. Slot 2
@@ -138,7 +138,7 @@ BeastLord.SpellLines = {
     {-- DD. Slot 4,5
         Group='lance',
         NumToPick=2,
-        Spells={'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Kromrif Lance', 'Frostrift Lance', 'Glacial Lance', 'Glacier Spear', --[[emu cutoff]] 'Ice Spear'},
+        Spells={'Ankexfen Lance', 'Crystalline Lance', 'Restless Lance', 'Frostbite Lance', 'Kromtus Lance', 'Kromrif Lance', 'Frostrift Lance', 'Glacial Lance', --[[emu cutoff]] 'Glacier Spear', 'Ice Spear'},
         Options={opt='USENUKES', Gems={4, function(lvl) return lvl > 70 and 5 or nil end}}
     },
     {-- AOE DD

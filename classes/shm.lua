@@ -298,7 +298,7 @@ Shaman.SpellLines = {
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
     {Group='pet', Spells={'Commune with the Wild', 'True Spirit', 'Frenzied Spirit', 'Vigilant Spirit', 'Companion Spirit'}, Options={opt='SUMMONPET', postcast=function() if Shaman.spells.pet.CastName == 'Commune with the Wild' and not PET_RACES[mq.TLO.Pet.Race.Name()] then mq.cmd('/pet leave') else common.petClicky() end end}},
-    {Group='sow', Spells={'Spirit of the Shrew', 'Spirit of Wolf'}, Options={}},
+    {Group='sow', Spells={'Pack Shrew', 'Spirit of the Shrew', 'Spirit of Wolf'}, Options={alias='SOW'}},
     {Group='shrink', Spells={'Shrink'}, Options={alias='SHRINK'}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
 
@@ -357,8 +357,8 @@ Shaman.SpellLines = {
     },
     { -- regen
         Group='regen',
-        Spells={'Chloroplast', 'Regeneration'},
-        Options={}
+        Spells={'Talisman of Perseverance', 'Chloroplast', 'Regeneration'},
+        Options={alias='REGEN'}
     },
     { -- regen + wis bear form low level buff
         Group='selfbear',

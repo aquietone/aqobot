@@ -6,6 +6,7 @@ local camp = require('routines.camp')
 local logger = require('utils.logger')
 local movement = require('utils.movement')
 local timer = require('libaqo.timer')
+local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
 
@@ -27,6 +28,7 @@ function events.init(_class)
     mq.event('eventDeadReleased', '#*#Returning to Bind Location#*#', events.eventDead)
     mq.event('eventDead', 'You died.', events.eventDead)
     mq.event('eventDeadSlain', 'You have been slain by#*#', events.eventDead)
+    mq.event('eventOtherDead', '#1# has been slain by#*#', events.eventOtherDead)
     mq.event('eventResist', 'Your target resisted the #1# spell#*#', events.eventResist)
     mq.event('eventOMMMask', '#*#You feel a gaze of deadly power focusing on you#*#', events.eventOMMMask)
     mq.event('eventCannotRez', '#*#This corpse cannot be resurrected#*#', events.cannotRez)
@@ -126,6 +128,12 @@ function events.eventDead()
     logger.info('HP hit 0. what do!')
     state.resetCombatState()
     movement.stop()
+end
+
+function events.eventOtherDead(line, whoDied)
+    if config.get('ANNOUNCEDEATHS') and mq.TLO.Raid.Member(whoDied)() and constants.tankClasses[mq.TLO.Raid.Member(whoDied).Class.ShortName()] then
+        mq.cmdf('/rs zomg %s has been slain', whoDied)
+    end
 end
 
 function events.eventGear(line, requester, requested)

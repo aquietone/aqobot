@@ -57,7 +57,7 @@ constants.bufflines = {
     {key='SV', label='SV (Beast Lord HP)', category='Standard', exclusivewith='BRELLS,STRENGTH'},
     {key='SE', label='SE (Beast Lord Regen)', category='Standard'},
     {key='VIGOR', label='Feral Vigor', category='Standard'},
-    -- {key='REGEN', label='Regen', category='Standard'},
+    {key='REGEN', label='Regen', category='Standard'},
     -- Stat Buffs
     {key='CHAMPION', label='Champion (Shm)', category='Stats'},
     {key='FEROCITY', label='Ferocity (Bst)', category='Stats'},
@@ -71,6 +71,7 @@ constants.bufflines = {
     -- Utility Buffs
     {key='DMF', label='Dead Man Floating', category='Utility'},
     {key='DS', label='Damage Shield', category='Utility'},
+    {key='SOW', label='Spirit of Wolf', category='Utility'},
     -- Short Term Buffs
     {key='NECROTIC', label='Necro Damage Proc', category='Short Term Buffs'},
     {key='REPTILE', label='Druid Heal Proc', category='Short Term Buffs'},
@@ -86,12 +87,12 @@ constants.bufflines = {
     {key='FPARAGON', label='Focused Paragon', category='Short Term Buffs'},
     {key='MELEEPROC', label='Melee Proc', category='Short Term Buffs'},
     -- Resist Buffs
-    {key='RESFIRE', label='Resist Fire', category='Resists'},
     {key='RESCOLD', label='Resist Cold', category='Resists'},
+    {key='RESFIRE', label='Resist Fire', category='Resists'},
     {key='RESDIS', label='Resist Disease', category='Resists'},
+    {key='RESMAGIC', label='Resist Magic', category='Resists'},
     {key='RESPOI', label='Resist Poison', category='Resists'},
     {key='RESCORR', label='Resist Corruption', category='Resists'},
-    {key='RESMAGIC', label='Resist Magic', category='Resists'},
 }
 constants.buffcategories = {'Standard','Stats','Utility','Short Term Buffs','Resists'}
 -- Class buff beg defaults

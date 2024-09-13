@@ -1,3 +1,13 @@
+# 2024/09/13
+- Fix beastlord trying to mem same spell in two spots
+- Add SOW buff beg alias
+- Add REGEN buff beg alias
+- Add druid and shaman group regen and group sow to SOW and REGEN alias
+- Add druid Wrath of the Wild AA to TEMPDS buff beg alias
+- Add cleric aura of devotion to SPELLHASTE buff beg alias
+- Add enchanter Guard of Druzzil to RESMAGIC buff beg alias
+- Add config option to announce tank deaths in /rs
+
 # 2024/09/10
 - Add DS alias to druid DS spell
 - Add UseUnionOfSpirits option to shaman to toggle use of union of spirits as a panic heal

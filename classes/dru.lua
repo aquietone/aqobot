@@ -125,13 +125,13 @@ Druid.SpellLines = {
 
     -- Buffs
     {Group='skin', Spells={'Emberquartz Blessing', 'Luclinite Blessing', 'Opaline Blessing', 'Arcronite Blessing', 'Shieldstone Blessing', --[[emu cutoff]] 'Blessing of Steeloak', 'Blessing of the Nine', 'Protection of Steel', 'Protection of Rock', 'Protection of Wood'}, Options={alias='SKIN', selfbuff=true,}},-- condition=function() return mq.TLO.Me.Level() < 70 end}},
-    {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful'}, Options={selfbuff=true}},
+    {Group='regen', Spells={'Talisman of the Unforgettable', 'Talisman of the Tenacious', 'Talisman of the Enduring', 'Talisman of the Unwavering', 'Talisman of the Faithful', --[[emu cutoff]] 'Blessing of Oak'}, Options={alias='REGEN', selfbuff=true}},
     {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender', --[[emu cutoff]] 'Mask of the Wild'}, Options={selfbuff=true}}, -- self mana regen, part of unity AA
     {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin', --[[emu cutoff]] 'Skin like Steel', 'Skin like Rock', 'Skin like Wood'}},
     {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={Gem=function(lvl) return lvl <= 70 and 11 end, opt='USEREPTILE', combatbuffothers=true, selfbuff=true, alias='REPTILE', singlebuff=true, classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
     {Group='coat', Spells={'Bramblecoat', 'Barbcoat', 'Thistlecoat'}, Options={selfbuff=true}},
     {Group='ds', Spells={'Shield of Brambles', 'Shield of Barbs', 'Shield of Thistles'}, Options={opt='USEDS', singlebuff=true, classes={}, alias='DS'}},
-    {Group='sow', Spells={'Spirit of Wolf'}, Options={singlebuff=true, classes={}}},
+    {Group='sow', Spells={'Flight of Eagles', 'Spirit of Eagle', 'Spirit of Wolf'}, Options={singlebuff=true, classes={}, alias='SOW'}},
     -- Aura
     {Group='aura', Spells={'Coldburst Aura', 'Nightchill Aura', 'Icerend Aura', 'Frostreave Aura', 'Frostweave Aura', 'Aura of Life', 'Aura of the Grove'}, Options={aurabuff=true}}, -- adds cold dmg proc to spells
 
@@ -282,7 +282,7 @@ Druid.Abilities = {
     {
         Type='AA',
         Name='Wrath of the Wild',
-        Options={alias='BIGDS', singlebuff=true, classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}
+        Options={alias='TEMPDS', singlebuff=true, classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}
     },
     {
         Type='AA',
