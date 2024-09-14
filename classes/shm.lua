@@ -221,7 +221,7 @@ Shaman.SpellLines = {
     },
     {-- Hybrid spellset. Slot 11
         Group='icenuke',
-        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]]'Winder\'s Roar', 'Frost Strike', 'Spirit Strike', 'Frost Rift', 'Burst of Flame'},
+        Spells={'Ice Barrage', 'Heavy Sleet', 'Ice Salvo', 'Ice Shards', 'Ice Squall', --[[emu cutoff]] 'Dire Avalanche', 'Winder\'s Roar', 'Frost Strike', 'Spirit Strike', 'Frost Rift', 'Burst of Flame'},
         Options={opt='USENUKES', Gem=function(lvl) return (lvl <= 60 and 3) or (Shaman:get('SPELLSET') ~= 'standard' and not Shaman:isEnabled('USESPLASH') and 11) or nil end}
     },
     {-- stacks with HoT but overwrites regen, blocked by dots. Slot 12
@@ -288,12 +288,48 @@ Shaman.SpellLines = {
     -- define group panther after normal panther so alias prefers group spell
     {Group='panther', Spells={'Talisman of the Panther'}, Options={alias='MELEEPROC', selfbuff=function() return not mq.TLO.FindItem('Imbued Rune of the Panther')() and true or false end}},
     {Group='champion', Spells={'Champion', 'Ferine Avatar'}, Options={Gem=function(lvl) return not mq.TLO.FindItem('Forsaken Jaundiced Bone Bracer')() and lvl <= 70 and 2 or nil end, alias=not mq.TLO.FindItem('Forsaken Jaundiced Bone Bracer')() and 'CHAMPION', combatbuffothers=true}},
-    -- {Group='talisman', Spells={'Talisman of Unification'}, Options={group=true, self=true, classes={WAR=true,SHD=true,PAL=true}})
-    -- {Group='focus', Spells={'Talisman of Wunshi'}, Options={classes={WAR=true,SHD=true,PAL=true}})
-    {Group='evasion', Spells={'Talisman of Unification'}, Options={self=true, classes={WAR=true,SHD=true,PAL=true}}},
-    {Group='singlefocus', Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing'}},
-    {Group='singleunity', Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale', --[[emu cutoff]] 'Talisman of Attuna', 'Talisman of Tnarg', 'Inner Fire'}, Options={alias='SINGLEFOCUS'}},
-    {Group='groupunity', Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale', 'Talisman of Wunshi'}, Options={selfbuff=true, alias='FOCUS'}},--, condition=function() return mq.TLO.Me.Level() < 70 end}},
+
+    -- {
+    --     Group='groupevasion',
+    --     Spells={'Talisman of Sense'},
+    --     Options={},
+    -- },
+    -- {
+    --     Group='groupskillsmod',
+    --     Spells={'Talisman of Might'},
+    --     Options={},
+    -- },
+    -- {
+    --     Group='groupstamina',
+    --     Spells={'Talisman of Fortitude'},
+    --     Options={},
+    -- },
+    { -- combo evasion, skillsmod, stamina
+        Group='groupunity',
+        Spells={'Talisman of Unification'},
+        Options={selfbuff=true, alias='UNITY'}
+    },
+    {
+        Group='singlefocus',
+        Spells={'Heroic Focusing', 'Vampyre Focusing', 'Kromrif Focusing', 'Wulthan Focusing', 'Doomscale Focusing', --[[emu cutoff]] 'Wunshi\'s Focusing', 'Harnessing of Spirit', 'Talisman of Attuna', 'Talisman of Tnarg', 'Inner Fire'},
+        Options={alias='SINGLEFOCUS'}
+    },
+    {
+        Group='groupfocus',
+        Spells={'Talisman of Wunshi', 'Focus of the Seventh'},
+        Options={selfbuff=true, alias='FOCUS'}
+    },
+
+    { -- live buff that casts all of hp, stats, avoidance, attack, skill cap
+        Group='singlebuffall',
+        Spells={'Unity of the Heroic', 'Unity of the Vampyre', 'Unity of the Kromrif', 'Unity of the Wulthan', 'Unity of the Doomscale'},
+        Options={alias='SINGLEFOCUS', emu=false}
+    },
+    { -- live buff that casts all of hp, stats, avoidance, attack, skill cap
+        Group='groupbuffall',
+        Spells={'Talisman of the Heroic', 'Talisman of the Usurper', 'Talisman of the Ry\'Gorr', 'Talisman of the Wulthan', 'Talisman of the Doomscale'},
+        Options={alias='FOCUS', selfbuff=true, emu=false}
+    },
 
     -- Utility
     {Group='canni', Spells={'Cannibalize IV', 'Cannibalize III', 'Cannibalize II', 'Cannibalize'}, Options={Gem=function(lvl) return lvl <= 60 and 8 or nil end, recover=true, mana=true, threshold=70, combat=false, endurance=false, minhp=50, ooc=false}},
