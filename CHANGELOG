@@ -1,3 +1,6 @@
+# 2024/09/14
+- Fix loop casting buff after spell swap
+
 # 2024/09/13
 - Fix beastlord trying to mem same spell in two spots
 - Add SOW buff beg alias

@@ -662,8 +662,9 @@ function Ability.swapAndCast(spell, gem, class, skipReadyCheck, queuedAction)
                     Ability.swapSpell(state.restore_gem, gem)
                 end
             end
+            local tmpQueuedAction = state.queuedAction
             Ability.use(spell, class, false, skipReadyCheck, reMemQueuedAction)
-            return state.queuedAction
+            if tmpQueuedAction == state.queuedAction then return nil else return state.queuedAction end
         end
         state.queuedActionTimer:reset()
         state.queuedActionTimer.expiration = 30000

@@ -83,7 +83,7 @@ end
 local function buffSelf(base)
     local result = false
     for _,buff in ipairs(base.selfBuffs) do
-        local buffName = buff.Name -- TODO: buff name may not match AA or item name
+        local buffName = buff.Name or buff.CastName -- TODO: buff name may not match AA or item name
         if state.subscription ~= 'GOLD' then buffName = buff.Name:gsub(' Rk%..*', '') end
         if buff.SummonID then
             if base:isAbilityEnabled(buff.opt) and (not buff.nodmz or not constants.DMZ[mq.TLO.Zone.ID()]) then
