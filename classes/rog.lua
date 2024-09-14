@@ -197,14 +197,16 @@ function Rogue:beforeEngage()
         mq.cmd('/doability Hide')
         mq.delay(100)
         mq.cmd('/doability Backstab')
+        mq.cmd('/attack on')
     end
 end
 
 function Rogue:aggroClass()
-    if mq.TLO.Me.AbilityReady('hide') then
+    local pctAggro = mq.TLO.Me.PctAggro() or 0
+    if mq.TLO.Me.AbilityReady('hide')() and pctAggro > 90 and not state.burnActive then
         if mq.TLO.Me.Combat() then
             mq.cmd('/attack off')
-            mq.delay(1000)
+            mq.delay(500, function() return not mq.TLO.Me.Combat() end)
         end
         mq.cmd('/doability hide')
         mq.delay(500, function() return mq.TLO.Me.Invis() end)

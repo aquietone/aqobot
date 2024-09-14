@@ -129,7 +129,7 @@ Druid.SpellLines = {
     {Group='mask', Spells={'Mask of the Ferntender', 'Mask of the Dusksage Tender', 'Mask of the Arbor Tender', 'Mask of the Wildtender', 'Mask of the Copsetender', --[[emu cutoff]] 'Mask of the Wild'}, Options={selfbuff=true}}, -- self mana regen, part of unity AA
     {Group='singleskin', Spells={'Emberquartz Skin', 'Luclinite Skin', 'Opaline Skin', 'Arcronite Skin', 'Shieldstone Skin', --[[emu cutoff]] 'Skin like Steel', 'Skin like Rock', 'Skin like Wood'}},
     {Group='reptile', Spells={'Chitin of the Reptile', 'Bulwark of the Reptile', 'Defense of the Reptile', 'Guard of the Reptile', 'Pellicle of the Reptile', 'Skin of the Reptile'}, Options={Gem=function(lvl) return lvl <= 70 and 11 end, opt='USEREPTILE', combatbuffothers=true, selfbuff=true, alias='REPTILE', singlebuff=true, classes={MNK=true,WAR=true,PAL=true,SHD=true}}}, -- debuff on hit, lowers atk++AC
-    {Group='coat', Spells={'Bramblecoat', 'Barbcoat', 'Thistlecoat'}, Options={selfbuff=true}},
+    {Group='coat', Spells={'Nettlecoat', 'Bramblecoat', 'Barbcoat', 'Thistlecoat'}, Options={selfbuff=true}},
     {Group='ds', Spells={'Legacy of Nettles', 'Shield of Brambles', 'Shield of Barbs', 'Shield of Thistles'}, Options={opt='USEDS', singlebuff=true, classes={}, alias='DS'}},
     {Group='sow', Spells={'Flight of Eagles', 'Spirit of Eagle', 'Spirit of Wolf'}, Options={singlebuff=true, classes={}, alias='SOW'}},
     -- Aura
