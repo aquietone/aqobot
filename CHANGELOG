@@ -2,6 +2,7 @@
 - Fix loop casting buff after spell swap
 - Rogue evasion tweaks
 - Add druid spell nettlecoat
+- Use gem 8 if swap gem > num gems
 
 # 2024/09/13
 - Fix beastlord trying to mem same spell in two spots

@@ -627,6 +627,7 @@ end
 ---@param other_names table|nil # List of spell names to compare against, because of dissident,dichotomic,composite
 function Ability.swapSpell(spell, gem, wait_for_spell_ready, other_names)
     if not spell or not gem or mq.TLO.Me.Casting() or mq.TLO.Cursor() then return end
+    if gem > mq.TLO.Me.NumGems() then gem = 8 end
     if mq.TLO.Me.Gem(gem)() == spell.Name then return end
     if other_names and other_names[mq.TLO.Me.Gem(gem)()] then return end
     mq.cmdf('/memspell %d "%s"', gem, spell.Name)
@@ -646,6 +647,7 @@ function Ability.swapAndCast(spell, gem, class, skipReadyCheck, queuedAction)
     if (mq.TLO.Me.CombatState() == 'COMBAT' and state.class ~= 'NEC') or mq.TLO.Me.Moving() then return false end
     if not spell then return false end
     if not mq.TLO.Me.Gem(spell.Name)() then
+        if gem > mq.TLO.Me.NumGems() then gem = 8 end
         if mq.TLO.Me.Gem(gem)() then
             state.restore_gem = {Name=mq.TLO.Me.Gem(gem)(),gem=gem}
             state.restoreGemTimer:reset()
