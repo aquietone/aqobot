@@ -289,7 +289,16 @@ Magician.SpellLines = {
                 'Child of Water', 'Servant of Marr', 'Greater Vocaration: Water', 'Vocarate: Water', 'Greater Conjuration: Water', 'Conjuration: Water',
                 'Lesser Conjuration: Water', 'Minor Conjuration: Water', 'Greater Summoning: Water',
                 'Summoning: Water', 'Lesser Summoning: Water', 'Minor Summoning: Water', 'Elemental: Water', 'Elementaling: Water', 'Elementalkin: Water'},
-        Options={}
+        Options={postcast=function()
+            mq.delay(10000, function() return mq.TLO.Pet.ID() > 0 end)
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            common.petClicky()
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            if mq.TLO.FindItem('Glyphwielder\'s Ascendant Gloves of the Summoner')() then
+                mq.cmd('/useitem "Glyphwielder\'s Ascendant Gloves of the Summoner"')
+                mq.delay(3000, function() return not mq.TLO.Me.Casting() end)
+            end
+        end}
     },
     {
         Group='airpet',
@@ -297,7 +306,16 @@ Magician.SpellLines = {
                 'Child of Wind', 'Ward of Xegony', 'Greater Vocaration: Air', 'Vocarate: Air', 'Greater Conjuration: Air', 'Conjuration: Air',
                 'Lesser Conjuration: Air', 'Minor Conjuration: Air', 'Greater Summoning: Air', 'Summoning: Air',
                 'Lesser Summoning: Air', 'Minor Summoning: Air', 'Elemental: Air', 'Elementaling: Air', 'Elementalkin: Air'},
-        Options={}
+        Options={postcast=function()
+            mq.delay(10000, function() return mq.TLO.Pet.ID() > 0 end)
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            common.petClicky()
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            if mq.TLO.FindItem('Glyphwielder\'s Ascendant Gloves of the Summoner')() then
+                mq.cmd('/useitem "Glyphwielder\'s Ascendant Gloves of the Summoner"')
+                mq.delay(3000, function() return not mq.TLO.Me.Casting() end)
+            end
+        end}
     },
     {
         Group='earthpet',
@@ -305,7 +323,16 @@ Magician.SpellLines = {
                 'Child of Earth', 'Rathe\'s Son', 'Greater Vocaration: Earth', 'Vocarate: Earth', 'Greater Conjuration: Earth', 'Conjuration: Earth',
                 'Lesser Conjuration: Earth', 'Minor Conjuration: Earth', 'Greater Summoning: Earth', 'Summoning: Earth',
                 'Lesser Summoning: Earth', 'Minor Summoning: Earth', 'Elemental: Earth', 'Elementaling: Earth', 'Elementalkin: Earth'},
-        Options={}
+        Options={postcast=function()
+            mq.delay(10000, function() return mq.TLO.Pet.ID() > 0 end)
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            common.petClicky()
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            if mq.TLO.FindItem('Glyphwielder\'s Ascendant Gloves of the Summoner')() then
+                mq.cmd('/useitem "Glyphwielder\'s Ascendant Gloves of the Summoner"')
+                mq.delay(3000, function() return not mq.TLO.Me.Casting() end)
+            end
+        end}
     },
     {
         Group='firepet',
@@ -313,7 +340,16 @@ Magician.SpellLines = {
             'Child of Fire', 'Child of Ro', 'Greater Vocaration: Fire', 'Vocarate: Fire', 'Greater Conjuration: Fire', 'Conjuration: Fire',
             'Lesser Conjuration: Fire', 'Minor Conjuration: Fire', 'Greater Summoning: Fire', 'Summoning: Fire',
             'Lesser Summoning: Fire', 'Minor Summoning: Fire', 'Elemental: Fire', 'Elementaling: Fire', 'Elementalkin: Fire'},
-        Options={}
+        Options={postcast=function()
+            mq.delay(10000, function() return mq.TLO.Pet.ID() > 0 end)
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            common.petClicky()
+            mq.delay(1500, function() return not mq.TLO.Me.SpellInCooldown() end)
+            if mq.TLO.FindItem('Glyphwielder\'s Ascendant Gloves of the Summoner')() then
+                mq.cmd('/useitem "Glyphwielder\'s Ascendant Gloves of the Summoner"')
+                mq.delay(3000, function() return not mq.TLO.Me.Casting() end)
+            end
+        end}
     },
     {
         Group='monsterpet',
@@ -323,7 +359,7 @@ Magician.SpellLines = {
     {
         Group='petbuff',
         Spells={'Burnout XVI', 'Burnout XV', 'Burnout XIV', 'Burnout XIII', 'Burnout XII', --[[emu cutoff]] 'Elemental Fury', 'Burnout V', 'Burnout IV', 'Burnout III', 'Burnout II', 'Burnout'},
-        Options={petbuff=true, condition=function() return not mq.TLO.FindItem('Glyphwielder\'s Leggings of the Summoner')() end}
+        Options={petbuff=true, condition=function() return not mq.TLO.FindItem('Glyphwielder\'s Leggings of the Summoner')() and not mq.TLO.FindItem('Glyphwielder\'s Ascendant Leggings of the Summoner')() end}
     },
     -- having some issues?
     -- {

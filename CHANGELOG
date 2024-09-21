@@ -1,3 +1,10 @@
+# 2024/09/21
+- Consolidate hottank and hotdps options to hot
+- Some lame attempts at fixing pet aftercast clickies
+- Ranger try to maintain proper bow range if not project lazarus
+- Add RTZ command like e3: /aqo rtz
+- Add a simple getting started window on first use
+
 # 2024/09/14
 - Fix loop casting buff after spell swap
 - Rogue evasion tweaks

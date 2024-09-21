@@ -184,8 +184,9 @@ function base:addCommonOptions()
         self:addOption('SERVEBUFFREQUESTS', 'Serve Buff Requests', true, nil, 'Toggle serving buff requests', 'checkbox', nil, 'ServeBuffRequests', 'bool')
     end
     if constants.healClasses[self.class] then
-        self:addOption('USEHOTTANK', 'Use HoT (Tank)', false, nil, 'Toggle use of heal over time on tank', 'checkbox', nil, 'UseHoTTank', 'bool')
-        self:addOption('USEHOTDPS', 'Use HoT (All)', false, nil, 'Toggle use of heal over time on everyone', 'checkbox', nil, 'UseHoTDPS', 'bool')
+        self:addOption('USEHOT', 'Use HoT', false, nil, 'Toggle use of single target heal over time', 'checkbox', nil, 'UseHoT', 'bool')
+        -- self:addOption('USEHOTTANK', 'Use HoT (Tank)', false, nil, 'Toggle use of heal over time on tank', 'checkbox', nil, 'UseHoTTank', 'bool')
+        -- self:addOption('USEHOTDPS', 'Use HoT (All)', false, nil, 'Toggle use of heal over time on everyone', 'checkbox', nil, 'UseHoTDPS', 'bool')
         self:addOption('XTARGETBUFF', 'Buff XTarget', false, nil, 'Toggle buffing of PCs on XTarget', 'checkbox', nil, 'XTargetBuff', 'bool')
     end
     self:addOption('USESWARMPETS', 'Use Swarm Pets', true, nil, 'Toggle use of swarm pet abilities', 'checkbox', nil, 'UseSwarmPets', 'bool')
@@ -529,7 +530,10 @@ function base:getRequestAliases()
             -- printf('%s - %s', name, aliases[name])
         end
     end
-    if self.requestAliases.HOT and self:isEnabled('USEHOTTANK') then
+    if self.requestAliases.TORPOR and self:isEnabled('USEHOT') then
+        aliases.TORPOR = self.requestAliases.TORPOR.CastName
+    end
+    if self.requestAliases.HOT and self:isEnabled('USEHOT') then
         aliases.HOT = self.requestAliases.HOT.CastName
     end
     return aliases
@@ -541,7 +545,10 @@ end
 
 function base:loadSettings()
     local settings, doSave = config.loadSettings()
-    if not settings or not settings[self.class] then return end
+    if not settings or not settings[self.class] then
+        state.ShowGettingStarted = true
+        return
+    end
     for setting,value in pairs(settings[self.class]) do
         if self.options[setting] == nil then
             logger.info('Unrecognized setting: %s=%s', setting, value)
@@ -664,7 +671,9 @@ function base:emergencyHeal()
             mq.TLO.Spawn('id '..whoToHeal).DoTarget()
         end
         mq.cmd('/stopcast')
-        mq.delay(50)
+        mq.delay(250, function() return not mq.TLO.Me.Casting() and not mq.TLO.Me.SpellInCooldown() end)
+        state.resetCastingState()
+        state.resetHealState()
         if config.get('ANNOUNCEHEALS') then mq.cmdf('/g Interrupted %s to cast %s on >>> %s <<<', state.casting and state.casting.CastName, healToUse.CastName, mq.TLO.Target.CleanName()) end
         if abilities.use(healToUse) then state.setHealState(whoToHeal, typeOfHeal, healToUse) return true end
     end
@@ -961,8 +970,13 @@ function base:wantBuffs()
         end
     end
     -- Special cases for begging for short duration combat things
-    if constants.tankClasses[mq.TLO.Me.Class.ShortName()] and mq.TLO.Me.Combat() and allBuffs.HOT and (not mq.TLO.Me.Song(allBuffs.HOT)() or (mq.TLO.Me.Song(allBuffs.HOT).Duration() or 0) < 6000) then
-        table.insert(request, 'HOT')
+    if constants.tankClasses[mq.TLO.Me.Class.ShortName()] and mq.TLO.Me.Combat() then
+        if allBuffs.TORPOR and (not mq.TLO.Me.Song(allBuffs.TORPOR)() or (mq.TLO.Me.Song(allBuffs.TORPOR).Duration() or 0) < 6000) then
+            table.insert(request, 'TORPOR')
+        end
+        if (allBuffs.TORPOR and not mq.TLO.Me.Song(allBuffs.TORPOR)()) and allBuffs.HOT and (not mq.TLO.Me.Song(allBuffs.HOT)() or (mq.TLO.Me.Song(allBuffs.HOT).Duration() or 0) < 6000) then
+            table.insert(request, 'HOT')
+        end
     end
     if mq.TLO.Me.Combat() and mq.TLO.Me.Class.CanCast() and (mq.TLO.Me.PctMana() or 100) < 50 and not mq.TLO.Me.Song('Paragon of Spirit')() and allBuffs.FPARAGON then
         table.insert(request, 'FPARAGON')

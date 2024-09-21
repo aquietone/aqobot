@@ -39,6 +39,7 @@ local state = {
     fadeTimer = timer:new(10000),
     -- ActAsLevel = 65
     -- testCures = true,
+    -- ShowGettingStarted = true,
 }
 
 function state.resetCombatState(debug, caller)

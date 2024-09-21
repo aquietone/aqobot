@@ -374,6 +374,20 @@ function commands.commandHandler(...)
         class.massRez()
     elseif opt == 'REBUFF' then
         state.rebuff = true
+    elseif opt == 'RTZ' then
+        local heading = tonumber(args[2])
+        if heading then
+            mq.cmdf('/multiline ; /nav stop; /stick off; /afollow off;')
+            mq.delay(100)
+            mq.cmdf('/face fast heading %s', heading*-1)
+            mq.delay(500)
+            mq.cmd('/nomodkey /keypress forward hold')
+            mq.delay(3000)
+            mq.cmd('/nomodkey /keypress forward')
+        else
+            heading = mq.TLO.Me.Heading.Degrees()
+            mq.cmdf('/noparse /dgge /docommand /${Me.Class.ShortName} rtz %s', heading)
+        end
     elseif opt == 'CLEARTARGETS' then
         state.cleartargets = true
         state.previousmode = config.get('MODE')
@@ -383,6 +397,8 @@ function commands.commandHandler(...)
     elseif opt == 'TIMERS' then
         local header = {script = 'aqo', server = mq.TLO.EverQuest.Server()}
         actor.actor:send(header, {id='commands', })
+    elseif opt == 'GETTINGSTARTED' then
+        state.ShowGettingStarted = true
     else
         commands.classSettingsHandler(opt, new_value)
     end

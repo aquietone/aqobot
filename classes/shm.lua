@@ -217,7 +217,7 @@ Shaman.SpellLines = {
     {-- single HoT. Slot 11
         Group='singlehot',
         Spells={'Halcyon Gale', 'Halcyon Squall', 'Halcyon Wind', 'Halcyon Billow', 'Halcyon Bluster', 'Transcendent Torpor', 'Spiritual Serenity', 'Breath of Trushar'},
-        Options={opt='USEHOTTANK', Gem=11, hot=true}
+        Options={opt='USEHOT', Gem=11, hot=true}
     },
     {-- Hybrid spellset. Slot 11
         Group='icenuke',
@@ -253,8 +253,8 @@ Shaman.SpellLines = {
     {Group='rgc', Spells={'Remove Greater Curse', 'Remove Curse', 'Remove Lesser Curse', 'Remove Minor Curse'}, Options={cure=true, Curse=true}},
 
     -- TODO: cleanup Leftover EMU specific stuff
-    {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='HOT', hot=true, opt='USEHOTTANK'}},
-    {Group='hot', Spells={'Celestial Health', 'Celestial Remedy'}, Options={}},
+    {Group='torpor', Spells={'Transcendent Torpor'}, Options={alias='TORPOR', hot=true, opt='USEHOT'}},
+    -- {Group='hot', Spells={'Celestial Health', 'Celestial Remedy'}, Options={}},
     {Group='idol', Spells={'Idol of Malos'}, Options={opt='USEDEBUFF', debuff=true, condition=function() return mq.TLO.Spawn('Spirit Idol')() ~= nil end}},
     {Group='dispel', Spells={'Abashi\'s Disempowerment', 'Cancel Magic'}, Options={opt='USEDISPEL', debuff=true, Gem=function(lvl) return Shaman:isEnabled('USEDISPEL') and lvl <= 70 and 5 or nil end}},
     {Group='debuff', Spells={'Crippling Spasm', 'Listless Power', 'Disempower'}, Options={opt='USECRIPPLE', debuff=true, Gem=function(lvl) return state.emu and Shaman:isEnabled('USECRIPPLE') and 6 or nil end, condition=function() return mq.TLO.SpawnCount('pc class enchanter radius 100')() == 0 and mq.TLO.Target.Named() end}},
@@ -573,6 +573,11 @@ Shaman.Abilities = {
         Type='AA',
         Name='Group Pact of the Wolf',
         Options={RemoveBuff='Pact of the Wolf Effect', singlebuff=true, classes={WAR=true,PAL=true,SHD=true}, alias='WOLF'}
+    },
+    {
+        Type='AA',
+        Name='Fortify Companion',
+        Options={petbuff=true}
     },
 
     -- Debuffs

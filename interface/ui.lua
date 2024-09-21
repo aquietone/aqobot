@@ -768,41 +768,127 @@ local function drawStateInspector()
     end
 end
 
+local sortedClickies = {}
+
+local ColumnID_Type = 2
+local ColumnID_Name = 3
+
+local current_sort_specs = nil
+local function CompareWithSortSpecs(a, b)
+    for n = 1, current_sort_specs.SpecsCount, 1 do
+        local clickyA = class.clickies[a]
+        local clickyB = class.clickies[b]
+        -- Here we identify columns using the ColumnUserID value that we ourselves passed to TableSetupColumn()
+        -- We could also choose to identify columns based on their index (sort_spec.ColumnIndex), which is simpler!
+        local sort_spec = current_sort_specs:Specs(n)
+        local delta = 0
+
+        if sort_spec.ColumnUserID == ColumnID_Name then
+            if a < b then
+                delta = -1
+            elseif b < a then
+                delta = 1
+            else
+                delta = 0
+            end
+        elseif sort_spec.ColumnUserID == ColumnID_Type then
+            if (clickyA and clickyA.clickyType or '') < (clickyB and clickyB.clickyType or '') then
+                delta = -1
+            elseif (clickyB and clickyB.clickyType or '') < (clickyA and clickyA.clickyType or '') then
+                delta = 1
+            else
+                delta = 0
+            end
+        end
+        if delta ~= 0 then
+            if sort_spec.SortDirection == ImGuiSortDirection.Ascending then
+                return delta < 0
+            end
+            return delta > 0
+        end
+    end
+
+    -- Always return a way to differentiate items.
+    -- Your own compare function may want to avoid fallback on implicit sort specs e.g. a Name compare if it wasn't already part of the sort specs.
+    return a < b
+end
+
 local function drawClickyManager()
     if clickyManagerOpen then
         clickyManagerOpen, shouldDrawClickyManager = ImGui.Begin(('AQO Clickies##AQOBOTUI%s'):format(state.class), clickyManagerOpen)
         if shouldDrawClickyManager then
-            if ImGui.BeginTable('clickies', 5) then
-                ImGui.TableSetupColumn('Enabled', ImGuiTableColumnFlags.None, 1)
-                ImGui.TableSetupColumn('Type', ImGuiTableColumnFlags.None, 1)
-                ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.None, 3)
-                ImGui.TableSetupColumn('Effect', ImGuiTableColumnFlags.None, 3)
-                ImGui.TableSetupColumn('Options', ImGuiTableColumnFlags.None, 3)
+            if ImGui.BeginTable('clickies', 5, ImGuiTableFlags.Sortable) then
+                ImGui.TableSetupColumn('Enabled', ImGuiTableColumnFlags.NoSort, 1, 1)
+                ImGui.TableSetupColumn('Type', ImGuiTableColumnFlags.DefaultSort, 1, ColumnID_Type)
+                ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.DefaultSort, 3, ColumnID_Name)
+                ImGui.TableSetupColumn('Effect', ImGuiTableColumnFlags.NoSort, 3, 4)
+                ImGui.TableSetupColumn('Options', ImGuiTableColumnFlags.NoSort, 3, 5)
                 ImGui.TableHeadersRow()
-                for clickyName, clicky in pairs(class.clickies) do
-                    ImGui.TableNextRow()
-                    ImGui.TableNextColumn()
-                    local tempEnabled = ImGui.Checkbox('##isEnabled'..clickyName, clicky.enabled)
-                    if tempEnabled ~= clicky.enabled then
-                        if not tempEnabled then class:disableClicky(clickyName)
-                        else class:enableClicky(clickyName) end
+
+                local sort_specs = ImGui.TableGetSortSpecs()
+                if sort_specs then
+                    if sort_specs.SpecsDirty or #sortedClickies == 0 then
+                        sortedClickies = {}
+                        for k,_ in pairs(class.clickies) do table.insert(sortedClickies, k) end
+                        current_sort_specs = sort_specs
+                        table.sort(sortedClickies, CompareWithSortSpecs)
+                        current_sort_specs = nil
+                        sort_specs.SpecsDirty = false
                     end
-                    ImGui.TableNextColumn()
-                    ImGui.Text(clicky.clickyType)
-                    ImGui.TableNextColumn()
-                    ImGui.Text(clickyName)
-                    ImGui.TableNextColumn()
-                    ImGui.Text('%s', mq.TLO.FindItem(clickyName).Clicky() or mq.TLO.FindItemBank(clickyName).Clicky())
-                    ImGui.TableNextColumn()
-                    local opts = ''
-                    if clicky.opt then opts = opts .. 'Opt: ' .. clicky.opt end
-                    if clicky.condition then opts = opts .. ' Condition: ' .. clicky.condition end
-                    ImGui.Text('%s', opts)
+                end
+
+                for _,clickyName in pairs(sortedClickies) do
+                    local clicky = class.clickies[clickyName]
+                    if clicky then
+                        ImGui.TableNextRow()
+                        ImGui.TableNextColumn()
+                        local tempEnabled = ImGui.Checkbox('##isEnabled'..clickyName, clicky.enabled)
+                        if tempEnabled ~= clicky.enabled then
+                            if not tempEnabled then class:disableClicky(clickyName)
+                            else class:enableClicky(clickyName) end
+                        end
+                        ImGui.TableNextColumn()
+                        ImGui.Text(clicky.clickyType)
+                        ImGui.TableNextColumn()
+                        ImGui.Text(clickyName)
+                        ImGui.TableNextColumn()
+                        ImGui.Text('%s', mq.TLO.FindItem(clickyName).Clicky() or mq.TLO.FindItemBank(clickyName).Clicky())
+                        ImGui.TableNextColumn()
+                        local opts = ''
+                        if clicky.opt then opts = opts .. 'Opt: ' .. clicky.opt end
+                        if clicky.condition then opts = opts .. ' Condition: ' .. clicky.condition end
+                        ImGui.Text('%s', opts)
+                    end
                 end
                 ImGui.EndTable()
             end
         end
         ImGui.End()
+    end
+end
+
+local gettingStartedOpen, shouldDrawGettingStarted = true, true
+local function drawGettingStarted()
+    if state.ShowGettingStarted then
+        ImGui.SetNextWindowSize(850, 320, ImGuiCond.Appearing)
+        local windowSize = ImGui.GetIO().DisplaySize
+        ImGui.SetNextWindowPos(windowSize.x/2 - 425, windowSize.y/2 - 160)
+        gettingStartedOpen, shouldDrawGettingStarted = ImGui.Begin(('AQO Getting Started##AQOBOTUI%s'):format(state.class), gettingStartedOpen, bit32.bor(ImGuiWindowFlags.NoResize, ImGuiWindowFlags.NoMove))
+        if shouldDrawGettingStarted then
+            ImGui.Text('1. AQO commands can be run using either "/aqo" or "/${Me.Class.ShortName}" (e.g. /shd useaoe on).')
+            ImGui.Text('2. Pause and unpause your group with "/cwtna pause on" and "/cwtna pause off".')
+            ImGui.Text('3. You can create aliases to broadcast commands similar to CWTN plugins:\n\t/noparse /alias /cwtn /dgge /aqo\n\t/noparse /alias /cwtna /dgga /aqo\n\t/noparse /alias /cwtnr /dgre /aqo\n\t/noparse /alias /cwtnra /dgra /aqo')
+            ImGui.Text('4. By default, AQO depends on group main tank and group main assist role assignments.')
+            ImGui.Text('5. Group Main Assist does not function in raids, so you can set assist to "manual" with "/cwtn assist manual"\n\tand set who to assist with "/cwtn assistnames ${Me.CleanName}".')
+            ImGui.Text('6. Group Main Tank does not function in raids, so you can configure to use tank abilities while in manual mode with "/aqo maintank on".')
+            ImGui.Text('7. AQO supports several modes for characters. Most common will be manual, assist and chase modes.\n\tSet modes with "/aqo mode manual" (set driver to manual) or "/cwtn mode chase" (set group to chase).')
+            ImGui.Text('8. For chase mode, set a chase target with "/cwtn chasetarget ${Me.CleanName}".')
+            ImGui.Text('9. For anything else, use "/aqo" or the "?" button on the UI for more info.')
+        end
+        ImGui.End()
+        if not gettingStartedOpen then
+            state.ShowGettingStarted = false
+        end
     end
 end
 
@@ -961,6 +1047,7 @@ function ui.main()
         end
     end
     ImGui.End()
+    drawGettingStarted()
     drawSpellRotationUI()
     drawAbilityInspector()
     drawStateInspector()

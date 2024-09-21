@@ -619,7 +619,7 @@ function Bard:cast()
         --if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.CombatState() == 'COMBAT' then
         if mq.TLO.Target.Type() == 'NPC' and mq.TLO.Me.Combat() then
             local useEpic = self:get('USEEPIC')
-            if (useEpic == 'always' or state.burnActive or (useEpic == 'shm' and mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')())) then
+            if (useEpic == 'always' or state.burnActive or (useEpic == 'shm' and (mq.TLO.Me.Song('Prophet\'s Gift of the Ruchu')() or mq.TLO.Me.Song('Prophet\'s Ritual of the Ruchu')()))) then
                 if self:useEpic() then mq.delay(250) return true end
             end
             for _,clicky in ipairs(self.castClickies) do

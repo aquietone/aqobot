@@ -257,7 +257,7 @@ Cleric.SpellLines = {
     },
     {
         Group='singleaego',
-        Spells={'Reliance', --[[emu cutoff]] 'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery'},
+        Spells={'Reliance', --[[emu cutoff]] 'Conviction', 'Virtue', 'Aegolism', 'Temperance', 'Bravery', 'Courage'},
         Options={classes={CLR=true,WAR=true,SHD=true,PAL=true}, alias='SINGLEAEGO', selfbuff=function() return not Cleric.spells.groupaego and true or false end}
     },
     {
@@ -285,8 +285,10 @@ Cleric.SpellLines = {
     },
     {Group='grouphotcure', Spells={'Avowed Acquittal', 'Devout Acquittal', 'Sincere Acquittal', 'Merciful Acquittal', 'Ardent Acquittal', --[[emu cutoff]] }, Options={opt='USEHOTGROUP', grouphot=true, emu=false}},
     {Group='grouphot', Spells={'Elixir of Realization', 'Elixir of Benevolence', 'Elixir of Transcendence', 'Elixir of Wulthan', 'Elixir of the Seas', --[[emu cutoff]] 'Elixir of Divinity'}, Options={Gem=function(lvl) return lvl <= 70 and 7 or nil end, opt='USEHOTGROUP', grouphot=true}},
-    {Group='hottank', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={Gem=function(lvl) return lvl <= 70 and 3 or nil end, opt='USEHOTTANK', hot=true}},
-    {Group='hotdps', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={opt='USEHOTDPS', hot=true}},
+    {Group='hot', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={Gem=function(lvl) return lvl <= 70 and 3 or nil end, opt='USEHOT', hot=true, alias='HOT'}},
+    -- left for compat
+    {Group='hottank', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={}},
+    {Group='hotdps', Spells={--[[emu cutoff]] 'Pious Elixir', 'Holy Elixir', 'Celestial Healing', 'Celestial Health', 'Celestial Remedy'}, Options={}},
     {Group='issuance', Spells={'Issuance of Heroism', 'Issuance of Conviction', 'Issuance of Sincerity', 'Issuance of Mercy', 'Issuance of Spirit', --[[emu cutoff]] }, Options={emu=false}}, -- stationary ward heal, requires enemy on target
     {
         Group='mark',
@@ -475,6 +477,7 @@ function Cleric:initHeals()
     table.insert(self.healAbilities, self.spells.groupheal)
     table.insert(self.healAbilities, self.spells.grouphealcure)
     table.insert(self.healAbilities, self.spells.grouphot)
+    -- table.insert(self.healAbilities, self.spells.hot)
     -- table.insert(self.healAbilities, common.getItem('Weighted Hammer of Conviction', {tank=true, regular=true, panic=true, pet=60}))
     -- table.insert(self.healAbilities, self.spells.hottank)
     -- table.insert(self.healAbilities, self.spells.hotdps)

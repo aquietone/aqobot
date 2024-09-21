@@ -53,6 +53,7 @@ function Ranger:initClassOptions()
     self:addOption('USEFADE', 'Use Fade', true, nil, 'Use Cover Tracks AA to reduce aggro', 'checkbox', nil, 'UseFade', 'bool')
     self:addOption('USEWS', 'Use Weapon Shield', false, nil, 'Use Weapon Shield on aggro', 'checkbox', nil, 'UseWS', 'bool')
     self:addOption('USEGROUPBURNS', 'Use Group Burns', true, nil, 'Toggle automatic use of Auspice and Group Guardian in burns', 'checkbox', nil, 'UseGroupBurns', 'bool')
+    self:addOption('USEHEALS', 'Use Heals', false, nil, 'Toggle use of single target heal spells', 'checkbox', nil, 'UseHeals', 'bool')
 end
 
 Ranger.SpellLines = {
@@ -158,7 +159,7 @@ Ranger.SpellLines = {
     -- Cloud of Guardian Fernflies, big ds
     -- Therapeutic Balm, cure/heal
     -- Devastating Spate, dd proc?
-    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'}, Options={Gem=function(lvl) return (lvl <= 60 and 7) or (lvl <= 70 and 10) or nil end, heal=true, regular=true}},
+    {Group='heal', Spells={'Sylvan Water', 'Sylvan Light', 'Healing', 'Light Healing', 'Minor Healing', 'Salve'}, Options={opt='USEHEALS', Gem=function(lvl) return (lvl <= 60 and 7) or (lvl <= 70 and 10) or nil end, heal=true, regular=true}},
     {Group='joltspell', Spells={'Cinder Jolt'}, Options={Gem=function(lvl) return lvl <= 70 and 12 or nil end, fade=true}}
 }
 
@@ -463,7 +464,8 @@ local function attackRanged()
     if mq.TLO.Target.LineOfSight() and dist3d < 50 then
         if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     end
-    if not state.emu then
+    -- if not state.emu then
+    if not mq.TLO.EverQuest.Server() == 'Project Lazarus' then
         if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
             if not getRangedCombatPosition(40) then
                 return false

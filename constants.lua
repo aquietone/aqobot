@@ -34,11 +34,13 @@ constants.commandHelp = {
     {command='rez <name>', tip='Rez the specified character', example='/aqo rez sometank'},
     {command='rebuff', tip='Cast buffs on command, ignoring combat checks'},
     {command='rezall', tip='Rez whole group or raid'},
+    {command='rtz', tip='Run your group towards the zone line you are facing'},
     {command='sell', tip='Sells items marked to be sold to the targeted or already opened vendor'},
     {command='update', tip='Downloads the latest source zip'},
     {command='docs', tip='Launches the documentation site in a browser window'},
     {command='wiki', tip='Launches the Lazarus wiki in a browser window'},
     {command='baz', tip='Launches the Lazarus Bazaar in a browser window'},
+    {command='gettingstarted', tip='Opens the AQO Getting Started window'},
     {command='debug', tip='Toggle the specified debug option on or off'},
 }
 

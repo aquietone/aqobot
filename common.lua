@@ -144,14 +144,6 @@ function common.isTargetDottedWith(spell_id, spell_name)
     --return spell_id == mq.TLO.Target.MyBuff(spell_name).ID()
 end
 
----Determine whether currently fighting a target.
----@return boolean @True if standing with an NPC targeted, and not in a resting state, false otherwise.
-function common.isFighting()
-    --if mq.TLO.Target.CleanName() == 'Combat Dummy Beza' then return true end -- Dev hook for target dummy
-    -- mq.TLO.Me.CombatState() ~= "ACTIVE" and mq.TLO.Me.CombatState() ~= "RESTING" and mq.TLO.Target.Type() ~= "Corpse" and not mq.TLO.Me.Feigning()
-    return mq.TLO.Me.CombatState() == 'COMBAT'--mq.TLO.Target.ID() and mq.TLO.Me.CombatState() == 'COMBAT' and mq.TLO.Target.Type() == "NPC"-- and mq.TLO.Me.Standing()
-end
-
 ---Determine if there are any hostile targets on XTarget.
 ---@return boolean @Returns true if at least 1 hostile auto hater spawn on XTarget, otherwise false.
 function common.hostileXTargets()
@@ -167,21 +159,6 @@ end
 function common.clearToBuff()
     -- return mq.TLO.Me.CombatState() ~= 'COMBAT' and not common.hostileXTargets() and not common.amIDead() and not state.forceEngage
     return mq.TLO.Me.CombatState() ~= 'COMBAT' and not mq.TLO.Spawn('npc radius '..config.get('CAMPRADIUS')).Aggressive() and not common.amIDead() and not state.forceEngage
-end
-
-function common.isFightingModeBased()
-    local mode = mode.currentMode
-    if mode:isTankMode() then
-
-    elseif mode:isAssistMode() then
-
-    elseif mode:getName() == 'manual' then
-        if mq.TLO.Group.MainTank.ID() == mq.TLO.Me.ID() then
-
-        else
-
-        end
-    end
 end
 
 ---Determine whether currently in control of the character, i.e. not CC'd, stunned, mezzed, etc.
@@ -400,7 +377,7 @@ function common.petClicky()
         mq.cmd('/useitem "Codex of Minion\'s Materiel"')
         mq.delay(250)
         mq.delay(10000, function() return not mq.TLO.Me.Casting() end)
-        mq.delay(500)
+        mq.delay(2000)
     end
 end
 

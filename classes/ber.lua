@@ -188,6 +188,11 @@ Berserker.Abilities = {
         Name='Focused Furious Rampage',
         Options={first=true}
     },
+    { -- proc on receiving melee dmg, buffs melee dmg
+        Type='AA',
+        Name='Bloodthirst',
+        Options={first=true}
+    },
     {
         Type='Disc',
         Group='warcry',
