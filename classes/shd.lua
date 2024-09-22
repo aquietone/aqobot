@@ -299,12 +299,12 @@ ShadowKnight.Abilities = {
     { -- 45 sec cd
         Type='AA',
         Name='Explosion of Spite',
-        Options={opt='USEAOE', tanking=true, threshold=2, condition=conditions.aboveMobThreshold}
+        Options={alias='SPITE', opt='USEAOE', tanking=true, threshold=2, condition=conditions.aboveMobThreshold}
     },
     { -- 45 sec cd
         Type='AA',
         Name='Explosion of Hatred',
-        Options={opt='USEAOE', tanking=true, threshold=4, condition=conditions.aboveMobThreshold}
+        Options={alias='HATRED', opt='USEAOE', tanking=true, threshold=4, condition=conditions.aboveMobThreshold}
     },
     -- { -- large frontal cone ae aggro
     --     Type='AA',

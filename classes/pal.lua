@@ -265,7 +265,7 @@ Paladin.Abilities = {
     { -- pbae stun/agro, 5m cd, timer 30
         Type='AA',
         Name='Beacon of the Righteous',
-        Options={aetank=true, threshold=3, condition=function() return mq.TLO.Me.PctAggro() < 100 end}
+        Options={alias='BEACON', aetank=true, threshold=3, condition=function() return mq.TLO.Me.PctAggro() < 100 end}
     },
     { -- pbae stun/agro, 5m cd, timer 36
         Type='AA',

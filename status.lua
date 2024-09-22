@@ -1,7 +1,8 @@
 local mq = require('mq')
-local state = require('state')
 local actor = require('interface.actor')
 local Timer = require('libaqo.timer')
+local mode  = require('mode')
+local state = require('state')
 
 local status = {}
 
@@ -85,6 +86,15 @@ function status.send(class)
     local availableBuffs = class:getRequestAliases()
     local gimme = {}
     local availableSupplies = {}
+    local missingAggro = {}
+    if mode.currentMode:isTankMode() then
+        for i=1,mq.TLO.Me.XTargetSlots() do
+            if (mq.TLO.Me.XTarget(i).PctAggro() or 100) < 100 then
+                table.insert(missingAggro, mq.TLO.Me.XTarget(i).ID())
+            end
+        end
+    end
+
     local status = {
         id = 'status',
         Name = mq.TLO.Me.CleanName(),
@@ -93,6 +103,7 @@ function status.send(class)
         Songs = songs,
         wantBuffs = wantBuffs,
         availableBuffs = availableBuffs,
+        missingAggro = missingAggro,
         gimme = gimme,
         availableSupplies = availableSupplies,
         LastSent = mq.gettime(),

@@ -51,6 +51,27 @@ function tank.findMobToTank()
         state.tankMobID = 0
     end
     logger.debug(logger.flags.routines.tank, 'Find mob to tank')
+    if config.get('OFFTANK') then
+        if state.actors then
+            local offtankIDs = {}
+            local numTanks = 0
+            for _,charData in pairs(state.actors) do
+                if charData.missingAggro then
+                    numTanks = numTanks + 1
+                    for _,mobID in ipairs(charData.missingAggro) do
+                        offtankIDs[mobID] = (offtankIDs[mobID] or 0) + 1
+                    end
+                end
+            end
+            for id,count in pairs(offtankIDs) do
+                if count == numTanks then
+                    logger.debug(logger.flags.routines.tank, 'No tank has aggro on mob (%s), offtanking', id)
+                    state.tankMobID = id
+                    return true
+                end
+            end
+        end
+    end
     local highestlvl = 0
     local highestlvlid = 0
     local lowesthp = 98

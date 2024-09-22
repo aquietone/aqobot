@@ -201,7 +201,7 @@ Bard.Abilities = {
     {
         Type='AA',
         Name='Fierce Eye',
-        Options={key='fierceeye'}
+        Options={key='fierceeye', condition=function() return not mq.TLO.Me.Buff('Illusions of Grandeur')() and not mq.TLO.Me.Song('Illusions of Grandeur')() end}
     },
     { -- Epic 2.0
         Type='Item',
@@ -664,7 +664,7 @@ end
 
 function Bard:useEpic()
     if not self.fierceeye or not self.epic then
-        if self.fierceeye then return self.fierceeye:use() end
+        if self.fierceeye and self.fierceeye.condition() then return self.fierceeye:use() end
         if self.epic then return self.epic:use() end
         return
     end
@@ -672,7 +672,7 @@ function Bard:useEpic()
     if self.epic:isReady() == abilities.IsReady.SHOULD_CAST and fierceeye_rdy then
         mq.cmd('/stopsong')
         mq.delay(250)
-        self.fierceeye:use()
+        if self.fierceeye.condition() then self.fierceeye:use() end
         mq.delay(250)
         self.epic:use()
         mq.delay(500)
