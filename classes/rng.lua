@@ -465,7 +465,7 @@ local function attackRanged()
         if mq.TLO.Navigation.Active() then mq.cmd('/squelch /nav stop') end
     end
     -- if not state.emu then
-    if not mq.TLO.EverQuest.Server() == 'Project Lazarus' then
+    if mq.TLO.EverQuest.Server() ~= 'Project Lazarus' then
         if not mq.TLO.Target.LineOfSight() or (dist3d and dist3d < 35) then
             if not getRangedCombatPosition(40) then
                 return false

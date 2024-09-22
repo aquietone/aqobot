@@ -196,7 +196,7 @@ Enchanter.SpellLines = {
     {Group='pethaste', Spells={'Invigorated Minion'}, Options={petbuff=true}},
     -- buffs
     -- {Group='unified', Spells={'Unified Alacrity'}, Options={emu=true, alias='KEI', selfbuff=true}},
-    {Group='resmagicgroup', Spells={'Guard of Druzzil', 'Group Resist Magic'}, Options={alias='RESMAGIC', selfbuff=true}},
+    {Group='resmagicgroup', Spells={'Guard of Druzzil', 'Group Resist Magic'}, Options={alias='RESMAGIC', selfbuff=true, condition=function() return mq.TLO.EverQuest.Server() ~= 'Project Lazarus' end}},
     {Group='keigroup', Spells={'Voice of Preordination', 'Voice of Perception', 'Voice of Sagacity', 'Voice of Perspicacity', 'Voice of Precognition', 'Voice of Foresight', 'Voice of Premeditation', 'Voice of Forethought', 'Unified Alacrity', 'Voice of Clairvoyance', 'Voice of Quellious', 'Koadic\'s Endless Intellect'}, Options={alias='KEI', selfbuff=true, opt='USEKEI'}},
     {Group='kei', Spells={'Preordination', 'Scrying Visions', 'Sagacity', 'Foresight', 'Premiditation', 'Forethought', 'Clairovoyance', 'Clarity', 'Breeze'}, Options={alias='SINGLEKEI', selfbuff=function() return not Enchanter.spells.keigroup and true or false end}},
     {Group='grouphaste', Spells={'Hastening of Margator', 'Hastening of Jharin', 'Hastening of Cekenar', 'Hastening of Milyex', 'Hastening of Prokev', 'Hastening of Sviir', 'Hastening of Aransir', 'Hastening of Novak', 'Unified Alacrity', 'Hastening of Salik', 'Vallon\'s Quickening', 'Speed of the Brood'}, Options={alias='HASTE'}}, -- group haste
