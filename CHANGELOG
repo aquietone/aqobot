@@ -1,4 +1,7 @@
 # 2024/09/22
+Changed change log
+
+# 2024/09/22
 - Add offtank config option. Tank will broadcast xtargets it doesn't have aggro on. Offtanks will pick targets based off that.
 
 # 2024/09/21
