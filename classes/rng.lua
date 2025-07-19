@@ -40,8 +40,9 @@ function Ranger:initClassOptions()
     end
     self:addOption('USERANGE', 'Use Ranged', true, nil, 'Ranged DPS if possible', 'checkbox', nil, 'UseRange', 'bool')
     self:addOption('USEDOTS', 'Use DoTs', false, nil, 'Cast expensive DoT on all mobs', 'checkbox', nil, 'UseDoTs', 'bool')
-    self:addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', 'USEFIREARROW', 'UsePoisonArrow', 'bool')
-    self:addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEPOISONARROW', 'UseFireArrow', 'bool')
+    self:addOption('USEPOISONARROW', 'Use Poison Arrow', true, nil, 'Use Poison Arrows AA', 'checkbox', nil, 'UsePoisonArrow', 'bool')
+    self:addOption('USEFIREARROW', 'Use Fire Arrow', false, nil, 'Use Fire Arrows AA', 'checkbox', 'USEFROSTARROW', 'UseFireArrow', 'bool')
+    self:addOption('USEFROSTARROW', 'Use Frost Arrow', false, nil, 'Use Frost Arrows AA', 'checkbox', 'USEFIREARROW', 'UseFrostArrow', 'bool')
     -- self:addOption('BUFFGROUP', 'Buff Group', false, nil, 'Buff group members', 'checkbox', nil, 'BuffGroup', 'bool')
     -- self:addOption('DSTANK', 'DS Tank', false, nil, 'DS Tank', 'checkbox', nil, 'DSTank', 'bool')
     self:addOption('USENUKES', 'Use Nukes', false, nil, 'Cast nukes on all mobs', 'checkbox', nil, 'UseNukes', 'bool')
@@ -86,6 +87,11 @@ Ranger.SpellLines = {
         Group='firenuke2',
         Spells={'Summer\'s Deluge', 'Summer\'s Torrent', 'Summer\'s Mist', 'Scorched Earth', 'Sylvan Burn', 'Burning Arrow', 'Flaming Arrow'},
         Options={Gem=function(lvl) return lvl <= 70 and 4 or 5 end}
+    },
+    {
+        Group='icebuffnuke',
+        Spells={'Flame Snap'},
+        Options={Gem=function(lvl) return lvl <= 70 and 4 end, opt='USEFROSTARROW'}
     },
     {-- main DoT. Slot 6
         Group='dot',
@@ -227,6 +233,11 @@ Ranger.Abilities = {
         Name='Kick',
         Options={dps=true, condition=conditions.withinMeleeDistance}
     },
+    {
+        Type='AA',
+        Name='Cold Snap',
+        Options={dps=true, opt='USEFIREARROW'}
+    },
 
     -- Burns
     { -- 7.5min CD
@@ -288,7 +299,12 @@ Ranger.Abilities = {
     {
         Type='AA',
         Name='Poison Arrows',
-        Options={first=true, nodmz=true} -- opt='USEPOISONARROW'
+        Options={first=true, nodmz=true, opt='USEPOISONARROW'}
+    },
+    {
+        Type='AA',
+        Name='Volatile Arrow',
+        Options={first=true}
     },
     {
         Type='AA',
@@ -352,7 +368,7 @@ Ranger.Abilities = {
     {
         Type='Disc',
         Group='trueshot',
-        Names={'Trueshot Discipline'},
+        Names={'Bullseye Discipline', 'Trueshot Discipline'},
         Options={emu=true, first=true}
     },
     {
@@ -364,6 +380,11 @@ Ranger.Abilities = {
         Type='AA',
         Name='Flaming Arrows',
         Options={opt='USEFIREARROW', nodmz=true, selfbuff=true}
+    },
+    {
+        Type='AA',
+        Name='Frost Arrows',
+        Options={opt='USEFROSTARROW', nodmz=true, selfbuff=true}
     },
 
     -- Debuffs

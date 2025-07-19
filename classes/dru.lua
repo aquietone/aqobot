@@ -282,7 +282,7 @@ Druid.Abilities = {
     {
         Type='AA',
         Name='Wrath of the Wild',
-        Options={alias='TEMPDS', singlebuff=true, classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}
+        Options={alias='FADEDS', singlebuff=true, classes={DRU=true,CLR=true,SHM=true,ENC=true,MAG=true,WIZ=true,RNG=true,MNK=true}}
     },
     {
         Type='AA',

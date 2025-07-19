@@ -20,6 +20,7 @@ state.enrageTimer = timer:new(10000)
 --|-  Turns off attack, when a mob you're attacking enrages.  -|
 --|------------------------------------------------------------|
 local function eventEnraged(line, name)
+    if not config.get('STOPONENRAGE') then return end
     if mq.TLO.Target.ID() == mq.TLO.Spawn(name).ID() then
         if mq.TLO.Me.Combat() then
             -- target is enraged

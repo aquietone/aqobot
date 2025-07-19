@@ -86,8 +86,10 @@ constants.bufflines = {
     {key='RECURSION', label='Mana DD Proc (Enchanter Clicky)', category='Short Term Buffs'},
     {key='SLOWPROC', label='Slow Proc', category='Short Term Buffs'},
     {key='TEMPDS', label='Temporary Damage Shield', category='Short Term Buffs'},
+    {key='FADEDS', label='Defensive Damage Shield', category='Short Term Buffs'},
     {key='FPARAGON', label='Focused Paragon', category='Short Term Buffs'},
     {key='MELEEPROC', label='Melee Proc', category='Short Term Buffs'},
+    {key='AGGROREDUCER', label='Reduce Aggro Generation', category='Short Term Buffs'},
     -- Resist Buffs
     {key='RESCOLD', label='Resist Cold', category='Resists'},
     {key='RESFIRE', label='Resist Fire', category='Resists'},
@@ -117,6 +119,7 @@ constants.buffs = {
         WOLF = true,
         FEROCITY = true,
         MELEEPROC = true,
+        AGGROREDUCER = true,
     },
     BRD = {
         AEGO = false,
@@ -172,6 +175,7 @@ constants.buffs = {
         WOLF = true,
         FEROCITY = true,
         MELEEPROC = true,
+        AGGROREDUCER = true,
     },
 
     CLR = {
@@ -187,6 +191,7 @@ constants.buffs = {
         DMF = true,
         DS = true,
         FPARAGON = true,
+        FADEDS = true,
     },
     DRU = {
         SE = true,
@@ -200,6 +205,7 @@ constants.buffs = {
         NECROTIC = true,
         DMF = true,
         FPARAGON = true,
+        FADEDS = true,
     },
     SHM = {
         SE = true,
@@ -216,6 +222,7 @@ constants.buffs = {
         DMF = true,
         DS = true,
         FPARAGON = true,
+        FADEDS = true,
     },
 
     PAL = {
@@ -365,6 +372,7 @@ constants.buffs = {
         FPARAGON = true,
         MANAPROC = true,
         RECURSION = true,
+        FADEDS = true,
     },
 
     BST = {
@@ -381,6 +389,7 @@ constants.buffs = {
         CHAMPION = true,
         WOLF = true,
         FEROCITY = true,
+        AGGROREDUCER = true,
     },
     RNG = {
         SE = true,
@@ -396,10 +405,12 @@ constants.buffs = {
         DS = true,
         CHAMPION = true,
         WOLF = true,
+        AGGROREDUCER = true,
     },
 }
 
 constants.instantHealClickies = {
+    'Orb of the Sanguine',
     'Orb of Shadows',
     'Distillate of Celestial Healing X',
     --'Distillate of Divine Healing X',

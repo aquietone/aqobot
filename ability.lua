@@ -804,6 +804,9 @@ function Ability:setCommonSpellData(spellRef)
                     self.RemoveBuff = triggerName
                     self.CheckFor = spellRef.BaseName()
                     self.RemoveFamiliar = true
+                elseif spellRef.Trigger(i).HasSPA(113)() then
+                    -- Summon mount SPA
+                    self.RemoveBuff = spellRef.Trigger(i)()
                 else
                     self.CheckFor = triggerName
                 end

@@ -3,6 +3,7 @@ local config = require('interface.configuration')
 local logger = require('utils.logger')
 local timer = require('libaqo.timer')
 local abilities = require('ability')
+local constants = require('constants')
 local state = require('state')
 
 local healing = {}
@@ -17,6 +18,7 @@ local HEAL_TYPES = {
     REGULAR='regular',
     TANK='tank',
     GROUPHOT='grouphot',
+    SELF='self',
 }
 
 local tankClasses = {WAR=true,PAL=true,SHD=true}
@@ -234,11 +236,16 @@ function healing.heal(healAbilities, options)
     end
     logger.debug(logger.flags.routines.heal, string.format('heal %s %s %s', whoToHeal, typeOfHeal, healToUse and healToUse.name or ''))
     if healToUse and (healToUse.CastType ~= abilities.Types.Spell or not mq.TLO.Me.SpellInCooldown()) then
+        local originalTarget = mq.TLO.Target.ID()
+        local retarget = nil
         if whoToHeal and mq.TLO.Target.ID() ~= whoToHeal then
             -- mq.cmdf('/mqt id %s', whoToHeal)
             mq.TLO.Spawn('id '..whoToHeal).DoTarget()
+            if not constants.healClasses[mq.TLO.Me.Class.ShortName()] or mq.TLO.Me.Class.ShortName() == 'PAL' or false then
+                retarget = function() mq.cmdf('/squelch /mqt id %s', originalTarget) end
+            end
         end
-        if abilities.use(healToUse) then
+        if abilities.use(healToUse, nil, false, retarget) then
             if config.get('ANNOUNCEHEALS') then mq.cmdf('/g Healing >>> %s <<< with %s', mq.TLO.Target.CleanName(), healToUse.CastName) end
             state.setHealState(whoToHeal, typeOfHeal, healToUse)
             if typeOfHeal == HEAL_TYPES.REGULAR then state.canInterrupt = true end
@@ -342,9 +349,9 @@ end
 
 local function doRezFor(rezAbility)
     local waitForZoning = true
-    local corpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
-    if not corpse() then
-        corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
+    -- local corpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
+    -- if not corpse() then
+        local corpse = mq.TLO.Spawn('pccorpse tank radius 100 noalert 0')
         if not corpse() then
             corpse = mq.TLO.Spawn('pccorpse healer radius 100 noalert 0')
             if not corpse() then
@@ -354,10 +361,10 @@ local function doRezFor(rezAbility)
                 end
             end
         end
-    else
+    -- else
         -- my own corpse, no need to wait
-        waitForZoning = false
-    end
+        -- waitForZoning = false
+    -- end
     local corpseName = corpse.Name()
     if not corpseName then return false end
     corpseName = corpseName:gsub('\'s corpse.*', '')
@@ -371,15 +378,19 @@ local function doRezFor(rezAbility)
             end
             -- if corpse has been seen before but too fresh, don't rez yet
             if newCorpses[corpseName] and not newCorpses[corpseName]:expired() then return false end
+            -- don't rez someone already in zone temp workaround to rezzing already rezzed corpses
+            if mq.TLO.Spawn('pc ='..corpseName)() then return false end
         end
         corpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
             mq.cmd('/keypress CONSIDER')
-            mq.delay(300)
+            mq.delay(250)
+            mq.doevents('eventCannotRez')
             mq.doevents('eventCannotRezNew')
+            mq.delay(1)
             if state.cannotRez then
                 mq.cmdf('/squelch /alert add 0 id %s', corpse.ID())
-                state.cannotRez = nil
+                state.cannotRez = false
                 reztimer:reset()
                 return false
             end

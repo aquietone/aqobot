@@ -577,7 +577,7 @@ Shaman.Abilities = {
     {
         Type='AA',
         Name='Fortify Companion',
-        Options={petbuff=true}
+        Options={petbuff=true, condition=function() return not mq.TLO.Me.Song('Champion\'s Aura Effect')() end}
     },
 
     -- Debuffs

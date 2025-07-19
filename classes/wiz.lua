@@ -6,11 +6,28 @@ local state = require('state')
 local Wizard = class:new()
 
 --[[
+epic if not twincast
+oow chest
+second spire
+fury of ro
+imrpoved twincast if not twincast
+prolonged destruction or frenzied devastation
+silent casting
+volatile mana blaze, mana blaze, mana blast, mana burn
+call of xuzl
+
+mana weave if not weave of power
+chaosnuke chaos flame
+wildnuke wildmagic burst
+scepter of incantations item
+fireetherealnuke ether flame
+]]
+--[[
     https://forums.eqfreelance.net/index.php?topic=16645.0
 ]]
 function Wizard:init()
     self.classOrder = {'aggro', 'assist', 'burn', 'cast', 'mash', 'recover', 'buff', 'rest', 'rez'}
-    self.spellRotations = {standard={}, ae={},custom={}}
+    self.spellRotations = {standard={}, custom={}} -- ae={},
     self:initBase('WIZ')
 
     self:initClassOptions()
@@ -24,6 +41,7 @@ end
 function Wizard:initClassOptions()
     self:addOption('USEDISPEL', 'Use Dispel', true, nil, 'Dispel mobs with Eradicate Magic AA', 'checkbox', nil, 'UseDispel', 'bool')
     self:addOption('USEHARVEST', 'Use Harvest', true, nil, 'Toggle use of Harvest spell/AA', 'checkbox', nil, 'UseHarvest', 'bool')
+    self:addOption('USESTUN', 'Use Stun', false, nil, 'Toggle use of Stun spells', 'checkbox', nil, 'UseStun', 'bool')
 end
 -- circle of thunder, jyll's wave of heat, jyll's static pulse (pbae)
 -- scepter of incantations, molten orb, aged shissar elementalist's staff
@@ -40,18 +58,20 @@ end
 Wizard.SpellLines = {
     {Group='largefire', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Strike of Solusek', 'Conflagration', 'Fire Bolt'}, Options={Gem=1}},
     {Group='weavenuke', Spells={'Ether Flame', 'Corona Flare', 'White Fire', 'Strike of Solusek', 'Conflagration', 'Fire Bolt'}, Options={condition=function() return mq.TLO.Me.Buff('Weave of Power')() or mq.TLO.Me.Song('Weave of Power')() end}},
-    {Group='stun', Spells={'Telakemara', 'Telekara', 'Telaka', 'Telekin', 'Markar\'s Discord', 'Tishan\'s Discord', 'Markar\'s Clash', 'Tishan\'s Clash', 'Thunderclap'}, Options={Gem=2}},
+    {Group='stun', Spells={'Telakemara', 'Telekara', 'Telaka', 'Telekin', 'Markar\'s Discord', 'Tishan\'s Discord', 'Markar\'s Clash', 'Tishan\'s Clash', 'Thunderclap'}, Options={Gem=2, opt='USESTUN'}},
     {Group='firerain', Spells={--[['Tears of the Sun', 'Tears of Arlyxir', ]]'Tears of Ro', 'Tears of Solusek', 'Lava Storm', 'Firestorm'}, Options={opt='USEAOE', Gem=3}},
     {Group='icerain', Spells={'Gelid Rains', 'Tears of Marr', 'Tears of Prexus', 'Frost Storm', 'Icestrike'}, Options={opt='USEAOE', Gem=4}},
     {Group='weave', Spells={'Mana Weave'}, Options={Gem=function(lvl) return lvl <= 70 and 5 end, condition=function() return not mq.TLO.Me.Buff('Weave of Power')() and not mq.TLO.Me.Song('Weave of Power')() end}},
+    {Group='wildmagic', Spells={'Wildmagic Burst'}, Options={Gem=12, emu=true}},
     {Group='pbaelightning', Spells={'Circle of Thunder', 'Jyll\'s Static Pulse', 'Cast Force', 'Project Lightning'}, Options={opt='USEAOE', Gem=6, condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}},
-    {Group='pbaeice', Spells={--[['Winds of Gelid', ]]'Jyll\'s Zephyr of Ice', 'Numbing Cold'}, Options={opt='USEAOE', Gem=7, condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}},
-    {Group='pbaefire', Spells={--[['Circle of Fire', ]]'Jyll\'s Wave of Heat', 'Fingers of Fire'}, Options={opt='USEAOE', Gem=8, condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}},
+    {Group='pbaeice', Spells={--[['Winds of Gelid', ]]'Jyll\'s Zephyr of Ice', 'Numbing Cold'}, Options={opt='USEAOE', condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}}, -- Gem=7, 
+    {Group='pbaefire', Spells={--[['Circle of Fire', ]]'Jyll\'s Wave of Heat', 'Fingers of Fire'}, Options={opt='USEAOE', condition=function() return (mq.TLO.Target.Distance3D() or 100) < 45 and state.mobCountNoPets > 2 end}}, -- Gem=8, 
+    {Group='jolt', Spells={'Ancient: Greater Concussion', 'Concussion'}, Options={Gem=8, condition=function() return mq.TLO.Target.PctAggro() or 0 > 85 end}},
 
     {Group='harvest', Spells={'Harvest'}, Options={Gem=9, opt='USEHARVEST', condition=function() return not state.burn_active end}},
     {Group='rune', Spells={'Ether Skin'}, Options={selfbuff=true, Gem=10}},
     {Group='dispel', Spells={'Annul Magic', 'Nullify Magic', 'Cancel Magic'}, Options={debuff=true, dispel=true, opt='USEDISPEL',}},-- Gem=11}},
-    {Group='hpbuff', Spells={'Ether Shield', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true, Gem=12}},
+    {Group='hpbuff', Spells={'Ether Shield', 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={selfbuff=true}},
 
     {Group='largeice', Spells={'Gelidin Comet', 'Ice Meteor', 'Ice Comet'}, Options={}},-- Gem=3
     {Group='smallice', Spells={'Claw of Vox', 'Spark of Ice', 'Claw of Frost', 'Ice Shock', 'Frost Shock', 'Shock of Ice', 'Blast of Cold'}, Options={}},-- Gem=1
@@ -60,7 +80,7 @@ Wizard.SpellLines = {
     -- {Group='targetpbaeice', Spells={'Retribution of Al\'Kabor', 'Wrath of Al\'Kabor', 'Frost Spiral of Al\'Kabor', 'Column of Frost'}, Options={opt='USEAOE', Gem=3}},
 
     {Group='smallfire', Spells={'Inferno Shock', 'Flame Shock', 'Shock of Fire'}, Options={}},-- Gem=4
-    {Group='fastfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire'}, Options={}},-- Gem=5
+    {Group='fastfire', Spells={'Chaos Flame', 'Draught of Ro', 'Draught of Fire'}, Options={Gem=7}},-- Gem=5
     {Group='lurefire', Spells={'Firebane', 'Lure of Ro', 'Lure of Flame', 'Enticement of Flame'}, Options={}},-- Gem=11
     -- {Group='targetpbaefire', Spells={'Pillar of Flame', 'Inferno of Al`Kabor', 'Fire Spiral of Al\'Kabor', 'Pillar of Fire'}, Options={opt='USEAOE', Gem=6}},
 
@@ -76,7 +96,7 @@ Wizard.SpellLines = {
 }
 
 Wizard.compositeNames = {['Ecliptic Fire']=true,['Composite Fire']=true,['Dissident Fire']=true,['Dichotomic Fire']=true,}
-Wizard.allDPSSpellGroups = {'weave', 'weavenuke', 'largefire', 'largeice', 'smallfire', 'smallice', 'firefire', 'fastice', 'lurefire', 'lureice', 'lightning', 'stun', 'swarm', 'firerain', 'icerain', 'lightningrain', 'aetrap', 'pbaefire', --[['targetpbaefire', ]]'pbaeice', --[['targetpbaeice', ]]'pbaelightning', --[['targetpbaelightning']]}
+Wizard.allDPSSpellGroups = {'weave', 'weavenuke', 'largefire', 'largeice', 'wildmagic', 'smallfire', 'smallice', 'firefire', 'fastice', 'lurefire', 'lureice', 'lightning', 'stun', 'swarm', 'firerain', 'icerain', 'lightningrain', 'aetrap', 'pbaefire', --[['targetpbaefire', ]]'pbaeice', --[['targetpbaeice', ]]'pbaelightning', --[['targetpbaelightning']]}
 
 Wizard.Abilities = {
     -- DPS
@@ -84,6 +104,11 @@ Wizard.Abilities = {
         Type='AA',
         Name='Force of Will',
         Options={dps=true}
+    },
+    {
+        Type='Item',
+        Name='Imbued Rune of Mana Weave',
+        Options={dps=true, condition=function() return not mq.TLO.Me.Buff('Weave of Power')() and not mq.TLO.Me.Song('Weave of Power')() end}
     },
 
     -- Burns
@@ -95,7 +120,12 @@ Wizard.Abilities = {
     {
         Type='AA',
         Name='Prolonged Destruction',
-        Options={first=true}
+        Options={first=true, condition=function() return not mq.TLO.Me.Buff('Frenzied Devastation')() and not mq.TLO.Me.Song('Frenzied Devastation')() end}
+    },
+    {
+        Type='AA',
+        Name='Frenzied Devastation',
+        Options={first=true, condition=function() return not mq.TLO.Me.AltAbilityReady('Prolonged Destruction')() and not mq.TLO.Me.Buff('Prolonged Destruction')() and not mq.TLO.Me.Song('Prolonged Destruction')() end}
     },
     {
         Type='AA',
@@ -110,22 +140,27 @@ Wizard.Abilities = {
     {
         Type='AA',
         Name='Improved Twincast',
-        Options={first=true}
+        Options={first=true, condition=function() return not mq.TLO.Me.Buff('Arcane Twincast')() end}
     },
     {
         Type='Item',
         Name='Staff of Ancient Power',
-        Options={first=true, epicburn=true}
+        Options={first=true, epicburn=true, condition=function() return not mq.TLO.Me.Buff('Improved Twincast')() end}
     },
     {
         Type='Item',
         Name='Staff of Phenomenal Power',
-        Options={first=true, epicburn=true}
+        Options={first=true, epicburn=true, condition=function() return not mq.TLO.Me.Buff('Arcane Twincast')() end}
     },
     {
         Type='AA',
         Name='Volatile Mana Blaze',
-        Options={first=true}
+        Options={first=true, condition=function() return mq.TLO.Me.PctMana() or 0 > 85 end}
+    },
+    {
+        Type='Item',
+        Name='Forsaken Sorcerer\'s Trousers',
+        Options={first=true, condition=function() return mq.TLO.Me.PctMana() or 0 > 85 and not mq.TLO.Me.AltAbilityReady('Volatile Mana Blaze')() end}
     },
 
     -- Buffs
@@ -143,14 +178,21 @@ Wizard.Abilities = {
     {
         Type='AA',
         Name='Concussive Intuition',
-        Options={dps=true, condition=function() return mq.TLO.Target.PctAggro() or 0 > 70 end}
+        Options={dps=true, condition=function() return mq.TLO.Target.PctAggro() or 0 > 90 end}
     },
 
     -- Recover
     {
         Type='AA',
         Name='Harvest of Druzzil',
-        Options={recover=true, opt='USEHARVEST', condition=function() return not state.burn_active end}
+        Options={burn=true, recover=true, opt='USEHARVEST', condition=function() return mq.TLO.Me.PctMana() or 100 < 30 end}
+    },
+
+    -- Defensives
+    {
+        Type='AA',
+        Name='A Hole in Space',
+        Options={fade=true}
     }
 }
 function Wizard:initSpellRotations()
@@ -162,6 +204,8 @@ function Wizard:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.pbaeice)
     table.insert(self.spellRotations.standard, self.spells.weave)
     table.insert(self.spellRotations.standard, self.spells.weavenuke)
+    table.insert(self.spellRotations.standard, self.spells.wildmagic)
+    table.insert(self.spellRotations.standard, self.spells.fastfire)
     table.insert(self.spellRotations.standard, self.spells.stun)
     table.insert(self.spellRotations.standard, self.spells.fastice)
     table.insert(self.spellRotations.standard, self.spells.firerain)

@@ -113,12 +113,12 @@ Enchanter.SpellLines = {
         Group='mindnuke',
         NumToPick=2,
         Spells={'Mindrend', 'Mindreap', 'Mindrift', 'Mindslash', 'Mindsunder', 'Mindcleave', 'Mindscythe', 'Mindblade', --[[emu cutoff]] 'Ancient: Neurosis', 'Madness of Ikkibi', 'Insanity'},
-        Options={opt='USENUKES', Gems={6,function(lvl) return lvl >= 100 and 7 or nil end}}
+        Options={opt='USENUKES', Gems={6,function(lvl) return lvl >= 100 and 7 or nil end}, emu=false}
     },
     {-- 28k nuke. Slot 8
         Group='nuke2',
         Spells={'Chromaclap', 'Chromashear', 'Chromoashock', 'Chromareave', 'Chromarift', 'Chromaclash', 'Chromaruin', 'Chromarcana', --[[emu cutoff]] 'Chromaburst', 'Anarchy', 'Chaos Flux', 'Sanity Warp', 'Chaotic Feedback'},
-        Options={opt='USENUKES', Gem=function(lvl) return (lvl <= 60 and 7) or 8 end}
+        Options={opt='USENUKES', Gem=function(lvl) return (lvl <= 70 and 7) or 8 end}
     },
     {-- single target dmg proc buff. Slot 9
         Group='procbuff',
@@ -400,7 +400,7 @@ Enchanter.Abilities = {
     {
         Type='AA',
         Name='Fortify Companion',
-        Options={petbuff=true}
+        Options={petbuff=true, condition=function() return not mq.TLO.Me.Song('Champion\'s Aura Effect')() end}
     },
 
     -- Recover

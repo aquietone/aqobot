@@ -241,7 +241,7 @@ function common.isBurnConditionMet(alwaysCondition)
             state.burnActive = true
             state.burn_type = nil
             return true
-        elseif mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() >= config.get('BURNCOUNT') then
+        elseif mq.TLO.SpawnCount(string.format('npc xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() >= config.get('BURNCOUNT') then
             logger.info('\arActivating Burns (mob count > %d)\ax', config.get('BURNCOUNT'))
             state.burnActiveTimer:reset()
             state.burnActive = true
@@ -257,7 +257,7 @@ function common.isBurnConditionMet(alwaysCondition)
     end
     state.burnActiveTimer:reset(0)
     state.burnActive = false
-    state.burn_type = nil
+    -- state.burn_type = nil
     return false
 end
 
@@ -330,7 +330,8 @@ function common.checkMana()
     end
 
     local zonesn = mq.TLO.Zone.ShortName()
-    if zonesn ~= 'poknowledge' and zonesn ~= 'thevoida' and mq.TLO.Me.MaxMana() > 0 then
+    -- spa 409 base 25
+    if zonesn ~= 'poknowledge' and zonesn ~= 'thevoida' and mq.TLO.Me.MaxMana() > 0 and (mq.TLO.Me.SPA(409)() or 0) == 0 then
         local manastone = mq.TLO.FindItem('Manastone')
         if manastone() and mq.TLO.Me.PctMana() < config.get('MANASTONESTART') and mq.TLO.Me.PctHPs() > config.get('MANASTONESTARTHP') then
             local manastoneTimer = timer:new((config.get('MANASTONETIME') or 0)*1000)
@@ -362,7 +363,7 @@ function common.rest()
         end
         if not mq.TLO.Me.Sitting() and not mq.TLO.Me.Moving() and not mq.TLO.Me.Casting() and not state.casting and state.medding then
                 --and not mq.TLO.Me.Combat() and not mq.TLO.Me.AutoFire() and
-                --mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() == 0 then
+                --mq.TLO.SpawnCount(string.format('npc xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() == 0 then
             mq.cmd('/sit')
             state.sitTimer:reset()
         end

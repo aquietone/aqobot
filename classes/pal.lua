@@ -101,7 +101,7 @@ Paladin.SpellLines = {
     {
         Group='stunaoe',
         Spells={'Stun Command'},
-        Options={Gem=8}
+        Options={Gem=8, threshold=2, opt='USEAOE'}
     },
     {
         Group='twincast',
@@ -155,7 +155,7 @@ Paladin.SpellLines = {
     },
     {
         Group='selfarmor',
-        Spells={'Armor of Implacable Faith', --[[emu cutoff]] 'Armor of the Champion'},
+        Spells={'Armor of Implacable Faith', --[[emu cutoff]] 'Armor of the Champion', 'Armor of the Crusader', 'Divine Strength'},
         Options={selfbuff=true},
     },
     -- {
@@ -200,7 +200,7 @@ Paladin.SpellLines = {
     },
 }
 Paladin.compositeNames = {['Ecliptic Force']=true, ['Composite Force']=true, ['Dissident Force']=true, ['Dichotomic Force']=true}
-Paladin.allDPSSpellGroups = {'stun1', 'stun2', 'stun3', 'stunaoenuke', 'stunaoe', 'twincast'}
+Paladin.allDPSSpellGroups = {'stunaoenuke', 'stunaoe', 'stun1', 'stun2', 'stun3', 'twincast'}
 
 --[[ AA's to sort out
 self:addAA('Bestow Divine Aura', {}) -- 
@@ -221,8 +221,10 @@ function Paladin:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.challenge)
     table.insert(self.spellRotations.standard, self.spells.twincast)
     table.insert(self.spellRotations.standard, self.spells.healtot)
+    table.insert(self.spellRotations.standard, self.spells.stunaoenuke)
+    table.insert(self.spellRotations.standard, self.spells.stunaoe)
     table.insert(self.spellRotations.standard, self.spells.stun1)
-    table.insert(self.spellRotations.standard, self.spells.stun2)
+    -- table.insert(self.spellRotations.standard, self.spells.stun2)
     table.insert(self.spellRotations.standard, self.spells.stun3)
     table.insert(self.spellRotations.standard, self.spells.undeadnuke)
     table.insert(self.spellRotations.standard, self.spells.stunaoenuke)
@@ -255,7 +257,7 @@ Paladin.Abilities = {
     { -- agro + interrupt, mash
         Type='AA',
         Name='Force of Disruption',
-        Options={tanking=true, condition=function() return mq.TLO.Me.PctAggro() < 100 end}
+        Options={tanking=true, condition=function() return mq.TLO.Me.PctAggro() < 100 or (mq.TLO.Me.SecondaryPctAggro() or 0) > 70 end}
     },
     { -- agro generating swarm pet
         Type='AA',
@@ -292,7 +294,7 @@ Paladin.Abilities = {
     { -- DD + agro + interrupt, mash
         Type='AA',
         Name='Disruptive Persecution',
-        Options={dps=true, condition=function() return mq.TLO.Me.PctAggro() >= 100 or not config.get('MAINTANK') end}
+        Options={dps=true, condition=function() return (mq.TLO.Me.PctAggro() >= 100 and (mq.TLO.Me.SecondaryPctAggro() or 0) < 70) or not config.get('MAINTANK') end}
     },
 
     -- Burn
@@ -415,6 +417,11 @@ Paladin.Abilities = {
     --     Name='Marr\'s Salvation',
     --     Options={selfbuff=true}
     -- },
+    { -- self buffs
+        Type='AA',
+        Name='Marr\'s Salvation',
+        Options={classes={ROG=true,RNG=true,BST=true,BER=true}, singlebuff=true, emu=true, alias='AGGROREDUCER'}
+    },
     { -- self buffs
         Type='AA',
         Name='Yaulp',

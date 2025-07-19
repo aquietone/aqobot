@@ -113,7 +113,7 @@ function camp.returnToCamp(force)
     if state.mobCount > 0 then
         -- allow some buffer to campradius when checking returntocamp with mobs in camp.. allow to keep fighting stuff near the edge.
         -- if toons are any further out maybe they were summoned out of camp or something.
-        if force or helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')+15)^2 then
+        if force or helpers.distance(mq.TLO.Me.X(), mq.TLO.Me.Y(), camp.X, camp.Y) > (config.get('CAMPRADIUS')+25)^2 then
             movement.navToLoc(camp.X, camp.Y, camp.Z)
         end
     else

@@ -11,7 +11,6 @@ local config = require('interface.configuration')
 local ui = require('interface.ui')
 local tlo = require('interface.tlo')
 
-local loot = require('utils.lootutils')
 local movement = require('utils.movement')
 local timer = require('libaqo.timer')
 
@@ -20,6 +19,7 @@ local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
 local status = require('status')
+local loot_module = require('utils.loot_module')
 
 ui.setConsole(CONSOLE)
 
@@ -40,6 +40,7 @@ local function init()
     ui.init(class)
     tlo.init(class)
     status.init()
+    loot_module.init()
 
     state.currentZone = mq.TLO.Zone.ID()
     state.subscription = mq.TLO.Me.Subscription()
@@ -143,7 +144,7 @@ local function buffSafetyCheck()
     if not torporLandedInCombat and mq.TLO.Me.Song('Transcendent Torpor')() and mq.TLO.Me.CombatState() == 'COMBAT' then
         torporLandedInCombat = true
     end
-    if (torporLandedInCombat or mq.TLO.SpawnCount('xtarhater radius 25')() == 0) and mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Me.Song('Transcendent Torpor')() then
+    if (torporLandedInCombat or mq.TLO.SpawnCount('npc xtarhater radius 25')() == 0) and mq.TLO.Me.CombatState() ~= 'COMBAT' and mq.TLO.Me.Song('Transcendent Torpor')() then
         mq.cmdf('/removebuff "Transcendent Torpor"')
         torporLandedInCombat = false
     end
@@ -161,41 +162,40 @@ local function buffSafetyCheck()
 end
 
 local lootMyCorpseTimer = timer:new(2000)
-local reloadTimer = timer:new(60000)
+-- local reloadTimer = timer:new(60000)
 local function doLooting()
     local myCorpse = mq.TLO.Spawn('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')
-    if mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')() > 1 and reloadTimer:expired() then mq.cmd('/reload') mq.delay(5000) reloadTimer:reset() end
+    -- if mq.TLO.SpawnCount('pccorpse '..mq.TLO.Me.CleanName()..'\'s corpse radius 100')() > 1 and reloadTimer:expired() then mq.cmd('/reload') mq.delay(5000) reloadTimer:reset() end
     -- if not mq.TLO.Me.Combat() and mq.TLO.Me.CombatState() ~= 'COMBAT' and myCorpse() and lootMyCorpseTimer:expired() then
     if myCorpse() and not mq.TLO.Me.Combat() and lootMyCorpseTimer:expired() then
         lootMyCorpseTimer:reset()
         myCorpse.DoTarget()
         if mq.TLO.Target.Type() == 'Corpse' then
-            mq.cmd('/keypress CONSIDER')
-            mq.delay(500)
-            mq.doevents('eventCannotRezNew')
-            if state.cannotRez then
-                state.cannotRez = nil
-                mq.cmd('/corpse')
-                movement.navToTarget(nil, 10000)
-                if (mq.TLO.Target.Distance3D() or 100) > 10 then return end
-                loot.lootMyCorpse()
-                if mq.TLO.Cursor() then mq.cmd('/autoinv') end
-                state.actionTaken = true
-                return
-            end
+--             mq.cmd('/keypress CONSIDER')
+--             mq.delay(500)
+--             mq.doevents('eventCannotRezNew')
+--             if state.cannotRez then
+--                 state.cannotRez = nil
+            mq.cmd('/corpse')
+            movement.navToTarget(nil, 10000)
+            if (mq.TLO.Target.Distance3D() or 100) > 10 then return end
+            mq.cmd('/loot')
+            mq.delay(250, function() return mq.TLO.Window('LootWnd').Open() end)
+            mq.TLO.Window('LootWnd').DoClose()
+--                 loot.lootMyCorpse()
+--                 if mq.TLO.Cursor() then mq.cmd('/autoinv') end
+            state.actionTaken = true
+            return
+--             end
         end
     end
-    if config.get('LOOTMOBS') and (state.mobCount == 0 or config.get('LOOTCOMBAT')) and not state.pullStatus then
-        state.actionTaken = loot.lootMobs(1)
-        if state.lootBeforePull then state.lootBeforePull = false end
-    end
+--     if config.get('LOOTMOBS') and (state.mobCount == 0 or config.get('LOOTCOMBAT')) and not state.pullStatus then
+--         state.actionTaken = loot.lootMobs(1)
+--         if state.lootBeforePull then state.lootBeforePull = false end
+--     end
 end
 
 local function handleStates(class)
-    -- Async state handling
-    --if state.looting then loot.lootMobs() return true end
-    --if state.selling then loot.sellStuff() return true end
-    --if state.banking then loot.bankStuff() return true end
     if not state.handlePositioningState() then return true end
     if not state.handleMemSpell() then return true end
     if not state.handleCastingState(class) then return true end
@@ -234,7 +234,17 @@ local function main()
                     checkFD()
                     common.checkCursor()
                     if state.emu then
-                        doLooting()
+                        -- doLooting()
+                        if config.get('LOOTMOBS') and (state.mobCount == 0 or config.get('LOOTCOMBAT')) and not state.pullStatus then
+                            -- for i=1,13 do
+                            --     if mq.TLO.Me.XTarget(i).TargetType() ~= 'Specific PC' and mq.TLO.Me.XTarget(i).PctHPs() == 0 then
+                            --         mq.cmdf('/xtarget set %s autohater', i)
+                            --         mq.delay(10)
+                            --     end
+                            -- end
+                            loot_module.doloot()
+                            if state.lootBeforePull then state.lootBeforePull = false end
+                        end
                     end
                     if not state.actionTaken then
                         class:mainLoop()

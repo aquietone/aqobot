@@ -8,7 +8,7 @@ local pull = require('routines.pull')
 local tank = require('routines.tank')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
-local loot = require('utils.lootutils')
+-- local loot = require('utils.lootutils')
 local movement = require('utils.movement')
 local timer = require('libaqo.timer')
 local constants = require('constants')
@@ -143,7 +143,7 @@ function commands.commandHandler(...)
             logger.flags[section][subsection] = not logger.flags[section][subsection]
         end
     elseif opt == 'SELL' and not new_value then
-        loot.sellStuff()
+        -- loot.sellStuff()
     elseif opt == 'BURNNOW' then
         if new_value then
         -- if constants.burns[new_value] then

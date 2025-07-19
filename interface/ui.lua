@@ -9,7 +9,6 @@ local camp = require('routines.camp')
 local pull = require('routines.pull')
 local helpers = require('utils.helpers')
 local logger = require('utils.logger')
-local guiLoot = require('interface.loot_hist')
 local constants = require('constants')
 local mode = require('mode')
 local state = require('state')
@@ -109,7 +108,7 @@ end
 local assistTabConfigs = {
     'ASSIST','AUTOASSISTAT','ASSISTNAMES','SWITCHWITHMA','CAMPRADIUS',
     'STICKCOMMAND','CHASETARGET','CHASEDISTANCE','CHASESTOPDISTANCE','CHASEPAUSED','RESISTSTOPCOUNT',
-    'NUKEMANAMIN','DOTMANAMIN','MAINTANK','OFFTANK','LOOTMOBS','LOOTCOMBAT',
+    'NUKEMANAMIN','DOTMANAMIN','MAINTANK','OFFTANK','STOPONENRAGE','LOOTMOBS','LOOTCOMBAT',
 }
 local function drawAssistTab()
     local x,_ = ImGui.GetContentRegionAvail() - 10
@@ -259,10 +258,6 @@ local function drawDebugTab()
     end
     if ImGui.Button('View State Inspector', buttonWidth, BUTTON_HEIGHT) then
         stateGUIOpen = true
-    end
-    ImGui.SameLine()
-    if ImGui.Button('View Loot', buttonWidth, BUTTON_HEIGHT) then
-        guiLoot.openGUI = not guiLoot.openGUI
     end
     config.DELAYFORLAG.value = widgets.SliderInt('Delay for Lag', config.DELAYFORLAG.value, 'Set the amount of delay to account for lag in various places', 0, 1000, item_width)
     ImGui.TextColored(YELLOW, 'Mode:')

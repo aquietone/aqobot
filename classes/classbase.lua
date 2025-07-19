@@ -1088,7 +1088,7 @@ function base:recover()
                 elseif ability.endurance and pct_end < (ability.threshold or config.get('RECOVERPCT')) and (ability.combat or combat_state ~= 'COMBAT') and (not ability.minhp or mq.TLO.Me.PctHPs() > ability.minhp) then
                     useAbility = ability
                     break
-                elseif not ability.mana and not ability.endurance and pct_mana < config.get('RECOVERPCT') then
+                elseif not ability.mana and not ability.endurance and ((mq.TLO.Me.Class.CanCast() and pct_mana < config.get('RECOVERPCT')) or (not mq.TLO.Me.Class.CanCast() and pct_end < config.get('RECOVERPCT'))) then
                     useAbility = ability
                 end
             end
@@ -1126,7 +1126,7 @@ function base:managepet()
         mq.delay(50)
     end
     if not common.clearToBuff() or mq.TLO.Pet.ID() > 0 or mq.TLO.Me.Moving() then return end
-    if mq.TLO.SpawnCount(string.format('xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
+    if mq.TLO.SpawnCount(string.format('npc xtarhater radius %d zradius 50', config.get('CAMPRADIUS')))() > 0 then return end
     if petSpell.Mana > mq.TLO.Me.CurrentMana() then return end
     if petSpell.ReagentID and mq.TLO.FindItemCount(petSpell.ReagentID)() < petSpell.ReagentCount then return end
     abilities.swapAndCast(petSpell, state.swapGem, self, function() mq.cmd('/pet ghold on') end)
@@ -1227,8 +1227,11 @@ local function lifesupport()
             if item() and mq.TLO.Me.ItemReady(healclicky)() and (spell.Duration.TotalSeconds() == 0 or (not mq.TLO.Me.Song(spell.Name())()) and mq.TLO.Spell(spell.Name()).Stacks()) then
                 logger.info('Use Item: \ag%s\ax', healclicky)
                 local castTime = item.CastTime()
+                local prevID = mq.TLO.Target.ID()
+                if healclicky.TargetType == 'Single' then mq.TLO.Me.DoTarget() mq.delay(1) end
                 mq.cmdf('/useitem "%s"', healclicky)
                 mq.delay(250+(castTime or 0), function() return not mq.TLO.Me.ItemReady(healclicky)() end)
+                mq.cmdf('/squelch /mqt id %s', prevID)
                 if mq.TLO.Me.PctHPs() > 75 then return end
             end
         end

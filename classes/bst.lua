@@ -211,7 +211,7 @@ BeastLord.SpellLines = {
     },
     {Group='petrune', Spells={'Auspice of Valia', 'Auspice of Kildrukaun', 'Auspice of Esianti', 'Auspice of Eternity', 'Auspice of Shadows', --[[emu cutoff]] }}, -- (pet rune) / Sympathetic Warder (pet healproc)
     {Group='petheal', Spells={'Salve of Homer', 'Salve of Jaegir', 'Salve of Tobart', 'Salve of Artikla', 'Salve of Clorith', 'Salve of Blezon', 'Salve of Yubai', 'Salve of Sevna', --[[emu cutoff]] 'Healing of Mikkity', 'Healing of Sorsha', 'Yekan\'s Recovery', 'Herikol\'s Soothing', 'Keshuval\'s Rejuvenation', 'Sharik\'s Replenishing'}, Options={opt='HEALPET', pet=50, heal=true}}, -- (Pet heal)
-    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity', 'Yekan\'s Quickening'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor, Gem=function(lvl) return lvl <= 70 and 3 end}}, -- pet haste
+    {Group='pethaste',Spells={'Insatiable Voracity', 'Unsurpassed Velocity', 'Astounding Velocity', 'Tremendous Velocity', 'Extraordinary Velocity', 'Exceptional Velocity', 'Incomparable Velocity', --[[emu cutoff]] 'Growl of the Beast', 'Arag\'s Celerity', 'Yekan\'s Quickening'}, Options={swap=true, petbuff=true, condition=function() return not mq.TLO.Pet.Buff(BeastLord.spells.pethaste.Name)() and not mq.TLO.Pet.Buff('Field Armorer')() end, Gem=function(lvl) return lvl <= 70 and 3 end}}, -- pet haste
     {Group='petbuff', Spells={'Spirit of Shoru', 'Spirit of Siver', 'Spirit of Mandrikai', 'Spirit of Beramos', 'Spirit of Visoracius', 'Spirit of Nak', 'Spirit of Bale', 'Spirit of Kron', --[[emu cutoff]] 'Spirit of Oroshar', 'Spirit of Rellic', 'Spirit of the Scorpion', 'Spirit of Inferno', 'Spirit of the Blizzard', 'Spirit of Lightning'}, Options={swap=true, petbuff=true, condition=conditions.missingPetCheckFor, Gem=function(lvl) return lvl <= 70 and 2 end}}, -- pet buff
     {Group='petaggression', Spells={'Magna\'s Aggression', 'Panthea\'s Aggression', 'Horasug\'s Aggression', 'Virzak\'s Aggression', 'Sekmoset\'s Aggression', 'Plakt\'s Aggression', 'Mea\'s Aggression', 'Neivr\'s Aggression', --[[emu cutoff]] }, Options={swap=true}},
     {Group='petshrink', Spells={'Tiny Companion'}, Options={}},
@@ -458,7 +458,12 @@ BeastLord.Abilities = {
     {
         Type='AA',
         Name='Fortify Companion',
-        Options={petbuff=true}
+        Options={petbuff=true, condition=function() return not mq.TLO.Me.Song('Champion\'s Aura Effect')() end}
+    },
+    {
+        Type='Item',
+        Name='Spiritcaller Totem of the Ancients',
+        Options={first=true, epicburn=true, CheckFor='Might of the Wild Spirits', condition=conditions.missingPetCheckFor, emu=true}
     },
     {
         Type='Item',

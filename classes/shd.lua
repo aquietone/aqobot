@@ -75,7 +75,7 @@ ShadowKnight.SpellLines = {
     },--, 'Drain Soul', 'Lifedraw'})
     {-- Temp buff (Gift of) lifetap. Slot 2
         Group='tap2',
-        Spells={'Touch of Mortimus', 'Touch of Namdrows', --[[emu cutoff]] 'Touch of Draygun', 'Touch of Volatis'},
+        Spells={'Touch of Mortimus', 'Touch of Namdrows', --[[emu cutoff]] 'Grasp of Lhranc', 'Touch of Volatis'},
         Options={Gem=2}
     },
     {-- large lifetap. Slot 3
@@ -91,7 +91,7 @@ ShadowKnight.SpellLines = {
     {-- poison nuke. Slot 5
         Group='spear',
         Spells={'Spear of Lazam', 'Spear of Bloodwretch', 'Spear of Muram', 'Miasmic Spear', 'Spear of Disease'},
-        Options={Gem=5}
+        Options={Gem=5, opt='USEAOE'}
     },
     {-- ST increase hate by 1. Slot 6
         Group='terror',
@@ -438,7 +438,7 @@ ShadowKnight.Abilities = {
     {
         Type='AA',
         Name='Fortify Companion',
-        Options={petbuff=true}
+        Options={petbuff=true, condition=function() return not mq.TLO.Me.Song('Champion\'s Aura Effect')() end}
     },
 
     {

@@ -1,3 +1,8 @@
+# 2025/07/18
+- Various class updates to match lazarus patches. The less i update this the less i bother to try and keep it from being too laz specific, sorry.
+- Some rez and self corpse looting updates to cope with changes to laz. Dont rez the corpse of someone already in known if that zone isnt pok.
+- Removed embedded LootNScoot.
+
 # 2024/09/22
 - Add offtank config option. Tank will broadcast xtargets it doesn't have aggro on. Offtanks will pick targets based off that.
 

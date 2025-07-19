@@ -199,7 +199,7 @@ Magician.SpellLines = {
     {-- Main fire nuke. Slot 1/2
         Group='spear',
         NumToPick=2,
-        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Cinder Bolt', 'Blaze', 'Bolt of Flame', 'Shock of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
+        Spells={'Spear of Molten Dacite', 'Spear of Molten Luclinite', 'Spear of Molten Komatiite', 'Spear of Molten Arcronite', 'Spear of Molten Shieldstone', --[[emu cutoff]] 'Spear of Ro', 'Ancient: Nova Strike', 'Sun Vortex', 'Seeking Flame of Seukor', 'Char', 'Cinder Bolt', 'Blaze', 'Bolt of Flame', 'Shock of Flame', 'Flame Bolt', 'Burn', 'Burst of Flame'},
         Options={opt='USEFIRENUKES', Gems={1, function(lvl) return not Magician:isEnabled('USEAOE') and 2 or nil end}, precast=function() if mq.TLO.FindItem('Bifold Focus of the Evil Eye')() and mq.TLO.Me.ItemReady('Bifold Focus of the Evil Eye')() then mq.cmd('/useitem "Bifold Focus of the Evil Eye"') end end}
     },
     {-- Main AE nuke. Slot 1
@@ -214,13 +214,13 @@ Magician.SpellLines = {
     },
     {-- Large nuke, triggers beneficial buff chance. Slot 4
         Group='chaotic',
-        Spells={'Chaotic Magma', 'Chaotic Calamity', 'Chaotic Pyroclasm', 'Chaotic Inferno', 'Chaotic Fire', --[[emu cutoff]] 'Burning Earth'},
+        Spells={'Chaotic Magma', 'Chaotic Calamity', 'Chaotic Pyroclasm', 'Chaotic Inferno', 'Chaotic Fire', --[[emu cutoff]] 'Burning Bladegusts'},
         Options={Gem=4}
     },
     {-- Large nuke based on # of summoned pets. Slot 5
         Group='ofmany',
-        Spells={'Fusillade of Many', 'Barrage of Many', 'Shockwave of Many', 'Volley of Many', 'Storm of Many', --[[emu cutoff]] },
-        Options={Gem=5, emu=false}
+        Spells={'Fusillade of Many', 'Barrage of Many', 'Shockwave of Many', 'Volley of Many', 'Storm of Many', --[[emu cutoff]] 'Shock of Myriad Minions'},
+        Options={Gem=5}
     },
     {-- Main magic nuke. Slot 6
         Group='shock',
@@ -230,7 +230,7 @@ Magician.SpellLines = {
     {-- Summons clicky nuke orb with 10 charges. Slot 7
         Group='orb',
         Spells={'Summon Molten Komatiite Orb', 'Summon Firebound Orb', --[[emu cutoff]] 'Summon: Molten Orb', 'Summon: Lava Orb'},
-        Options={Gem=7, summonMinimum=1, nodmz=true, pause=true, alias='NUKEORB', selfbuff=true, condition=function() return not mq.TLO.FindItem('Glyphwielder\'s Eternal Bracer')() end}
+        Options={Gem=function() return not mq.TLO.FindItem('Glyphwielder\'s Eternal Bracer')() and 7 end, summonMinimum=1, nodmz=true, pause=true, alias='NUKEORB', selfbuff=true, condition=function() return not mq.TLO.FindItem('Glyphwielder\'s Eternal Bracer')() end}
     },
     {-- Large DS 10 minutes. Slot 8
         Group='veilds',
@@ -244,7 +244,7 @@ Magician.SpellLines = {
     },
     {-- 30 seconds, 4 charges large DS. Slot 9
         Group='skinds',
-        Spells={'Boiling Skin', 'Scorching Skin', 'Burning Skin', 'Blistering Skin', 'Corona Skin', --[[emu cutoff]]},
+        Spells={'Boiling Skin', 'Scorching Skin', 'Burning Skin', 'Blistering Skin', 'Corona Skin', --[[emu cutoff]] 'Ancient: Veil of Pyrilonus'},
         Options={opt='USESKINDS', Gem=8, emu=false}
     },
     {-- Twincast next spell. Slot 10
@@ -390,7 +390,7 @@ Magician.SpellLines = {
 
     -- self hp buff, blocks shm
     {Group='hpbuff', Spells={'Shield of Memories', 'Shield of Shadow', 'Shield of Restless Ice', 'Shield of Scales', 'Shield of the Pellarus', --[[emu cutoff]] 'Greater Shielding', 'Major Shielding', 'Shielding', 'Lesser Shielding', 'Minor Shielding'}, Options={}},
-    {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}, Options={selfbuff=true}}, -- self regen/ac buff
+    {Group='acregen', Spells={'Courageous Guardian', 'Relentless Guardian', 'Restless Guardian', 'Burning Guardian', 'Praetorian Guardian', --[[emu cutoff]] 'Phantom Shield', 'Xegony\'s Phantasmal Guard'}, Options={selfbuff=true, condition=function() return not mq.TLO.Me.Buff('Blessing of Steeloak')() and not mq.TLO.Me.Buff(Magician.spells.acregen.Name)() end}}, -- self regen/ac buff
     {Group='manaregen', Spells={'Valiant Symbiosis', 'Relentless Symbiosis', 'Restless Symbiosis', 'Burning Symbiosis', 'Dark Symbiosis', --[[emu cutoff]] 'Elemental Simulacrum', 'Elemental Siphon'}}, -- self mana regen
     {Group='bodyguard', Spells={'Valorforged Bodyguard', 'Ophiolite Bodyguard', 'Pyroxenite Bodyguard', 'Rhylitic Bodyguard', 'Shieldstone Bodyguard'}, Options={}}, -- proc pet when hit
 
@@ -398,7 +398,7 @@ Magician.SpellLines = {
     {Group='petstrbuff', Spells={'Rathe\'s Strength', 'Earthen Strength'}, Options={skipifbuff='Champion', petbuff=true, Checkfor='Rathe\'s Strength Effect'}},
     {Group='bigds', Spells={'Frantic Flames', 'Pyrilen Skin', 'Burning Aura'}, Options={opt='USETEMPDS', alias='TEMPDS', combatbuffothers=true, singlebuff=true, classes={WAR=true,SHD=true,PAL=true}, Gem=function(lvl) return lvl <= 70 and 9 or nil end}},
     -- Chance to increase spell power of next nuke
-    {Group='prenuke', Spells={'Fickle Conflagration', --[[emu cutoff]] 'Fickle Fire'}, Options={opt='USEFIRENUKES'}},
+    {Group='prenuke', Spells={'Fickle Conflagration', --[[emu cutoff]] 'Fickle Fire'}, Options={opt='USEFIRENUKES', Gem=7}},
 
     {Group='modrod', Spells={'Rod of Courageous Modulation', 'Sickle of Umbral Modulation', 'Wand of Frozen Modulation', 'Wand of Burning Modulation', 'Wand of Dark Modulation'}, Options={opt='USEMODRODS', summonMinimum=1, nodmz=true, pause=true}},
     {Group='massmodrod', Spells={'Mass Dark Transvergence'}, Options={opt='USEMODRODS', summonMinimum=1, nodmz=true, pause=true}},
@@ -529,7 +529,7 @@ Magician.Abilities = {
     {
         Type='AA',
         Name='Fortify Companion',
-        Options={petbuff=true}
+        Options={petbuff=true, condition=function() return not mq.TLO.Me.Song('Champion\'s Aura Effect')() end}
     },
 
     -- Debuffs
@@ -556,6 +556,7 @@ function Magician:initSpellRotations()
     table.insert(self.spellRotations.standard, self.spells.shock)
     table.insert(self.spellRotations.standard, self.spells.magicrain)
     table.insert(self.spellRotations.standard, self.spells.firerain)
+    table.insert(self.spellRotations.standard, self.spells.prenuke)
     table.insert(self.spellRotations.standard, self.spells.spear1)
     table.insert(self.spellRotations.standard, self.spells.spear2)
     table.insert(self.spellRotations.standard, self.spells.beam)

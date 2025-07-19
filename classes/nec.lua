@@ -327,6 +327,11 @@ Necromancer.Abilities = {
 
     -- Buffs
     {
+        Type='Item',
+        Name='Blightbringer\'s Eternal Bracer',
+        Options={alias='ORBS', summonMinimum=1, nodmz=true, pause=true, selfbuff=true, combatbuff=true, combatbuffothers=true, emu=true}
+    },
+    {
         Type='AA',
         Name='Mortifier\'s Unity',
         Options={selfbuff=true, emu=false}
@@ -339,12 +344,12 @@ Necromancer.Abilities = {
     {
         Type='AA',
         Name='Reluctant Benevolence',
-        Options={combatbuff=true}
+        Options={selfbuff=true}
     },
     {
         Type='AA',
         Name='Fortify Companion',
-        Options={petbuff=true}
+        Options={petbuff=true, condition=function() return not mq.TLO.Me.Song('Champion\'s Aura Effect')() end}
     },
     {
         Type='AA',
